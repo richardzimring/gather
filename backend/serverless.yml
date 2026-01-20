@@ -1,0 +1,422 @@
+org: rgzimring
+app: gather
+service: gather
+
+plugins:
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+  region: us-east-2
+  stage: ${opt:stage, 'dev'}
+  logRetentionInDays: 7
+  versionFunctions: false
+  environment:
+    STAGE: ${self:provider.stage}
+    SERVICE: ${self:service}
+    REGION: ${self:provider.region}
+    MAIN_TABLE_NAME: !Ref MainTable
+    JWT_SECRET: ${ssm:/gather/${self:provider.stage}/jwt-secret, 'dev-secret-change-in-production'}
+  httpApi:
+    cors:
+      allowedOrigins:
+        - '*'
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+
+functions:
+  # ============================================
+  # Auth Functions
+  # ============================================
+  AuthRequestCode:
+    handler: lambdas/auth/request-code.handler
+    name: ${self:provider.stage}-${self:service}-auth-request-code
+    memorySize: 128
+    timeout: 10
+    events:
+      - httpApi:
+          path: /auth/request-code
+          method: POST
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:DeleteItem
+        Resource: !GetAtt MainTable.Arn
+
+  AuthVerifyCode:
+    handler: lambdas/auth/verify-code.handler
+    name: ${self:provider.stage}-${self:service}-auth-verify-code
+    memorySize: 128
+    timeout: 10
+    events:
+      - httpApi:
+          path: /auth/verify-code
+          method: POST
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:DeleteItem
+          - dynamodb:UpdateItem
+          - dynamodb:Query
+          - dynamodb:BatchWriteItem
+        Resource:
+          - !GetAtt MainTable.Arn
+          - !Sub '${MainTable.Arn}/index/*'
+
+  AuthRefresh:
+    handler: lambdas/auth/refresh.handler
+    name: ${self:provider.stage}-${self:service}-auth-refresh
+    memorySize: 128
+    timeout: 10
+    events:
+      - httpApi:
+          path: /auth/refresh
+          method: POST
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+        Resource: !GetAtt MainTable.Arn
+
+  # ============================================
+  # User Functions
+  # ============================================
+  UsersMe:
+    handler: lambdas/users/profile.handler
+    name: ${self:provider.stage}-${self:service}-users-me
+    memorySize: 128
+    timeout: 10
+    events:
+      - httpApi:
+          path: /users/me
+          method: GET
+      - httpApi:
+          path: /users/me
+          method: PATCH
+      - httpApi:
+          path: /users/me
+          method: DELETE
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:UpdateItem
+          - dynamodb:DeleteItem
+        Resource: !GetAtt MainTable.Arn
+
+  UsersPushToken:
+    handler: lambdas/users/push-token.handler
+    name: ${self:provider.stage}-${self:service}-users-push-token
+    memorySize: 128
+    timeout: 10
+    events:
+      - httpApi:
+          path: /users/me/push-token
+          method: POST
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:UpdateItem
+        Resource: !GetAtt MainTable.Arn
+
+  # ============================================
+  # Friends Functions
+  # ============================================
+  FriendsList:
+    handler: lambdas/friends/list.handler
+    name: ${self:provider.stage}-${self:service}-friends-list
+    memorySize: 128
+    timeout: 10
+    events:
+      - httpApi:
+          path: /friends
+          method: GET
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:Query
+        Resource:
+          - !GetAtt MainTable.Arn
+          - !Sub '${MainTable.Arn}/index/*'
+
+  FriendsRequest:
+    handler: lambdas/friends/request.handler
+    name: ${self:provider.stage}-${self:service}-friends-request
+    memorySize: 128
+    timeout: 10
+    events:
+      - httpApi:
+          path: /friends/request
+          method: POST
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:Query
+        Resource:
+          - !GetAtt MainTable.Arn
+          - !Sub '${MainTable.Arn}/index/*'
+
+  FriendsRespond:
+    handler: lambdas/friends/respond.handler
+    name: ${self:provider.stage}-${self:service}-friends-respond
+    memorySize: 128
+    timeout: 10
+    events:
+      - httpApi:
+          path: /friends/{friendId}/accept
+          method: POST
+      - httpApi:
+          path: /friends/{friendId}/decline
+          method: POST
+      - httpApi:
+          path: /friends/{friendId}/block
+          method: POST
+      - httpApi:
+          path: /friends/{friendId}
+          method: DELETE
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:DeleteItem
+          - dynamodb:Query
+        Resource:
+          - !GetAtt MainTable.Arn
+          - !Sub '${MainTable.Arn}/index/*'
+
+  # ============================================
+  # Groups Functions
+  # ============================================
+  GroupsCrud:
+    handler: lambdas/groups/crud.handler
+    name: ${self:provider.stage}-${self:service}-groups-crud
+    memorySize: 128
+    timeout: 10
+    events:
+      - httpApi:
+          path: /groups
+          method: GET
+      - httpApi:
+          path: /groups
+          method: POST
+      - httpApi:
+          path: /groups/{groupId}
+          method: PATCH
+      - httpApi:
+          path: /groups/{groupId}
+          method: DELETE
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:DeleteItem
+          - dynamodb:Query
+        Resource:
+          - !GetAtt MainTable.Arn
+          - !Sub '${MainTable.Arn}/index/*'
+
+  # ============================================
+  # Activities Functions
+  # ============================================
+  ActivitiesCrud:
+    handler: lambdas/activities/crud.handler
+    name: ${self:provider.stage}-${self:service}-activities-crud
+    memorySize: 128
+    timeout: 10
+    events:
+      - httpApi:
+          path: /activities
+          method: GET
+      - httpApi:
+          path: /activities
+          method: POST
+      - httpApi:
+          path: /activities/{activityId}
+          method: PATCH
+      - httpApi:
+          path: /activities/{activityId}
+          method: DELETE
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:DeleteItem
+          - dynamodb:Query
+        Resource:
+          - !GetAtt MainTable.Arn
+          - !Sub '${MainTable.Arn}/index/*'
+
+  # ============================================
+  # Availability Functions
+  # ============================================
+  AvailabilityCrud:
+    handler: lambdas/availability/crud.handler
+    name: ${self:provider.stage}-${self:service}-availability-crud
+    memorySize: 128
+    timeout: 10
+    events:
+      - httpApi:
+          path: /availability
+          method: GET
+      - httpApi:
+          path: /availability
+          method: POST
+      - httpApi:
+          path: /availability/{windowId}
+          method: PATCH
+      - httpApi:
+          path: /availability/{windowId}
+          method: DELETE
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:DeleteItem
+          - dynamodb:Query
+        Resource:
+          - !GetAtt MainTable.Arn
+          - !Sub '${MainTable.Arn}/index/*'
+
+  AvailabilityFriends:
+    handler: lambdas/availability/friends.handler
+    name: ${self:provider.stage}-${self:service}-availability-friends
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /availability/friends
+          method: GET
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:Query
+          - dynamodb:BatchGetItem
+        Resource:
+          - !GetAtt MainTable.Arn
+          - !Sub '${MainTable.Arn}/index/*'
+
+  # ============================================
+  # Events Functions
+  # ============================================
+  EventsCrud:
+    handler: lambdas/events/crud.handler
+    name: ${self:provider.stage}-${self:service}-events-crud
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /events
+          method: GET
+      - httpApi:
+          path: /events
+          method: POST
+      - httpApi:
+          path: /events/{eventId}
+          method: GET
+      - httpApi:
+          path: /events/{eventId}
+          method: PATCH
+      - httpApi:
+          path: /events/{eventId}
+          method: DELETE
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:DeleteItem
+          - dynamodb:Query
+          - dynamodb:BatchWriteItem
+        Resource:
+          - !GetAtt MainTable.Arn
+          - !Sub '${MainTable.Arn}/index/*'
+
+  EventsRespond:
+    handler: lambdas/events/respond.handler
+    name: ${self:provider.stage}-${self:service}-events-respond
+    memorySize: 128
+    timeout: 10
+    events:
+      - httpApi:
+          path: /events/{eventId}/respond
+          method: POST
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:UpdateItem
+          - dynamodb:Query
+        Resource:
+          - !GetAtt MainTable.Arn
+          - !Sub '${MainTable.Arn}/index/*'
+
+resources:
+  Resources:
+    MainTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-main
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: pk
+            AttributeType: S
+          - AttributeName: sk
+            AttributeType: S
+          - AttributeName: gsi1pk
+            AttributeType: S
+          - AttributeName: gsi1sk
+            AttributeType: S
+        KeySchema:
+          - AttributeName: pk
+            KeyType: HASH
+          - AttributeName: sk
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: gsi1
+            KeySchema:
+              - AttributeName: gsi1pk
+                KeyType: HASH
+              - AttributeName: gsi1sk
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: expiresAt
+          Enabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+
+  Outputs:
+    MainTableName:
+      Description: Main DynamoDB table name
+      Value: !Ref MainTable
+    MainTableArn:
+      Description: Main DynamoDB table ARN
+      Value: !GetAtt MainTable.Arn
