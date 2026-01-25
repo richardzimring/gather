@@ -17,7 +17,8 @@ provider:
     SERVICE: ${self:service}
     REGION: ${self:provider.region}
     MAIN_TABLE_NAME: !Ref MainTable
-    JWT_SECRET: ${ssm:/gather/${self:provider.stage}/jwt-secret, 'dev-secret-change-in-production'}
+    COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+    COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
   httpApi:
     cors:
       allowedOrigins:
@@ -35,68 +36,37 @@ provider:
 
 functions:
   # ============================================
-  # Auth Functions
+  # Auth Function
   # ============================================
-  AuthRequestCode:
-    handler: lambdas/auth/request-code.handler
-    name: ${self:provider.stage}-${self:service}-auth-request-code
+  Auth:
+    handler: lambdas/auth.handler
+    name: ${self:provider.stage}-${self:service}-auth
     memorySize: 128
     timeout: 10
     events:
       - httpApi:
-          path: /auth/request-code
+          path: /auth/cognito/callback
           method: POST
+      - httpApi:
+          path: /auth/me
+          method: GET
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:GetItem
           - dynamodb:PutItem
-          - dynamodb:DeleteItem
-        Resource: !GetAtt MainTable.Arn
-
-  AuthVerifyCode:
-    handler: lambdas/auth/verify-code.handler
-    name: ${self:provider.stage}-${self:service}-auth-verify-code
-    memorySize: 128
-    timeout: 10
-    events:
-      - httpApi:
-          path: /auth/verify-code
-          method: POST
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:PutItem
-          - dynamodb:DeleteItem
-          - dynamodb:UpdateItem
           - dynamodb:Query
           - dynamodb:BatchWriteItem
         Resource:
           - !GetAtt MainTable.Arn
           - !Sub '${MainTable.Arn}/index/*'
 
-  AuthRefresh:
-    handler: lambdas/auth/refresh.handler
-    name: ${self:provider.stage}-${self:service}-auth-refresh
-    memorySize: 128
-    timeout: 10
-    events:
-      - httpApi:
-          path: /auth/refresh
-          method: POST
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-        Resource: !GetAtt MainTable.Arn
-
   # ============================================
-  # User Functions
+  # Users Function
   # ============================================
-  UsersMe:
-    handler: lambdas/users/profile.handler
-    name: ${self:provider.stage}-${self:service}-users-me
+  Users:
+    handler: lambdas/users.handler
+    name: ${self:provider.stage}-${self:service}-users
     memorySize: 128
     timeout: 10
     events:
@@ -109,20 +79,6 @@ functions:
       - httpApi:
           path: /users/me
           method: DELETE
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:UpdateItem
-          - dynamodb:DeleteItem
-        Resource: !GetAtt MainTable.Arn
-
-  UsersPushToken:
-    handler: lambdas/users/push-token.handler
-    name: ${self:provider.stage}-${self:service}-users-push-token
-    memorySize: 128
-    timeout: 10
-    events:
       - httpApi:
           path: /users/me/push-token
           method: POST
@@ -131,54 +87,37 @@ functions:
         Action:
           - dynamodb:GetItem
           - dynamodb:UpdateItem
-        Resource: !GetAtt MainTable.Arn
+          - dynamodb:DeleteItem
+          - dynamodb:Query
+          - dynamodb:BatchWriteItem
+        Resource:
+          - !GetAtt MainTable.Arn
+          - !Sub '${MainTable.Arn}/index/*'
 
   # ============================================
-  # Friends Functions
+  # Friends Function
   # ============================================
-  FriendsList:
-    handler: lambdas/friends/list.handler
-    name: ${self:provider.stage}-${self:service}-friends-list
+  Friends:
+    handler: lambdas/friends.handler
+    name: ${self:provider.stage}-${self:service}-friends
     memorySize: 128
     timeout: 10
     events:
       - httpApi:
           path: /friends
           method: GET
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:Query
-        Resource:
-          - !GetAtt MainTable.Arn
-          - !Sub '${MainTable.Arn}/index/*'
-
-  FriendsRequest:
-    handler: lambdas/friends/request.handler
-    name: ${self:provider.stage}-${self:service}-friends-request
-    memorySize: 128
-    timeout: 10
-    events:
+      - httpApi:
+          path: /friends/search
+          method: GET
+      - httpApi:
+          path: /friends/invite-code
+          method: GET
+      - httpApi:
+          path: /friends/invite-code/regenerate
+          method: POST
       - httpApi:
           path: /friends/request
           method: POST
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:PutItem
-          - dynamodb:Query
-        Resource:
-          - !GetAtt MainTable.Arn
-          - !Sub '${MainTable.Arn}/index/*'
-
-  FriendsRespond:
-    handler: lambdas/friends/respond.handler
-    name: ${self:provider.stage}-${self:service}-friends-respond
-    memorySize: 128
-    timeout: 10
-    events:
       - httpApi:
           path: /friends/{friendId}/accept
           method: POST
@@ -199,16 +138,17 @@ functions:
           - dynamodb:UpdateItem
           - dynamodb:DeleteItem
           - dynamodb:Query
+          - dynamodb:BatchWriteItem
         Resource:
           - !GetAtt MainTable.Arn
           - !Sub '${MainTable.Arn}/index/*'
 
   # ============================================
-  # Groups Functions
+  # Groups Function
   # ============================================
-  GroupsCrud:
-    handler: lambdas/groups/crud.handler
-    name: ${self:provider.stage}-${self:service}-groups-crud
+  Groups:
+    handler: lambdas/groups.handler
+    name: ${self:provider.stage}-${self:service}-groups
     memorySize: 128
     timeout: 10
     events:
@@ -237,11 +177,11 @@ functions:
           - !Sub '${MainTable.Arn}/index/*'
 
   # ============================================
-  # Activities Functions
+  # Activities Function
   # ============================================
-  ActivitiesCrud:
-    handler: lambdas/activities/crud.handler
-    name: ${self:provider.stage}-${self:service}-activities-crud
+  Activities:
+    handler: lambdas/activities.handler
+    name: ${self:provider.stage}-${self:service}-activities
     memorySize: 128
     timeout: 10
     events:
@@ -270,44 +210,26 @@ functions:
           - !Sub '${MainTable.Arn}/index/*'
 
   # ============================================
-  # Availability Functions
+  # Availability Function
   # ============================================
-  AvailabilityCrud:
-    handler: lambdas/availability/crud.handler
-    name: ${self:provider.stage}-${self:service}-availability-crud
-    memorySize: 128
-    timeout: 10
-    events:
-      - httpApi:
-          path: /availability
-          method: GET
-      - httpApi:
-          path: /availability
-          method: POST
-      - httpApi:
-          path: /availability/{windowId}
-          method: PATCH
-      - httpApi:
-          path: /availability/{windowId}
-          method: DELETE
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:PutItem
-          - dynamodb:UpdateItem
-          - dynamodb:DeleteItem
-          - dynamodb:Query
-        Resource:
-          - !GetAtt MainTable.Arn
-          - !Sub '${MainTable.Arn}/index/*'
-
-  AvailabilityFriends:
-    handler: lambdas/availability/friends.handler
-    name: ${self:provider.stage}-${self:service}-availability-friends
+  Availability:
+    handler: lambdas/availability.handler
+    name: ${self:provider.stage}-${self:service}-availability
     memorySize: 256
     timeout: 15
     events:
+      - httpApi:
+          path: /availability
+          method: GET
+      - httpApi:
+          path: /availability
+          method: POST
+      - httpApi:
+          path: /availability/{windowId}
+          method: PATCH
+      - httpApi:
+          path: /availability/{windowId}
+          method: DELETE
       - httpApi:
           path: /availability/friends
           method: GET
@@ -315,6 +237,9 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:DeleteItem
           - dynamodb:Query
           - dynamodb:BatchGetItem
         Resource:
@@ -322,11 +247,11 @@ functions:
           - !Sub '${MainTable.Arn}/index/*'
 
   # ============================================
-  # Events Functions
+  # Events Function
   # ============================================
-  EventsCrud:
-    handler: lambdas/events/crud.handler
-    name: ${self:provider.stage}-${self:service}-events-crud
+  Events:
+    handler: lambdas/events.handler
+    name: ${self:provider.stage}-${self:service}-events
     memorySize: 256
     timeout: 15
     events:
@@ -345,6 +270,9 @@ functions:
       - httpApi:
           path: /events/{eventId}
           method: DELETE
+      - httpApi:
+          path: /events/{eventId}/respond
+          method: POST
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -358,27 +286,11 @@ functions:
           - !GetAtt MainTable.Arn
           - !Sub '${MainTable.Arn}/index/*'
 
-  EventsRespond:
-    handler: lambdas/events/respond.handler
-    name: ${self:provider.stage}-${self:service}-events-respond
-    memorySize: 128
-    timeout: 10
-    events:
-      - httpApi:
-          path: /events/{eventId}/respond
-          method: POST
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:UpdateItem
-          - dynamodb:Query
-        Resource:
-          - !GetAtt MainTable.Arn
-          - !Sub '${MainTable.Arn}/index/*'
-
 resources:
   Resources:
+    # ============================================
+    # DynamoDB Table
+    # ============================================
     MainTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -413,6 +325,99 @@ resources:
         StreamSpecification:
           StreamViewType: NEW_AND_OLD_IMAGES
 
+    # ============================================
+    # Cognito User Pool
+    # ============================================
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:service}-${self:provider.stage}-users
+        AutoVerifiedAttributes:
+          - email
+        UsernameAttributes:
+          - email
+        UsernameConfiguration:
+          CaseSensitive: false
+        MfaConfiguration: 'OFF'
+        AccountRecoverySetting:
+          RecoveryMechanisms:
+            - Name: verified_email
+              Priority: 1
+        Schema:
+          - Name: email
+            Required: true
+            Mutable: true
+            AttributeDataType: String
+          - Name: name
+            Required: false
+            Mutable: true
+            AttributeDataType: String
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+            RequireLowercase: true
+            RequireUppercase: true
+            RequireNumbers: true
+            RequireSymbols: false
+
+    # ============================================
+    # Cognito User Pool Client (for mobile app)
+    # ============================================
+    CognitoUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: ${self:service}-${self:provider.stage}-app
+        UserPoolId: !Ref CognitoUserPool
+        GenerateSecret: false
+        ExplicitAuthFlows:
+          - ALLOW_USER_SRP_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+          - ALLOW_USER_PASSWORD_AUTH
+        SupportedIdentityProviders:
+          - COGNITO
+        PreventUserExistenceErrors: ENABLED
+        AccessTokenValidity: 1
+        IdTokenValidity: 1
+        RefreshTokenValidity: 30
+        TokenValidityUnits:
+          AccessToken: hours
+          IdToken: hours
+          RefreshToken: days
+        CallbackURLs:
+          - gather://callback
+          - exp://localhost:8081/--/callback
+        LogoutURLs:
+          - gather://logout
+          - exp://localhost:8081/--/logout
+        AllowedOAuthFlows:
+          - code
+        AllowedOAuthScopes:
+          - email
+          - openid
+          - profile
+        AllowedOAuthFlowsUserPoolClient: true
+
+    # ============================================
+    # Cognito Identity Pool (for federated identities)
+    # ============================================
+    CognitoIdentityPool:
+      Type: AWS::Cognito::IdentityPool
+      Properties:
+        IdentityPoolName: ${self:service}_${self:provider.stage}_identity
+        AllowUnauthenticatedIdentities: false
+        CognitoIdentityProviders:
+          - ClientId: !Ref CognitoUserPoolClient
+            ProviderName: !GetAtt CognitoUserPool.ProviderName
+
+    # ============================================
+    # Cognito User Pool Domain (for hosted UI)
+    # ============================================
+    CognitoUserPoolDomain:
+      Type: AWS::Cognito::UserPoolDomain
+      Properties:
+        Domain: ${self:service}-${self:provider.stage}-auth
+        UserPoolId: !Ref CognitoUserPool
+
   Outputs:
     MainTableName:
       Description: Main DynamoDB table name
@@ -420,3 +425,15 @@ resources:
     MainTableArn:
       Description: Main DynamoDB table ARN
       Value: !GetAtt MainTable.Arn
+    CognitoUserPoolId:
+      Description: Cognito User Pool ID
+      Value: !Ref CognitoUserPool
+    CognitoUserPoolClientId:
+      Description: Cognito User Pool Client ID
+      Value: !Ref CognitoUserPoolClient
+    CognitoIdentityPoolId:
+      Description: Cognito Identity Pool ID
+      Value: !Ref CognitoIdentityPool
+    CognitoUserPoolDomain:
+      Description: Cognito User Pool Domain
+      Value: !Sub '${self:service}-${self:provider.stage}-auth.auth.${self:provider.region}.amazoncognito.com'

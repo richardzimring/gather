@@ -25,7 +25,7 @@ export const getGroup = async (groupId: string): Promise<Group | null> => {
 
 export const createGroup = async (
   userId: string,
-  input: CreateGroup
+  input: CreateGroup,
 ): Promise<Group> => {
   const groupId = uuidv4();
   const now = new Date().toISOString();
@@ -51,7 +51,7 @@ export const createGroup = async (
 export const updateGroup = async (
   groupId: string,
   userId: string,
-  updates: UpdateGroup
+  updates: UpdateGroup,
 ): Promise<{ success: boolean; group?: Group; message?: string }> => {
   const existing = await getGroup(groupId);
 
@@ -66,7 +66,10 @@ export const updateGroup = async (
   if (existing.isDefault) {
     // Can only update memberIds for default groups
     if (updates.name !== undefined || updates.emoji !== undefined) {
-      return { success: false, message: 'Cannot modify default group name or emoji' };
+      return {
+        success: false,
+        message: 'Cannot modify default group name or emoji',
+      };
     }
   }
 
@@ -79,7 +82,7 @@ export const updateGroup = async (
   const record = await db.updateItem<GroupRecord>(
     groupPk(groupId),
     'METADATA',
-    cleanedUpdates
+    cleanedUpdates,
   );
 
   return {
@@ -90,7 +93,7 @@ export const updateGroup = async (
 
 export const deleteGroup = async (
   groupId: string,
-  userId: string
+  userId: string,
 ): Promise<{ success: boolean; message?: string }> => {
   const existing = await getGroup(groupId);
 
@@ -113,7 +116,7 @@ export const deleteGroup = async (
 export const addMemberToGroup = async (
   groupId: string,
   userId: string,
-  memberId: string
+  memberId: string,
 ): Promise<{ success: boolean; message?: string }> => {
   const group = await getGroup(groupId);
 
@@ -140,7 +143,7 @@ export const addMemberToGroup = async (
 export const removeMemberFromGroup = async (
   groupId: string,
   userId: string,
-  memberId: string
+  memberId: string,
 ): Promise<{ success: boolean; message?: string }> => {
   const group = await getGroup(groupId);
 
@@ -152,7 +155,7 @@ export const removeMemberFromGroup = async (
     return { success: false, message: 'Not authorized to modify this group' };
   }
 
-  const newMemberIds = group.memberIds.filter(id => id !== memberId);
+  const newMemberIds = group.memberIds.filter((id) => id !== memberId);
   await db.updateItem<GroupRecord>(groupPk(groupId), 'METADATA', {
     memberIds: newMemberIds,
   });

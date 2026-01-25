@@ -38,12 +38,12 @@ interface NotificationPayload {
 
 export const sendPushNotification = async (
   userId: string,
-  payload: NotificationPayload
+  payload: NotificationPayload,
 ): Promise<void> => {
   try {
     // Get user's push token
     const userRecord = await db.getItem<UserRecord>(userPk(userId), 'PROFILE');
-    
+
     if (!userRecord?.pushToken) {
       console.log(`No push token for user ${userId}`);
       return;
@@ -79,9 +79,11 @@ export const sendPushNotification = async (
 
 export const sendPushNotifications = async (
   userIds: string[],
-  payload: NotificationPayload
+  payload: NotificationPayload,
 ): Promise<void> => {
-  await Promise.all(userIds.map(userId => sendPushNotification(userId, payload)));
+  await Promise.all(
+    userIds.map((userId) => sendPushNotification(userId, payload)),
+  );
 };
 
 // ============================================
@@ -90,7 +92,7 @@ export const sendPushNotifications = async (
 
 export const notifyFriendRequest = async (
   targetUserId: string,
-  fromUserName: string
+  fromUserName: string,
 ): Promise<void> => {
   await sendPushNotification(targetUserId, {
     type: 'friend_request',
@@ -102,7 +104,7 @@ export const notifyFriendRequest = async (
 
 export const notifyFriendAccepted = async (
   targetUserId: string,
-  friendName: string
+  friendName: string,
 ): Promise<void> => {
   await sendPushNotification(targetUserId, {
     type: 'friend_accepted',
@@ -115,7 +117,7 @@ export const notifyFriendAccepted = async (
 export const notifyEventInvitation = async (
   inviteeIds: string[],
   event: Event,
-  hostName: string
+  hostName: string,
 ): Promise<void> => {
   await sendPushNotifications(inviteeIds, {
     type: 'event_invitation',
@@ -132,11 +134,16 @@ export const notifyEventResponse = async (
   hostId: string,
   event: Event,
   responderName: string,
-  status: string
+  status: string,
 ): Promise<void> => {
-  const statusText = status === 'accepted' ? 'is going' : 
-                     status === 'declined' ? "can't make it" : 
-                     status === 'maybe' ? 'might come' : 'responded';
+  const statusText =
+    status === 'accepted'
+      ? 'is going'
+      : status === 'declined'
+        ? "can't make it"
+        : status === 'maybe'
+          ? 'might come'
+          : 'responded';
 
   await sendPushNotification(hostId, {
     type: 'event_response',
@@ -151,7 +158,7 @@ export const notifyEventResponse = async (
 
 export const notifyEventUpdated = async (
   inviteeIds: string[],
-  event: Event
+  event: Event,
 ): Promise<void> => {
   await sendPushNotifications(inviteeIds, {
     type: 'event_updated',
@@ -166,7 +173,7 @@ export const notifyEventUpdated = async (
 
 export const notifyEventCancelled = async (
   inviteeIds: string[],
-  event: Event
+  event: Event,
 ): Promise<void> => {
   await sendPushNotifications(inviteeIds, {
     type: 'event_cancelled',
@@ -182,7 +189,7 @@ export const notifyEventCancelled = async (
 export const notifyCounterProposal = async (
   hostId: string,
   event: Event,
-  proposerName: string
+  proposerName: string,
 ): Promise<void> => {
   await sendPushNotification(hostId, {
     type: 'counter_proposal',

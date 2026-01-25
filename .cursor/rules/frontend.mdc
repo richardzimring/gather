@@ -1,0 +1,42 @@
+---
+globs: gather/**.*
+alwaysApply: false
+---
+
+# Frontend Stack
+
+- React Native + Expo
+- Tanstack Query
+- Hey API for integration with OpenAPI docs from backend
+- Zod for validation + type inference
+- Tamagui for component library
+
+# Code Guidelines
+
+- Use React Native + Expo best practices and recommended patterns
+- Prefer clean, simple, reusable code.
+- Define types and components close to where they are needed. If there are shared types between files consider using `types.ts` files.
+- When parsing objects with Zod, infer the type from the schema:
+  ```typescript
+  export const CreateEventSchema = z.object({...});
+  export type CreateEvent = z.infer<typeof CreateEventSchema>;
+  ```
+- Do *not* use eslint disables unless absolutely necessary
+- Do *not* cast to any or force unsafe casts. Use clean types and parse with Zod on unknown external inputs.
+- Use built-in and recommended features whenever possible instead of implementing by hand something which could have been cleanly imported from an existing or common package
+- Define styles, colors, fonts, etc. in a central location so that they can be used and referenced by all components
+- Define reusable custom components and maintain a clean directory hierachy for shared and sub components for clean imports instead of sphaghetti dependencies
+
+# Design Guidelines
+
+- Maintain consistency in design language between pages and components
+- UI/UX should be well thought out, clean, human, modern, and beautiful
+
+# Misc. Guidance
+
+- Do not write or run tests for now
+- Always run `npm run lint` after your changes
+- Always look up documentation with the Web Fetch tool to get the latest guidance on best and standard practices for a package, especially for these packages:
+  - https://heyapi.dev/llms.txt
+  - https://tamagui.dev/llms.txt
+

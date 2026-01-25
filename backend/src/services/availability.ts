@@ -20,22 +20,30 @@ const availabilitySk = (windowId: string) => `AVAILABILITY#${windowId}`;
 // Availability Operations
 // ============================================
 
-export const getAvailabilityWindows = async (userId: string): Promise<AvailabilityWindow[]> => {
-  const records = await db.queryByPk<AvailabilityRecord>(userPk(userId), 'AVAILABILITY#');
+export const getAvailabilityWindows = async (
+  userId: string,
+): Promise<AvailabilityWindow[]> => {
+  const records = await db.queryByPk<AvailabilityRecord>(
+    userPk(userId),
+    'AVAILABILITY#',
+  );
   return records.map(recordToAvailability);
 };
 
 export const getAvailabilityWindow = async (
   userId: string,
-  windowId: string
+  windowId: string,
 ): Promise<AvailabilityWindow | null> => {
-  const record = await db.getItem<AvailabilityRecord>(userPk(userId), availabilitySk(windowId));
+  const record = await db.getItem<AvailabilityRecord>(
+    userPk(userId),
+    availabilitySk(windowId),
+  );
   return record ? recordToAvailability(record) : null;
 };
 
 export const createAvailabilityWindow = async (
   userId: string,
-  input: CreateAvailability
+  input: CreateAvailability,
 ): Promise<AvailabilityWindow> => {
   const windowId = uuidv4();
   const now = new Date().toISOString();
@@ -61,8 +69,12 @@ export const createAvailabilityWindow = async (
 export const updateAvailabilityWindow = async (
   userId: string,
   windowId: string,
-  updates: UpdateAvailability
-): Promise<{ success: boolean; window?: AvailabilityWindow; message?: string }> => {
+  updates: UpdateAvailability,
+): Promise<{
+  success: boolean;
+  window?: AvailabilityWindow;
+  message?: string;
+}> => {
   const existing = await getAvailabilityWindow(userId, windowId);
 
   if (!existing) {
@@ -82,7 +94,7 @@ export const updateAvailabilityWindow = async (
   const record = await db.updateItem<AvailabilityRecord>(
     userPk(userId),
     availabilitySk(windowId),
-    cleanUpdates
+    cleanUpdates,
   );
 
   return {
@@ -93,7 +105,7 @@ export const updateAvailabilityWindow = async (
 
 export const deleteAvailabilityWindow = async (
   userId: string,
-  windowId: string
+  windowId: string,
 ): Promise<{ success: boolean; message?: string }> => {
   const existing = await getAvailabilityWindow(userId, windowId);
 
@@ -117,11 +129,11 @@ export interface FriendAvailability {
 export const getFriendsAvailability = async (
   userId: string,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
 ): Promise<FriendAvailability[]> => {
   // Get accepted friends
   const friendIds = await getAcceptedFriendIds(userId);
-  
+
   if (friendIds.length === 0) {
     return [];
   }
@@ -130,7 +142,7 @@ export const getFriendsAvailability = async (
   // Note: userGroups/userGroupIds are fetched for future group membership checks
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const userGroups = await getGroups(userId);
-  
+
   // Determine which groups the user is a member of (from friends' perspectives)
   // This is done per-friend when filtering visibility
 
@@ -138,33 +150,35 @@ export const getFriendsAvailability = async (
 
   for (const friendId of friendIds) {
     const friendWindows = await getAvailabilityWindows(friendId);
-    
+
     // Filter to windows visible to this user
-    const visibleWindows = friendWindows.filter(window => {
+    const visibleWindows = friendWindows.filter((window) => {
       // Check visibility rules
       if (window.visibleTo.type === 'all') {
         return true;
       }
-      
+
       if (window.visibleTo.type === 'specific') {
         return window.visibleTo.userIds?.includes(userId) ?? false;
       }
-      
+
       if (window.visibleTo.type === 'groups') {
         // Check if user is in any of the specified groups
         // Note: Groups are owned by the friend, so we need to check friend's groups
-        return window.visibleTo.groupIds?.some(() => {
-          // For now, we'll check if user is a member of any of the friend's groups
-          // This requires fetching the friend's groups
-          return false; // TODO: Implement proper group membership check
-        }) ?? false;
+        return (
+          window.visibleTo.groupIds?.some(() => {
+            // For now, we'll check if user is a member of any of the friend's groups
+            // This requires fetching the friend's groups
+            return false; // TODO: Implement proper group membership check
+          }) ?? false
+        );
       }
-      
+
       return false;
     });
 
     // Filter by date range if provided
-    const filteredWindows = visibleWindows.filter(window => {
+    const filteredWindows = visibleWindows.filter((window) => {
       if (startDate && window.endTime < startDate) return false;
       if (endDate && window.startTime > endDate) return false;
       return true;
@@ -185,7 +199,9 @@ export const getFriendsAvailability = async (
 // Helpers
 // ============================================
 
-const recordToAvailability = (record: AvailabilityRecord): AvailabilityWindow => {
+const recordToAvailability = (
+  record: AvailabilityRecord,
+): AvailabilityWindow => {
   return {
     userId: record.userId,
     windowId: record.windowId,

@@ -17,18 +17,15 @@ export const STAGE = getEnvironmentVariable('STAGE');
 // DynamoDB Tables
 export const MAIN_TABLE_NAME = getEnvironmentVariable('MAIN_TABLE_NAME');
 
-// JWT Configuration
-export const JWT_SECRET = getEnvironmentVariable('JWT_SECRET');
-export const JWT_ACCESS_EXPIRY = '1h';
-export const JWT_REFRESH_EXPIRY = '30d';
+// Cognito Configuration
+export const COGNITO_USER_POOL_ID = getOptionalEnvironmentVariable(
+  'COGNITO_USER_POOL_ID',
+);
+export const COGNITO_CLIENT_ID =
+  getOptionalEnvironmentVariable('COGNITO_CLIENT_ID');
 
-// SMS/SNS Configuration
-export const SNS_TOPIC_ARN = getOptionalEnvironmentVariable('SNS_TOPIC_ARN');
-
-// Rate Limiting
-export const VERIFICATION_CODE_EXPIRY_MINUTES = 10;
-export const MAX_VERIFICATION_ATTEMPTS = 5;
-export const VERIFICATION_COOLDOWN_MINUTES = 60;
+// Invite Code Configuration
+export const INVITE_CODE_LENGTH = 8;
 
 // Default Activities
 export const DEFAULT_ACTIVITIES = [

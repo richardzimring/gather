@@ -1,6 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import * as db from './dynamodb';
-import type { Activity, ActivityRecord, CreateActivity, UpdateActivity } from '../types';
+import type {
+  Activity,
+  ActivityRecord,
+  CreateActivity,
+  UpdateActivity,
+} from '../types';
 
 // ============================================
 // Key Builders
@@ -15,22 +20,33 @@ const userPk = (userId: string) => `USER#${userId}`;
 
 export const getActivities = async (userId: string): Promise<Activity[]> => {
   // Get default activities
-  const defaultActivities = await db.queryByGsi1<ActivityRecord>('SYSTEM', 'ACTIVITY#');
-  
+  const defaultActivities = await db.queryByGsi1<ActivityRecord>(
+    'SYSTEM',
+    'ACTIVITY#',
+  );
+
   // Get user's custom activities
-  const userActivities = await db.queryByGsi1<ActivityRecord>(userPk(userId), 'ACTIVITY#');
-  
+  const userActivities = await db.queryByGsi1<ActivityRecord>(
+    userPk(userId),
+    'ACTIVITY#',
+  );
+
   return [...defaultActivities, ...userActivities].map(recordToActivity);
 };
 
-export const getActivity = async (activityId: string): Promise<Activity | null> => {
-  const record = await db.getItem<ActivityRecord>(activityPk(activityId), 'METADATA');
+export const getActivity = async (
+  activityId: string,
+): Promise<Activity | null> => {
+  const record = await db.getItem<ActivityRecord>(
+    activityPk(activityId),
+    'METADATA',
+  );
   return record ? recordToActivity(record) : null;
 };
 
 export const createActivity = async (
   userId: string,
-  input: CreateActivity
+  input: CreateActivity,
 ): Promise<Activity> => {
   const activityId = uuidv4();
   const now = new Date().toISOString();
@@ -55,7 +71,7 @@ export const createActivity = async (
 export const updateActivity = async (
   activityId: string,
   userId: string,
-  updates: UpdateActivity
+  updates: UpdateActivity,
 ): Promise<{ success: boolean; activity?: Activity; message?: string }> => {
   const existing = await getActivity(activityId);
 
@@ -68,13 +84,16 @@ export const updateActivity = async (
   }
 
   if (existing.userId !== userId) {
-    return { success: false, message: 'Not authorized to update this activity' };
+    return {
+      success: false,
+      message: 'Not authorized to update this activity',
+    };
   }
 
   const record = await db.updateItem<ActivityRecord>(
     activityPk(activityId),
     'METADATA',
-    updates
+    updates,
   );
 
   return {
@@ -85,7 +104,7 @@ export const updateActivity = async (
 
 export const deleteActivity = async (
   activityId: string,
-  userId: string
+  userId: string,
 ): Promise<{ success: boolean; message?: string }> => {
   const existing = await getActivity(activityId);
 
@@ -98,7 +117,10 @@ export const deleteActivity = async (
   }
 
   if (existing.userId !== userId) {
-    return { success: false, message: 'Not authorized to delete this activity' };
+    return {
+      success: false,
+      message: 'Not authorized to delete this activity',
+    };
   }
 
   await db.deleteItem(activityPk(activityId), 'METADATA');

@@ -7,6 +7,7 @@ export default defineConfig([
   globalIgnores([
     'coverage/**/*',
     'dist/**/*',
+    '.serverless/**/*',
     'src/**/fixtures/**/*',
     'node_modules/**/*',
     'eslint.config.js'
