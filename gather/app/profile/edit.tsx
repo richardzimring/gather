@@ -1,10 +1,7 @@
 import { Camera } from '@tamagui/lucide-icons'
 import { router } from 'expo-router'
-import { useState } from 'react'
-import { Alert } from 'react-native'
 import {
   Circle,
-  Input,
   ScrollView,
   Text,
   Theme,
@@ -13,69 +10,16 @@ import {
 } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { BackHeader } from '../../components/ui/ScreenHeader'
 import { useAuth } from '../../lib/hooks/useAuth'
-import { patchUsersMe } from '../../lib/api/client'
 
 export default function EditProfileScreen() {
   const insets = useSafeAreaInsets()
-  const { user, refreshUser } = useAuth()
+  const { user } = useAuth()
 
-  const [displayName, setDisplayName] = useState(user?.displayName ?? '')
-  const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const initial = displayName?.[0]?.toUpperCase() ?? user?.displayName?.[0]?.toUpperCase() ?? '?'
-
-  const hasChanges = displayName !== user?.displayName
-
-  const handleSave = async () => {
-    if (!displayName.trim()) {
-      setError('Please enter a display name')
-      return
-    }
-
-    setIsSaving(true)
-    setError(null)
-
-    try {
-      const response = await patchUsersMe({
-        body: {
-          displayName: displayName.trim(),
-        },
-      })
-
-      if (response.data?.success) {
-        await refreshUser()
-        router.back()
-      } else {
-        setError('Failed to update profile')
-      }
-    } catch (err) {
-      console.error('Failed to update profile:', err)
-      setError('Failed to update profile. Please try again.')
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleCancel = () => {
-    if (hasChanges) {
-      Alert.alert(
-        'Discard Changes',
-        'Are you sure you want to discard your changes?',
-        [
-          { text: 'Keep Editing', style: 'cancel' },
-          { text: 'Discard', style: 'destructive', onPress: () => router.back() },
-        ]
-      )
-    } else {
-      router.back()
-    }
-  }
+  const initial = user?.firstName?.[0]?.toUpperCase() ?? '?'
 
   return (
     <DottedGridBackground>
@@ -89,22 +33,7 @@ export default function EditProfileScreen() {
         {/* Header */}
         <BackHeader
           title="Edit Profile"
-          onBack={handleCancel}
-          rightAction={
-            <Button
-              variant="ghost"
-              buttonSize="sm"
-              onPress={handleSave}
-              disabled={!hasChanges || isSaving}
-            >
-              <Text
-                color={hasChanges ? '$accent' : '$colorMuted'}
-                fontWeight="600"
-              >
-                {isSaving ? 'Saving...' : 'Save'}
-              </Text>
-            </Button>
-          }
+          onBack={() => router.back()}
         />
 
         {/* Avatar */}
@@ -137,27 +66,21 @@ export default function EditProfileScreen() {
           <Card marginBottom="$4">
             <YStack gap="$4">
               <YStack gap="$2">
-                <Text fontWeight="500">Display Name</Text>
-                <Input
-                  placeholder="How friends will see you"
-                  placeholderTextColor="$colorMuted"
-                  value={displayName}
-                  onChangeText={(text) => {
-                    setDisplayName(text)
-                    setError(null)
-                  }}
+                <Text fontWeight="500">Name</Text>
+                <YStack
                   backgroundColor="$backgroundHover"
-                  borderColor={error ? '$error' : '$borderColor'}
+                  borderColor="$borderColor"
                   borderWidth={1}
                   borderRadius="$3"
                   paddingHorizontal="$4"
                   height={48}
-                />
-                {error && (
-                  <Text color="$error" fontSize={13}>
-                    {error}
-                  </Text>
-                )}
+                  justifyContent="center"
+                >
+                  <Text color="$colorMuted">{user?.fullName ?? 'Unknown'}</Text>
+                </YStack>
+                <Text color="$colorMuted" fontSize={12}>
+                  Name is provided by Apple and cannot be changed
+                </Text>
               </YStack>
 
               <YStack gap="$2">
@@ -174,7 +97,7 @@ export default function EditProfileScreen() {
                   <Text color="$colorMuted">{user?.email ?? 'No email'}</Text>
                 </YStack>
                 <Text color="$colorMuted" fontSize={12}>
-                  Email cannot be changed
+                  Email is provided by Apple and cannot be changed
                 </Text>
               </YStack>
             </YStack>

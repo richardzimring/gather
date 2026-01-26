@@ -6,21 +6,87 @@ import { HTTPException } from 'hono/http-exception';
 import type { User } from '../types';
 import { APPLE_BUNDLE_ID } from '../constants';
 import * as userService from '../services/users';
+import { z } from 'zod'
 
-// https://hono.dev/docs/getting-started/aws-lambda#access-requestcontext
+const AppleJwtPayloadSchema = z.object({
+  /** * The issuer registered claim. 
+   * Value is always "https://appleid.apple.com" 
+   */
+  iss: z.literal("https://appleid.apple.com"),
 
-// Apple JWT payload structure
-interface AppleJwtPayload {
-  sub: string; // Apple user ID
-  email?: string;
-  email_verified?: string;
-  is_private_email?: string;
-  real_user_status?: number;
-  iat: number;
-  exp: number;
-  iss: string;
-  aud: string;
-}
+  /** * The subject registered claim. 
+   * The unique identifier for the user. 
+   */
+  sub: z.string(),
+
+  /** * The audience registered claim. 
+   * This will be your specific App Bundle ID (e.g., "com.myapp.ios") 
+   * or Service ID (e.g., "com.myapp.web"). 
+   */
+  aud: z.literal(APPLE_BUNDLE_ID),
+
+  /** * Issued at time (seconds since Epoch). 
+   */
+  iat: z.number(),
+
+  /** * Expiration time (seconds since Epoch). 
+   */
+  exp: z.number(),
+
+  /** * The user's email address.
+   * NOTE: This is NOT guaranteed to be present on every login 
+   * (only the first one or if scopes are requested explicitly).
+   */
+  email: z.string().email().optional(),
+
+  /** * Verification status of the email.
+   */
+  email_verified: z.boolean().optional(),
+
+  /** * Indicates if the user used "Hide My Email".
+   * If true, the `email` field is a proxy address (e.g., @privaterelay.appleid.com).
+   */
+  is_private_email: z.boolean().optional(),
+
+  /** * Nonce used to associate a client session with the ID token.
+   * Mandatory if you included a `nonce` in the authorization request.
+   */
+  nonce: z.string().optional(),
+
+  /** * Indicates if the platform supports nonces.
+   */
+  nonce_supported: z.boolean().optional(),
+
+  /** * Time of authentication.
+   */
+  auth_time: z.number().optional(),
+
+  /** * Access Token Hash.
+   * Used to validate the `access_token` if you received one.
+   */
+  at_hash: z.string().optional(),
+
+  /** * Real User Status (iOS 14+ / macOS 11+ only).
+   * 0: Unsupported, 1: Unknown, 2: LikelyReal
+   */
+  real_user_status: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
+
+  /** * Transfer Subject.
+   * Only present during the 60-day period after transferring an app 
+   * to another developer team.
+   */
+  transfer_sub: z.string().optional(),
+})
+  .refine(
+    (data) => data.exp > Math.floor(Date.now() / 1000),
+    { message: "Token expired" }
+  )
+  .refine(
+    (data) => data.aud === APPLE_BUNDLE_ID,
+    { message: "Invalid token audience" }
+  );
+
+type AppleJwtPayload = z.infer<typeof AppleJwtPayloadSchema>;
 
 // Type-safe context with user
 export interface AppEnv {
@@ -74,11 +140,10 @@ const getAppleJwks = async (): Promise<{ keys: JWK[] }> => {
  */
 export const verifyAppleToken = async (
   token: string,
-  expectedAudience?: string,
 ): Promise<AppleJwtPayload | null> => {
   try {
-    // For development without Apple, allow a simple dev token
-    if (!expectedAudience && token.startsWith('dev-')) {
+    // For development, allow a simple dev token
+    if (token.startsWith('dev-')) {
       // Dev token format: dev-{appleUserId}
       const appleUserId = token.slice(4);
       return {
@@ -120,31 +185,19 @@ export const verifyAppleToken = async (
     if (!payloadBase64) {
       return null;
     }
-    const payload = JSON.parse(
+    const payloadRaw = JSON.parse(
       Buffer.from(payloadBase64, 'base64url').toString(),
-    ) as AppleJwtPayload;
+    );
 
-    // Validate token claims
-    const now = Math.floor(Date.now() / 1000);
+    // Validate with Zod schema
+    const result = AppleJwtPayloadSchema.safeParse(payloadRaw);
 
-    if (payload.exp < now) {
-      console.error('Token expired');
+    if (!result.success) {
+      console.error('Token validation failed:', result.error.issues);
       return null;
     }
 
-    // Validate issuer
-    if (payload.iss !== 'https://appleid.apple.com') {
-      console.error('Invalid token issuer');
-      return null;
-    }
-
-    // Validate audience if provided
-    if (expectedAudience && payload.aud !== expectedAudience) {
-      console.error('Invalid token audience');
-      return null;
-    }
-
-    return payload;
+    return result.data;
   } catch (error) {
     console.error('Token verification error:', error);
     return null;
@@ -231,7 +284,7 @@ export const appleAuthMiddleware = createMiddleware<AppEnv>(async (c, next) => {
   }
 
   const token = authHeader.slice(7);
-  const payload = await verifyAppleToken(token, APPLE_BUNDLE_ID);
+  const payload = await verifyAppleToken(token);
 
   if (!payload) {
     return c.json(
@@ -305,7 +358,7 @@ export const authMiddleware = createMiddleware<AppEnv>(async (c, next) => {
 
   const token = authHeader.slice(7);
   console.log('Received token (first 50 chars):', token.substring(0, 50) + '...');
-  const payload = await verifyAppleToken(token, APPLE_BUNDLE_ID);
+  const payload = await verifyAppleToken(token);
 
   if (!payload) {
     return c.json(

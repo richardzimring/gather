@@ -2,7 +2,6 @@ import { createRoute, z } from '@hono/zod-openapi';
 import { createApp, handle, verifyAppleToken } from '../src/middleware/hono';
 import { UserSchema, ErrorResponseSchema } from '../src/types';
 import * as userService from '../src/services/users';
-import { APPLE_BUNDLE_ID } from '../src/constants';
 
 const app = createApp();
 
@@ -13,10 +12,22 @@ const app = createApp();
 const AppleCallbackSchema = z
   .object({
     identityToken: z.string().min(1, 'Identity token is required').openapi({ example: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...' }),
-    email: z.string().email().optional().openapi({ example: 'john@example.com' }),
-    displayName: z.string().min(1).max(50).optional().openapi({ example: 'John Doe' }),
-  })
-  .openapi('AppleCallback');
+    /**
+      * The user object (IMPORTANT: only present on register/first login).
+      */ 
+    user: z.object({
+      name: z.object({
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        middleName: z.string().optional(),
+        namePrefix: z.string().optional(),
+        nameSuffix: z.string().optional(),
+        nickname: z.string().optional(),
+      }).optional(),
+      email: z.string().email().optional(),
+    }).optional()
+      })
+      .openapi('AppleCallback');
 
 const AuthResponseSchema = z
   .object({
@@ -143,12 +154,11 @@ const getMeRoute = createRoute({
 // ============================================
 
 app.openapi(appleCallbackRoute, async (c) => {
-  const { identityToken, email, displayName } = c.req.valid('json');
-  console.log('Apple callback received');
+  const { identityToken, user: firstTimeUser } = c.req.valid('json');
 
   try {
     // Verify the Apple identity token
-    const payload = await verifyAppleToken(identityToken, APPLE_BUNDLE_ID);
+    const payload = await verifyAppleToken(identityToken);
     
     if (!payload) {
       return c.json(
@@ -162,12 +172,9 @@ app.openapi(appleCallbackRoute, async (c) => {
     }
 
     const appleUserId = payload.sub;
-    const tokenEmail = payload.email;
+    const userEmail = payload.email;
     
-    console.log('Apple token verified:', { appleUserId, tokenEmail });
-
-    // Use email from token if available, otherwise from request body
-    const userEmail = tokenEmail ?? email;
+    console.log('Apple token verified:', { appleUserId, userEmail });
     
     if (!userEmail) {
       return c.json(
@@ -185,12 +192,15 @@ app.openapi(appleCallbackRoute, async (c) => {
     let isNewUser = false;
 
     if (!user) {
-      // Create new user
+      const firstName = firstTimeUser?.name?.firstName ?? userEmail.split('@')[0] ?? 'User';
+      const lastName = firstTimeUser?.name?.lastName ?? '';
+      
       console.log('Creating new user...');
       user = await userService.createUser({
         appleUserId,
         email: userEmail,
-        displayName: displayName ?? userEmail.split('@')[0] ?? 'User',
+        firstName,
+        lastName,
       });
       console.log('User created successfully:', user.userId);
       isNewUser = true;

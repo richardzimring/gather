@@ -83,7 +83,7 @@ export const searchUsersByName = async (
   // - Third-party search service
 
   // For now, this is a placeholder that returns empty results
-  // The proper implementation would require a GSI on displayName
+  // The proper implementation would require a GSI on firstName/lastName
   // or integration with a search service
   console.log(
     `Search users by name: "${query}" (excluding: ${excludeUserId}, limit: ${limit})`,
@@ -91,7 +91,7 @@ export const searchUsersByName = async (
 
   // TODO: Implement proper user search
   // Options:
-  // 1. GSI on displayName (limited - exact match only)
+  // 1. GSI on firstName/lastName (limited - exact match only)
   // 2. Scan with filter (expensive for large datasets)
   // 3. External search service (OpenSearch, Algolia, etc.)
 
@@ -111,7 +111,9 @@ export const createUser = async (input: CreateUser): Promise<User> => {
     userId,
     appleUserId: input.appleUserId,
     email: input.email,
-    displayName: input.displayName,
+    firstName: input.firstName,
+    lastName: input.lastName,
+    fullName: `${input.firstName} ${input.lastName}`,
     avatarUrl: input.avatarUrl,
     createdAt: now,
     calendarSyncEnabled: false,
@@ -278,7 +280,9 @@ const recordToUser = (record: UserRecord): User => {
     userId: record.userId,
     appleUserId: record.appleUserId,
     email: record.email,
-    displayName: record.displayName,
+    firstName: record.firstName,
+    lastName: record.lastName,
+    fullName: `${record.firstName} ${record.lastName}`,
     avatarUrl: record.avatarUrl,
     createdAt: record.createdAt,
     calendarSyncEnabled: record.calendarSyncEnabled,

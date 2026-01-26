@@ -15,7 +15,9 @@ export const UserSchema = z
     userId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
     appleUserId: z.string().min(1).openapi({ example: '001234.abcdef1234567890.1234' }),
     email: z.string().email().openapi({ example: 'john@example.com' }),
-    displayName: z.string().min(1).max(50).openapi({ example: 'John Doe' }),
+    firstName: z.string().min(1).max(50).openapi({ example: 'John' }),
+    lastName: z.string().min(1).max(50).openapi({ example: 'Doe' }),
+    fullName: z.string().openapi({ example: 'John Doe' }),
     avatarUrl: z.string().url().optional().openapi({ example: 'https://example.com/avatar.jpg' }),
     createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
     calendarSyncEnabled: z.boolean().default(false).openapi({ example: false }),
@@ -29,7 +31,8 @@ export const CreateUserSchema = z
   .object({
     appleUserId: z.string().min(1).openapi({ example: '001234.abcdef1234567890.1234' }),
     email: z.string().email().openapi({ example: 'john@example.com' }),
-    displayName: z.string().min(1).max(50).openapi({ example: 'John Doe' }),
+    firstName: z.string().min(1).max(50).openapi({ example: 'John' }),
+    lastName: z.string().min(1).max(50).openapi({ example: 'Doe' }),
     avatarUrl: z.string().url().optional().openapi({ example: 'https://example.com/avatar.jpg' }),
     timezone: z.string().optional().openapi({ example: 'America/New_York' }),
   })
@@ -37,7 +40,6 @@ export const CreateUserSchema = z
 
 export const UpdateUserSchema = z
   .object({
-    displayName: z.string().min(1).max(50).optional().openapi({ example: 'John Doe' }),
     avatarUrl: z.string().url().nullable().optional().openapi({ example: 'https://example.com/avatar.jpg' }),
     timezone: z.string().optional().openapi({ example: 'America/New_York' }),
     calendarSyncEnabled: z.boolean().optional().openapi({ example: true }),

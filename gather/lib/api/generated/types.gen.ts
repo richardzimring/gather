@@ -58,7 +58,9 @@ export type User = {
     userId: string;
     appleUserId: string;
     email: string;
-    displayName: string;
+    firstName: string;
+    lastName: string;
+    fullName: string;
     avatarUrl?: string;
     createdAt: string;
     calendarSyncEnabled?: boolean;
@@ -70,7 +72,8 @@ export type User = {
 export type AppleCallback = {
     identityToken: string;
     email?: string;
-    displayName?: string;
+    firstName?: string;
+    lastName?: string;
 };
 
 export type AuthMeResponse = {
@@ -257,7 +260,7 @@ export type UserSearchResponse = {
     data: {
         users: Array<{
             userId: string;
-            displayName: string;
+            fullName: string;
             avatarUrl?: string;
         }>;
     };
@@ -337,7 +340,6 @@ export type UserResponse = {
 };
 
 export type UpdateUser = {
-    displayName?: string;
     avatarUrl?: string | null;
     timezone?: string;
     calendarSyncEnabled?: boolean;

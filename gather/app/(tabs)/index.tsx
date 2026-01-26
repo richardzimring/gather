@@ -114,7 +114,7 @@ export default function HomeScreen() {
               {getGreeting()}
             </Text>
             <H1 fontSize={28} fontWeight="700">
-              {user?.displayName?.split(' ')[0] ?? 'Welcome'}
+              {user?.firstName ?? 'Welcome'}
             </H1>
           </YStack>
           <Button

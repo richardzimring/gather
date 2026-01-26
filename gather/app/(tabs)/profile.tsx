@@ -137,12 +137,12 @@ export default function ProfileScreen() {
             <XStack alignItems="center" gap="$4">
               <Circle size={72} backgroundColor="$accent">
                 <Text fontSize={32} color="$white">
-                  {user?.displayName?.[0] ?? '?'}
+                  {user?.firstName?.[0] ?? '?'}
                 </Text>
               </Circle>
               <YStack flex={1}>
                 <Text fontSize={20} fontWeight="600">
-                  {user?.displayName ?? 'Unknown'}
+                  {user?.fullName ?? 'Unknown'}
                 </Text>
                 <Text color="$colorMuted">{user?.email ?? 'No email'}</Text>
               </YStack>

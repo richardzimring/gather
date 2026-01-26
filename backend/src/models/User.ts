@@ -12,7 +12,8 @@ export const UserSchema = z.object({
   userId: z.string().uuid(),
   appleUserId: z.string().min(1),
   email: z.string().email(),
-  displayName: z.string().min(1).max(50),
+  firstName: z.string().min(1).max(50),
+  lastName: z.string().min(1).max(50),
   avatarUrl: z.string().url().optional(),
   createdAt: z.string().datetime(),
   calendarSyncEnabled: z.boolean().default(false),
@@ -24,13 +25,13 @@ export const UserSchema = z.object({
 export const CreateUserInput = z.object({
   appleUserId: z.string().min(1),
   email: z.string().email(),
-  displayName: z.string().min(1).max(50),
+  firstName: z.string().min(1).max(50),
+  lastName: z.string().min(1).max(50),
   avatarUrl: z.string().url().optional(),
   timezone: z.string().optional(),
 });
 
 export const UpdateUserInput = z.object({
-  displayName: z.string().min(1).max(50).optional(),
   avatarUrl: z.string().url().nullable().optional(),
   timezone: z.string().optional(),
   calendarSyncEnabled: z.boolean().optional(),
@@ -88,8 +89,14 @@ export class User extends BaseModel<UserRecord> {
   get email(): string {
     return this.record.email;
   }
-  get displayName(): string {
-    return this.record.displayName;
+  get firstName(): string {
+    return this.record.firstName;
+  }
+  get lastName(): string {
+    return this.record.lastName;
+  }
+  get fullName(): string {
+    return `${this.record.firstName} ${this.record.lastName}`;
   }
   get avatarUrl(): string | undefined {
     return this.record.avatarUrl;
@@ -162,7 +169,8 @@ export class User extends BaseModel<UserRecord> {
       userId,
       appleUserId: validated.appleUserId,
       email: validated.email,
-      displayName: validated.displayName,
+      firstName: validated.firstName,
+      lastName: validated.lastName,
       avatarUrl: validated.avatarUrl,
       createdAt: now,
       calendarSyncEnabled: false,
@@ -205,9 +213,6 @@ export class User extends BaseModel<UserRecord> {
     const validated = UpdateUserInput.parse(updates);
 
     const cleanUpdates: Partial<UserRecord> = {};
-    if (validated.displayName !== undefined) {
-      cleanUpdates.displayName = validated.displayName;
-    }
     if (validated.avatarUrl !== undefined) {
       cleanUpdates.avatarUrl =
         validated.avatarUrl === null ? undefined : validated.avatarUrl;

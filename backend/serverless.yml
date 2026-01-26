@@ -5,9 +5,13 @@ service: gather
 plugins:
   - serverless-offline
 
+custom:
+  appBundleIdentifier:
+    prod: com.gather.app
+    dev: host.exp.Exponent
 provider:
   name: aws
-  runtime: nodejs22.x
+  runtime: nodejs24.x
   region: us-east-2
   stage: ${opt:stage, 'dev'}
   logRetentionInDays: 7
@@ -17,7 +21,7 @@ provider:
     SERVICE: ${self:service}
     REGION: ${self:provider.region}
     MAIN_TABLE_NAME: !Ref MainTable
-    APPLE_BUNDLE_ID: com.gather.app
+    APPLE_BUNDLE_ID: ${self:custom.appBundleIdentifier.${self:provider.stage}}
   httpApi:
     cors:
       allowedOrigins:

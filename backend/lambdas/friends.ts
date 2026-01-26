@@ -60,7 +60,7 @@ const UserSearchResponseSchema = z
     data: z.object({
       users: z.array(z.object({
         userId: z.string().uuid(),
-        displayName: z.string(),
+        fullName: z.string(),
         avatarUrl: z.string().optional(),
       })),
     }),

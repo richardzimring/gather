@@ -6,10 +6,6 @@ const getEnvironmentVariable = (param: string): string => {
   return value;
 };
 
-const getOptionalEnvironmentVariable = (param: string): string | undefined => {
-  return process.env[param];
-};
-
 // AWS Configuration
 export const REGION = getEnvironmentVariable('REGION');
 export const STAGE = getEnvironmentVariable('STAGE');
@@ -19,8 +15,7 @@ export const MAIN_TABLE_NAME = getEnvironmentVariable('MAIN_TABLE_NAME');
 
 // Apple Sign In Configuration
 // Bundle ID for verifying Apple identity tokens
-export const APPLE_BUNDLE_ID =
-  getOptionalEnvironmentVariable('APPLE_BUNDLE_ID') ?? 'com.gather.app';
+export const APPLE_BUNDLE_ID = getEnvironmentVariable('APPLE_BUNDLE_ID');
 
 // Invite Code Configuration
 export const INVITE_CODE_LENGTH = 8;

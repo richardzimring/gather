@@ -21,7 +21,7 @@ interface AuthContextValue extends AuthState {
   isAuthenticated: boolean
 
   // Auth methods
-  signInWithApple: () => Promise<void>
+  signInWithApple: () => Promise<{ isNewUser: boolean } | undefined>
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -127,29 +127,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('No identity token received from Apple')
       }
 
-      // Format full name if provided (only on first sign-in)
-      let displayName: string | undefined
-      if (credential.fullName) {
-        const nameParts = [
-          credential.fullName.givenName,
-          credential.fullName.familyName,
-        ].filter(Boolean)
-        if (nameParts.length > 0) {
-          displayName = nameParts.join(' ')
-        }
-      }
+      // Extract first and last name from Apple (only provided on first sign-in)
+      const firstName = credential.fullName?.givenName ?? undefined
+      const lastName = credential.fullName?.familyName ?? undefined
 
       // Send to backend for verification and user creation/lookup
       const response = await postAuthAppleCallback({
         body: {
           identityToken: credential.identityToken,
           email: credential.email ?? undefined,
-          displayName,
+          firstName,
+          lastName,
         },
       })
 
       if (response.data?.success) {
-        const { user, token } = response.data.data
+        const { user, token, isNewUser } = response.data.data
 
         // Store the token and Apple user ID
         await Promise.all([
@@ -162,6 +155,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           user,
           status: 'authenticated',
         })
+
+        return { isNewUser: isNewUser ?? false }
       } else {
         throw new Error('Failed to authenticate with backend')
       }

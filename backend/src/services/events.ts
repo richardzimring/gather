@@ -144,7 +144,7 @@ export const createEvent = async (
   if (input.inviteeIds.length > 0) {
     const host = await getUserById(hostId);
     if (host) {
-      await notifyEventInvitation(input.inviteeIds, event, host.displayName);
+      await notifyEventInvitation(input.inviteeIds, event, host.fullName);
     }
   }
 
@@ -286,13 +286,13 @@ export const respondToEvent = async (
     await notifyEventResponse(
       event.hostId,
       event,
-      responder.displayName,
+      responder.fullName,
       responseData.status,
     );
 
     // If there's a counter proposal, send additional notification
     if (responseData.counterProposal) {
-      await notifyCounterProposal(event.hostId, event, responder.displayName);
+      await notifyCounterProposal(event.hostId, event, responder.fullName);
     }
   }
 

@@ -147,7 +147,7 @@ export const sendFriendRequest = async (
   // Send push notification to target user
   const requester = await getUserById(userId);
   if (requester) {
-    await notifyFriendRequest(targetUser.userId, requester.displayName);
+    await notifyFriendRequest(targetUser.userId, requester.fullName);
   }
 
   return {
@@ -198,7 +198,7 @@ export const acceptFriendRequest = async (
   // Send push notification to the original requester
   const accepter = await getUserById(userId);
   if (accepter) {
-    await notifyFriendAccepted(friendId, accepter.displayName);
+    await notifyFriendAccepted(friendId, accepter.fullName);
   }
 
   return {

@@ -245,10 +245,20 @@
             "format": "email",
             "example": "john@example.com"
           },
-          "displayName": {
+          "firstName": {
             "type": "string",
             "minLength": 1,
             "maxLength": 50,
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "example": "Doe"
+          },
+          "fullName": {
+            "type": "string",
             "example": "John Doe"
           },
           "avatarUrl": {
@@ -284,7 +294,9 @@
           "userId",
           "appleUserId",
           "email",
-          "displayName",
+          "firstName",
+          "lastName",
+          "fullName",
           "createdAt"
         ]
       },
@@ -301,11 +313,17 @@
             "format": "email",
             "example": "john@example.com"
           },
-          "displayName": {
+          "firstName": {
             "type": "string",
             "minLength": 1,
             "maxLength": 50,
-            "example": "John Doe"
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "example": "Doe"
           }
         },
         "required": [
@@ -1123,7 +1141,7 @@
                       "type": "string",
                       "format": "uuid"
                     },
-                    "displayName": {
+                    "fullName": {
                       "type": "string"
                     },
                     "avatarUrl": {
@@ -1132,7 +1150,7 @@
                   },
                   "required": [
                     "userId",
-                    "displayName"
+                    "fullName"
                   ]
                 }
               }
@@ -1435,12 +1453,6 @@
       "UpdateUser": {
         "type": "object",
         "properties": {
-          "displayName": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 50,
-            "example": "John Doe"
-          },
           "avatarUrl": {
             "type": "string",
             "nullable": true,
