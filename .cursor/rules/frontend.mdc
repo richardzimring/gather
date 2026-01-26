@@ -29,13 +29,14 @@ alwaysApply: false
 
 # Design Guidelines
 
-- Maintain consistency in design language between pages and components
+- Maintain consistency in design language between all pages and components
 - UI/UX should be well thought out, clean, human, modern, and beautiful
 
 # Misc. Guidance
 
 - Do not write or run tests for now
 - Always run `npm run lint` after your changes
+- Do not run the expo server
 - Always look up documentation with the Web Fetch tool to get the latest guidance on best and standard practices for a package, especially for these packages:
   - https://heyapi.dev/llms.txt
   - https://tamagui.dev/llms.txt

@@ -10,7 +10,7 @@ import { INVITE_CODE_LENGTH } from '../constants';
 
 export const UserSchema = z.object({
   userId: z.string().uuid(),
-  cognitoId: z.string().min(1),
+  appleUserId: z.string().min(1),
   email: z.string().email(),
   displayName: z.string().min(1).max(50),
   avatarUrl: z.string().url().optional(),
@@ -22,7 +22,7 @@ export const UserSchema = z.object({
 });
 
 export const CreateUserInput = z.object({
-  cognitoId: z.string().min(1),
+  appleUserId: z.string().min(1),
   email: z.string().email(),
   displayName: z.string().min(1).max(50),
   avatarUrl: z.string().url().optional(),
@@ -47,7 +47,7 @@ export type UpdateUserData = z.infer<typeof UpdateUserInput>;
 interface UserRecord extends UserData {
   pk: string; // USER#<userId>
   sk: string; // PROFILE
-  gsi1pk: string; // COGNITO#<cognitoId>
+  gsi1pk: string; // APPLE#<appleUserId>
   gsi1sk: string; // USER
 }
 
@@ -68,8 +68,8 @@ export class User extends BaseModel<UserRecord> {
   private static userPk(userId: string) {
     return `USER#${userId}`;
   }
-  private static cognitoPk(cognitoId: string) {
-    return `COGNITO#${cognitoId}`;
+  private static applePk(appleUserId: string) {
+    return `APPLE#${appleUserId}`;
   }
   private static inviteCodePk(code: string) {
     return `INVITE#${code}`;
@@ -82,8 +82,8 @@ export class User extends BaseModel<UserRecord> {
   get userId(): string {
     return this.record.userId;
   }
-  get cognitoId(): string {
-    return this.record.cognitoId;
+  get appleUserId(): string {
+    return this.record.appleUserId;
   }
   get email(): string {
     return this.record.email;
@@ -123,11 +123,11 @@ export class User extends BaseModel<UserRecord> {
   }
 
   /**
-   * Find a user by their Cognito ID (sub claim from JWT)
+   * Find a user by their Apple User ID (sub claim from Apple JWT)
    */
-  static async findByCognitoId(cognitoId: string): Promise<User | null> {
+  static async findByAppleUserId(appleUserId: string): Promise<User | null> {
     const records = await db.queryByGsi1<UserRecord>(
-      User.cognitoPk(cognitoId),
+      User.applePk(appleUserId),
       'USER',
     );
     return records[0] ? new User(records[0]) : null;
@@ -157,10 +157,10 @@ export class User extends BaseModel<UserRecord> {
     const record: UserRecord = {
       pk: User.userPk(userId),
       sk: 'PROFILE',
-      gsi1pk: User.cognitoPk(validated.cognitoId),
+      gsi1pk: User.applePk(validated.appleUserId),
       gsi1sk: 'USER',
       userId,
-      cognitoId: validated.cognitoId,
+      appleUserId: validated.appleUserId,
       email: validated.email,
       displayName: validated.displayName,
       avatarUrl: validated.avatarUrl,

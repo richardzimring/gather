@@ -7,7 +7,7 @@ plugins:
 
 provider:
   name: aws
-  runtime: nodejs24.x
+  runtime: nodejs22.x
   region: us-east-2
   stage: ${opt:stage, 'dev'}
   logRetentionInDays: 7
@@ -17,8 +17,7 @@ provider:
     SERVICE: ${self:service}
     REGION: ${self:provider.region}
     MAIN_TABLE_NAME: !Ref MainTable
-    COGNITO_USER_POOL_ID: !Ref CognitoUserPool
-    COGNITO_CLIENT_ID: !Ref CognitoUserPoolClient
+    APPLE_BUNDLE_ID: com.gather.app
   httpApi:
     cors:
       allowedOrigins:
@@ -45,7 +44,7 @@ functions:
     timeout: 10
     events:
       - httpApi:
-          path: /auth/cognito/callback
+          path: /auth/apple/callback
           method: POST
       - httpApi:
           path: /auth/me
@@ -325,99 +324,6 @@ resources:
         StreamSpecification:
           StreamViewType: NEW_AND_OLD_IMAGES
 
-    # ============================================
-    # Cognito User Pool
-    # ============================================
-    CognitoUserPool:
-      Type: AWS::Cognito::UserPool
-      Properties:
-        UserPoolName: ${self:service}-${self:provider.stage}-users
-        AutoVerifiedAttributes:
-          - email
-        UsernameAttributes:
-          - email
-        UsernameConfiguration:
-          CaseSensitive: false
-        MfaConfiguration: 'OFF'
-        AccountRecoverySetting:
-          RecoveryMechanisms:
-            - Name: verified_email
-              Priority: 1
-        Schema:
-          - Name: email
-            Required: true
-            Mutable: true
-            AttributeDataType: String
-          - Name: name
-            Required: false
-            Mutable: true
-            AttributeDataType: String
-        Policies:
-          PasswordPolicy:
-            MinimumLength: 8
-            RequireLowercase: true
-            RequireUppercase: true
-            RequireNumbers: true
-            RequireSymbols: false
-
-    # ============================================
-    # Cognito User Pool Client (for mobile app)
-    # ============================================
-    CognitoUserPoolClient:
-      Type: AWS::Cognito::UserPoolClient
-      Properties:
-        ClientName: ${self:service}-${self:provider.stage}-app
-        UserPoolId: !Ref CognitoUserPool
-        GenerateSecret: false
-        ExplicitAuthFlows:
-          - ALLOW_USER_SRP_AUTH
-          - ALLOW_REFRESH_TOKEN_AUTH
-          - ALLOW_USER_PASSWORD_AUTH
-        SupportedIdentityProviders:
-          - COGNITO
-        PreventUserExistenceErrors: ENABLED
-        AccessTokenValidity: 1
-        IdTokenValidity: 1
-        RefreshTokenValidity: 30
-        TokenValidityUnits:
-          AccessToken: hours
-          IdToken: hours
-          RefreshToken: days
-        CallbackURLs:
-          - gather://callback
-          - exp://localhost:8081/--/callback
-        LogoutURLs:
-          - gather://logout
-          - exp://localhost:8081/--/logout
-        AllowedOAuthFlows:
-          - code
-        AllowedOAuthScopes:
-          - email
-          - openid
-          - profile
-        AllowedOAuthFlowsUserPoolClient: true
-
-    # ============================================
-    # Cognito Identity Pool (for federated identities)
-    # ============================================
-    CognitoIdentityPool:
-      Type: AWS::Cognito::IdentityPool
-      Properties:
-        IdentityPoolName: ${self:service}_${self:provider.stage}_identity
-        AllowUnauthenticatedIdentities: false
-        CognitoIdentityProviders:
-          - ClientId: !Ref CognitoUserPoolClient
-            ProviderName: !GetAtt CognitoUserPool.ProviderName
-
-    # ============================================
-    # Cognito User Pool Domain (for hosted UI)
-    # ============================================
-    CognitoUserPoolDomain:
-      Type: AWS::Cognito::UserPoolDomain
-      Properties:
-        Domain: ${self:service}-${self:provider.stage}-auth
-        UserPoolId: !Ref CognitoUserPool
-
   Outputs:
     MainTableName:
       Description: Main DynamoDB table name
@@ -425,15 +331,3 @@ resources:
     MainTableArn:
       Description: Main DynamoDB table ARN
       Value: !GetAtt MainTable.Arn
-    CognitoUserPoolId:
-      Description: Cognito User Pool ID
-      Value: !Ref CognitoUserPool
-    CognitoUserPoolClientId:
-      Description: Cognito User Pool Client ID
-      Value: !Ref CognitoUserPoolClient
-    CognitoIdentityPoolId:
-      Description: Cognito Identity Pool ID
-      Value: !Ref CognitoIdentityPool
-    CognitoUserPoolDomain:
-      Description: Cognito User Pool Domain
-      Value: !Sub '${self:service}-${self:provider.stage}-auth.auth.${self:provider.region}.amazoncognito.com'

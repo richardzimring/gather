@@ -1,7 +1,8 @@
 import { createRoute, z } from '@hono/zod-openapi';
-import { createApp, handle } from '../src/middleware/hono';
+import { createApp, handle, verifyAppleToken } from '../src/middleware/hono';
 import { UserSchema, ErrorResponseSchema } from '../src/types';
 import * as userService from '../src/services/users';
+import { APPLE_BUNDLE_ID } from '../src/constants';
 
 const app = createApp();
 
@@ -9,20 +10,20 @@ const app = createApp();
 // Schemas
 // ============================================
 
-const CognitoCallbackSchema = z
+const AppleCallbackSchema = z
   .object({
-    cognitoId: z.string().min(1, 'Cognito ID is required').openapi({ example: 'us-east-1_abc123|user123' }),
-    email: z.string().email('Valid email is required').openapi({ example: 'john@example.com' }),
+    identityToken: z.string().min(1, 'Identity token is required').openapi({ example: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...' }),
+    email: z.string().email().optional().openapi({ example: 'john@example.com' }),
     displayName: z.string().min(1).max(50).optional().openapi({ example: 'John Doe' }),
-    avatarUrl: z.string().url().optional().openapi({ example: 'https://example.com/avatar.jpg' }),
   })
-  .openapi('CognitoCallback');
+  .openapi('AppleCallback');
 
 const AuthResponseSchema = z
   .object({
     success: z.literal(true),
     data: z.object({
       user: UserSchema,
+      token: z.string(),
       isNewUser: z.boolean(),
     }),
     message: z.string().optional(),
@@ -42,17 +43,17 @@ const AuthMeResponseSchema = z
 // Route Definitions
 // ============================================
 
-const cognitoCallbackRoute = createRoute({
+const appleCallbackRoute = createRoute({
   method: 'post',
-  path: '/auth/cognito/callback',
+  path: '/auth/apple/callback',
   tags: ['Authentication'],
-  summary: 'Cognito OAuth callback',
-  description: 'Handle Cognito OAuth callback and create/update user',
+  summary: 'Apple Sign In callback',
+  description: 'Handle Apple Sign In callback and create/update user',
   request: {
     body: {
       content: {
         'application/json': {
-          schema: CognitoCallbackSchema,
+          schema: AppleCallbackSchema,
         },
       },
       required: true,
@@ -74,6 +75,14 @@ const cognitoCallbackRoute = createRoute({
         },
       },
       description: 'Invalid request',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Invalid identity token',
     },
     500: {
       content: {
@@ -133,30 +142,70 @@ const getMeRoute = createRoute({
 // Route Handlers
 // ============================================
 
-app.openapi(cognitoCallbackRoute, async (c) => {
-  const { cognitoId, email, displayName, avatarUrl } = c.req.valid('json');
+app.openapi(appleCallbackRoute, async (c) => {
+  const { identityToken, email, displayName } = c.req.valid('json');
+  console.log('Apple callback received');
 
   try {
+    // Verify the Apple identity token
+    const payload = await verifyAppleToken(identityToken, APPLE_BUNDLE_ID);
+    
+    if (!payload) {
+      return c.json(
+        {
+          success: false as const,
+          error: 'Unauthorized',
+          message: 'Invalid or expired identity token',
+        },
+        401,
+      );
+    }
+
+    const appleUserId = payload.sub;
+    const tokenEmail = payload.email;
+    
+    console.log('Apple token verified:', { appleUserId, tokenEmail });
+
+    // Use email from token if available, otherwise from request body
+    const userEmail = tokenEmail ?? email;
+    
+    if (!userEmail) {
+      return c.json(
+        {
+          success: false as const,
+          error: 'Bad Request',
+          message: 'Email is required but was not provided by Apple or in the request',
+        },
+        400,
+      );
+    }
+
     // Check if user already exists
-    let user = await userService.getUserByCognitoId(cognitoId);
+    let user = await userService.getUserByAppleUserId(appleUserId);
     let isNewUser = false;
 
     if (!user) {
       // Create new user
+      console.log('Creating new user...');
       user = await userService.createUser({
-        cognitoId,
-        email,
-        displayName: displayName ?? email.split('@')[0] ?? 'User',
-        avatarUrl,
+        appleUserId,
+        email: userEmail,
+        displayName: displayName ?? userEmail.split('@')[0] ?? 'User',
       });
+      console.log('User created successfully:', user.userId);
       isNewUser = true;
+    } else {
+      console.log('User already exists:', user.userId);
     }
 
+    // Return the identity token as the session token
+    // The middleware will verify this token on subsequent requests
     return c.json(
       {
         success: true as const,
         data: {
           user,
+          token: identityToken,
           isNewUser,
         },
         message: isNewUser
@@ -166,7 +215,7 @@ app.openapi(cognitoCallbackRoute, async (c) => {
       200,
     );
   } catch (error) {
-    console.error('Error in cognito callback:', error);
+    console.error('Error in Apple callback:', error);
     return c.json(
       {
         success: false as const,
@@ -179,11 +228,11 @@ app.openapi(cognitoCallbackRoute, async (c) => {
 });
 
 app.openapi(getMeRoute, async (c) => {
-  // This endpoint will be protected by Cognito JWT middleware
-  // The middleware will set the cognitoId from the JWT
-  const cognitoId = c.get('cognitoId') as string | undefined;
+  // This endpoint will be protected by Apple JWT middleware
+  // The middleware will set the appleUserId from the JWT
+  const appleUserId = c.get('appleUserId') as string | undefined;
 
-  if (!cognitoId) {
+  if (!appleUserId) {
     return c.json(
       {
         success: false as const,
@@ -195,7 +244,7 @@ app.openapi(getMeRoute, async (c) => {
   }
 
   try {
-    const user = await userService.getUserByCognitoId(cognitoId);
+    const user = await userService.getUserByAppleUserId(appleUserId);
 
     if (!user) {
       return c.json(

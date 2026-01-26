@@ -13,7 +13,7 @@ const EXAMPLE_DATETIME = '2024-01-15T10:30:00.000Z';
 export const UserSchema = z
   .object({
     userId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
-    cognitoId: z.string().min(1).openapi({ example: 'us-east-1_abc123|user123' }),
+    appleUserId: z.string().min(1).openapi({ example: '001234.abcdef1234567890.1234' }),
     email: z.string().email().openapi({ example: 'john@example.com' }),
     displayName: z.string().min(1).max(50).openapi({ example: 'John Doe' }),
     avatarUrl: z.string().url().optional().openapi({ example: 'https://example.com/avatar.jpg' }),
@@ -27,7 +27,7 @@ export const UserSchema = z
 
 export const CreateUserSchema = z
   .object({
-    cognitoId: z.string().min(1).openapi({ example: 'us-east-1_abc123|user123' }),
+    appleUserId: z.string().min(1).openapi({ example: '001234.abcdef1234567890.1234' }),
     email: z.string().email().openapi({ example: 'john@example.com' }),
     displayName: z.string().min(1).max(50).openapi({ example: 'John Doe' }),
     avatarUrl: z.string().url().optional().openapi({ example: 'https://example.com/avatar.jpg' }),
@@ -359,7 +359,7 @@ export interface AuthResponse {
 export interface UserRecord extends User {
   pk: string; // USER#<userId>
   sk: string; // PROFILE
-  gsi1pk: string; // COGNITO#<cognitoId>
+  gsi1pk: string; // APPLE#<appleUserId>
   gsi1sk: string; // USER
 }
 

@@ -3,12 +3,12 @@
   "info": {
     "version": "1.0.0",
     "title": "Gather API",
-    "description": "API for Gather App backend"
+    "description": "Social scheduling API for coordinating meetups with friends based on mutual availability"
   },
   "servers": [
     {
       "url": "https://api.gather.example.com",
-      "description": "Staging environment"
+      "description": "Production"
     },
     {
       "url": "http://localhost:3000",
@@ -205,12 +205,16 @@
               "user": {
                 "$ref": "#/components/schemas/User"
               },
+              "token": {
+                "type": "string"
+              },
               "isNewUser": {
                 "type": "boolean"
               }
             },
             "required": [
               "user",
+              "token",
               "isNewUser"
             ]
           },
@@ -231,10 +235,10 @@
             "format": "uuid",
             "example": "550e8400-e29b-41d4-a716-446655440000"
           },
-          "cognitoId": {
+          "appleUserId": {
             "type": "string",
             "minLength": 1,
-            "example": "us-east-1_abc123|user123"
+            "example": "001234.abcdef1234567890.1234"
           },
           "email": {
             "type": "string",
@@ -278,19 +282,19 @@
         },
         "required": [
           "userId",
-          "cognitoId",
+          "appleUserId",
           "email",
           "displayName",
           "createdAt"
         ]
       },
-      "CognitoCallback": {
+      "AppleCallback": {
         "type": "object",
         "properties": {
-          "cognitoId": {
+          "identityToken": {
             "type": "string",
             "minLength": 1,
-            "example": "us-east-1_abc123|user123"
+            "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
           },
           "email": {
             "type": "string",
@@ -302,16 +306,10 @@
             "minLength": 1,
             "maxLength": 50,
             "example": "John Doe"
-          },
-          "avatarUrl": {
-            "type": "string",
-            "format": "uri",
-            "example": "https://example.com/avatar.jpg"
           }
         },
         "required": [
-          "cognitoId",
-          "email"
+          "identityToken"
         ]
       },
       "AuthMeResponse": {
@@ -1752,19 +1750,19 @@
         }
       }
     },
-    "/auth/cognito/callback": {
+    "/auth/apple/callback": {
       "post": {
         "tags": [
           "Authentication"
         ],
-        "summary": "Cognito OAuth callback",
-        "description": "Handle Cognito OAuth callback and create/update user",
+        "summary": "Apple Sign In callback",
+        "description": "Handle Apple Sign In callback and create/update user",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CognitoCallback"
+                "$ref": "#/components/schemas/AppleCallback"
               }
             }
           }
@@ -1782,6 +1780,16 @@
           },
           "400": {
             "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid identity token",
             "content": {
               "application/json": {
                 "schema": {

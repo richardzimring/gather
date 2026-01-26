@@ -4,35 +4,36 @@ import { handle } from 'hono/aws-lambda';
 import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
 import type { User } from '../types';
-import { COGNITO_USER_POOL_ID, REGION } from '../constants';
+import { APPLE_BUNDLE_ID } from '../constants';
 import * as userService from '../services/users';
 
 // https://hono.dev/docs/getting-started/aws-lambda#access-requestcontext
 
-// Cognito JWT payload structure
-interface CognitoJwtPayload {
-  sub: string; // Cognito user ID
+// Apple JWT payload structure
+interface AppleJwtPayload {
+  sub: string; // Apple user ID
   email?: string;
-  'cognito:username'?: string;
-  token_use: 'id' | 'access';
+  email_verified?: string;
+  is_private_email?: string;
+  real_user_status?: number;
   iat: number;
   exp: number;
   iss: string;
-  aud?: string;
+  aud: string;
 }
 
 // Type-safe context with user
 export interface AppEnv {
   Variables: {
-    cognitoId: string;
+    appleUserId: string;
     email?: string;
     user: User;
   };
 }
 
-// JWKS cache for Cognito
-let jwksCache: { keys: JWK[] } | null = null;
-let jwksCacheTime = 0;
+// JWKS cache for Apple
+let appleJwksCache: { keys: JWK[] } | null = null;
+let appleJwksCacheTime = 0;
 const JWKS_CACHE_TTL = 3600000; // 1 hour
 
 interface JWK {
@@ -45,30 +46,109 @@ interface JWK {
 }
 
 /**
- * Fetch JWKS from Cognito
+ * Fetch JWKS from Apple
  */
-const getCognitoJwks = async (): Promise<{ keys: JWK[] }> => {
+const getAppleJwks = async (): Promise<{ keys: JWK[] }> => {
   const now = Date.now();
 
-  if (jwksCache && now - jwksCacheTime < JWKS_CACHE_TTL) {
-    return jwksCache;
+  if (appleJwksCache && now - appleJwksCacheTime < JWKS_CACHE_TTL) {
+    return appleJwksCache;
   }
 
-  if (!COGNITO_USER_POOL_ID) {
-    throw new Error('COGNITO_USER_POOL_ID is not configured');
-  }
-
-  const jwksUrl = `https://cognito-idp.${REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}/.well-known/jwks.json`;
+  const jwksUrl = 'https://appleid.apple.com/auth/keys';
 
   const response = await fetch(jwksUrl);
   if (!response.ok) {
-    throw new Error(`Failed to fetch JWKS: ${response.statusText}`);
+    throw new Error(`Failed to fetch Apple JWKS: ${response.statusText}`);
   }
 
-  jwksCache = (await response.json()) as { keys: JWK[] };
-  jwksCacheTime = now;
+  appleJwksCache = (await response.json()) as { keys: JWK[] };
+  appleJwksCacheTime = now;
 
-  return jwksCache;
+  return appleJwksCache;
+};
+
+/**
+ * Verify an Apple identity token
+ * Returns the payload if valid, null if invalid
+ */
+export const verifyAppleToken = async (
+  token: string,
+  expectedAudience?: string,
+): Promise<AppleJwtPayload | null> => {
+  try {
+    // For development without Apple, allow a simple dev token
+    if (!expectedAudience && token.startsWith('dev-')) {
+      // Dev token format: dev-{appleUserId}
+      const appleUserId = token.slice(4);
+      return {
+        sub: appleUserId,
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        iss: 'https://appleid.apple.com',
+        aud: 'dev',
+      };
+    }
+
+    // Decode JWT header to get kid
+    const [headerBase64] = token.split('.');
+    if (!headerBase64) {
+      console.error('Token verification error: Missing header part');
+      return null;
+    }
+
+    const header = JSON.parse(
+      Buffer.from(headerBase64, 'base64url').toString(),
+    ) as { kid: string; alg: string };
+
+    // Get JWKS and find matching key
+    const jwks = await getAppleJwks();
+    const key = jwks.keys.find((k) => k.kid === header.kid);
+
+    if (!key) {
+      console.error('No matching key found in Apple JWKS');
+      return null;
+    }
+
+    // Decode and validate the token payload
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    const payloadBase64 = parts[1];
+    if (!payloadBase64) {
+      return null;
+    }
+    const payload = JSON.parse(
+      Buffer.from(payloadBase64, 'base64url').toString(),
+    ) as AppleJwtPayload;
+
+    // Validate token claims
+    const now = Math.floor(Date.now() / 1000);
+
+    if (payload.exp < now) {
+      console.error('Token expired');
+      return null;
+    }
+
+    // Validate issuer
+    if (payload.iss !== 'https://appleid.apple.com') {
+      console.error('Invalid token issuer');
+      return null;
+    }
+
+    // Validate audience if provided
+    if (expectedAudience && payload.aud !== expectedAudience) {
+      console.error('Invalid token audience');
+      return null;
+    }
+
+    return payload;
+  } catch (error) {
+    console.error('Token verification error:', error);
+    return null;
+  }
 };
 
 /**
@@ -134,100 +214,9 @@ export const createApp = () => {
 };
 
 /**
- * Extract and verify Cognito JWT from Authorization header
+ * Apple JWT middleware - verifies token and extracts user info
  */
-const verifyCognitoToken = async (
-  token: string,
-): Promise<CognitoJwtPayload | null> => {
-  try {
-    // For development without Cognito, allow a simple dev token
-    if (!COGNITO_USER_POOL_ID && token.startsWith('dev-')) {
-      // Dev token format: dev-{cognitoId}
-      const cognitoId = token.slice(4);
-      return {
-        sub: cognitoId,
-        token_use: 'access',
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 3600,
-        iss: 'dev',
-      };
-    }
-
-    // Decode JWT header to get kid
-    const [headerBase64] = token.split('.');
-    if (!headerBase64) {
-      return null;
-    }
-    const header = JSON.parse(
-      Buffer.from(headerBase64, 'base64url').toString(),
-    ) as { kid: string; alg: string };
-
-    // Get JWKS and find matching key
-    const jwks = await getCognitoJwks();
-    const key = jwks.keys.find((k) => k.kid === header.kid);
-
-    if (!key) {
-      console.error('No matching key found in JWKS');
-      return null;
-    }
-
-    // Convert JWK to PEM format for verification
-    // Note: In production, consider using a library like jose for proper JWK handling
-    // For now, we'll use a simplified approach
-
-    // Verify the token using Hono's JWT verify
-    // This requires the secret to be in the right format
-    // For Cognito RSA tokens, we need to use the public key
-
-    // For MVP, we'll trust the token if it's properly signed
-    // and validate the claims manually
-    const parts = token.split('.');
-    if (parts.length !== 3) {
-      return null;
-    }
-
-    const payloadBase64 = parts[1];
-    if (!payloadBase64) {
-      return null;
-    }
-    const payload = JSON.parse(
-      Buffer.from(payloadBase64, 'base64url').toString(),
-    ) as CognitoJwtPayload;
-
-    // Validate token claims
-    const now = Math.floor(Date.now() / 1000);
-
-    if (payload.exp < now) {
-      console.error('Token expired');
-      return null;
-    }
-
-    if (!COGNITO_USER_POOL_ID) {
-      return payload; // Dev mode
-    }
-
-    const expectedIss = `https://cognito-idp.${REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}`;
-    if (payload.iss !== expectedIss) {
-      console.error('Invalid token issuer');
-      return null;
-    }
-
-    if (payload.token_use !== 'access' && payload.token_use !== 'id') {
-      console.error('Invalid token_use');
-      return null;
-    }
-
-    return payload;
-  } catch (error) {
-    console.error('Token verification error:', error);
-    return null;
-  }
-};
-
-/**
- * Cognito JWT middleware - verifies token and extracts user info
- */
-export const cognitoMiddleware = createMiddleware<AppEnv>(async (c, next) => {
+export const appleAuthMiddleware = createMiddleware<AppEnv>(async (c, next) => {
   const authHeader = c.req.header('Authorization');
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -242,7 +231,7 @@ export const cognitoMiddleware = createMiddleware<AppEnv>(async (c, next) => {
   }
 
   const token = authHeader.slice(7);
-  const payload = await verifyCognitoToken(token);
+  const payload = await verifyAppleToken(token, APPLE_BUNDLE_ID);
 
   if (!payload) {
     return c.json(
@@ -255,20 +244,20 @@ export const cognitoMiddleware = createMiddleware<AppEnv>(async (c, next) => {
     );
   }
 
-  c.set('cognitoId', payload.sub);
+  c.set('appleUserId', payload.sub);
   c.set('email', payload.email);
 
   return next();
 });
 
 /**
- * Middleware to fetch user from DB based on Cognito ID
- * Must be used after cognitoMiddleware
+ * Middleware to fetch user from DB based on Apple User ID
+ * Must be used after appleAuthMiddleware
  */
 export const userMiddleware = createMiddleware<AppEnv>(async (c, next) => {
-  const cognitoId = c.get('cognitoId');
+  const appleUserId = c.get('appleUserId');
 
-  if (!cognitoId) {
+  if (!appleUserId) {
     return c.json(
       {
         success: false,
@@ -279,7 +268,7 @@ export const userMiddleware = createMiddleware<AppEnv>(async (c, next) => {
     );
   }
 
-  const user = await userService.getUserByCognitoId(cognitoId);
+  const user = await userService.getUserByAppleUserId(appleUserId);
 
   if (!user) {
     return c.json(
@@ -297,7 +286,7 @@ export const userMiddleware = createMiddleware<AppEnv>(async (c, next) => {
 });
 
 /**
- * Combined auth middleware: Cognito JWT verification + user fetch
+ * Combined auth middleware: Apple JWT verification + user fetch
  * Use this for protected routes
  */
 export const authMiddleware = createMiddleware<AppEnv>(async (c, next) => {
@@ -315,7 +304,8 @@ export const authMiddleware = createMiddleware<AppEnv>(async (c, next) => {
   }
 
   const token = authHeader.slice(7);
-  const payload = await verifyCognitoToken(token);
+  console.log('Received token (first 50 chars):', token.substring(0, 50) + '...');
+  const payload = await verifyAppleToken(token, APPLE_BUNDLE_ID);
 
   if (!payload) {
     return c.json(
@@ -328,11 +318,11 @@ export const authMiddleware = createMiddleware<AppEnv>(async (c, next) => {
     );
   }
 
-  c.set('cognitoId', payload.sub);
+  c.set('appleUserId', payload.sub);
   c.set('email', payload.email);
 
   // Fetch user from database
-  const user = await userService.getUserByCognitoId(payload.sub);
+  const user = await userService.getUserByAppleUserId(payload.sub);
 
   if (!user) {
     return c.json(

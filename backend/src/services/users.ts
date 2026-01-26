@@ -20,7 +20,7 @@ import type { GroupRecord, ActivityRecord } from '../types';
 // ============================================
 
 const userPk = (userId: string) => `USER#${userId}`;
-const cognitoPk = (cognitoId: string) => `COGNITO#${cognitoId}`;
+const applePk = (appleUserId: string) => `APPLE#${appleUserId}`;
 const groupPk = (groupId: string) => `GROUP#${groupId}`;
 const activityPk = (activityId: string) => `ACTIVITY#${activityId}`;
 const inviteCodePk = (code: string) => `INVITE#${code}`;
@@ -46,11 +46,11 @@ export const getUserById = async (userId: string): Promise<User | null> => {
   return recordToUser(record);
 };
 
-export const getUserByCognitoId = async (
-  cognitoId: string,
+export const getUserByAppleUserId = async (
+  appleUserId: string,
 ): Promise<User | null> => {
   const records = await db.queryByGsi1<UserRecord>(
-    cognitoPk(cognitoId),
+    applePk(appleUserId),
     'USER',
   );
   const firstRecord = records[0];
@@ -106,10 +106,10 @@ export const createUser = async (input: CreateUser): Promise<User> => {
   const record: UserRecord = {
     pk: userPk(userId),
     sk: 'PROFILE',
-    gsi1pk: cognitoPk(input.cognitoId),
+    gsi1pk: applePk(input.appleUserId),
     gsi1sk: 'USER',
     userId,
-    cognitoId: input.cognitoId,
+    appleUserId: input.appleUserId,
     email: input.email,
     displayName: input.displayName,
     avatarUrl: input.avatarUrl,
@@ -276,7 +276,7 @@ const ensureDefaultActivities = async (): Promise<void> => {
 const recordToUser = (record: UserRecord): User => {
   return {
     userId: record.userId,
-    cognitoId: record.cognitoId,
+    appleUserId: record.appleUserId,
     email: record.email,
     displayName: record.displayName,
     avatarUrl: record.avatarUrl,

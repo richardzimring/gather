@@ -17,12 +17,10 @@ export const STAGE = getEnvironmentVariable('STAGE');
 // DynamoDB Tables
 export const MAIN_TABLE_NAME = getEnvironmentVariable('MAIN_TABLE_NAME');
 
-// Cognito Configuration
-export const COGNITO_USER_POOL_ID = getOptionalEnvironmentVariable(
-  'COGNITO_USER_POOL_ID',
-);
-export const COGNITO_CLIENT_ID =
-  getOptionalEnvironmentVariable('COGNITO_CLIENT_ID');
+// Apple Sign In Configuration
+// Bundle ID for verifying Apple identity tokens
+export const APPLE_BUNDLE_ID =
+  getOptionalEnvironmentVariable('APPLE_BUNDLE_ID') ?? 'com.gather.app';
 
 // Invite Code Configuration
 export const INVITE_CODE_LENGTH = 8;
