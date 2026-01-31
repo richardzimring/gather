@@ -1,13 +1,14 @@
 import { ChevronLeft, ChevronRight, Plus } from '@tamagui/lucide-icons'
 import { router } from 'expo-router'
 import { useMemo, useState } from 'react'
+import { RefreshControl } from 'react-native'
 import { H1, H2, Text, XStack, YStack, Theme, ScrollView, Circle } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
-import { useEvents, useAvailability } from '../../lib/hooks'
+import { useEvents, useAvailability, useRefresh } from '../../lib/hooks'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = [
@@ -43,8 +44,11 @@ export default function CalendarScreen() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<number | null>(new Date().getDate())
 
-  const { data: events } = useEvents()
-  const { data: availability } = useAvailability()
+  const eventsQuery = useEvents()
+  const availabilityQuery = useAvailability()
+  const { data: events } = eventsQuery
+  const { data: availability } = availabilityQuery
+  const { isRefreshing, onRefresh } = useRefresh(eventsQuery, availabilityQuery)
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -121,6 +125,9 @@ export default function CalendarScreen() {
   return (
     <DottedGridBackground>
       <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingBottom: insets.bottom + 100,
@@ -278,7 +285,6 @@ export default function CalendarScreen() {
                         </Text>
                         <Text color="$colorMuted" fontSize={13}>
                           {formatTime(window.startTime)} - {formatTime(window.endTime)}
-                          {window.visibleTo.type === 'all' && ' • All friends'}
                         </Text>
                       </YStack>
                     </XStack>

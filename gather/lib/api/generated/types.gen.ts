@@ -61,6 +61,7 @@ export type User = {
     firstName: string;
     lastName: string;
     fullName: string;
+    initials: string;
     avatarUrl?: string;
     createdAt: string;
     calendarSyncEnabled?: boolean;
@@ -71,9 +72,17 @@ export type User = {
 
 export type AppleCallback = {
     identityToken: string;
-    email?: string;
-    firstName?: string;
-    lastName?: string;
+    user?: {
+        name?: {
+            firstName?: string;
+            lastName?: string;
+            middleName?: string;
+            namePrefix?: string;
+            nameSuffix?: string;
+            nickname?: string;
+        };
+        email?: string;
+    };
 };
 
 export type AuthMeResponse = {
@@ -96,8 +105,6 @@ export type AvailabilityWindow = {
     startTime: string;
     endTime: string;
     recurring?: Recurring;
-    visibleTo: Visibility;
-    preferredActivities?: Array<string>;
     notes?: string;
     createdAt: string;
 };
@@ -109,14 +116,6 @@ export type Recurring = {
 };
 
 export type RecurringPattern = 'daily' | 'weekly' | 'biweekly' | 'monthly';
-
-export type Visibility = {
-    type: VisibilityType;
-    groupIds?: Array<string>;
-    userIds?: Array<string>;
-};
-
-export type VisibilityType = 'all' | 'groups' | 'specific';
 
 export type AvailabilityWindowResponse = {
     success: true;
@@ -130,8 +129,6 @@ export type CreateAvailability = {
     startTime: string;
     endTime: string;
     recurring?: Recurring;
-    visibleTo: Visibility;
-    preferredActivities?: Array<string>;
     notes?: string;
 };
 
@@ -139,8 +136,6 @@ export type UpdateAvailability = {
     startTime?: string;
     endTime?: string;
     recurring?: Recurring & unknown;
-    visibleTo?: Visibility;
-    preferredActivities?: Array<string> | null;
     notes?: string | null;
 };
 
@@ -164,6 +159,9 @@ export type EventsResponse = {
 export type Event = {
     eventId: string;
     hostId: string;
+    hostName: string;
+    hostInitials: string;
+    hostAvatarUrl?: string;
     title: string;
     activityId?: string;
     emoji?: string;
@@ -181,6 +179,9 @@ export type Event = {
 
 export type EventInvitee = {
     userId: string;
+    fullName: string;
+    initials: string;
+    avatarUrl?: string;
     status: InviteeStatus;
     respondedAt?: string;
     counterProposal?: CounterProposal;
@@ -237,20 +238,20 @@ export type EventResponse = {
 export type FriendsResponse = {
     success: true;
     data: {
-        friends: Array<Friendship>;
-        pendingReceived: Array<Friendship>;
-        pendingSent: Array<Friendship>;
+        friends: Array<FriendWithUser>;
+        pendingReceived: Array<FriendWithUser>;
+        pendingSent: Array<FriendWithUser>;
     };
 };
 
-export type Friendship = {
+export type FriendWithUser = {
     userId: string;
     friendId: string;
     status: FriendshipStatus;
     initiatedBy: string;
     createdAt: string;
     acceptedAt?: string;
-    customName?: string;
+    friend: User;
 };
 
 export type FriendshipStatus = 'pending' | 'accepted' | 'blocked';
@@ -281,6 +282,15 @@ export type FriendshipResponse = {
         friendship: Friendship;
     };
     message?: string;
+};
+
+export type Friendship = {
+    userId: string;
+    friendId: string;
+    status: FriendshipStatus;
+    initiatedBy: string;
+    createdAt: string;
+    acceptedAt?: string;
 };
 
 export type FriendRequest = {

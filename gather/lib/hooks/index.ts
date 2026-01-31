@@ -8,5 +8,8 @@ export * from './useActivities'
 export * from './useAvailability'
 export * from './useEvents'
 
+// Utilities
+export * from './useRefresh'
+
 // Services
 export * from './useCalendar'

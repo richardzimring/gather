@@ -34,28 +34,9 @@ import {
   useUpdateGroup,
   useDeleteGroup,
 } from '../../lib/hooks'
-import type { Friendship } from '../../lib/api/generated/types.gen'
+import type { FriendWithUser } from '../../lib/api/generated/types.gen'
 
-/**
- * Get display name for a friend
- */
-function getFriendDisplayName(friendship: Friendship): string {
-  if (friendship.customName) {
-    return friendship.customName
-  }
-  return `Friend ${friendship.friendId.slice(0, 6).toUpperCase()}`
-}
-
-/**
- * Get initials for avatar
- */
-function getInitials(name: string): string {
-  const parts = name.split(' ')
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
-  }
-  return name[0].toUpperCase()
-}
+type Friendship = FriendWithUser
 
 export default function GroupDetailScreen() {
   const insets = useSafeAreaInsets()
@@ -65,6 +46,7 @@ export default function GroupDetailScreen() {
   const [showAddMemberSheet, setShowAddMemberSheet] = useState(false)
   const [editName, setEditName] = useState('')
   const [editEmoji, setEditEmoji] = useState('')
+  const [pendingMemberId, setPendingMemberId] = useState<string | null>(null)
 
   const { data: groups, isLoading } = useGroups()
   const { data: friendsData } = useFriends()
@@ -142,6 +124,7 @@ export default function GroupDetailScreen() {
 
   const handleAddMember = async (friendId: string) => {
     if (!group || !id) return
+    setPendingMemberId(friendId)
     try {
       await updateGroup.mutateAsync({
         groupId: id,
@@ -151,6 +134,8 @@ export default function GroupDetailScreen() {
       })
     } catch (err) {
       console.error('Failed to add member:', err)
+    } finally {
+      setPendingMemberId(null)
     }
   }
 
@@ -165,6 +150,7 @@ export default function GroupDetailScreen() {
           text: 'Remove',
           style: 'destructive',
           onPress: async () => {
+            setPendingMemberId(friendId)
             try {
               await updateGroup.mutateAsync({
                 groupId: id,
@@ -174,6 +160,8 @@ export default function GroupDetailScreen() {
               })
             } catch (err) {
               console.error('Failed to remove member:', err)
+            } finally {
+              setPendingMemberId(null)
             }
           },
         },
@@ -305,22 +293,23 @@ export default function GroupDetailScreen() {
             ) : (
               <YStack>
                 {members.map((member, index) => {
-                  const displayName = getFriendDisplayName(member)
                   return (
                     <YStack key={member.friendId}>
                       <XStack alignItems="center" gap="$3" paddingVertical="$2">
                         <Circle size={44} backgroundColor="$backgroundHover">
-                          <Text fontWeight="500">{getInitials(displayName)}</Text>
+                          <Text fontWeight="500">{member.friend.initials}</Text>
                         </Circle>
                         <YStack flex={1}>
-                          <Text fontWeight="500">{displayName}</Text>
+                          <Text fontWeight="500">{member.friend.fullName}</Text>
                         </YStack>
                         <Button
                           variant="ghost"
                           buttonSize="sm"
                           circular
-                          icon={<UserMinus size={18} color="$error" />}
+                          icon={pendingMemberId === member.friendId ? undefined : <UserMinus size={18} color="$error" />}
                           onPress={() => handleRemoveMember(member.friendId)}
+                          loading={pendingMemberId === member.friendId}
+                          disabled={pendingMemberId !== null}
                         />
                       </XStack>
                       {index < members.length - 1 && (
@@ -378,11 +367,12 @@ export default function GroupDetailScreen() {
                 <Button
                   variant="danger"
                   fullWidth
-                  icon={<Trash2 size={18} color="white" />}
+                  icon={deleteGroup.isPending ? undefined : <Trash2 size={18} color="white" />}
                   onPress={() => {
                     setShowActionSheet(false)
                     handleDeleteGroup()
                   }}
+                  loading={deleteGroup.isPending}
                 >
                   Delete Group
                 </Button>
@@ -499,7 +489,6 @@ export default function GroupDetailScreen() {
               <ScrollView>
                 <YStack gap="$2">
                   {nonMembers.map((friend) => {
-                    const displayName = getFriendDisplayName(friend)
                     return (
                       <XStack
                         key={friend.friendId}
@@ -508,16 +497,17 @@ export default function GroupDetailScreen() {
                         paddingVertical="$2"
                       >
                         <Circle size={44} backgroundColor="$backgroundHover">
-                          <Text fontWeight="500">{getInitials(displayName)}</Text>
+                          <Text fontWeight="500">{friend.friend.initials}</Text>
                         </Circle>
                         <YStack flex={1}>
-                          <Text fontWeight="500">{displayName}</Text>
+                          <Text fontWeight="500">{friend.friend.fullName}</Text>
                         </YStack>
                         <Button
                           variant="primary"
                           buttonSize="sm"
                           onPress={() => handleAddMember(friend.friendId)}
-                          disabled={updateGroup.isPending}
+                          loading={pendingMemberId === friend.friendId}
+                          disabled={pendingMemberId !== null}
                         >
                           Add
                         </Button>

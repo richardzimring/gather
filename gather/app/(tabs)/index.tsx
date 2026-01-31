@@ -1,5 +1,6 @@
 import { Plus } from '@tamagui/lucide-icons'
 import { router } from 'expo-router'
+import { RefreshControl } from 'react-native'
 import { ScrollView, H2, Text, XStack, YStack, Circle, Theme } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -8,7 +9,7 @@ import { Card } from '../../components/ui/Card'
 import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { SimpleHeader } from '../../components/ui/ScreenHeader'
 import { useAuth } from '../../lib/hooks/useAuth'
-import { useEvents, useRespondToEvent } from '../../lib/hooks/useEvents'
+import { useEvents, useRespondToEvent, useRefresh } from '../../lib/hooks'
 
 /**
  * Format event time for display
@@ -93,8 +94,10 @@ function groupEventsByDay(events: any[]) {
 export default function HomeScreen() {
   const insets = useSafeAreaInsets()
   const { user } = useAuth()
-  const { data: events } = useEvents()
+  const eventsQuery = useEvents()
+  const { data: events } = eventsQuery
   const respondToEvent = useRespondToEvent()
+  const { isRefreshing, onRefresh } = useRefresh(eventsQuery)
 
   // Get today's date at midnight
   const today = new Date()
@@ -148,6 +151,9 @@ export default function HomeScreen() {
   return (
     <DottedGridBackground>
       <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingBottom: insets.bottom + 100,

@@ -1,6 +1,7 @@
 import { Search, UserPlus, Users as UsersIcon } from '@tamagui/lucide-icons'
 import { router } from 'expo-router'
 import { useMemo, useState } from 'react'
+import { RefreshControl } from 'react-native'
 import {
   H1,
   Input,
@@ -23,39 +24,22 @@ import {
   useGroups,
   useAcceptFriendRequest,
   useDeclineFriendRequest,
+  useRefresh,
 } from '../../lib/hooks'
-import type { Friendship } from '../../lib/api/generated/types.gen'
-
-/**
- * Get display name for a friend
- */
-function getFriendDisplayName(friendship: Friendship): string {
-  if (friendship.customName) {
-    return friendship.customName
-  }
-  return `Friend ${friendship.friendId.slice(0, 6).toUpperCase()}`
-}
-
-/**
- * Get initials for avatar
- */
-function getInitials(name: string): string {
-  const parts = name.split(' ')
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
-  }
-  return name[0].toUpperCase()
-}
-
 export default function FriendsScreen() {
   const insets = useSafeAreaInsets()
   const [activeTab, setActiveTab] = useState('friends')
   const [searchQuery, setSearchQuery] = useState('')
+  const [pendingRequestId, setPendingRequestId] = useState<string | null>(null)
+  const [pendingAction, setPendingAction] = useState<'accept' | 'decline' | null>(null)
 
-  const { data: friendsData } = useFriends()
-  const { data: groups } = useGroups()
+  const friendsQuery = useFriends()
+  const groupsQuery = useGroups()
+  const { data: friendsData } = friendsQuery
+  const { data: groups } = groupsQuery
   const acceptRequest = useAcceptFriendRequest()
   const declineRequest = useDeclineFriendRequest()
+  const { isRefreshing, onRefresh } = useRefresh(friendsQuery, groupsQuery)
 
   const friends = useMemo(() => friendsData?.friends ?? [], [friendsData])
   const pendingReceived = friendsData?.pendingReceived ?? []
@@ -65,7 +49,7 @@ export default function FriendsScreen() {
     if (!searchQuery.trim()) return friends
     const query = searchQuery.toLowerCase()
     return friends.filter((f) => {
-      const name = getFriendDisplayName(f).toLowerCase()
+      const name = f.friend.fullName.toLowerCase()
       return name.includes(query)
     })
   }, [friends, searchQuery])
@@ -79,18 +63,28 @@ export default function FriendsScreen() {
   }, [groups, searchQuery])
 
   const handleAccept = async (friendId: string) => {
+    setPendingRequestId(friendId)
+    setPendingAction('accept')
     try {
       await acceptRequest.mutateAsync(friendId)
     } catch (err) {
       console.error('Failed to accept request:', err)
+    } finally {
+      setPendingRequestId(null)
+      setPendingAction(null)
     }
   }
 
   const handleDecline = async (friendId: string) => {
+    setPendingRequestId(friendId)
+    setPendingAction('decline')
     try {
       await declineRequest.mutateAsync(friendId)
     } catch (err) {
       console.error('Failed to decline request:', err)
+    } finally {
+      setPendingRequestId(null)
+      setPendingAction(null)
     }
   }
 
@@ -105,6 +99,9 @@ export default function FriendsScreen() {
   return (
     <DottedGridBackground>
       <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingBottom: insets.bottom + 100,
@@ -229,9 +226,7 @@ export default function FriendsScreen() {
                   }
                 />
               ) : (
-                filteredFriends.map((friendship) => {
-                  const displayName = getFriendDisplayName(friendship)
-                  return (
+                filteredFriends.map((friendship) => (
                     <Theme key={friendship.friendId} name="Card">
                       <Card
                         pressable
@@ -240,11 +235,11 @@ export default function FriendsScreen() {
                         <XStack alignItems="center" gap="$3">
                           <Circle size={48} backgroundColor="$backgroundHover">
                             <Text fontSize={18} fontWeight="500">
-                              {getInitials(displayName)}
+                              {friendship.friend.initials}
                             </Text>
                           </Circle>
                           <YStack flex={1}>
-                            <Text fontWeight="600">{displayName}</Text>
+                            <Text fontWeight="600">{friendship.friend.fullName}</Text>
                             <Text color="$colorMuted" fontSize={13}>
                               Tap to view profile
                             </Text>
@@ -253,7 +248,7 @@ export default function FriendsScreen() {
                       </Card>
                     </Theme>
                   )
-                })
+                )
               )}
             </YStack>
           </Tabs.Content>
@@ -324,20 +319,18 @@ export default function FriendsScreen() {
                   description="When someone sends you a friend request, it will appear here."
                 />
               ) : (
-                pendingReceived.map((request) => {
-                  const displayName = request.customName ?? `User ${request.friendId.slice(0, 6).toUpperCase()}`
-                  return (
+                pendingReceived.map((request) => (
                     <Theme key={request.friendId} name="Card">
                       <Card>
                         <YStack gap="$3">
                           <XStack alignItems="center" gap="$3">
                             <Circle size={48} backgroundColor="$backgroundHover">
                               <Text fontSize={18} fontWeight="500">
-                                {getInitials(displayName)}
+                                {request.friend.initials}
                               </Text>
                             </Circle>
                             <YStack flex={1}>
-                              <Text fontWeight="600">{displayName}</Text>
+                              <Text fontWeight="600">{request.friend.fullName}</Text>
                               <Text color="$colorMuted" fontSize={13}>
                                 Wants to be your friend
                               </Text>
@@ -349,7 +342,8 @@ export default function FriendsScreen() {
                               buttonSize="sm"
                               flex={1}
                               onPress={() => handleAccept(request.friendId)}
-                              disabled={acceptRequest.isPending || declineRequest.isPending}
+                              loading={pendingRequestId === request.friendId && pendingAction === 'accept'}
+                              disabled={pendingRequestId !== null}
                             >
                               Accept
                             </Button>
@@ -358,7 +352,8 @@ export default function FriendsScreen() {
                               buttonSize="sm"
                               flex={1}
                               onPress={() => handleDecline(request.friendId)}
-                              disabled={acceptRequest.isPending || declineRequest.isPending}
+                              loading={pendingRequestId === request.friendId && pendingAction === 'decline'}
+                              disabled={pendingRequestId !== null}
                             >
                               Decline
                             </Button>
@@ -367,7 +362,7 @@ export default function FriendsScreen() {
                       </Card>
                     </Theme>
                   )
-                })
+                )
               )}
             </YStack>
           </Tabs.Content>

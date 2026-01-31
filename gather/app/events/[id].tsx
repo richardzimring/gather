@@ -19,6 +19,7 @@ import {
   Separator,
 } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useState } from 'react'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -77,25 +78,14 @@ function getStatusColor(status: InviteeStatus) {
 /**
  * Invitee item component
  */
-function InviteeItem({ invitee, isHost }: { invitee: EventInvitee; isHost: boolean }) {
-  const initial = invitee.userId[0]?.toUpperCase() ?? '?'
-  
+function InviteeItem({ invitee }: { invitee: EventInvitee }) {
   return (
     <XStack alignItems="center" gap="$3" paddingVertical="$2">
       <Circle size={40} backgroundColor="$backgroundHover">
-        <Text fontSize={16}>{initial}</Text>
+        <Text fontSize={16}>{invitee.initials}</Text>
       </Circle>
       <YStack flex={1}>
-        <XStack alignItems="center" gap="$2">
-          <Text fontWeight="500">
-            {invitee.userId.slice(0, 8)}...
-          </Text>
-          {isHost && (
-            <Text fontSize={12} color="$accent" fontWeight="600">
-              Host
-            </Text>
-          )}
-        </XStack>
+        <Text fontWeight="500">{invitee.fullName}</Text>
         <XStack alignItems="center" gap="$2">
           <Circle size={8} backgroundColor={getStatusColor(invitee.status)} />
           <Text fontSize={13} color="$colorMuted" textTransform="capitalize">
@@ -114,6 +104,7 @@ export default function EventDetailScreen() {
   const { data: event, isLoading, error } = useEvent(id ?? '')
   const respondToEvent = useRespondToEvent()
   const cancelEvent = useCancelEvent()
+  const [pendingResponse, setPendingResponse] = useState<InviteeStatus | null>(null)
 
   const isHost = event?.hostId === user?.userId
   const userInvitee = event?.invitees.find((i) => i.userId === user?.userId)
@@ -121,6 +112,7 @@ export default function EventDetailScreen() {
 
   const handleResponse = async (status: InviteeStatus) => {
     if (!id) return
+    setPendingResponse(status)
     try {
       await respondToEvent.mutateAsync({
         eventId: id,
@@ -128,6 +120,8 @@ export default function EventDetailScreen() {
       })
     } catch (err) {
       console.error('Failed to respond to event:', err)
+    } finally {
+      setPendingResponse(null)
     }
   }
 
@@ -221,8 +215,10 @@ export default function EventDetailScreen() {
                   variant="ghost"
                   buttonSize="sm"
                   circular
-                  icon={<Trash2 size={20} color="$error" />}
+                  icon={cancelEvent.isPending ? undefined : <Trash2 size={20} color="$error" />}
                   onPress={handleCancel}
+                  loading={cancelEvent.isPending}
+                  disabled={cancelEvent.isPending}
                 />
               </XStack>
             ) : undefined
@@ -242,6 +238,9 @@ export default function EventDetailScreen() {
           <H1 fontSize={24} fontWeight="700" textAlign="center">
             {event.title}
           </H1>
+          <Text color="$colorMuted" fontSize={14} marginTop="$1">
+            Hosted by {event.hostName}
+          </Text>
           <XStack
             alignItems="center"
             gap="$2"
@@ -326,7 +325,7 @@ export default function EventDetailScreen() {
                 </YStack>
                 <YStack flex={1} justifyContent="center" minHeight={40}>
                   <Text fontWeight="500">
-                    {acceptedCount} of {totalInvitees} going
+                    {acceptedCount + 1} of {totalInvitees + 1} going
                   </Text>
                 </YStack>
               </XStack>
@@ -350,16 +349,32 @@ export default function EventDetailScreen() {
         {event.showInviteList && (
           <Theme name="Card">
             <Card marginBottom="$4">
-          <Text fontWeight="600" marginBottom="$3">
-            Who is Invited
-          </Text>
+              <Text fontWeight="600" marginBottom="$3">
+                Who is Coming
+              </Text>
               <YStack>
+                {/* Host */}
+                <YStack>
+                  <XStack alignItems="center" gap="$3" paddingVertical="$2">
+                    <Circle size={40} backgroundColor="$backgroundHover">
+                      <Text fontSize={16}>{event.hostInitials}</Text>
+                    </Circle>
+                    <YStack flex={1}>
+                      <XStack alignItems="center" gap="$2">
+                        <Text fontWeight="500">{event.hostName}</Text>
+                        <Text fontSize={12} color="$accent" fontWeight="600">
+                          Host
+                        </Text>
+                      </XStack>
+                      <Text fontSize={13} color="$colorMuted">Organizer</Text>
+                    </YStack>
+                  </XStack>
+                  {event.invitees.length > 0 && <Separator marginVertical="$2" />}
+                </YStack>
+                {/* Invitees */}
                 {event.invitees.map((invitee, index) => (
                   <YStack key={invitee.userId}>
-                    <InviteeItem
-                      invitee={invitee}
-                      isHost={invitee.userId === event.hostId}
-                    />
+                    <InviteeItem invitee={invitee} />
                     {index < event.invitees.length - 1 && (
                       <Separator marginVertical="$2" />
                     )}
@@ -381,7 +396,8 @@ export default function EventDetailScreen() {
                 variant={userInvitee.status === 'accepted' ? 'primary' : 'secondary'}
                 flex={1}
                 onPress={() => handleResponse('accepted')}
-                disabled={respondToEvent.isPending}
+                loading={pendingResponse === 'accepted'}
+                disabled={pendingResponse !== null}
               >
                 Going
               </Button>
@@ -389,7 +405,8 @@ export default function EventDetailScreen() {
                 variant={userInvitee.status === 'maybe' ? 'primary' : 'secondary'}
                 flex={1}
                 onPress={() => handleResponse('maybe')}
-                disabled={respondToEvent.isPending}
+                loading={pendingResponse === 'maybe'}
+                disabled={pendingResponse !== null}
               >
                 Maybe
               </Button>
@@ -397,7 +414,8 @@ export default function EventDetailScreen() {
                 variant={userInvitee.status === 'declined' ? 'danger' : 'secondary'}
                 flex={1}
                 onPress={() => handleResponse('declined')}
-                disabled={respondToEvent.isPending}
+                loading={pendingResponse === 'declined'}
+                disabled={pendingResponse !== null}
               >
                 Cannot Go
               </Button>

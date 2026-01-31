@@ -17,32 +17,22 @@ import { Card } from '../../components/ui/Card'
 import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { CancelHeader } from '../../components/ui/ScreenHeader'
 import { useCreateAvailability } from '../../lib/hooks'
-import { useGroups } from '../../lib/hooks'
-import type { Visibility, RecurringPattern } from '../../lib/api/client'
+import type { RecurringPattern } from '../../lib/api/client'
 
 export default function CreateAvailabilityScreen() {
   const insets = useSafeAreaInsets()
   const createAvailability = useCreateAvailability()
-  const { data: groups } = useGroups()
 
   const [startTime, setStartTime] = useState(new Date())
   const [endTime, setEndTime] = useState(new Date(Date.now() + 2 * 60 * 60 * 1000)) // +2 hours
-  const [visibilityType, setVisibilityType] = useState<'all' | 'groups' | 'specific'>('all')
-  const [selectedGroups, setSelectedGroups] = useState<string[]>([])
   const [isRecurring, setIsRecurring] = useState(false)
   const [recurringPattern, setRecurringPattern] = useState<RecurringPattern>('weekly')
 
   const handleCreate = async () => {
-    const visibility: Visibility = {
-      type: visibilityType,
-      ...(visibilityType === 'groups' && { groupIds: selectedGroups }),
-    }
-
     try {
       await createAvailability.mutateAsync({
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
-        visibleTo: visibility,
         ...(isRecurring && {
           recurring: {
             pattern: recurringPattern,
@@ -93,92 +83,6 @@ export default function CreateAvailabilityScreen() {
                 />
               </XStack>
             </YStack>
-          </Card>
-        </Theme>
-
-        {/* Visibility */}
-        <Theme name="Card">
-          <Card marginBottom="$4">
-            <Text fontWeight="600" marginBottom="$3">
-              Who can see this?
-            </Text>
-            <RadioGroup
-              value={visibilityType}
-              onValueChange={(val) => setVisibilityType(val as typeof visibilityType)}
-            >
-              <YStack gap="$3">
-                <XStack alignItems="center" gap="$3">
-                  <RadioGroup.Item value="all" size="$4">
-                    <RadioGroup.Indicator />
-                  </RadioGroup.Item>
-                  <Text>All friends</Text>
-                </XStack>
-                <XStack alignItems="center" gap="$3">
-                  <RadioGroup.Item value="groups" size="$4">
-                    <RadioGroup.Indicator />
-                  </RadioGroup.Item>
-                  <Text>Specific groups</Text>
-                </XStack>
-                <XStack alignItems="center" gap="$3">
-                  <RadioGroup.Item value="specific" size="$4">
-                    <RadioGroup.Indicator />
-                  </RadioGroup.Item>
-                  <Text>Specific people</Text>
-                </XStack>
-              </YStack>
-            </RadioGroup>
-
-            {visibilityType === 'groups' && groups && groups.length > 0 && (
-              <YStack marginTop="$4" gap="$2">
-                <Text color="$colorMuted" fontSize={13}>
-                  Select groups:
-                </Text>
-                {groups.map((group) => (
-                  <XStack
-                    key={group.groupId}
-                    alignItems="center"
-                    gap="$3"
-                    paddingVertical="$2"
-                    pressStyle={{ opacity: 0.7 }}
-                    onPress={() => {
-                      setSelectedGroups((prev) =>
-                        prev.includes(group.groupId)
-                          ? prev.filter((id) => id !== group.groupId)
-                          : [...prev, group.groupId]
-                      )
-                    }}
-                  >
-                    <YStack
-                      width={24}
-                      height={24}
-                      borderRadius={6}
-                      borderWidth={2}
-                      borderColor={
-                        selectedGroups.includes(group.groupId)
-                          ? '$accent'
-                          : '$borderColor'
-                      }
-                      backgroundColor={
-                        selectedGroups.includes(group.groupId)
-                          ? '$accent'
-                          : 'transparent'
-                      }
-                      alignItems="center"
-                      justifyContent="center"
-                    >
-                      {selectedGroups.includes(group.groupId) && (
-                        <Text color="$white" fontSize={12}>
-                          ✓
-                        </Text>
-                      )}
-                    </YStack>
-                    <Text>
-                      {group.emoji} {group.name}
-                    </Text>
-                  </XStack>
-                ))}
-              </YStack>
-            )}
           </Card>
         </Theme>
 

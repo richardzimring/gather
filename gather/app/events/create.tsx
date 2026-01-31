@@ -21,34 +21,7 @@ import { Card } from '../../components/ui/Card'
 import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { CancelHeader } from '../../components/ui/ScreenHeader'
 import { useCreateEvent, useFriends, useActivities, useGroups } from '../../lib/hooks'
-import { DEFAULT_ACTIVITIES } from '../../constants/activities'
-import type { Friendship, Group } from '../../lib/api/generated/types.gen'
-
-/**
- * Get display name for a friend
- */
-function getFriendDisplayName(friendship: Friendship): string {
-  // Use custom name if set
-  if (friendship.customName) {
-    return friendship.customName
-  }
-  // Otherwise create a friendly display from the ID
-  return `Friend ${friendship.friendId.slice(0, 6).toUpperCase()}`
-}
-
-/**
- * Get initials for avatar
- */
-function getInitials(friendship: Friendship): string {
-  if (friendship.customName) {
-    const parts = friendship.customName.split(' ')
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
-    }
-    return friendship.customName[0].toUpperCase()
-  }
-  return friendship.friendId[0].toUpperCase()
-}
+import type { Group } from '../../lib/api/generated/types.gen'
 
 /**
  * Checkbox component
@@ -87,7 +60,7 @@ export default function CreateEventScreen() {
   const [selectedFriends, setSelectedFriends] = useState<string[]>([])
 
   const friends = friendsData?.friends ?? []
-  const activityList = activities ?? DEFAULT_ACTIVITIES
+  const activityList = activities ?? []
 
   // Filter groups that have members
   const availableGroups = useMemo(() => {
@@ -172,7 +145,7 @@ export default function CreateEventScreen() {
             </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <XStack gap="$2">
-                {(activityList.slice(0, 12) as { emoji: string; name: string }[]).map(
+                {activityList.map(
                   (activity, index) => (
                     <YStack
                       key={activity.emoji + index}
@@ -394,11 +367,11 @@ export default function CreateEventScreen() {
                     >
                       <Checkbox checked={selectedFriends.includes(friendship.friendId)} />
                       <Circle size={40} backgroundColor="$backgroundHover">
-                        <Text fontWeight="500">{getInitials(friendship)}</Text>
+                        <Text fontWeight="500">{friendship.friend.initials}</Text>
                       </Circle>
                       <YStack flex={1}>
                         <Text fontWeight="500">
-                          {getFriendDisplayName(friendship)}
+                          {friendship.friend.fullName}
                         </Text>
                       </YStack>
                     </XStack>

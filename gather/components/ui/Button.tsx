@@ -1,4 +1,4 @@
-import { styled, Button as TamaguiButton, GetProps } from 'tamagui'
+import { styled, Button as TamaguiButton, GetProps, Spinner, XStack } from 'tamagui'
 import * as Haptics from 'expo-haptics'
 import { Platform } from 'react-native'
 
@@ -84,20 +84,56 @@ const StyledButton = styled(TamaguiButton, {
 export type ButtonProps = GetProps<typeof StyledButton> & {
   /** Whether to trigger haptic feedback on press */
   haptic?: boolean
+  /** Whether the button is in a loading state */
+  loading?: boolean
+  /** Text to show while loading (optional, will show spinner if not provided) */
+  loadingText?: string
 }
 
 /**
- * Button component with haptic feedback support.
+ * Button component with haptic feedback and loading state support.
  */
-export function Button({ haptic = true, onPress, ...props }: ButtonProps) {
+export function Button({
+  haptic = true,
+  loading = false,
+  loadingText,
+  onPress,
+  disabled,
+  children,
+  variant,
+  ...props
+}: ButtonProps) {
   const handlePress = (event: Parameters<NonNullable<typeof onPress>>[0]) => {
+    if (loading) return
     if (haptic && Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     }
     onPress?.(event)
   }
 
-  return <StyledButton onPress={handlePress} {...props} />
+  // Determine spinner color based on variant
+  const spinnerColor =
+    variant === 'primary' || variant === 'danger' ? '$white' : '$color'
+
+  return (
+    <StyledButton
+      onPress={handlePress}
+      disabled={disabled || loading}
+      variant={variant}
+      {...props}
+    >
+      {loading ? (
+        <XStack alignItems="center" justifyContent="center" gap="$2">
+          <Spinner size="small" color={spinnerColor} />
+          {loadingText && (
+            <StyledButton.Text>{loadingText}</StyledButton.Text>
+          )}
+        </XStack>
+      ) : (
+        children
+      )}
+    </StyledButton>
+  )
 }
 
 // Export styled version for cases where you don't need haptic

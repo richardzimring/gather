@@ -9,7 +9,7 @@ import {
   User,
 } from '@tamagui/lucide-icons'
 import { router } from 'expo-router'
-import { Alert, Share, Platform } from 'react-native'
+import { Alert, Share, Platform, RefreshControl } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import * as Haptics from 'expo-haptics'
 import { useState } from 'react'
@@ -20,7 +20,7 @@ import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { useAuth } from '../../lib/hooks/useAuth'
-import { useInviteCode } from '../../lib/hooks'
+import { useInviteCode, useRefresh } from '../../lib/hooks'
 
 interface SettingsItemProps {
   icon: React.ReactNode
@@ -71,8 +71,10 @@ function SettingsItem({
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets()
   const { user, signOut } = useAuth()
-  const { data: inviteCodeData } = useInviteCode()
+  const inviteCodeQuery = useInviteCode()
+  const { data: inviteCodeData } = inviteCodeQuery
   const [copied, setCopied] = useState(false)
+  const { isRefreshing, onRefresh } = useRefresh(inviteCodeQuery)
 
   const inviteCode = inviteCodeData?.inviteCode ?? user?.inviteCode ?? ''
 
@@ -118,6 +120,9 @@ export default function ProfileScreen() {
   return (
     <DottedGridBackground>
       <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingBottom: insets.bottom + 100,

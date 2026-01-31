@@ -24,28 +24,6 @@ import { Card } from '../../components/ui/Card'
 import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { BackHeader } from '../../components/ui/ScreenHeader'
 import { useFriends, useRemoveFriend, useFriendsAvailability, useEvents } from '../../lib/hooks'
-import type { Friendship } from '../../lib/api/generated/types.gen'
-
-/**
- * Get display name for a friend
- */
-function getFriendDisplayName(friendship: Friendship): string {
-  if (friendship.customName) {
-    return friendship.customName
-  }
-  return `Friend ${friendship.friendId.slice(0, 6).toUpperCase()}`
-}
-
-/**
- * Get initials for avatar
- */
-function getInitials(name: string): string {
-  const parts = name.split(' ')
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
-  }
-  return name[0].toUpperCase()
-}
 
 /**
  * Format date for display
@@ -114,6 +92,7 @@ export default function FriendProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             if (!id) return
+            setShowActionSheet(false) // Close sheet to show loading feedback
             try {
               await removeFriend.mutateAsync(id)
               router.back()
@@ -167,8 +146,8 @@ export default function FriendProfileScreen() {
     )
   }
 
-  const displayName = getFriendDisplayName(friend)
-  const initials = getInitials(displayName)
+  const displayName = friend.friend.fullName
+  const initials = friend.friend.initials
 
   return (
     <DottedGridBackground>
@@ -328,11 +307,10 @@ export default function FriendProfileScreen() {
             <Button
               variant="danger"
               fullWidth
-              icon={<UserMinus size={18} color="white" />}
-              onPress={() => {
-                setShowActionSheet(false)
-                handleRemoveFriend()
-              }}
+              icon={removeFriend.isPending ? undefined : <UserMinus size={18} color="white" />}
+              onPress={handleRemoveFriend}
+              loading={removeFriend.isPending}
+              loadingText="Removing..."
             >
               Remove Friend
             </Button>

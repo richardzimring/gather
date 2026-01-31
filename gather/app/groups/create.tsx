@@ -18,30 +18,8 @@ import { Card } from '../../components/ui/Card'
 import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { CancelHeader } from '../../components/ui/ScreenHeader'
 import { useCreateGroup, useFriends } from '../../lib/hooks'
-import type { Friendship } from '../../lib/api/generated/types.gen'
 
 const EMOJI_OPTIONS = ['👥', '💜', '🏠', '💼', '🎾', '🎮', '🍕', '☕', '🎬', '🎵', '🏃', '📚']
-
-/**
- * Get display name for a friend
- */
-function getFriendDisplayName(friendship: Friendship): string {
-  if (friendship.customName) {
-    return friendship.customName
-  }
-  return `Friend ${friendship.friendId.slice(0, 6).toUpperCase()}`
-}
-
-/**
- * Get initials for avatar
- */
-function getInitials(name: string): string {
-  const parts = name.split(' ')
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
-  }
-  return name[0].toUpperCase()
-}
 
 export default function CreateGroupScreen() {
   const insets = useSafeAreaInsets()
@@ -154,7 +132,6 @@ export default function CreateGroupScreen() {
             ) : (
               <YStack>
                 {friends.map((friend, index) => {
-                  const displayName = getFriendDisplayName(friend)
                   const isSelected = selectedMembers.includes(friend.friendId)
                   return (
                     <YStack key={friend.friendId}>
@@ -180,10 +157,10 @@ export default function CreateGroupScreen() {
                           )}
                         </YStack>
                         <Circle size={40} backgroundColor="$backgroundHover">
-                          <Text fontWeight="500">{getInitials(displayName)}</Text>
+                          <Text fontWeight="500">{friend.friend.initials}</Text>
                         </Circle>
                         <YStack flex={1}>
-                          <Text fontWeight="500">{displayName}</Text>
+                          <Text fontWeight="500">{friend.friend.fullName}</Text>
                         </YStack>
                       </XStack>
                       {index < friends.length - 1 && (
