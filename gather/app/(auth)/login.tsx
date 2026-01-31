@@ -106,17 +106,20 @@ export default function LoginScreen() {
             </YStack>
           )}
 
-          {error && (
-            <Text color="$red10" fontSize={14} textAlign="center">
-              {error}
-            </Text>
-          )}
+          {/* Fixed height container for status messages to prevent layout shift */}
+          <YStack height={22} justifyContent="center" alignItems="center">
+            {error && (
+              <Text color="$red10" fontSize={14} textAlign="center">
+                {error}
+              </Text>
+            )}
 
-          {isLoading && (
-            <Text color="$colorMuted" fontSize={14}>
-              Signing in...
-            </Text>
-          )}
+            {isLoading && (
+              <Text color="$colorMuted" fontSize={14}>
+                Signing in...
+              </Text>
+            )}
+          </YStack>
         </YStack>
 
         {/* Footer */}

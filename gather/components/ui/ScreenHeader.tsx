@@ -107,7 +107,7 @@ export function ScreenHeader({
     >
       {leftElement}
       <YStack flex={1}>
-        <H1 fontSize={24} fontWeight="700" numberOfLines={1}>
+        <H1 fontSize={28} fontWeight="700" numberOfLines={1}>
           {title}
         </H1>
         {subtitle && (

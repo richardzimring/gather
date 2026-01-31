@@ -4,8 +4,6 @@ import {
   ChevronRight,
   Copy,
   LogOut,
-  Moon,
-  Settings,
   Share2,
   Shield,
   User,
@@ -137,7 +135,8 @@ export default function ProfileScreen() {
             <XStack alignItems="center" gap="$4">
               <Circle size={72} backgroundColor="$accent">
                 <Text fontSize={32} color="$white">
-                  {user?.firstName?.[0] ?? '?'}
+                  {user?.firstName?.[0]?.toUpperCase() ?? '?'}
+                  {user?.lastName?.[0]?.toUpperCase() ?? ''}
                 </Text>
               </Circle>
               <YStack flex={1}>
@@ -147,14 +146,14 @@ export default function ProfileScreen() {
                 <Text color="$colorMuted">{user?.email ?? 'No email'}</Text>
               </YStack>
             </XStack>
-            <Button
+            {/* <Button
               variant="secondary"
               marginTop="$4"
               fullWidth
               onPress={() => router.push('/profile/edit')}
             >
               Edit Profile
-            </Button>
+            </Button> */}
           </Card>
         </Theme>
 
@@ -210,35 +209,16 @@ export default function ProfileScreen() {
               PREFERENCES
             </Text>
             <SettingsItem
-              icon={<Bell size={18} color="$accent" />}
-              label="Notifications"
-              onPress={() => router.push('/notifications')}
-            />
-            <SettingsItem
               icon={<Calendar size={18} color="$accent" />}
               label="Calendar Sync"
               value={user?.calendarSyncEnabled ? 'Enabled' : 'Disabled'}
               onPress={() => {}}
             />
-            <XStack alignItems="center" paddingVertical="$3">
-              <YStack
-                width={36}
-                height={36}
-                borderRadius={8}
-                backgroundColor="$backgroundHover"
-                alignItems="center"
-                justifyContent="center"
-                marginRight="$3"
-              >
-                <Moon size={18} color="$accent" />
-              </YStack>
-              <Text flex={1} fontWeight="500">
-                Dark Mode
-              </Text>
-              <Text color="$colorMuted" fontSize={12} marginRight="$2">
-                System
-              </Text>
-            </XStack>
+            <SettingsItem
+              icon={<Bell size={18} color="$accent" />}
+              label="Notifications"
+              onPress={() => router.push('/notifications/settings')}
+            />
           </Card>
         </Theme>
 
@@ -255,11 +235,6 @@ export default function ProfileScreen() {
             <SettingsItem
               icon={<Shield size={18} color="$accent" />}
               label="Privacy"
-              onPress={() => {}}
-            />
-            <SettingsItem
-              icon={<Settings size={18} color="$accent" />}
-              label="App Settings"
               onPress={() => {}}
             />
           </Card>

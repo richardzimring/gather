@@ -1,14 +1,14 @@
-import { Bell, Plus } from '@tamagui/lucide-icons'
+import { Plus } from '@tamagui/lucide-icons'
 import { router } from 'expo-router'
-import { ScrollView, H1, H2, Text, XStack, YStack, Circle, Theme } from 'tamagui'
+import { ScrollView, H2, Text, XStack, YStack, Circle, Theme } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
+import { SimpleHeader } from '../../components/ui/ScreenHeader'
 import { useAuth } from '../../lib/hooks/useAuth'
 import { useEvents, useRespondToEvent } from '../../lib/hooks/useEvents'
-import { useFriends } from '../../lib/hooks/useFriends'
 
 /**
  * Format event time for display
@@ -45,32 +45,82 @@ function formatRelativeDate(startTime: string): string {
   return `${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}, ${formatEventTime(startTime)}`
 }
 
+/**
+ * Get day section title
+ */
+function getDayTitle(date: Date): string {
+  const today = new Date()
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+
+  today.setHours(0, 0, 0, 0)
+  tomorrow.setHours(0, 0, 0, 0)
+  date.setHours(0, 0, 0, 0)
+
+  if (date.getTime() === today.getTime()) {
+    return 'Today'
+  }
+  if (date.getTime() === tomorrow.getTime()) {
+    return 'Tomorrow'
+  }
+  return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+}
+
+/**
+ * Group events by day
+ */
+function groupEventsByDay(events: any[]) {
+  const groups: Record<string, any[]> = {}
+  
+  events.forEach((event) => {
+    const date = new Date(event.startTime)
+    const dateKey = date.toDateString()
+    
+    if (!groups[dateKey]) {
+      groups[dateKey] = []
+    }
+    groups[dateKey].push(event)
+  })
+
+  // Sort events within each day by start time
+  Object.keys(groups).forEach((key) => {
+    groups[key].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+  })
+
+  return groups
+}
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets()
   const { user } = useAuth()
   const { data: events } = useEvents()
-  const { data: friendsData } = useFriends()
   const respondToEvent = useRespondToEvent()
 
-  // Get greeting based on time of day
-  const getGreeting = () => {
-    const hour = new Date().getHours()
-    if (hour < 12) return 'Good morning'
-    if (hour < 17) return 'Good afternoon'
-    return 'Good evening'
-  }
-
-  // Filter events for today
+  // Get today's date at midnight
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const tomorrow = new Date(today)
-  tomorrow.setDate(tomorrow.getDate() + 1)
 
-  const todaysEvents =
+  // Get upcoming events (today and future, confirmed status)
+  const upcomingEvents =
     events?.filter((event) => {
       const eventDate = new Date(event.startTime)
-      return eventDate >= today && eventDate < tomorrow && event.status === 'confirmed'
-    }) ?? []
+      return eventDate >= today && event.status === 'confirmed'
+    }).sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()) ?? []
+
+  // Group upcoming events by day
+  const eventsByDay = groupEventsByDay(upcomingEvents)
+  
+  // Get sorted day keys, always including today
+  const sortedDays = Object.keys(eventsByDay)
+    .map((key) => new Date(key))
+    .sort((a, b) => a.getTime() - b.getTime())
+  
+  // Ensure today is included even if empty
+  const todayKey = today.toDateString()
+  const hasEventsToday = eventsByDay[todayKey]?.length > 0
+  if (!hasEventsToday && !sortedDays.some(d => d.toDateString() === todayKey)) {
+    sortedDays.unshift(today)
+  }
 
   // Get pending invitations (events where user hasn't responded)
   const pendingInvitations =
@@ -80,9 +130,6 @@ export default function HomeScreen() {
       )
       return userInvitee && event.hostId !== user?.userId
     }) ?? []
-
-  // Get accepted friends for "available now" section
-  const acceptedFriends = friendsData?.friends ?? []
 
   const handleAccept = async (eventId: string, e?: { stopPropagation: () => void }) => {
     e?.stopPropagation()
@@ -107,77 +154,18 @@ export default function HomeScreen() {
           paddingHorizontal: 16,
         }}
       >
-        {/* Header */}
-        <XStack justifyContent="space-between" alignItems="center" marginBottom="$4">
-          <YStack>
-            <Text color="$colorMuted" fontSize={14}>
-              {getGreeting()}
-            </Text>
-            <H1 fontSize={28} fontWeight="700">
-              {user?.firstName ?? 'Welcome'}
-            </H1>
-          </YStack>
-          <Button
-            variant="ghost"
-            buttonSize="sm"
-            circular
-            icon={<Bell size={22} color="$color" />}
-            onPress={() => router.push('/notifications')}
-          />
-        </XStack>
-
-        {/* Today's Events Section */}
-        <YStack marginBottom="$5">
-          <XStack justifyContent="space-between" alignItems="center" marginBottom="$3">
-            <H2 fontSize={18} fontWeight="600">
-              Today
-            </H2>
-            <Text
-              color="$accent"
-              fontSize={14}
-              fontWeight="500"
-              pressStyle={{ opacity: 0.7 }}
-              onPress={() => router.push('/(tabs)/calendar')}
-            >
-              See all
-            </Text>
-          </XStack>
-
-          {todaysEvents.length === 0 ? (
-            <Theme name="Card">
-              <Card>
-                <YStack alignItems="center" padding="$2">
-                  <Text color="$colorMuted" textAlign="center">
-                    No events today. Your schedule is clear
-                  </Text>
-                </YStack>
-              </Card>
-            </Theme>
-          ) : (
-            <YStack gap="$3">
-              {todaysEvents.slice(0, 3).map((event) => (
-                <Theme key={event.eventId} name="Card">
-                  <Card pressable onPress={() => navigateToEvent(event.eventId)}>
-                    <XStack alignItems="center" gap="$3">
-                      <Circle size={48} backgroundColor="$accent" opacity={0.15}>
-                        <Text fontSize={24}>{event.emoji ?? '📅'}</Text>
-                      </Circle>
-                      <YStack flex={1}>
-                        <Text fontWeight="600" fontSize={16}>
-                          {event.title}
-                        </Text>
-                        <Text color="$colorMuted" fontSize={14}>
-                          {formatEventTime(event.startTime)}
-                          {event.location ? ` - ${event.location}` : ''}
-                        </Text>
-                      </YStack>
-                    </XStack>
-                  </Card>
-                </Theme>
-              ))}
-            </YStack>
-          )}
-        </YStack>
+        <SimpleHeader
+          title="Events"
+          rightAction={
+            <Button
+              variant="ghost"
+              buttonSize="sm"
+              circular
+              icon={<Plus size={22} color="$color" />}
+              onPress={() => router.push('/events/create')}
+            />
+          }
+        />
 
         {/* Pending Invitations */}
         {pendingInvitations.length > 0 && (
@@ -194,7 +182,7 @@ export default function HomeScreen() {
             </XStack>
 
             <YStack gap="$3">
-              {pendingInvitations.slice(0, 5).map((event) => (
+              {pendingInvitations.map((event) => (
                 <Theme key={event.eventId} name="Card">
                   <Card pressable onPress={() => navigateToEvent(event.eventId)}>
                     <YStack gap="$2">
@@ -237,59 +225,61 @@ export default function HomeScreen() {
           </YStack>
         )}
 
-        {/* Friends Section */}
-        {acceptedFriends.length > 0 && (
-          <YStack marginBottom="$5">
-            <H2 fontSize={18} fontWeight="600" marginBottom="$3">
-              Your Friends
-            </H2>
+        {/* Upcoming Events by Day */}
+        <YStack gap="$5">
+          {sortedDays.map((dayDate) => {
+            const dayKey = dayDate.toDateString()
+            const dayEvents = eventsByDay[dayKey] || []
+            const isToday = dayKey === today.toDateString()
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <XStack gap="$3">
-                {acceptedFriends.slice(0, 8).map((friendship) => {
-                  const displayName = friendship.customName ?? `Friend ${friendship.friendId.slice(0, 4)}`
-                  const initial = displayName[0].toUpperCase()
-                  return (
-                    <YStack
-                      key={friendship.friendId}
-                      alignItems="center"
-                      gap="$2"
-                      pressStyle={{ opacity: 0.7 }}
-                      onPress={() => router.push(`/friends/${friendship.friendId}`)}
-                    >
-                      <Circle size={64} backgroundColor="$accent" opacity={0.2}>
-                        <Text fontSize={28}>{initial}</Text>
-                      </Circle>
-                      <Text fontSize={13} color="$colorMuted" numberOfLines={1}>
-                        {displayName.split(' ')[0]}
-                      </Text>
-                    </YStack>
-                  )
-                })}
-              </XStack>
-            </ScrollView>
-          </YStack>
-        )}
+            // Skip empty days unless it's today
+            if (dayEvents.length === 0 && !isToday) {
+              return null
+            }
 
-        {/* Quick Actions */}
-        <YStack gap="$3">
-          <Button
-            variant="primary"
-            buttonSize="lg"
-            fullWidth
-            icon={<Plus size={20} color="white" />}
-            onPress={() => router.push('/events/create')}
-          >
-            Create Event
-          </Button>
-          <Button
-            variant="secondary"
-            buttonSize="lg"
-            fullWidth
-            onPress={() => router.push('/availability/create')}
-          >
-            Set Availability
-          </Button>
+            return (
+              <YStack key={dayKey} gap="$3">
+                <H2 fontSize={18} fontWeight="600">
+                  {getDayTitle(dayDate)}
+                </H2>
+
+                {dayEvents.length === 0 ? (
+                  <Theme name="Card">
+                    <Card>
+                      <YStack alignItems="center" padding="$2">
+                        <Text color="$colorMuted" textAlign="center">
+                          No events scheduled
+                        </Text>
+                      </YStack>
+                    </Card>
+                  </Theme>
+                ) : (
+                  <YStack gap="$3">
+                    {dayEvents.map((event) => (
+                      <Theme key={event.eventId} name="Card">
+                        <Card pressable onPress={() => navigateToEvent(event.eventId)}>
+                          <XStack alignItems="center" gap="$3">
+                            <Circle size={48} backgroundColor="$accent" opacity={0.15}>
+                              <Text fontSize={24}>{event.emoji ?? '📅'}</Text>
+                            </Circle>
+                            <YStack flex={1}>
+                              <Text fontWeight="600" fontSize={16}>
+                                {event.title}
+                              </Text>
+                              <Text color="$colorMuted" fontSize={14}>
+                                {formatEventTime(event.startTime)}
+                                {event.location ? ` - ${event.location}` : ''}
+                              </Text>
+                            </YStack>
+                          </XStack>
+                        </Card>
+                      </Theme>
+                    ))}
+                  </YStack>
+                )}
+              </YStack>
+            )
+          })}
         </YStack>
       </ScrollView>
     </DottedGridBackground>

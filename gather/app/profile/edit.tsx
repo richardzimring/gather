@@ -14,12 +14,13 @@ import { Card } from '../../components/ui/Card'
 import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { BackHeader } from '../../components/ui/ScreenHeader'
 import { useAuth } from '../../lib/hooks/useAuth'
+import { getDeviceTimezone } from '../../lib/utils'
 
 export default function EditProfileScreen() {
   const insets = useSafeAreaInsets()
   const { user } = useAuth()
 
-  const initial = user?.firstName?.[0]?.toUpperCase() ?? '?'
+  const initials = `${user?.firstName?.[0]?.toUpperCase() ?? '?'}${user?.lastName?.[0]?.toUpperCase() ?? ''}`
 
   return (
     <DottedGridBackground>
@@ -41,7 +42,7 @@ export default function EditProfileScreen() {
           <YStack position="relative">
             <Circle size={100} backgroundColor="$accent">
               <Text fontSize={40} color="$white" fontWeight="600">
-                {initial}
+                {initials}
               </Text>
             </Circle>
             <Circle
@@ -119,7 +120,7 @@ export default function EditProfileScreen() {
               </XStack>
               <XStack justifyContent="space-between">
                 <Text color="$colorMuted">Timezone</Text>
-                <Text>{user?.timezone ?? 'Not set'}</Text>
+                <Text>{getDeviceTimezone()}</Text>
               </XStack>
               <XStack justifyContent="space-between">
                 <Text color="$colorMuted">Invite Code</Text>
