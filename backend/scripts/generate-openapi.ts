@@ -4,8 +4,6 @@
  * This script generates the OpenAPI specification from all route definitions.
  * Run with: npm run generate:openapi
  *
- * Note: Environment variables (REGION, STAGE, MAIN_TABLE_NAME) are set in the
- * npm script to avoid import order issues.
  */
 
 import { OpenAPIHono } from '@hono/zod-openapi';

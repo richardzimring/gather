@@ -1,19 +1,47 @@
-import * as db from './dynamodb';
-import type {
-  Friendship,
-  FriendshipRecord,
-  FriendshipStatus,
-  User,
-} from '../types';
+import { eq, and, or } from 'drizzle-orm';
+import { db, users, friendships } from '../db';
+import type { Friendship, User } from '../types';
 import { getUserById, getUserByInviteCode } from './users';
 import { notifyFriendRequest, notifyFriendAccepted } from './notifications';
 
 // ============================================
-// Key Builders
+// Helpers
 // ============================================
 
-const userPk = (userId: string) => `USER#${userId}`;
-const friendSk = (friendId: string) => `FRIEND#${friendId}`;
+const getInitials = (firstName: string, lastName: string): string => {
+  const first = firstName.trim()[0] ?? '';
+  const last = lastName.trim()[0] ?? '';
+  return `${first}${last}`.toUpperCase();
+};
+
+const dbUserToUser = (dbUser: typeof users.$inferSelect): User => {
+  return {
+    userId: dbUser.id,
+    appleUserId: dbUser.appleUserId,
+    email: dbUser.email,
+    firstName: dbUser.firstName,
+    lastName: dbUser.lastName,
+    fullName: `${dbUser.firstName} ${dbUser.lastName}`,
+    initials: getInitials(dbUser.firstName, dbUser.lastName),
+    avatarUrl: dbUser.avatarUrl ?? undefined,
+    createdAt: dbUser.createdAt.toISOString(),
+    calendarSyncEnabled: dbUser.calendarSyncEnabled,
+    pushToken: dbUser.pushToken ?? undefined,
+    timezone: dbUser.timezone,
+    inviteCode: dbUser.inviteCode ?? undefined,
+  };
+};
+
+const dbFriendshipToFriendship = (dbFriendship: typeof friendships.$inferSelect): Friendship => {
+  return {
+    userId: dbFriendship.userId,
+    friendId: dbFriendship.friendId,
+    status: dbFriendship.status,
+    initiatedBy: dbFriendship.initiatedBy,
+    createdAt: dbFriendship.createdAt.toISOString(),
+    acceptedAt: dbFriendship.acceptedAt?.toISOString(),
+  };
+};
 
 // ============================================
 // Friendship Operations
@@ -23,38 +51,32 @@ export interface FriendWithUser extends Friendship {
   friend: User;
 }
 
-export const getFriendships = async (
-  userId: string,
-): Promise<FriendWithUser[]> => {
-  const records = await db.queryByPk<FriendshipRecord>(
-    userPk(userId),
-    'FRIEND#',
-  );
+export const getFriendships = async (userId: string): Promise<FriendWithUser[]> => {
+  // Use JOIN to get friendship and friend user data in one query
+  const results = await db
+    .select({
+      friendship: friendships,
+      friend: users,
+    })
+    .from(friendships)
+    .innerJoin(users, eq(friendships.friendId, users.id))
+    .where(eq(friendships.userId, userId));
 
-  // Fetch user details for each friend
-  const friendships: FriendWithUser[] = [];
-  for (const record of records) {
-    const friend = await getUserById(record.friendId);
-    if (friend) {
-      friendships.push({
-        ...recordToFriendship(record),
-        friend,
-      });
-    }
-  }
-
-  return friendships;
+  return results.map((row) => ({
+    ...dbFriendshipToFriendship(row.friendship),
+    friend: dbUserToUser(row.friend),
+  }));
 };
 
-export const getFriendship = async (
-  userId: string,
-  friendId: string,
-): Promise<Friendship | null> => {
-  const record = await db.getItem<FriendshipRecord>(
-    userPk(userId),
-    friendSk(friendId),
-  );
-  return record ? recordToFriendship(record) : null;
+export const getFriendship = async (userId: string, friendId: string): Promise<Friendship | null> => {
+  const result = await db
+    .select()
+    .from(friendships)
+    .where(and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)))
+    .limit(1);
+
+  const friendship = result[0];
+  return friendship ? dbFriendshipToFriendship(friendship) : null;
 };
 
 /**
@@ -118,31 +140,24 @@ export const sendFriendRequest = async (
     }
   }
 
-  const now = new Date().toISOString();
-
-  // Create friendship record for requester
-  const requesterRecord: FriendshipRecord = {
-    pk: userPk(userId),
-    sk: friendSk(targetUser.userId),
-    userId,
-    friendId: targetUser.userId,
-    status: 'pending',
-    initiatedBy: userId,
-    createdAt: now,
-  };
-
-  // Create friendship record for target (so they see the request)
-  const targetRecord: FriendshipRecord = {
-    pk: userPk(targetUser.userId),
-    sk: friendSk(userId),
-    userId: targetUser.userId,
-    friendId: userId,
-    status: 'pending',
-    initiatedBy: userId,
-    createdAt: now,
-  };
-
-  await db.batchWriteItems([{ put: requesterRecord }, { put: targetRecord }]);
+  // Create bidirectional friendship records
+  const [requesterFriendship] = await db
+    .insert(friendships)
+    .values([
+      {
+        userId,
+        friendId: targetUser.userId,
+        status: 'pending',
+        initiatedBy: userId,
+      },
+      {
+        userId: targetUser.userId,
+        friendId: userId,
+        status: 'pending',
+        initiatedBy: userId,
+      },
+    ])
+    .returning();
 
   // Send push notification to target user
   const requester = await getUserById(userId);
@@ -153,7 +168,7 @@ export const sendFriendRequest = async (
   return {
     success: true,
     message: 'Friend request sent',
-    friendship: recordToFriendship(requesterRecord),
+    friendship: requesterFriendship ? dbFriendshipToFriendship(requesterFriendship) : undefined,
   };
 };
 
@@ -180,18 +195,18 @@ export const acceptFriendRequest = async (
     return { success: false, message: 'Cannot accept your own friend request' };
   }
 
-  const now = new Date().toISOString();
+  const now = new Date();
 
   // Update both friendship records
-  await db.updateItem<FriendshipRecord>(userPk(userId), friendSk(friendId), {
-    status: 'accepted' as FriendshipStatus,
-    acceptedAt: now,
-  });
-
-  await db.updateItem<FriendshipRecord>(userPk(friendId), friendSk(userId), {
-    status: 'accepted' as FriendshipStatus,
-    acceptedAt: now,
-  });
+  await db
+    .update(friendships)
+    .set({ status: 'accepted', acceptedAt: now })
+    .where(
+      or(
+        and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)),
+        and(eq(friendships.userId, friendId), eq(friendships.friendId, userId)),
+      ),
+    );
 
   const updatedFriendship = await getFriendship(userId, friendId);
 
@@ -223,8 +238,12 @@ export const declineFriendRequest = async (
   }
 
   // Delete both records
-  await db.deleteItem(userPk(userId), friendSk(friendId));
-  await db.deleteItem(userPk(friendId), friendSk(userId));
+  await db.delete(friendships).where(
+    or(
+      and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)),
+      and(eq(friendships.userId, friendId), eq(friendships.friendId, userId)),
+    ),
+  );
 
   return { success: true, message: 'Friend request declined' };
 };
@@ -240,8 +259,12 @@ export const removeFriend = async (
   }
 
   // Delete both records
-  await db.deleteItem(userPk(userId), friendSk(friendId));
-  await db.deleteItem(userPk(friendId), friendSk(userId));
+  await db.delete(friendships).where(
+    or(
+      and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)),
+      and(eq(friendships.userId, friendId), eq(friendships.friendId, userId)),
+    ),
+  );
 
   return { success: true, message: 'Friend removed' };
 };
@@ -250,55 +273,36 @@ export const blockUser = async (
   userId: string,
   friendId: string,
 ): Promise<{ success: boolean; message: string }> => {
-  const now = new Date().toISOString();
-
   // Delete the other user's record of us
-  await db.deleteItem(userPk(friendId), friendSk(userId));
+  await db
+    .delete(friendships)
+    .where(and(eq(friendships.userId, friendId), eq(friendships.friendId, userId)));
 
   // Update or create our record as blocked
   const existing = await getFriendship(userId, friendId);
 
   if (existing) {
-    await db.updateItem<FriendshipRecord>(userPk(userId), friendSk(friendId), {
-      status: 'blocked' as FriendshipStatus,
-    });
+    await db
+      .update(friendships)
+      .set({ status: 'blocked' })
+      .where(and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)));
   } else {
-    const blockRecord: FriendshipRecord = {
-      pk: userPk(userId),
-      sk: friendSk(friendId),
+    await db.insert(friendships).values({
       userId,
       friendId,
       status: 'blocked',
       initiatedBy: userId,
-      createdAt: now,
-    };
-    await db.putItem(blockRecord);
+    });
   }
 
   return { success: true, message: 'User blocked' };
 };
 
-export const getAcceptedFriendIds = async (
-  userId: string,
-): Promise<string[]> => {
-  const friendships = await getFriendships(userId);
-  return friendships
-    .filter((f) => f.status === 'accepted')
-    .map((f) => f.friendId);
-};
+export const getAcceptedFriendIds = async (userId: string): Promise<string[]> => {
+  const results = await db
+    .select({ friendId: friendships.friendId })
+    .from(friendships)
+    .where(and(eq(friendships.userId, userId), eq(friendships.status, 'accepted')));
 
-// ============================================
-// Helpers
-// ============================================
-
-const recordToFriendship = (record: FriendshipRecord): Friendship => {
-  return {
-    userId: record.userId,
-    friendId: record.friendId,
-    status: record.status,
-    initiatedBy: record.initiatedBy,
-    createdAt: record.createdAt,
-    acceptedAt: record.acceptedAt,
-    customName: record.customName,
-  };
+  return results.map((r) => r.friendId);
 };

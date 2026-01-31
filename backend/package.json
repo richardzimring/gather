@@ -17,13 +17,20 @@
     "deploy": "serverless deploy --stage dev",
     "deploy:prod": "serverless deploy --stage prod",
     "offline": "serverless offline start",
-    "generate:openapi": "REGION=us-east-1 STAGE=dev MAIN_TABLE_NAME=gather-dev tsx scripts/generate-openapi.ts"
+    "generate:openapi": "tsx --env-file=.env scripts/generate-openapi.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx --env-file=.env scripts/migrate.ts",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "script:seed": "tsx --env-file=.env scripts/seed-mock-data.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@types/aws-lambda": "^8.10.160",
     "@types/node": "^24.10.1",
     "aws-sdk-client-mock": "^4.1.0",
+    "dotenv": "^17.2.3",
+    "drizzle-kit": "^0.31.8",
     "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
     "eslint-config-love": "^145.0.0",
@@ -50,6 +57,8 @@
     "@aws-sdk/util-dynamodb": "^3.971.0",
     "@hono/zod-openapi": "^1.2.0",
     "@hono/zod-validator": "^0.7.6",
+    "@neondatabase/serverless": "^1.0.2",
+    "drizzle-orm": "^0.45.1",
     "hono": "^4.11.4",
     "uuid": "^13.0.0",
     "zod": "^4.3.5"

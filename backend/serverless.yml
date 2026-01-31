@@ -9,6 +9,9 @@ custom:
   appBundleIdentifier:
     prod: com.gather.app
     dev: host.exp.Exponent
+  pgConnectionString:
+    prod: ${env:PG_CONNECTION_STRING_PROD}
+    dev: ${env:PG_CONNECTION_STRING_DEV}
 provider:
   name: aws
   runtime: nodejs24.x
@@ -20,8 +23,8 @@ provider:
     STAGE: ${self:provider.stage}
     SERVICE: ${self:service}
     REGION: ${self:provider.region}
-    MAIN_TABLE_NAME: !Ref MainTable
     APPLE_BUNDLE_ID: ${self:custom.appBundleIdentifier.${self:provider.stage}}
+    PG_CONNECTION_STRING: ${self:custom.pgConnectionString.${self:provider.stage}}
   httpApi:
     cors:
       allowedOrigins:
@@ -53,16 +56,6 @@ functions:
       - httpApi:
           path: /auth/me
           method: GET
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:PutItem
-          - dynamodb:Query
-          - dynamodb:BatchWriteItem
-        Resource:
-          - !GetAtt MainTable.Arn
-          - !Sub '${MainTable.Arn}/index/*'
 
   # ============================================
   # Users Function
@@ -85,17 +78,6 @@ functions:
       - httpApi:
           path: /users/me/push-token
           method: POST
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:UpdateItem
-          - dynamodb:DeleteItem
-          - dynamodb:Query
-          - dynamodb:BatchWriteItem
-        Resource:
-          - !GetAtt MainTable.Arn
-          - !Sub '${MainTable.Arn}/index/*'
 
   # ============================================
   # Friends Function
@@ -133,18 +115,6 @@ functions:
       - httpApi:
           path: /friends/{friendId}
           method: DELETE
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:PutItem
-          - dynamodb:UpdateItem
-          - dynamodb:DeleteItem
-          - dynamodb:Query
-          - dynamodb:BatchWriteItem
-        Resource:
-          - !GetAtt MainTable.Arn
-          - !Sub '${MainTable.Arn}/index/*'
 
   # ============================================
   # Groups Function
@@ -167,17 +137,6 @@ functions:
       - httpApi:
           path: /groups/{groupId}
           method: DELETE
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:PutItem
-          - dynamodb:UpdateItem
-          - dynamodb:DeleteItem
-          - dynamodb:Query
-        Resource:
-          - !GetAtt MainTable.Arn
-          - !Sub '${MainTable.Arn}/index/*'
 
   # ============================================
   # Activities Function
@@ -200,17 +159,6 @@ functions:
       - httpApi:
           path: /activities/{activityId}
           method: DELETE
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:PutItem
-          - dynamodb:UpdateItem
-          - dynamodb:DeleteItem
-          - dynamodb:Query
-        Resource:
-          - !GetAtt MainTable.Arn
-          - !Sub '${MainTable.Arn}/index/*'
 
   # ============================================
   # Availability Function
@@ -236,18 +184,6 @@ functions:
       - httpApi:
           path: /availability/friends
           method: GET
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:PutItem
-          - dynamodb:UpdateItem
-          - dynamodb:DeleteItem
-          - dynamodb:Query
-          - dynamodb:BatchGetItem
-        Resource:
-          - !GetAtt MainTable.Arn
-          - !Sub '${MainTable.Arn}/index/*'
 
   # ============================================
   # Events Function
@@ -276,62 +212,3 @@ functions:
       - httpApi:
           path: /events/{eventId}/respond
           method: POST
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:PutItem
-          - dynamodb:UpdateItem
-          - dynamodb:DeleteItem
-          - dynamodb:Query
-          - dynamodb:BatchWriteItem
-        Resource:
-          - !GetAtt MainTable.Arn
-          - !Sub '${MainTable.Arn}/index/*'
-
-resources:
-  Resources:
-    # ============================================
-    # DynamoDB Table
-    # ============================================
-    MainTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${self:service}-${self:provider.stage}-main
-        BillingMode: PAY_PER_REQUEST
-        AttributeDefinitions:
-          - AttributeName: pk
-            AttributeType: S
-          - AttributeName: sk
-            AttributeType: S
-          - AttributeName: gsi1pk
-            AttributeType: S
-          - AttributeName: gsi1sk
-            AttributeType: S
-        KeySchema:
-          - AttributeName: pk
-            KeyType: HASH
-          - AttributeName: sk
-            KeyType: RANGE
-        GlobalSecondaryIndexes:
-          - IndexName: gsi1
-            KeySchema:
-              - AttributeName: gsi1pk
-                KeyType: HASH
-              - AttributeName: gsi1sk
-                KeyType: RANGE
-            Projection:
-              ProjectionType: ALL
-        TimeToLiveSpecification:
-          AttributeName: expiresAt
-          Enabled: true
-        StreamSpecification:
-          StreamViewType: NEW_AND_OLD_IMAGES
-
-  Outputs:
-    MainTableName:
-      Description: Main DynamoDB table name
-      Value: !Ref MainTable
-    MainTableArn:
-      Description: Main DynamoDB table ARN
-      Value: !GetAtt MainTable.Arn

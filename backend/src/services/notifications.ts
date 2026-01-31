@@ -2,14 +2,9 @@
 // import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 // import { REGION, SNS_TOPIC_ARN } from '../constants';
 // const snsClient = new SNSClient({ region: REGION });
-import * as db from './dynamodb';
-import type { UserRecord, Event } from '../types';
-
-// ============================================
-// Key Builders
-// ============================================
-
-const userPk = (userId: string) => `USER#${userId}`;
+import { eq } from 'drizzle-orm';
+import { db, users } from '../db';
+import type { Event } from '../types';
 
 // ============================================
 // Notification Types
@@ -42,9 +37,15 @@ export const sendPushNotification = async (
 ): Promise<void> => {
   try {
     // Get user's push token
-    const userRecord = await db.getItem<UserRecord>(userPk(userId), 'PROFILE');
+    const result = await db
+      .select({ pushToken: users.pushToken })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
-    if (!userRecord?.pushToken) {
+    const user = result[0];
+
+    if (!user?.pushToken) {
       console.log(`No push token for user ${userId}`);
       return;
     }
@@ -55,7 +56,7 @@ export const sendPushNotification = async (
 
     // In production with SNS Platform Application:
     // const command = new PublishCommand({
-    //   TargetArn: userRecord.pushEndpointArn, // SNS endpoint ARN
+    //   TargetArn: user.pushEndpointArn, // SNS endpoint ARN
     //   Message: JSON.stringify({
     //     APNS: JSON.stringify({
     //       aps: {
@@ -81,9 +82,7 @@ export const sendPushNotifications = async (
   userIds: string[],
   payload: NotificationPayload,
 ): Promise<void> => {
-  await Promise.all(
-    userIds.map((userId) => sendPushNotification(userId, payload)),
-  );
+  await Promise.all(userIds.map((userId) => sendPushNotification(userId, payload)));
 };
 
 // ============================================
@@ -156,10 +155,7 @@ export const notifyEventResponse = async (
   });
 };
 
-export const notifyEventUpdated = async (
-  inviteeIds: string[],
-  event: Event,
-): Promise<void> => {
+export const notifyEventUpdated = async (inviteeIds: string[], event: Event): Promise<void> => {
   await sendPushNotifications(inviteeIds, {
     type: 'event_updated',
     title: 'Event Updated',
@@ -171,10 +167,7 @@ export const notifyEventUpdated = async (
   });
 };
 
-export const notifyEventCancelled = async (
-  inviteeIds: string[],
-  event: Event,
-): Promise<void> => {
+export const notifyEventCancelled = async (inviteeIds: string[], event: Event): Promise<void> => {
   await sendPushNotifications(inviteeIds, {
     type: 'event_cancelled',
     title: 'Event Cancelled',

@@ -6,6 +6,7 @@ import {
 } from '../src/middleware/hono';
 import {
   FriendshipSchema,
+  FriendWithUserSchema,
   FriendRequestSchema,
   UserSearchSchema,
   ErrorResponseSchema,
@@ -26,9 +27,9 @@ const FriendsResponseSchema = z
   .object({
     success: z.literal(true),
     data: z.object({
-      friends: z.array(FriendshipSchema),
-      pendingReceived: z.array(FriendshipSchema),
-      pendingSent: z.array(FriendshipSchema),
+      friends: z.array(FriendWithUserSchema),
+      pendingReceived: z.array(FriendWithUserSchema),
+      pendingSent: z.array(FriendWithUserSchema),
     }),
   })
   .openapi('FriendsResponse');

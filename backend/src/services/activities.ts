@@ -1,71 +1,62 @@
-import { v4 as uuidv4 } from 'uuid';
-import * as db from './dynamodb';
-import type {
-  Activity,
-  ActivityRecord,
-  CreateActivity,
-  UpdateActivity,
-} from '../types';
+import { eq, or, isNull } from 'drizzle-orm';
+import { db, activities } from '../db';
+import type { Activity, CreateActivity, UpdateActivity } from '../types';
+import { DEFAULT_ACTIVITIES } from '../constants';
 
 // ============================================
-// Key Builders
+// Helpers
 // ============================================
 
-const activityPk = (activityId: string) => `ACTIVITY#${activityId}`;
-const userPk = (userId: string) => `USER#${userId}`;
+const dbActivityToActivity = (dbActivity: typeof activities.$inferSelect): Activity => {
+  return {
+    activityId: dbActivity.id,
+    userId: dbActivity.userId,
+    name: dbActivity.name,
+    emoji: dbActivity.emoji,
+    isDefault: dbActivity.isDefault,
+    createdAt: dbActivity.createdAt.toISOString(),
+  };
+};
 
 // ============================================
 // Activity Operations
 // ============================================
 
 export const getActivities = async (userId: string): Promise<Activity[]> => {
-  // Get default activities
-  const defaultActivities = await db.queryByGsi1<ActivityRecord>(
-    'SYSTEM',
-    'ACTIVITY#',
-  );
+  // Ensure default activities exist
+  await ensureDefaultActivities();
 
-  // Get user's custom activities
-  const userActivities = await db.queryByGsi1<ActivityRecord>(
-    userPk(userId),
-    'ACTIVITY#',
-  );
+  // Get both default activities (userId is null) and user's custom activities
+  const results = await db
+    .select()
+    .from(activities)
+    .where(or(isNull(activities.userId), eq(activities.userId, userId)));
 
-  return [...defaultActivities, ...userActivities].map(recordToActivity);
+  return results.map(dbActivityToActivity);
 };
 
-export const getActivity = async (
-  activityId: string,
-): Promise<Activity | null> => {
-  const record = await db.getItem<ActivityRecord>(
-    activityPk(activityId),
-    'METADATA',
-  );
-  return record ? recordToActivity(record) : null;
+export const getActivity = async (activityId: string): Promise<Activity | null> => {
+  const result = await db.select().from(activities).where(eq(activities.id, activityId)).limit(1);
+  const activity = result[0];
+  return activity ? dbActivityToActivity(activity) : null;
 };
 
-export const createActivity = async (
-  userId: string,
-  input: CreateActivity,
-): Promise<Activity> => {
-  const activityId = uuidv4();
-  const now = new Date().toISOString();
+export const createActivity = async (userId: string, input: CreateActivity): Promise<Activity> => {
+  const [newActivity] = await db
+    .insert(activities)
+    .values({
+      userId,
+      name: input.name,
+      emoji: input.emoji,
+      isDefault: false,
+    })
+    .returning();
 
-  const record: ActivityRecord = {
-    pk: activityPk(activityId),
-    sk: 'METADATA',
-    gsi1pk: userPk(userId),
-    gsi1sk: `ACTIVITY#${activityId}`,
-    activityId,
-    userId,
-    name: input.name,
-    emoji: input.emoji,
-    isDefault: false,
-    createdAt: now,
-  };
+  if (!newActivity) {
+    throw new Error('Failed to create activity');
+  }
 
-  await db.putItem(record);
-  return recordToActivity(record);
+  return dbActivityToActivity(newActivity);
 };
 
 export const updateActivity = async (
@@ -90,15 +81,23 @@ export const updateActivity = async (
     };
   }
 
-  const record = await db.updateItem<ActivityRecord>(
-    activityPk(activityId),
-    'METADATA',
-    updates,
-  );
+  const updateData: Partial<typeof activities.$inferInsert> = {};
+  if (updates.name !== undefined) {
+    updateData.name = updates.name;
+  }
+  if (updates.emoji !== undefined) {
+    updateData.emoji = updates.emoji;
+  }
+
+  const [updated] = await db
+    .update(activities)
+    .set(updateData)
+    .where(eq(activities.id, activityId))
+    .returning();
 
   return {
     success: true,
-    activity: record ? recordToActivity(record) : undefined,
+    activity: updated ? dbActivityToActivity(updated) : undefined,
   };
 };
 
@@ -123,21 +122,26 @@ export const deleteActivity = async (
     };
   }
 
-  await db.deleteItem(activityPk(activityId), 'METADATA');
+  await db.delete(activities).where(eq(activities.id, activityId));
   return { success: true };
 };
 
 // ============================================
-// Helpers
+// Default Activities
 // ============================================
 
-const recordToActivity = (record: ActivityRecord): Activity => {
-  return {
-    activityId: record.activityId,
-    userId: record.userId,
-    name: record.name,
-    emoji: record.emoji,
-    isDefault: record.isDefault,
-    createdAt: record.createdAt,
-  };
+const ensureDefaultActivities = async (): Promise<void> => {
+  // Check if default activities already exist
+  const existing = await db.select().from(activities).where(eq(activities.isDefault, true)).limit(1);
+
+  if (existing.length > 0) return;
+
+  const activityValues = DEFAULT_ACTIVITIES.map((activity) => ({
+    userId: null,
+    name: activity.name,
+    emoji: activity.emoji,
+    isDefault: true,
+  }));
+
+  await db.insert(activities).values(activityValues);
 };

@@ -261,6 +261,10 @@
             "type": "string",
             "example": "John Doe"
           },
+          "initials": {
+            "type": "string",
+            "example": "JD"
+          },
           "avatarUrl": {
             "type": "string",
             "format": "uri",
@@ -297,6 +301,7 @@
           "firstName",
           "lastName",
           "fullName",
+          "initials",
           "createdAt"
         ]
       },
@@ -308,22 +313,37 @@
             "minLength": 1,
             "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
           },
-          "email": {
-            "type": "string",
-            "format": "email",
-            "example": "john@example.com"
-          },
-          "firstName": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 50,
-            "example": "John"
-          },
-          "lastName": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 50,
-            "example": "Doe"
+          "user": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "type": "string"
+                  },
+                  "lastName": {
+                    "type": "string"
+                  },
+                  "middleName": {
+                    "type": "string"
+                  },
+                  "namePrefix": {
+                    "type": "string"
+                  },
+                  "nameSuffix": {
+                    "type": "string"
+                  },
+                  "nickname": {
+                    "type": "string"
+                  }
+                }
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              }
+            }
           }
         },
         "required": [
@@ -411,19 +431,6 @@
           "recurring": {
             "$ref": "#/components/schemas/Recurring"
           },
-          "visibleTo": {
-            "$ref": "#/components/schemas/Visibility"
-          },
-          "preferredActivities": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "example": [
-              "550e8400-e29b-41d4-a716-446655440000"
-            ]
-          },
           "notes": {
             "type": "string",
             "maxLength": 500,
@@ -440,7 +447,6 @@
           "windowId",
           "startTime",
           "endTime",
-          "visibleTo",
           "createdAt"
         ]
       },
@@ -480,45 +486,6 @@
           "weekly",
           "biweekly",
           "monthly"
-        ]
-      },
-      "Visibility": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "$ref": "#/components/schemas/VisibilityType"
-          },
-          "groupIds": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "example": [
-              "550e8400-e29b-41d4-a716-446655440000"
-            ]
-          },
-          "userIds": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "example": [
-              "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-            ]
-          }
-        },
-        "required": [
-          "type"
-        ]
-      },
-      "VisibilityType": {
-        "type": "string",
-        "enum": [
-          "all",
-          "groups",
-          "specific"
         ]
       },
       "AvailabilityWindowResponse": {
@@ -566,19 +533,6 @@
           "recurring": {
             "$ref": "#/components/schemas/Recurring"
           },
-          "visibleTo": {
-            "$ref": "#/components/schemas/Visibility"
-          },
-          "preferredActivities": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "example": [
-              "550e8400-e29b-41d4-a716-446655440000"
-            ]
-          },
           "notes": {
             "type": "string",
             "maxLength": 500,
@@ -587,8 +541,7 @@
         },
         "required": [
           "startTime",
-          "endTime",
-          "visibleTo"
+          "endTime"
         ]
       },
       "UpdateAvailability": {
@@ -612,20 +565,6 @@
               {
                 "nullable": true
               }
-            ]
-          },
-          "visibleTo": {
-            "$ref": "#/components/schemas/Visibility"
-          },
-          "preferredActivities": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "example": [
-              "550e8400-e29b-41d4-a716-446655440000"
             ]
           },
           "notes": {
@@ -723,6 +662,19 @@
             "format": "uuid",
             "example": "550e8400-e29b-41d4-a716-446655440000"
           },
+          "hostName": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "hostInitials": {
+            "type": "string",
+            "example": "JD"
+          },
+          "hostAvatarUrl": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://example.com/avatar.jpg"
+          },
           "title": {
             "type": "string",
             "minLength": 1,
@@ -790,6 +742,8 @@
         "required": [
           "eventId",
           "hostId",
+          "hostName",
+          "hostInitials",
           "title",
           "startTime",
           "endTime",
@@ -807,6 +761,19 @@
             "format": "uuid",
             "example": "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
           },
+          "fullName": {
+            "type": "string",
+            "example": "Jane Smith"
+          },
+          "initials": {
+            "type": "string",
+            "example": "JS"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://example.com/avatar.jpg"
+          },
           "status": {
             "$ref": "#/components/schemas/InviteeStatus"
           },
@@ -821,6 +788,8 @@
         },
         "required": [
           "userId",
+          "fullName",
+          "initials",
           "status"
         ]
       },
@@ -1039,19 +1008,19 @@
               "friends": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/Friendship"
+                  "$ref": "#/components/schemas/FriendWithUser"
                 }
               },
               "pendingReceived": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/Friendship"
+                  "$ref": "#/components/schemas/FriendWithUser"
                 }
               },
               "pendingSent": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/Friendship"
+                  "$ref": "#/components/schemas/FriendWithUser"
                 }
               }
             },
@@ -1067,7 +1036,7 @@
           "data"
         ]
       },
-      "Friendship": {
+      "FriendWithUser": {
         "type": "object",
         "properties": {
           "userId": {
@@ -1098,10 +1067,8 @@
             "format": "date-time",
             "example": "2024-01-15T10:30:00.000Z"
           },
-          "customName": {
-            "type": "string",
-            "maxLength": 50,
-            "example": "Best Friend"
+          "friend": {
+            "$ref": "#/components/schemas/User"
           }
         },
         "required": [
@@ -1109,7 +1076,8 @@
           "friendId",
           "status",
           "initiatedBy",
-          "createdAt"
+          "createdAt",
+          "friend"
         ]
       },
       "FriendshipStatus": {
@@ -1224,6 +1192,46 @@
         "required": [
           "success",
           "data"
+        ]
+      },
+      "Friendship": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "friendId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FriendshipStatus"
+          },
+          "initiatedBy": {
+            "type": "string",
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T10:30:00.000Z"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T10:30:00.000Z"
+          }
+        },
+        "required": [
+          "userId",
+          "friendId",
+          "status",
+          "initiatedBy",
+          "createdAt"
         ]
       },
       "FriendRequest": {

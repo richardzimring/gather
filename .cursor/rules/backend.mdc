@@ -2,13 +2,14 @@
 globs: backend/**.*
 alwaysApply: false
 ---
+
 # Backend Stack
 
 - Serverless Framework + Node 24
 - AWS Lambda + API Gateway (HTTP API)
 - Hono for routing/middleware
-- DynamoDB single-table design
-- Cognito for auth
+- PostgreSQL (Neon) with Drizzle ORM
+- Apple Sign In for auth
 - Zod for validation + type inference
 - OpenAPI docs, UI is using Hey API for SDK integration
 
@@ -18,12 +19,26 @@ alwaysApply: false
 backend/
   lambdas/           # One handler file per lambda (auth.ts, events.ts, etc.). Just light wrappers in these files.
   src/
+    db/              # Drizzle ORM - schema and connection
+      index.ts       # Database connection and exports
+      schema.ts      # Drizzle schema definitions
     middleware/
     services/        # Business logic
-    utils/
-    types.ts
+    types.ts         # Zod schemas and TypeScript types
     constants.ts
+  drizzle.config.ts  # Drizzle Kit configuration
 ```
+
+# Database
+
+- PostgreSQL hosted on Neon with two branches: `production` and `dev`
+- Drizzle ORM for type-safe queries with JOINs
+- Schema defined in `backend/src/db/schema.ts`
+- Database scripts:
+  - `npm run db:push` - Push schema changes to database
+  - `npm run db:generate` - Generate migrations
+  - `npm run db:migrate` - Run migrations
+  - `npm run db:studio` - Open Drizzle Studio
 
 # Code Guidelines
 
@@ -33,15 +48,18 @@ backend/
   export const CreateEventSchema = z.object({...});
   export type CreateEvent = z.infer<typeof CreateEventSchema>;
   ```
-- Dynamo models should be class-based and clean, in a `/models` folder
-- Do *not* use eslint disables unless absolutely necessary
-- Do *not* cast to any or force unsafe casts. Use clean types and parse with Zod on unknown external inputs.
+- Use Drizzle's query builder with proper JOINs instead of N+1 queries
+- Do _not_ use eslint disables unless absolutely necessary
+- Do _not_ cast to any or force unsafe casts. Use clean types and parse with Zod on unknown external inputs.
 - Use built-in and recommended features whenever possible instead of implementing by hand something which could have been cleanly imported from an existing or common package
 
 # Misc. Guidance
 
 - Do not write or run tests for now
-- Always run `npm run lint` after your changes
+- Always check for errors in your code after your changes (e.g. by running `npm run lint`)
 - Always regenerate the OpenAPI spec after making changes to the API interface
 - Always look up documentation to get the latest guidance on best and standard practices for a package
   - https://hono.dev/llms.txt
+  - https://orm.drizzle.team/docs/overview
+
+Consider these rules if they affect your changes.

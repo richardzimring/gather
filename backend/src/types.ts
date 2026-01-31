@@ -18,6 +18,7 @@ export const UserSchema = z
     firstName: z.string().min(1).max(50).openapi({ example: 'John' }),
     lastName: z.string().min(1).max(50).openapi({ example: 'Doe' }),
     fullName: z.string().openapi({ example: 'John Doe' }),
+    initials: z.string().openapi({ example: 'JD' }),
     avatarUrl: z.string().url().optional().openapi({ example: 'https://example.com/avatar.jpg' }),
     createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
     calendarSyncEnabled: z.boolean().default(false).openapi({ example: false }),
@@ -57,9 +58,20 @@ export const FriendshipSchema = z
     initiatedBy: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
     createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
     acceptedAt: z.string().datetime().optional().openapi({ example: EXAMPLE_DATETIME }),
-    customName: z.string().max(50).optional().openapi({ example: 'Best Friend' }),
   })
   .openapi('Friendship');
+
+export const FriendWithUserSchema = z
+  .object({
+    userId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
+    friendId: z.string().uuid().openapi({ example: EXAMPLE_UUID_2 }),
+    status: FriendshipStatusSchema,
+    initiatedBy: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
+    createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
+    acceptedAt: z.string().datetime().optional().openapi({ example: EXAMPLE_DATETIME }),
+    friend: UserSchema,
+  })
+  .openapi('FriendWithUser');
 
 // Friend request can be by userId or inviteCode
 export const FriendRequestSchema = z
@@ -138,16 +150,6 @@ export const RecurringSchema = z
   })
   .openapi('Recurring');
 
-export const VisibilityTypeSchema = z.enum(['all', 'groups', 'specific']).openapi('VisibilityType');
-
-export const VisibilitySchema = z
-  .object({
-    type: VisibilityTypeSchema,
-    groupIds: z.array(z.string().uuid()).optional().openapi({ example: [EXAMPLE_UUID] }),
-    userIds: z.array(z.string().uuid()).optional().openapi({ example: [EXAMPLE_UUID_2] }),
-  })
-  .openapi('Visibility');
-
 export const AvailabilityWindowSchema = z
   .object({
     userId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
@@ -155,8 +157,6 @@ export const AvailabilityWindowSchema = z
     startTime: z.string().datetime().openapi({ example: '2024-01-15T14:00:00.000Z' }),
     endTime: z.string().datetime().openapi({ example: '2024-01-15T18:00:00.000Z' }),
     recurring: RecurringSchema.optional(),
-    visibleTo: VisibilitySchema,
-    preferredActivities: z.array(z.string().uuid()).optional().openapi({ example: [EXAMPLE_UUID] }),
     notes: z.string().max(500).optional().openapi({ example: 'Free for coffee or lunch!' }),
     createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
   })
@@ -167,8 +167,6 @@ export const CreateAvailabilitySchema = z
     startTime: z.string().datetime().openapi({ example: '2024-01-15T14:00:00.000Z' }),
     endTime: z.string().datetime().openapi({ example: '2024-01-15T18:00:00.000Z' }),
     recurring: RecurringSchema.optional(),
-    visibleTo: VisibilitySchema,
-    preferredActivities: z.array(z.string().uuid()).optional().openapi({ example: [EXAMPLE_UUID] }),
     notes: z.string().max(500).optional().openapi({ example: 'Free for coffee or lunch!' }),
   })
   .openapi('CreateAvailability');
@@ -178,8 +176,6 @@ export const UpdateAvailabilitySchema = z
     startTime: z.string().datetime().optional().openapi({ example: '2024-01-15T14:00:00.000Z' }),
     endTime: z.string().datetime().optional().openapi({ example: '2024-01-15T18:00:00.000Z' }),
     recurring: RecurringSchema.nullable().optional(),
-    visibleTo: VisibilitySchema.optional(),
-    preferredActivities: z.array(z.string().uuid()).nullable().optional().openapi({ example: [EXAMPLE_UUID] }),
     notes: z.string().max(500).nullable().optional().openapi({ example: 'Updated notes' }),
   })
   .openapi('UpdateAvailability');
@@ -201,6 +197,9 @@ export const CounterProposalSchema = z
 export const EventInviteeSchema = z
   .object({
     userId: z.string().uuid().openapi({ example: EXAMPLE_UUID_2 }),
+    fullName: z.string().openapi({ example: 'Jane Smith' }),
+    initials: z.string().openapi({ example: 'JS' }),
+    avatarUrl: z.string().url().optional().openapi({ example: 'https://example.com/avatar.jpg' }),
     status: InviteeStatusSchema,
     respondedAt: z.string().datetime().optional().openapi({ example: EXAMPLE_DATETIME }),
     counterProposal: CounterProposalSchema.optional(),
@@ -211,6 +210,9 @@ export const EventSchema = z
   .object({
     eventId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
     hostId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
+    hostName: z.string().openapi({ example: 'John Doe' }),
+    hostInitials: z.string().openapi({ example: 'JD' }),
+    hostAvatarUrl: z.string().url().optional().openapi({ example: 'https://example.com/avatar.jpg' }),
     title: z.string().min(1).max(100).openapi({ example: 'Coffee Catch-up' }),
     activityId: z.string().uuid().optional().openapi({ example: EXAMPLE_UUID }),
     emoji: z.string().optional().openapi({ example: '☕' }),
@@ -307,6 +309,7 @@ export type UpdateUser = z.infer<typeof UpdateUserSchema>;
 
 export type FriendshipStatus = z.infer<typeof FriendshipStatusSchema>;
 export type Friendship = z.infer<typeof FriendshipSchema>;
+export type FriendWithUser = z.infer<typeof FriendWithUserSchema>;
 export type FriendRequest = z.infer<typeof FriendRequestSchema>;
 
 export type Group = z.infer<typeof GroupSchema>;
@@ -319,8 +322,6 @@ export type UpdateActivity = z.infer<typeof UpdateActivitySchema>;
 
 export type RecurringPattern = z.infer<typeof RecurringPatternSchema>;
 export type Recurring = z.infer<typeof RecurringSchema>;
-export type VisibilityType = z.infer<typeof VisibilityTypeSchema>;
-export type Visibility = z.infer<typeof VisibilitySchema>;
 export type AvailabilityWindow = z.infer<typeof AvailabilityWindowSchema>;
 export type CreateAvailability = z.infer<typeof CreateAvailabilitySchema>;
 export type UpdateAvailability = z.infer<typeof UpdateAvailabilitySchema>;
@@ -352,68 +353,4 @@ export interface ApiResponse<T = unknown> {
 export interface AuthResponse {
   user: User;
   isNewUser: boolean;
-}
-
-// ============================================
-// DynamoDB Record Types (with GSI attributes)
-// ============================================
-
-export interface UserRecord extends User {
-  pk: string; // USER#<userId>
-  sk: string; // PROFILE
-  gsi1pk: string; // APPLE#<appleUserId>
-  gsi1sk: string; // USER
-}
-
-export interface FriendshipRecord extends Friendship {
-  pk: string; // USER#<userId>
-  sk: string; // FRIEND#<friendId>
-}
-
-export interface GroupRecord extends Group {
-  pk: string; // GROUP#<groupId>
-  sk: string; // METADATA
-  gsi1pk: string; // USER#<ownerId>
-  gsi1sk: string; // GROUP#<groupId>
-}
-
-export interface ActivityRecord extends Activity {
-  pk: string; // ACTIVITY#<activityId>
-  sk: string; // METADATA
-  gsi1pk: string; // USER#<userId> or SYSTEM
-  gsi1sk: string; // ACTIVITY#<activityId>
-}
-
-export interface AvailabilityRecord extends AvailabilityWindow {
-  pk: string; // USER#<userId>
-  sk: string; // AVAILABILITY#<windowId>
-}
-
-export interface EventRecord extends Omit<Event, 'invitees'> {
-  pk: string; // EVENT#<eventId>
-  sk: string; // METADATA
-  gsi1pk: string; // USER#<hostId>
-  gsi1sk: string; // EVENT#<startTime>#<eventId>
-  invitees: EventInvitee[];
-}
-
-export interface EventInviteeRecord {
-  pk: string; // EVENT#<eventId>
-  sk: string; // INVITEE#<userId>
-  gsi1pk: string; // USER#<userId>
-  gsi1sk: string; // INVITE#<status>#<startTime>#<eventId>
-  eventId: string;
-  userId: string;
-  status: InviteeStatus;
-  respondedAt?: string;
-  counterProposal?: CounterProposal;
-}
-
-// Invite code record for friend invite links
-export interface InviteCodeRecord {
-  pk: string; // INVITE#<inviteCode>
-  sk: string; // METADATA
-  inviteCode: string;
-  userId: string;
-  createdAt: string;
 }

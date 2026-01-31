@@ -1,38 +1,44 @@
-import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
-import * as db from './dynamodb';
-import type {
-  User,
-  UserRecord,
-  CreateUser,
-  UpdateUser,
-  InviteCodeRecord,
-} from '../types';
-import {
-  DEFAULT_GROUPS,
-  DEFAULT_ACTIVITIES,
-  INVITE_CODE_LENGTH,
-} from '../constants';
-import type { GroupRecord, ActivityRecord } from '../types';
-
-// ============================================
-// Key Builders
-// ============================================
-
-const userPk = (userId: string) => `USER#${userId}`;
-const applePk = (appleUserId: string) => `APPLE#${appleUserId}`;
-const groupPk = (groupId: string) => `GROUP#${groupId}`;
-const activityPk = (activityId: string) => `ACTIVITY#${activityId}`;
-const inviteCodePk = (code: string) => `INVITE#${code}`;
+import { eq, ilike, or, and, ne } from 'drizzle-orm';
+import { db, users, groups, activities } from '../db';
+import type { User, CreateUser, UpdateUser } from '../types';
+import { DEFAULT_GROUPS, DEFAULT_ACTIVITIES, INVITE_CODE_LENGTH } from '../constants';
 
 // ============================================
 // Invite Code Generation
 // ============================================
 
 const generateInviteCode = (): string => {
-  // Generate a URL-safe invite code
   const bytes = crypto.randomBytes(INVITE_CODE_LENGTH);
   return bytes.toString('base64url').slice(0, INVITE_CODE_LENGTH).toUpperCase();
+};
+
+// ============================================
+// Helpers
+// ============================================
+
+const getInitials = (firstName: string, lastName: string): string => {
+  const first = firstName.trim()[0] ?? '';
+  const last = lastName.trim()[0] ?? '';
+  return `${first}${last}`.toUpperCase();
+};
+
+const dbUserToUser = (dbUser: typeof users.$inferSelect): User => {
+  return {
+    userId: dbUser.id,
+    appleUserId: dbUser.appleUserId,
+    email: dbUser.email,
+    firstName: dbUser.firstName,
+    lastName: dbUser.lastName,
+    fullName: `${dbUser.firstName} ${dbUser.lastName}`,
+    initials: getInitials(dbUser.firstName, dbUser.lastName),
+    avatarUrl: dbUser.avatarUrl ?? undefined,
+    createdAt: dbUser.createdAt.toISOString(),
+    calendarSyncEnabled: dbUser.calendarSyncEnabled,
+    pushToken: dbUser.pushToken ?? undefined,
+    timezone: dbUser.timezone,
+    inviteCode: dbUser.inviteCode ?? undefined,
+  };
 };
 
 // ============================================
@@ -40,35 +46,25 @@ const generateInviteCode = (): string => {
 // ============================================
 
 export const getUserById = async (userId: string): Promise<User | null> => {
-  const record = await db.getItem<UserRecord>(userPk(userId), 'PROFILE');
-  if (!record) return null;
-
-  return recordToUser(record);
+  const result = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  const user = result[0];
+  return user ? dbUserToUser(user) : null;
 };
 
-export const getUserByAppleUserId = async (
-  appleUserId: string,
-): Promise<User | null> => {
-  const records = await db.queryByGsi1<UserRecord>(
-    applePk(appleUserId),
-    'USER',
-  );
-  const firstRecord = records[0];
-  if (!firstRecord) return null;
-
-  return recordToUser(firstRecord);
+export const getUserByAppleUserId = async (appleUserId: string): Promise<User | null> => {
+  const result = await db.select().from(users).where(eq(users.appleUserId, appleUserId)).limit(1);
+  const user = result[0];
+  return user ? dbUserToUser(user) : null;
 };
 
-export const getUserByInviteCode = async (
-  inviteCode: string,
-): Promise<User | null> => {
-  const inviteRecord = await db.getItem<InviteCodeRecord>(
-    inviteCodePk(inviteCode.toUpperCase()),
-    'METADATA',
-  );
-  if (!inviteRecord) return null;
-
-  return getUserById(inviteRecord.userId);
+export const getUserByInviteCode = async (inviteCode: string): Promise<User | null> => {
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.inviteCode, inviteCode.toUpperCase()))
+    .limit(1);
+  const user = result[0];
+  return user ? dbUserToUser(user) : null;
 };
 
 export const searchUsersByName = async (
@@ -76,142 +72,91 @@ export const searchUsersByName = async (
   excludeUserId?: string,
   limit = 20,
 ): Promise<User[]> => {
-  // Note: DynamoDB doesn't support text search natively.
-  // For MVP, we'll do a scan with filter. In production, consider:
-  // - OpenSearch/Elasticsearch
-  // - DynamoDB with a search-optimized GSI
-  // - Third-party search service
+  const searchPattern = `%${query}%`;
 
-  // For now, this is a placeholder that returns empty results
-  // The proper implementation would require a GSI on firstName/lastName
-  // or integration with a search service
-  console.log(
-    `Search users by name: "${query}" (excluding: ${excludeUserId}, limit: ${limit})`,
-  );
+  const conditions = [
+    or(ilike(users.firstName, searchPattern), ilike(users.lastName, searchPattern)),
+  ];
 
-  // TODO: Implement proper user search
-  // Options:
-  // 1. GSI on firstName/lastName (limited - exact match only)
-  // 2. Scan with filter (expensive for large datasets)
-  // 3. External search service (OpenSearch, Algolia, etc.)
+  if (excludeUserId) {
+    conditions.push(ne(users.id, excludeUserId));
+  }
 
-  return [];
+  const result = await db
+    .select()
+    .from(users)
+    .where(and(...conditions))
+    .limit(limit);
+
+  return result.map(dbUserToUser);
 };
 
 export const createUser = async (input: CreateUser): Promise<User> => {
-  const userId = uuidv4();
-  const now = new Date().toISOString();
   const inviteCode = generateInviteCode();
 
-  const record: UserRecord = {
-    pk: userPk(userId),
-    sk: 'PROFILE',
-    gsi1pk: applePk(input.appleUserId),
-    gsi1sk: 'USER',
-    userId,
-    appleUserId: input.appleUserId,
-    email: input.email,
-    firstName: input.firstName,
-    lastName: input.lastName,
-    fullName: `${input.firstName} ${input.lastName}`,
-    avatarUrl: input.avatarUrl,
-    createdAt: now,
-    calendarSyncEnabled: false,
-    timezone: input.timezone ?? 'America/New_York',
-    inviteCode,
-  };
+  const [newUser] = await db
+    .insert(users)
+    .values({
+      appleUserId: input.appleUserId,
+      email: input.email,
+      firstName: input.firstName,
+      lastName: input.lastName,
+      avatarUrl: input.avatarUrl,
+      timezone: input.timezone ?? 'America/New_York',
+      inviteCode,
+      calendarSyncEnabled: false,
+    })
+    .returning();
 
-  // Also create invite code lookup record
-  const inviteCodeRecord: InviteCodeRecord = {
-    pk: inviteCodePk(inviteCode),
-    sk: 'METADATA',
-    inviteCode,
-    userId,
-    createdAt: now,
-  };
-
-  await db.batchWriteItems([{ put: record }, { put: inviteCodeRecord }]);
+  if (!newUser) {
+    throw new Error('Failed to create user');
+  }
 
   // Create default groups and seed default activities for this user
-  await createDefaultGroups(userId);
+  await createDefaultGroups(newUser.id);
   await ensureDefaultActivities();
 
-  return recordToUser(record);
+  return dbUserToUser(newUser);
 };
 
-export const updateUser = async (
-  userId: string,
-  updates: UpdateUser,
-): Promise<User | null> => {
-  // Convert null values to undefined for DynamoDB compatibility
-  const cleanedUpdates: Partial<UserRecord> = {
-    ...updates,
-    avatarUrl: updates.avatarUrl === null ? undefined : updates.avatarUrl,
-  };
+export const updateUser = async (userId: string, updates: UpdateUser): Promise<User | null> => {
+  const updateData: Partial<typeof users.$inferInsert> = {};
 
-  const record = await db.updateItem<UserRecord>(
-    userPk(userId),
-    'PROFILE',
-    cleanedUpdates,
-  );
+  if (updates.avatarUrl !== undefined) {
+    updateData.avatarUrl = updates.avatarUrl === null ? null : updates.avatarUrl;
+  }
+  if (updates.timezone !== undefined) {
+    updateData.timezone = updates.timezone;
+  }
+  if (updates.calendarSyncEnabled !== undefined) {
+    updateData.calendarSyncEnabled = updates.calendarSyncEnabled;
+  }
 
-  return record ? recordToUser(record) : null;
+  if (Object.keys(updateData).length === 0) {
+    return getUserById(userId);
+  }
+
+  const [updated] = await db.update(users).set(updateData).where(eq(users.id, userId)).returning();
+
+  return updated ? dbUserToUser(updated) : null;
 };
 
-export const updatePushToken = async (
-  userId: string,
-  pushToken: string,
-): Promise<void> => {
-  await db.updateItem(userPk(userId), 'PROFILE', { pushToken });
+export const updatePushToken = async (userId: string, pushToken: string): Promise<void> => {
+  await db.update(users).set({ pushToken }).where(eq(users.id, userId));
 };
 
 export const deleteUser = async (userId: string): Promise<void> => {
-  // Get the user to find their invite code
-  const user = await getUserById(userId);
-
-  if (user?.inviteCode) {
-    // Delete both user record and invite code record
-    await db.batchWriteItems([
-      { delete: { pk: userPk(userId), sk: 'PROFILE' } },
-      { delete: { pk: inviteCodePk(user.inviteCode), sk: 'METADATA' } },
-    ]);
-  } else {
-    await db.deleteItem(userPk(userId), 'PROFILE');
-  }
-
-  // TODO: Also delete related data (friendships, groups, events, etc.)
+  // Cascade delete will handle related records (friendships, groups, etc.)
+  await db.delete(users).where(eq(users.id, userId));
 };
 
-export const regenerateInviteCode = async (
-  userId: string,
-): Promise<string | null> => {
+export const regenerateInviteCode = async (userId: string): Promise<string | null> => {
   const user = await getUserById(userId);
   if (!user) return null;
 
   const newInviteCode = generateInviteCode();
-  const now = new Date().toISOString();
 
-  // Delete old invite code record if exists
-  const deleteOps: { delete: { pk: string; sk: string } }[] = [];
-  if (user.inviteCode) {
-    deleteOps.push({
-      delete: { pk: inviteCodePk(user.inviteCode), sk: 'METADATA' },
-    });
-  }
-
-  // Create new invite code record
-  const newInviteCodeRecord: InviteCodeRecord = {
-    pk: inviteCodePk(newInviteCode),
-    sk: 'METADATA',
-    inviteCode: newInviteCode,
-    userId,
-    createdAt: now,
-  };
-
-  // Update user with new invite code and create new invite code record
-  await db.batchWriteItems([...deleteOps, { put: newInviteCodeRecord }]);
-
-  await db.updateItem(userPk(userId), 'PROFILE', { inviteCode: newInviteCode });
+  await db.update(users).set({ inviteCode: newInviteCode }).where(eq(users.id, userId));
 
   return newInviteCode;
 };
@@ -221,73 +166,28 @@ export const regenerateInviteCode = async (
 // ============================================
 
 const createDefaultGroups = async (userId: string): Promise<void> => {
-  const now = new Date().toISOString();
+  const groupValues = DEFAULT_GROUPS.map((group) => ({
+    ownerId: userId,
+    name: group.name,
+    emoji: group.emoji,
+    isDefault: true,
+  }));
 
-  const groupRecords: GroupRecord[] = DEFAULT_GROUPS.map((group) => {
-    const groupId = uuidv4();
-    return {
-      pk: groupPk(groupId),
-      sk: 'METADATA',
-      gsi1pk: userPk(userId),
-      gsi1sk: `GROUP#${groupId}`,
-      groupId,
-      ownerId: userId,
-      name: group.name,
-      emoji: group.emoji,
-      memberIds: [],
-      isDefault: true,
-      createdAt: now,
-    };
-  });
-
-  await db.batchWriteItems(groupRecords.map((record) => ({ put: record })));
+  await db.insert(groups).values(groupValues);
 };
 
 const ensureDefaultActivities = async (): Promise<void> => {
   // Check if default activities already exist
-  const existing = await db.queryByGsi1<ActivityRecord>('SYSTEM', 'ACTIVITY');
+  const existing = await db.select().from(activities).where(eq(activities.isDefault, true)).limit(1);
+
   if (existing.length > 0) return;
 
-  const now = new Date().toISOString();
+  const activityValues = DEFAULT_ACTIVITIES.map((activity) => ({
+    userId: null,
+    name: activity.name,
+    emoji: activity.emoji,
+    isDefault: true,
+  }));
 
-  const activityRecords: ActivityRecord[] = DEFAULT_ACTIVITIES.map(
-    (activity) => {
-      const activityId = uuidv4();
-      return {
-        pk: activityPk(activityId),
-        sk: 'METADATA',
-        gsi1pk: 'SYSTEM',
-        gsi1sk: `ACTIVITY#${activityId}`,
-        activityId,
-        userId: null,
-        name: activity.name,
-        emoji: activity.emoji,
-        isDefault: true,
-        createdAt: now,
-      };
-    },
-  );
-
-  await db.batchWriteItems(activityRecords.map((record) => ({ put: record })));
-};
-
-// ============================================
-// Helpers
-// ============================================
-
-const recordToUser = (record: UserRecord): User => {
-  return {
-    userId: record.userId,
-    appleUserId: record.appleUserId,
-    email: record.email,
-    firstName: record.firstName,
-    lastName: record.lastName,
-    fullName: `${record.firstName} ${record.lastName}`,
-    avatarUrl: record.avatarUrl,
-    createdAt: record.createdAt,
-    calendarSyncEnabled: record.calendarSyncEnabled,
-    pushToken: record.pushToken,
-    timezone: record.timezone,
-    inviteCode: record.inviteCode,
-  };
+  await db.insert(activities).values(activityValues);
 };

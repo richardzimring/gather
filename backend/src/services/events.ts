@@ -1,15 +1,12 @@
-import { v4 as uuidv4 } from 'uuid';
-import * as db from './dynamodb';
+import { eq, and, or, ne, inArray } from 'drizzle-orm';
+import { db, events, eventInvitees, users } from '../db';
 import type {
   Event,
-  EventRecord,
   EventInvitee,
-  EventInviteeRecord,
   CreateEvent,
   UpdateEvent,
   EventResponse,
-  InviteeStatus,
-  EventStatus,
+  CounterProposal,
 } from '../types';
 import { getUserById } from './users';
 import {
@@ -21,124 +18,232 @@ import {
 } from './notifications';
 
 // ============================================
-// Key Builders
+// Helpers
 // ============================================
 
-const eventPk = (eventId: string) => `EVENT#${eventId}`;
-const userPk = (userId: string) => `USER#${userId}`;
-const inviteeSk = (userId: string) => `INVITEE#${userId}`;
+type InviteeWithUser = typeof eventInvitees.$inferSelect & {
+  user: typeof users.$inferSelect | null;
+};
+
+const dbInviteeToEventInvitee = (dbInvitee: InviteeWithUser): EventInvitee => {
+  const counterProposal: CounterProposal | undefined =
+    dbInvitee.counterProposalStartTime ||
+    dbInvitee.counterProposalEndTime ||
+    dbInvitee.counterProposalLocation ||
+    dbInvitee.counterProposalActivityId ||
+    dbInvitee.counterProposalMessage
+      ? {
+          startTime: dbInvitee.counterProposalStartTime?.toISOString(),
+          endTime: dbInvitee.counterProposalEndTime?.toISOString(),
+          location: dbInvitee.counterProposalLocation ?? undefined,
+          activityId: dbInvitee.counterProposalActivityId ?? undefined,
+          message: dbInvitee.counterProposalMessage ?? undefined,
+        }
+      : undefined;
+
+  const user = dbInvitee.user;
+  const fullName = user ? `${user.firstName} ${user.lastName}` : 'Unknown User';
+  const initials = user
+    ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
+    : '??';
+
+  return {
+    userId: dbInvitee.userId,
+    fullName,
+    initials,
+    avatarUrl: user?.avatarUrl ?? undefined,
+    status: dbInvitee.status,
+    respondedAt: dbInvitee.respondedAt?.toISOString(),
+    counterProposal,
+  };
+};
+
+interface HostInfo {
+  hostName: string;
+  hostInitials: string;
+  hostAvatarUrl?: string;
+}
+
+const dbEventToEvent = (
+  dbEvent: typeof events.$inferSelect,
+  invitees: EventInvitee[],
+  host: HostInfo,
+): Event => {
+  return {
+    eventId: dbEvent.id,
+    hostId: dbEvent.hostId,
+    hostName: host.hostName,
+    hostInitials: host.hostInitials,
+    hostAvatarUrl: host.hostAvatarUrl,
+    title: dbEvent.title,
+    activityId: dbEvent.activityId ?? undefined,
+    emoji: dbEvent.emoji ?? undefined,
+    startTime: dbEvent.startTime.toISOString(),
+    endTime: dbEvent.endTime.toISOString(),
+    location: dbEvent.location ?? undefined,
+    notes: dbEvent.notes ?? undefined,
+    invitees,
+    showInviteList: dbEvent.showInviteList,
+    status: dbEvent.status,
+    calendarEventId: dbEvent.calendarEventId ?? undefined,
+    createdAt: dbEvent.createdAt.toISOString(),
+    updatedAt: dbEvent.updatedAt.toISOString(),
+  };
+};
+
+const getHostInfo = (hostUser: typeof users.$inferSelect | null): HostInfo => {
+  if (!hostUser) {
+    return { hostName: 'Unknown', hostInitials: '??' };
+  }
+  return {
+    hostName: `${hostUser.firstName} ${hostUser.lastName}`,
+    hostInitials: `${hostUser.firstName.charAt(0)}${hostUser.lastName.charAt(0)}`.toUpperCase(),
+    hostAvatarUrl: hostUser.avatarUrl ?? undefined,
+  };
+};
 
 // ============================================
 // Event Operations
 // ============================================
 
 export const getEvent = async (eventId: string): Promise<Event | null> => {
-  const record = await db.getItem<EventRecord>(eventPk(eventId), 'METADATA');
-  if (!record) return null;
+  // Get event with host user data
+  const result = await db
+    .select({
+      event: events,
+      host: users,
+    })
+    .from(events)
+    .leftJoin(users, eq(events.hostId, users.id))
+    .where(eq(events.id, eventId))
+    .limit(1);
 
-  // Get all invitees for this event
-  const inviteeRecords = await db.queryByPk<EventInviteeRecord>(
-    eventPk(eventId),
-    'INVITEE#',
-  );
-  const invitees: EventInvitee[] = inviteeRecords.map((r) => ({
-    userId: r.userId,
-    status: r.status,
-    respondedAt: r.respondedAt,
-    counterProposal: r.counterProposal,
-  }));
+  const row = result[0];
+  if (!row) return null;
 
-  return recordToEvent(record, invitees);
+  // Get all invitees for this event with user data
+  const inviteeRecords = await db
+    .select({
+      eventId: eventInvitees.eventId,
+      userId: eventInvitees.userId,
+      status: eventInvitees.status,
+      respondedAt: eventInvitees.respondedAt,
+      counterProposalStartTime: eventInvitees.counterProposalStartTime,
+      counterProposalEndTime: eventInvitees.counterProposalEndTime,
+      counterProposalLocation: eventInvitees.counterProposalLocation,
+      counterProposalActivityId: eventInvitees.counterProposalActivityId,
+      counterProposalMessage: eventInvitees.counterProposalMessage,
+      user: users,
+    })
+    .from(eventInvitees)
+    .leftJoin(users, eq(eventInvitees.userId, users.id))
+    .where(eq(eventInvitees.eventId, eventId));
+
+  const invitees = inviteeRecords.map(dbInviteeToEventInvitee);
+  const hostInfo = getHostInfo(row.host);
+  return dbEventToEvent(row.event, invitees, hostInfo);
 };
 
 export const getEventsForUser = async (userId: string): Promise<Event[]> => {
-  // Get events hosted by user
-  const hostedRecords = await db.queryByGsi1<EventRecord>(
-    userPk(userId),
-    'EVENT#',
-  );
+  // Get all events where user is host OR invitee, excluding cancelled
+  // First, get event IDs where user is an invitee
+  const invitedEventIds = await db
+    .select({ eventId: eventInvitees.eventId })
+    .from(eventInvitees)
+    .where(eq(eventInvitees.userId, userId));
 
-  // Get events user is invited to
-  const inviteRecords = await db.queryByGsi1<EventInviteeRecord>(
-    userPk(userId),
-    'INVITE#',
-  );
+  const invitedIds = invitedEventIds.map((r) => r.eventId);
 
-  // Collect unique event IDs
-  const eventIds = new Set<string>();
-  hostedRecords.forEach((r) => eventIds.add(r.eventId));
-  inviteRecords.forEach((r) => eventIds.add(r.eventId));
+  // Get all events with host user data, excluding cancelled
+  const eventResults = await db
+    .select({
+      event: events,
+      host: users,
+    })
+    .from(events)
+    .leftJoin(users, eq(events.hostId, users.id))
+    .where(
+      and(
+        ne(events.status, 'cancelled'),
+        invitedIds.length > 0
+          ? or(eq(events.hostId, userId), inArray(events.id, invitedIds))
+          : eq(events.hostId, userId),
+      ),
+    )
+    .orderBy(events.startTime);
 
-  // Fetch full event details
-  const events: Event[] = [];
-  for (const eventId of eventIds) {
-    const event = await getEvent(eventId);
-    if (event && event.status !== 'cancelled') {
-      events.push(event);
-    }
+  if (eventResults.length === 0) return [];
+
+  // Get all invitees for these events with user data in one query
+  const eventIds = eventResults.map((r) => r.event.id);
+  const allInvitees = await db
+    .select({
+      eventId: eventInvitees.eventId,
+      userId: eventInvitees.userId,
+      status: eventInvitees.status,
+      respondedAt: eventInvitees.respondedAt,
+      counterProposalStartTime: eventInvitees.counterProposalStartTime,
+      counterProposalEndTime: eventInvitees.counterProposalEndTime,
+      counterProposalLocation: eventInvitees.counterProposalLocation,
+      counterProposalActivityId: eventInvitees.counterProposalActivityId,
+      counterProposalMessage: eventInvitees.counterProposalMessage,
+      user: users,
+    })
+    .from(eventInvitees)
+    .leftJoin(users, eq(eventInvitees.userId, users.id))
+    .where(inArray(eventInvitees.eventId, eventIds));
+
+  // Group invitees by event
+  const inviteesByEvent = new Map<string, EventInvitee[]>();
+  for (const invitee of allInvitees) {
+    const existing = inviteesByEvent.get(invitee.eventId) ?? [];
+    existing.push(dbInviteeToEventInvitee(invitee));
+    inviteesByEvent.set(invitee.eventId, existing);
   }
 
-  // Sort by start time
-  events.sort((a, b) => a.startTime.localeCompare(b.startTime));
-
-  return events;
+  return eventResults.map((r) => {
+    const hostInfo = getHostInfo(r.host);
+    return dbEventToEvent(r.event, inviteesByEvent.get(r.event.id) ?? [], hostInfo);
+  });
 };
 
-export const createEvent = async (
-  hostId: string,
-  input: CreateEvent,
-): Promise<Event> => {
-  const eventId = uuidv4();
-  const now = new Date().toISOString();
+export const createEvent = async (hostId: string, input: CreateEvent): Promise<Event> => {
+  const [newEvent] = await db
+    .insert(events)
+    .values({
+      hostId,
+      title: input.title,
+      activityId: input.activityId,
+      emoji: input.emoji,
+      startTime: new Date(input.startTime),
+      endTime: new Date(input.endTime),
+      location: input.location,
+      notes: input.notes,
+      showInviteList: input.showInviteList ?? true,
+      status: 'sent',
+    })
+    .returning();
 
-  // Create event record
-  const eventRecord: EventRecord = {
-    pk: eventPk(eventId),
-    sk: 'METADATA',
-    gsi1pk: userPk(hostId),
-    gsi1sk: `EVENT#${input.startTime}#${eventId}`,
-    eventId,
-    hostId,
-    title: input.title,
-    activityId: input.activityId,
-    emoji: input.emoji,
-    startTime: input.startTime,
-    endTime: input.endTime,
-    location: input.location,
-    notes: input.notes,
-    invitees: [], // Will be populated from invitee records
-    showInviteList: input.showInviteList ?? true,
-    status: 'sent',
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  await db.putItem(eventRecord);
-
-  // Create invitee records
-  const inviteeRecords: EventInviteeRecord[] = input.inviteeIds.map(
-    (userId) => ({
-      pk: eventPk(eventId),
-      sk: inviteeSk(userId),
-      gsi1pk: userPk(userId),
-      gsi1sk: `INVITE#pending#${input.startTime}#${eventId}`,
-      eventId,
-      userId,
-      status: 'pending' as InviteeStatus,
-    }),
-  );
-
-  if (inviteeRecords.length > 0) {
-    await db.batchWriteItems(inviteeRecords.map((r) => ({ put: r })));
+  if (!newEvent) {
+    throw new Error('Failed to create event');
   }
 
-  // Return full event
-  const invitees: EventInvitee[] = inviteeRecords.map((r) => ({
-    userId: r.userId,
-    status: r.status,
-  }));
+  // Create invitee records
+  if (input.inviteeIds.length > 0) {
+    const inviteeValues = input.inviteeIds.map((userId) => ({
+      eventId: newEvent.id,
+      userId,
+      status: 'pending' as const,
+    }));
 
-  const event = recordToEvent(eventRecord, invitees);
+    await db.insert(eventInvitees).values(inviteeValues);
+  }
+
+  // Fetch the complete event with user data
+  const event = await getEvent(newEvent.id);
+  if (!event) {
+    throw new Error('Failed to fetch created event');
+  }
 
   // Send notifications to invitees
   if (input.inviteeIds.length > 0) {
@@ -170,18 +275,36 @@ export const updateEvent = async (
     return { success: false, message: 'Cannot update cancelled event' };
   }
 
-  const now = new Date().toISOString();
-  const cleanUpdates: Record<string, unknown> = { updatedAt: now };
+  const updateData: Partial<typeof events.$inferInsert> = {
+    updatedAt: new Date(),
+  };
 
-  for (const [key, value] of Object.entries(updates)) {
-    if (value === null) {
-      cleanUpdates[key] = undefined;
-    } else if (value !== undefined) {
-      cleanUpdates[key] = value;
-    }
+  if (updates.title !== undefined) {
+    updateData.title = updates.title;
+  }
+  if (updates.activityId !== undefined) {
+    updateData.activityId = updates.activityId === null ? null : updates.activityId;
+  }
+  if (updates.emoji !== undefined) {
+    updateData.emoji = updates.emoji === null ? null : updates.emoji;
+  }
+  if (updates.startTime !== undefined) {
+    updateData.startTime = new Date(updates.startTime);
+  }
+  if (updates.endTime !== undefined) {
+    updateData.endTime = new Date(updates.endTime);
+  }
+  if (updates.location !== undefined) {
+    updateData.location = updates.location === null ? null : updates.location;
+  }
+  if (updates.notes !== undefined) {
+    updateData.notes = updates.notes === null ? null : updates.notes;
+  }
+  if (updates.showInviteList !== undefined) {
+    updateData.showInviteList = updates.showInviteList;
   }
 
-  await db.updateItem<EventRecord>(eventPk(eventId), 'METADATA', cleanUpdates);
+  await db.update(events).set(updateData).where(eq(events.id, eventId));
 
   const updatedEvent = await getEvent(eventId);
 
@@ -214,11 +337,10 @@ export const cancelEvent = async (
     return { success: false, message: 'Event already cancelled' };
   }
 
-  const now = new Date().toISOString();
-  await db.updateItem<EventRecord>(eventPk(eventId), 'METADATA', {
-    status: 'cancelled' as EventStatus,
-    updatedAt: now,
-  });
+  await db
+    .update(events)
+    .set({ status: 'cancelled', updatedAt: new Date() })
+    .where(eq(events.id, eventId));
 
   // Notify invitees of cancellation
   const inviteeIds = existing.invitees.map((i) => i.userId);
@@ -250,45 +372,35 @@ export const respondToEvent = async (
     return { success: false, message: 'You are not invited to this event' };
   }
 
-  const now = new Date().toISOString();
+  const now = new Date();
 
-  // Update invitee record
-  const inviteeRecord = await db.getItem<EventInviteeRecord>(
-    eventPk(eventId),
-    inviteeSk(userId),
-  );
-  if (!inviteeRecord) {
-    return { success: false, message: 'Invitation not found' };
-  }
-
-  // Update the GSI sort key to reflect new status
-  const newGsi1sk = `INVITE#${responseData.status}#${event.startTime}#${eventId}`;
-
-  const updates: Partial<EventInviteeRecord> = {
+  // Build update data
+  const updateData: Partial<typeof eventInvitees.$inferInsert> = {
     status: responseData.status,
     respondedAt: now,
-    gsi1sk: newGsi1sk,
   };
 
   if (responseData.counterProposal) {
-    updates.counterProposal = responseData.counterProposal;
+    updateData.counterProposalStartTime = responseData.counterProposal.startTime
+      ? new Date(responseData.counterProposal.startTime)
+      : null;
+    updateData.counterProposalEndTime = responseData.counterProposal.endTime
+      ? new Date(responseData.counterProposal.endTime)
+      : null;
+    updateData.counterProposalLocation = responseData.counterProposal.location ?? null;
+    updateData.counterProposalActivityId = responseData.counterProposal.activityId ?? null;
+    updateData.counterProposalMessage = responseData.counterProposal.message ?? null;
   }
 
-  await db.updateItem<EventInviteeRecord>(
-    eventPk(eventId),
-    inviteeSk(userId),
-    updates,
-  );
+  await db
+    .update(eventInvitees)
+    .set(updateData)
+    .where(and(eq(eventInvitees.eventId, eventId), eq(eventInvitees.userId, userId)));
 
   // Notify the host of the response
   const responder = await getUserById(userId);
   if (responder) {
-    await notifyEventResponse(
-      event.hostId,
-      event,
-      responder.fullName,
-      responseData.status,
-    );
+    await notifyEventResponse(event.hostId, event, responder.fullName, responseData.status);
 
     // If there's a counter proposal, send additional notification
     if (responseData.counterProposal) {
@@ -299,47 +411,16 @@ export const respondToEvent = async (
   // Check if all invitees have responded and all accepted - mark event as confirmed
   const updatedEvent = await getEvent(eventId);
   if (updatedEvent) {
-    const allResponded = updatedEvent.invitees.every(
-      (i) => i.status !== 'pending',
-    );
-    const allAccepted = updatedEvent.invitees.every(
-      (i) => i.status === 'accepted',
-    );
+    const allResponded = updatedEvent.invitees.every((i) => i.status !== 'pending');
+    const allAccepted = updatedEvent.invitees.every((i) => i.status === 'accepted');
 
     if (allResponded && allAccepted && updatedEvent.status === 'sent') {
-      await db.updateItem<EventRecord>(eventPk(eventId), 'METADATA', {
-        status: 'confirmed' as EventStatus,
-        updatedAt: now,
-      });
+      await db
+        .update(events)
+        .set({ status: 'confirmed', updatedAt: now })
+        .where(eq(events.id, eventId));
     }
   }
 
   return { success: true };
-};
-
-// ============================================
-// Helpers
-// ============================================
-
-const recordToEvent = (
-  record: EventRecord,
-  invitees: EventInvitee[],
-): Event => {
-  return {
-    eventId: record.eventId,
-    hostId: record.hostId,
-    title: record.title,
-    activityId: record.activityId,
-    emoji: record.emoji,
-    startTime: record.startTime,
-    endTime: record.endTime,
-    location: record.location,
-    notes: record.notes,
-    invitees,
-    showInviteList: record.showInviteList,
-    status: record.status,
-    calendarEventId: record.calendarEventId,
-    createdAt: record.createdAt,
-    updatedAt: record.updatedAt,
-  };
 };

@@ -1,69 +1,86 @@
-import { v4 as uuidv4 } from 'uuid';
-import * as db from './dynamodb';
-import type {
-  AvailabilityWindow,
-  AvailabilityRecord,
-  CreateAvailability,
-  UpdateAvailability,
-} from '../types';
-import { getAcceptedFriendIds } from './friends';
-import { getGroups } from './groups';
+import { eq, and, gte, lte, inArray } from 'drizzle-orm';
+import { db, availabilityWindows, friendships } from '../db';
+import type { AvailabilityWindow, CreateAvailability, UpdateAvailability, Recurring } from '../types';
 
 // ============================================
-// Key Builders
+// Helpers
 // ============================================
 
-const userPk = (userId: string) => `USER#${userId}`;
-const availabilitySk = (windowId: string) => `AVAILABILITY#${windowId}`;
+const dbWindowToAvailabilityWindow = (
+  dbWindow: typeof availabilityWindows.$inferSelect,
+): AvailabilityWindow => {
+  // Build recurring object if pattern exists
+  let recurring: Recurring | undefined;
+  if (dbWindow.recurringPattern) {
+    recurring = {
+      pattern: dbWindow.recurringPattern,
+      daysOfWeek: dbWindow.recurringDaysOfWeek ?? undefined,
+      endDate: dbWindow.recurringEndDate?.toISOString(),
+    };
+  }
+
+  return {
+    userId: dbWindow.userId,
+    windowId: dbWindow.id,
+    startTime: dbWindow.startTime.toISOString(),
+    endTime: dbWindow.endTime.toISOString(),
+    recurring,
+    notes: dbWindow.notes ?? undefined,
+    createdAt: dbWindow.createdAt.toISOString(),
+  };
+};
 
 // ============================================
 // Availability Operations
 // ============================================
 
-export const getAvailabilityWindows = async (
-  userId: string,
-): Promise<AvailabilityWindow[]> => {
-  const records = await db.queryByPk<AvailabilityRecord>(
-    userPk(userId),
-    'AVAILABILITY#',
-  );
-  return records.map(recordToAvailability);
+export const getAvailabilityWindows = async (userId: string): Promise<AvailabilityWindow[]> => {
+  const windows = await db
+    .select()
+    .from(availabilityWindows)
+    .where(eq(availabilityWindows.userId, userId));
+
+  return windows.map((w) => dbWindowToAvailabilityWindow(w));
 };
 
 export const getAvailabilityWindow = async (
   userId: string,
   windowId: string,
 ): Promise<AvailabilityWindow | null> => {
-  const record = await db.getItem<AvailabilityRecord>(
-    userPk(userId),
-    availabilitySk(windowId),
-  );
-  return record ? recordToAvailability(record) : null;
+  const result = await db
+    .select()
+    .from(availabilityWindows)
+    .where(and(eq(availabilityWindows.userId, userId), eq(availabilityWindows.id, windowId)))
+    .limit(1);
+
+  const window = result[0];
+  if (!window) return null;
+
+  return dbWindowToAvailabilityWindow(window);
 };
 
 export const createAvailabilityWindow = async (
   userId: string,
   input: CreateAvailability,
 ): Promise<AvailabilityWindow> => {
-  const windowId = uuidv4();
-  const now = new Date().toISOString();
+  const [newWindow] = await db
+    .insert(availabilityWindows)
+    .values({
+      userId,
+      startTime: new Date(input.startTime),
+      endTime: new Date(input.endTime),
+      recurringPattern: input.recurring?.pattern,
+      recurringDaysOfWeek: input.recurring?.daysOfWeek,
+      recurringEndDate: input.recurring?.endDate ? new Date(input.recurring.endDate) : null,
+      notes: input.notes,
+    })
+    .returning();
 
-  const record: AvailabilityRecord = {
-    pk: userPk(userId),
-    sk: availabilitySk(windowId),
-    userId,
-    windowId,
-    startTime: input.startTime,
-    endTime: input.endTime,
-    recurring: input.recurring,
-    visibleTo: input.visibleTo,
-    preferredActivities: input.preferredActivities,
-    notes: input.notes,
-    createdAt: now,
-  };
+  if (!newWindow) {
+    throw new Error('Failed to create availability window');
+  }
 
-  await db.putItem(record);
-  return recordToAvailability(record);
+  return dbWindowToAvailabilityWindow(newWindow);
 };
 
 export const updateAvailabilityWindow = async (
@@ -81,25 +98,41 @@ export const updateAvailabilityWindow = async (
     return { success: false, message: 'Availability window not found' };
   }
 
-  // Handle null values for optional fields (to clear them)
-  const cleanUpdates: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(updates)) {
-    if (value === null) {
-      cleanUpdates[key] = undefined;
-    } else if (value !== undefined) {
-      cleanUpdates[key] = value;
+  // Build update data
+  const updateData: Partial<typeof availabilityWindows.$inferInsert> = {};
+
+  if (updates.startTime !== undefined) {
+    updateData.startTime = new Date(updates.startTime);
+  }
+  if (updates.endTime !== undefined) {
+    updateData.endTime = new Date(updates.endTime);
+  }
+  if (updates.recurring !== undefined) {
+    if (updates.recurring === null) {
+      updateData.recurringPattern = null;
+      updateData.recurringDaysOfWeek = null;
+      updateData.recurringEndDate = null;
+    } else {
+      updateData.recurringPattern = updates.recurring.pattern;
+      updateData.recurringDaysOfWeek = updates.recurring.daysOfWeek ?? null;
+      updateData.recurringEndDate = updates.recurring.endDate
+        ? new Date(updates.recurring.endDate)
+        : null;
     }
   }
+  if (updates.notes !== undefined) {
+    updateData.notes = updates.notes === null ? null : updates.notes;
+  }
 
-  const record = await db.updateItem<AvailabilityRecord>(
-    userPk(userId),
-    availabilitySk(windowId),
-    cleanUpdates,
-  );
+  if (Object.keys(updateData).length > 0) {
+    await db.update(availabilityWindows).set(updateData).where(eq(availabilityWindows.id, windowId));
+  }
+
+  const updatedWindow = await getAvailabilityWindow(userId, windowId);
 
   return {
     success: true,
-    window: record ? recordToAvailability(record) : undefined,
+    window: updatedWindow ?? undefined,
   };
 };
 
@@ -113,7 +146,7 @@ export const deleteAvailabilityWindow = async (
     return { success: false, message: 'Availability window not found' };
   }
 
-  await db.deleteItem(userPk(userId), availabilitySk(windowId));
+  await db.delete(availabilityWindows).where(eq(availabilityWindows.id, windowId));
   return { success: true };
 };
 
@@ -131,86 +164,51 @@ export const getFriendsAvailability = async (
   startDate?: string,
   endDate?: string,
 ): Promise<FriendAvailability[]> => {
-  // Get accepted friends
-  const friendIds = await getAcceptedFriendIds(userId);
+  // Get accepted friend IDs using a subquery join
+  const friendIds = await db
+    .select({ friendId: friendships.friendId })
+    .from(friendships)
+    .where(and(eq(friendships.userId, userId), eq(friendships.status, 'accepted')));
 
   if (friendIds.length === 0) {
     return [];
   }
 
-  // Get user's groups to check visibility
-  // Note: userGroups/userGroupIds are fetched for future group membership checks
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const userGroups = await getGroups(userId);
+  const friendIdList = friendIds.map((f) => f.friendId);
 
-  // Determine which groups the user is a member of (from friends' perspectives)
-  // This is done per-friend when filtering visibility
+  // Build query conditions
+  const conditions = [inArray(availabilityWindows.userId, friendIdList)];
 
+  if (startDate) {
+    conditions.push(gte(availabilityWindows.endTime, new Date(startDate)));
+  }
+  if (endDate) {
+    conditions.push(lte(availabilityWindows.startTime, new Date(endDate)));
+  }
+
+  // Get all friends' availability windows in one query
+  const allWindows = await db
+    .select()
+    .from(availabilityWindows)
+    .where(and(...conditions));
+
+  if (allWindows.length === 0) {
+    return [];
+  }
+
+  // Group windows by userId
+  const windowsByUser = new Map<string, AvailabilityWindow[]>();
+  for (const window of allWindows) {
+    const existing = windowsByUser.get(window.userId) ?? [];
+    existing.push(dbWindowToAvailabilityWindow(window));
+    windowsByUser.set(window.userId, existing);
+  }
+
+  // Convert to array
   const results: FriendAvailability[] = [];
-
-  for (const friendId of friendIds) {
-    const friendWindows = await getAvailabilityWindows(friendId);
-
-    // Filter to windows visible to this user
-    const visibleWindows = friendWindows.filter((window) => {
-      // Check visibility rules
-      if (window.visibleTo.type === 'all') {
-        return true;
-      }
-
-      if (window.visibleTo.type === 'specific') {
-        return window.visibleTo.userIds?.includes(userId) ?? false;
-      }
-
-      if (window.visibleTo.type === 'groups') {
-        // Check if user is in any of the specified groups
-        // Note: Groups are owned by the friend, so we need to check friend's groups
-        return (
-          window.visibleTo.groupIds?.some(() => {
-            // For now, we'll check if user is a member of any of the friend's groups
-            // This requires fetching the friend's groups
-            return false; // TODO: Implement proper group membership check
-          }) ?? false
-        );
-      }
-
-      return false;
-    });
-
-    // Filter by date range if provided
-    const filteredWindows = visibleWindows.filter((window) => {
-      if (startDate && window.endTime < startDate) return false;
-      if (endDate && window.startTime > endDate) return false;
-      return true;
-    });
-
-    if (filteredWindows.length > 0) {
-      results.push({
-        userId: friendId,
-        windows: filteredWindows,
-      });
-    }
+  for (const [friendUserId, windows] of windowsByUser) {
+    results.push({ userId: friendUserId, windows });
   }
 
   return results;
-};
-
-// ============================================
-// Helpers
-// ============================================
-
-const recordToAvailability = (
-  record: AvailabilityRecord,
-): AvailabilityWindow => {
-  return {
-    userId: record.userId,
-    windowId: record.windowId,
-    startTime: record.startTime,
-    endTime: record.endTime,
-    recurring: record.recurring,
-    visibleTo: record.visibleTo,
-    preferredActivities: record.preferredActivities,
-    notes: record.notes,
-    createdAt: record.createdAt,
-  };
 };

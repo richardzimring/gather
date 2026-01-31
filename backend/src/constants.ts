@@ -9,9 +9,7 @@ const getEnvironmentVariable = (param: string): string => {
 // AWS Configuration
 export const REGION = getEnvironmentVariable('REGION');
 export const STAGE = getEnvironmentVariable('STAGE');
-
-// DynamoDB Tables
-export const MAIN_TABLE_NAME = getEnvironmentVariable('MAIN_TABLE_NAME');
+export const PG_CONNECTION_STRING = getEnvironmentVariable('PG_CONNECTION_STRING');
 
 // Apple Sign In Configuration
 // Bundle ID for verifying Apple identity tokens
@@ -25,18 +23,19 @@ export const DEFAULT_ACTIVITIES = [
   { emoji: '☕', name: 'Coffee' },
   { emoji: '🍽️', name: 'Dinner' },
   { emoji: '🍻', name: 'Drinks' },
-  { emoji: '🏃', name: 'Workout' },
+  { emoji: '🏋️', name: 'Gym' },
   { emoji: '🎬', name: 'Movie' },
   { emoji: '🎮', name: 'Gaming' },
   { emoji: '📚', name: 'Study' },
   { emoji: '🛍️', name: 'Shopping' },
-  { emoji: '🚶', name: 'Walk' },
+  { emoji: '🐶', name: 'Walk the dogs' },
+  { emoji: '🏃', name: 'Run' },
   { emoji: '🎉', name: 'Party' },
   { emoji: '🧘', name: 'Yoga' },
-  { emoji: '🎾', name: 'Sports' },
+  { emoji: '🎾', name: 'Tennis' },
   { emoji: '🎵', name: 'Concert' },
   { emoji: '🏖️', name: 'Beach' },
-  { emoji: '❓', name: 'Other' },
+  { emoji: '🍿', name: 'Netflix and chill' },
 ] as const;
 
 // Default Groups

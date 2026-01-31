@@ -79,7 +79,8 @@
   // Include patterns
   "include": [
     "src/**/*",
-    "lambdas/**/*"
+    "lambdas/**/*",
+    "scripts/**/*"
   ],
   
   // Exclude patterns  
