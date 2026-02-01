@@ -236,7 +236,7 @@ export default function GroupDetailScreen() {
 
         {/* Group Header */}
         <YStack alignItems="center" marginBottom="$5">
-          <Circle size={100} backgroundColor="$accent" opacity={0.15} marginBottom="$3">
+          <Circle size={100} backgroundColor="$accentSubtle" marginBottom="$3">
             <Text fontSize={48}>{group.emoji ?? '👥'}</Text>
           </Circle>
           <H1 fontSize={24} fontWeight="700" textAlign="center">

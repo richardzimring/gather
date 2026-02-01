@@ -33,8 +33,7 @@ export function ErrorState({
         width={64}
         height={64}
         borderRadius={32}
-        backgroundColor="$error"
-        opacity={0.15}
+        backgroundColor="$errorSubtle"
         alignItems="center"
         justifyContent="center"
       >

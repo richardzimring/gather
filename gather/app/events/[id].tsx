@@ -229,8 +229,7 @@ export default function EventDetailScreen() {
         <YStack alignItems="center" marginBottom="$5">
           <Circle
             size={80}
-            backgroundColor="$accent"
-            opacity={0.15}
+            backgroundColor="$accentSubtle"
             marginBottom="$3"
           >
             <Text fontSize={40}>{event.emoji ?? '📅'}</Text>

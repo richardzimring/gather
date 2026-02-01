@@ -110,7 +110,7 @@ export default function ProfileScreen() {
   const handleShareInviteCode = async () => {
     try {
       await Share.share({
-        message: `Join me on Gather! Use my invite code: ${inviteCode}`,
+        message: `Hey, add me on Gather! My invite code is: ${inviteCode}`,
       })
     } catch (err) {
       console.error('Failed to share:', err)
@@ -138,7 +138,7 @@ export default function ProfileScreen() {
         <Theme name="Card">
           <Card marginBottom="$4">
             <XStack alignItems="center" gap="$4">
-              <Circle size={72} backgroundColor="$accent">
+              <Circle size={72} backgroundColor="$backgroundHover">
                 <Text fontSize={32} color="$white">
                   {user?.firstName?.[0]?.toUpperCase() ?? '?'}
                   {user?.lastName?.[0]?.toUpperCase() ?? ''}

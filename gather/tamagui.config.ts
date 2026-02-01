@@ -174,11 +174,14 @@ const dark = {
   accentPress: tokens.color.accent7,
   accentBackground: tokens.color.accent9,
   accentColor: tokens.color.accent1,
+  accentSubtle: 'rgba(59, 130, 246, 0.15)', // accent6 with 15% opacity
 
   // Semantic
   success: tokens.color.success,
+  successSubtle: 'rgba(34, 197, 94, 0.15)', // success with 15% opacity
   warning: tokens.color.warning,
   error: tokens.color.error,
+  errorSubtle: 'rgba(239, 68, 68, 0.15)', // error with 15% opacity
 
   // Shadows (minimal in dark mode)
   shadowColor: 'rgba(0,0,0,0.5)',
@@ -246,11 +249,14 @@ const light = {
   accentPress: tokens.color.accent8,
   accentBackground: tokens.color.accent1,
   accentColor: tokens.color.lightGray12,
+  accentSubtle: 'rgba(59, 130, 246, 0.15)', // accent6 with 15% opacity
 
   // Semantic
   success: tokens.color.success,
+  successSubtle: 'rgba(34, 197, 94, 0.15)', // success with 15% opacity
   warning: tokens.color.warning,
   error: tokens.color.error,
+  errorSubtle: 'rgba(239, 68, 68, 0.15)', // error with 15% opacity
 
   // Shadows
   shadowColor: 'rgba(0,0,0,0.08)',

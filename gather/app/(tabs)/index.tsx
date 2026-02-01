@@ -103,11 +103,11 @@ export default function HomeScreen() {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  // Get upcoming events (today and future, confirmed status)
+  // Get upcoming events (today and future)
   const upcomingEvents =
     events?.filter((event) => {
       const eventDate = new Date(event.startTime)
-      return eventDate >= today && event.status === 'confirmed'
+      return eventDate >= today
     }).sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()) ?? []
 
   // Group upcoming events by day
@@ -265,7 +265,7 @@ export default function HomeScreen() {
                       <Theme key={event.eventId} name="Card">
                         <Card pressable onPress={() => navigateToEvent(event.eventId)}>
                           <XStack alignItems="center" gap="$3">
-                            <Circle size={48} backgroundColor="$accent" opacity={0.15}>
+                            <Circle size={48} backgroundColor="$backgroundHover">
                               <Text fontSize={24}>{event.emoji ?? '📅'}</Text>
                             </Circle>
                             <YStack flex={1}>

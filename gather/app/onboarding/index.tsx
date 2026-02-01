@@ -103,7 +103,7 @@ export default function OnboardingScreen() {
       justifyContent="center"
       paddingHorizontal="$6"
     >
-      <Circle size={120} backgroundColor="$accent" opacity={0.15} marginBottom="$6">
+      <Circle size={120} backgroundColor="$accentSubtle" marginBottom="$6">
         <Text fontSize={64}>{item.emoji}</Text>
       </Circle>
       <H1 fontSize={28} fontWeight="700" textAlign="center" marginBottom="$3">

@@ -1,4 +1,4 @@
-import { ChevronLeft, Copy, Share2, UserPlus } from '@tamagui/lucide-icons'
+import { Copy, Share2, UserPlus } from '@tamagui/lucide-icons'
 import { router } from 'expo-router'
 import { useState } from 'react'
 import { Alert, Share, Platform } from 'react-native'
@@ -32,7 +32,6 @@ export default function AddFriendScreen() {
   const [copied, setCopied] = useState(false)
 
   const myInviteCode = inviteCodeData?.inviteCode ?? ''
-  const inviteLink = inviteCodeData?.inviteLink ?? ''
 
   const handleCopyCode = async () => {
     if (!myInviteCode) return
@@ -48,7 +47,7 @@ export default function AddFriendScreen() {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Join me on Gather! Use my invite code: ${myInviteCode}\n\nOr tap here: ${inviteLink}`,
+        message: `Hey, add me on Gather! My invite code is: ${myInviteCode}`,
       })
     } catch (err) {
       console.error('Failed to share:', err)
@@ -80,7 +79,7 @@ export default function AddFriendScreen() {
         'Your friend request has been sent. They will see it in their requests.',
         [{ text: 'OK', onPress: () => router.back() }]
       )
-    } catch (err) {
+    } catch {
       setError('Failed to send friend request. Please check the code and try again.')
     }
   }
@@ -102,7 +101,7 @@ export default function AddFriendScreen() {
           <Card marginBottom="$5">
             <YStack gap="$4">
               <XStack alignItems="center" gap="$3">
-                <Circle size={44} backgroundColor="$accent" opacity={0.15}>
+                <Circle size={44} backgroundColor="$accentSubtle">
                   <UserPlus size={22} color="$accent" />
                 </Circle>
                 <YStack flex={1}>
@@ -161,7 +160,7 @@ export default function AddFriendScreen() {
           <Card>
             <YStack gap="$4">
               <XStack alignItems="center" gap="$3">
-                <Circle size={44} backgroundColor="$success" opacity={0.15}>
+                <Circle size={44} backgroundColor="$successSubtle">
                   <Share2 size={22} color="$success" />
                 </Circle>
                 <YStack flex={1}>
