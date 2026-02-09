@@ -7,10 +7,27 @@ export * from './useGroups'
 export * from './useActivities'
 export * from './useAvailability'
 export * from './useEvents'
-export * from './useCalendars'
+
+// Calendar connections (server-side)
+export {
+  calendarKeys as calendarConnectionKeys,
+  useCalendarConnections,
+  useCalendarConnection,
+  useBusySlots as useServerBusySlots,
+  useCreateCalendarConnection,
+  useUpdateCalendarConnection,
+  useDeleteCalendarConnection,
+} from './useCalendars'
 
 // Utilities
 export * from './useRefresh'
 
-// Services
-export * from './useCalendar'
+// Device calendar services
+export {
+  calendarKeys,
+  useCalendarPermissions,
+  useCalendars,
+  useCalendarEvents,
+  useBusySlots,
+  useExportToCalendar,
+} from './useCalendar'

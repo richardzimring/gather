@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { client } from '../api/client'
+import {
+  getCalendars,
+  getCalendarsByConnectionId,
+  getCalendarsBusySlots,
+  postCalendars,
+  patchCalendarsByConnectionId,
+  deleteCalendarsByConnectionId,
+} from '../api/client'
 
 // Query keys
 export const calendarKeys = {
@@ -16,9 +23,9 @@ export function useCalendarConnections() {
   return useQuery({
     queryKey: calendarKeys.connections(),
     queryFn: async () => {
-      const response = await client.GET('/calendars')
+      const response = await getCalendars()
       if (!response.data?.success) {
-        throw new Error(response.data?.message ?? 'Failed to fetch calendar connections')
+        throw new Error('Failed to fetch calendar connections')
       }
       return response.data.data?.connections ?? []
     },
@@ -32,8 +39,8 @@ export function useCalendarConnection(connectionId: string) {
   return useQuery({
     queryKey: calendarKeys.connection(connectionId),
     queryFn: async () => {
-      const response = await client.GET('/calendars/{connectionId}', {
-        params: { path: { connectionId } },
+      const response = await getCalendarsByConnectionId({
+        path: { connectionId },
       })
       if (!response.data?.success) {
         throw new Error(response.data?.message ?? 'Failed to fetch calendar connection')
@@ -51,11 +58,11 @@ export function useBusySlots(startDate?: string, endDate?: string) {
   return useQuery({
     queryKey: calendarKeys.busySlots(startDate, endDate),
     queryFn: async () => {
-      const response = await client.GET('/calendars/busy-slots', {
-        params: { query: { startDate, endDate } },
+      const response = await getCalendarsBusySlots({
+        query: { startDate, endDate },
       })
       if (!response.data?.success) {
-        throw new Error(response.data?.message ?? 'Failed to fetch busy slots')
+        throw new Error('Failed to fetch busy slots')
       }
       return response.data.data?.busySlots ?? []
     },
@@ -80,7 +87,7 @@ export function useCreateCalendarConnection() {
       refreshToken?: string
       tokenExpiresAt?: string
     }) => {
-      const response = await client.POST('/calendars', {
+      const response = await postCalendars({
         body: data,
       })
       if (!response.data?.success) {
@@ -114,8 +121,8 @@ export function useUpdateCalendarConnection() {
         tokenExpiresAt?: string
       }
     }) => {
-      const response = await client.PATCH('/calendars/{connectionId}', {
-        params: { path: { connectionId } },
+      const response = await patchCalendarsByConnectionId({
+        path: { connectionId },
         body: data,
       })
       if (!response.data?.success) {
@@ -138,8 +145,8 @@ export function useDeleteCalendarConnection() {
 
   return useMutation({
     mutationFn: async (connectionId: string) => {
-      const response = await client.DELETE('/calendars/{connectionId}', {
-        params: { path: { connectionId } },
+      const response = await deleteCalendarsByConnectionId({
+        path: { connectionId },
       })
       if (!response.data?.success) {
         throw new Error(response.data?.message ?? 'Failed to delete calendar connection')

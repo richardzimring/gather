@@ -150,7 +150,7 @@ interface EventData {
   endTime: string
   location?: string | null
   status: string
-  commitmentType: 'going' | 'planning'
+  commitmentType?: 'going' | 'planning'
   host?: {
     firstName?: string
     lastName?: string

@@ -1,7 +1,7 @@
 import { CalendarPlus, Home, User, Users } from '@tamagui/lucide-icons'
 import { Tabs } from 'expo-router'
 import * as Haptics from 'expo-haptics'
-import { useColorScheme, Platform, Pressable } from 'react-native'
+import { useColorScheme, Platform, Pressable, GestureResponderEvent } from 'react-native'
 
 // Tab bar colors based on theme
 const COLORS = {
@@ -21,7 +21,7 @@ const COLORS = {
 
 interface TabBarButtonProps {
   children: React.ReactNode
-  onPress?: () => void
+  onPress?: (e: GestureResponderEvent | React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void
   accessibilityState?: { selected?: boolean }
 }
 
@@ -31,11 +31,11 @@ function HapticTabButton({
   accessibilityState,
   ...props
 }: TabBarButtonProps) {
-  const handlePress = () => {
+  const handlePress = (e: GestureResponderEvent) => {
     if (Platform.OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     }
-    onPress?.()
+    onPress?.(e)
   }
 
   return (

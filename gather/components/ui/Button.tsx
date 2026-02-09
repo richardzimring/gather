@@ -1,4 +1,4 @@
-import { styled, Button as TamaguiButton, GetProps, Spinner, XStack } from 'tamagui'
+import { styled, Button as TamaguiButton, GetProps, Spinner, XStack, Text } from 'tamagui'
 import * as Haptics from 'expo-haptics'
 import { Platform } from 'react-native'
 
@@ -126,7 +126,7 @@ export function Button({
         <XStack alignItems="center" justifyContent="center" gap="$2">
           <Spinner size="small" color={spinnerColor} />
           {loadingText && (
-            <StyledButton.Text>{loadingText}</StyledButton.Text>
+            <Text>{loadingText}</Text>
           )}
         </XStack>
       ) : (

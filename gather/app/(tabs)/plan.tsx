@@ -216,8 +216,17 @@ export default function PlanScreen() {
   // Find common free time slots
   const suggestedSlots = useMemo(() => {
     if (!friendsAvailability || selectedFriends.length === 0) return []
+    // Flatten the nested availability structure
+    const flattenedAvailability: AvailabilityWindow[] = friendsAvailability.flatMap(
+      (friend) => friend.windows.map((window) => ({
+        userId: friend.userId,
+        windowId: window.windowId,
+        startTime: window.startTime,
+        endTime: window.endTime,
+      }))
+    )
     return findCommonFreeTime(
-      friendsAvailability,
+      flattenedAvailability,
       selectedFriends,
       { start: rangeStart, end: rangeEnd }
     )

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import { MapPin, X, Search } from '@tamagui/lucide-icons'
 import { Input, XStack, YStack, Text, ScrollView, Spinner } from 'tamagui'
 import debounce from 'lodash.debounce'
@@ -27,37 +27,42 @@ export function LocationSearch({ value, onSelect, placeholder = 'Search for a pl
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null)
 
   // Simulated search - replace with actual Google Places API call
-  const searchPlaces = useCallback(
-    debounce(async (searchQuery: string) => {
-      if (!searchQuery || searchQuery.length < 2) {
-        setResults([])
-        setIsSearching(false)
-        return
-      }
+  const searchPlaces = useMemo(
+    () =>
+      debounce(async (searchQuery: string) => {
+        if (!searchQuery || searchQuery.length < 2) {
+          setResults([])
+          setIsSearching(false)
+          return
+        }
 
-      setIsSearching(true)
-      
-      // TODO: Replace with actual Google Places API call
-      // For now, return empty results to show the UI pattern
-      // When implementing, use:
-      // const response = await fetch(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(searchQuery)}&key=${GOOGLE_PLACES_API_KEY}`)
-      
-      // Simulated delay
-      await new Promise(resolve => setTimeout(resolve, 300))
-      
-      // Simulated results for demo
-      const mockResults: PlaceResult[] = searchQuery.toLowerCase().includes('coffee') ? [
-        { placeId: '1', name: 'Spyhouse Coffee', address: '945 Broadway St NE, Minneapolis, MN' },
-        { placeId: '2', name: 'Dogwood Coffee Co', address: '825 Carleton St, St Paul, MN' },
-        { placeId: '3', name: 'Five Watt Coffee', address: '3745 Nicollet Ave, Minneapolis, MN' },
-      ] : searchQuery.toLowerCase().includes('gym') ? [
-        { placeId: '4', name: 'Life Time Fitness', address: '1400 Nicollet Mall, Minneapolis, MN' },
-        { placeId: '5', name: 'YWCA Minneapolis', address: '1130 Nicollet Mall, Minneapolis, MN' },
-      ] : []
-      
-      setResults(mockResults)
-      setIsSearching(false)
-    }, 300),
+        setIsSearching(true)
+
+        // TODO: Replace with actual Google Places API call
+        // For now, return empty results to show the UI pattern
+        // When implementing, use:
+        // const response = await fetch(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(searchQuery)}&key=${GOOGLE_PLACES_API_KEY}`)
+
+        // Simulated delay
+        await new Promise((resolve) => setTimeout(resolve, 300))
+
+        // Simulated results for demo
+        const mockResults: PlaceResult[] = searchQuery.toLowerCase().includes('coffee')
+          ? [
+              { placeId: '1', name: 'Spyhouse Coffee', address: '945 Broadway St NE, Minneapolis, MN' },
+              { placeId: '2', name: 'Dogwood Coffee Co', address: '825 Carleton St, St Paul, MN' },
+              { placeId: '3', name: 'Five Watt Coffee', address: '3745 Nicollet Ave, Minneapolis, MN' },
+            ]
+          : searchQuery.toLowerCase().includes('gym')
+            ? [
+                { placeId: '4', name: 'Life Time Fitness', address: '1400 Nicollet Mall, Minneapolis, MN' },
+                { placeId: '5', name: 'YWCA Minneapolis', address: '1130 Nicollet Mall, Minneapolis, MN' },
+              ]
+            : []
+
+        setResults(mockResults)
+        setIsSearching(false)
+      }, 300),
     []
   )
 

@@ -1,7 +1,7 @@
 import { LinearGradient } from '@tamagui/linear-gradient'
 import { useColorScheme } from 'react-native'
 import Svg, { Circle, Defs, Pattern, Rect } from 'react-native-svg'
-import { YStack, useTheme } from 'tamagui'
+import { YStack } from 'tamagui'
 
 import { THEME_CONSTANTS } from '../../tamagui.config'
 

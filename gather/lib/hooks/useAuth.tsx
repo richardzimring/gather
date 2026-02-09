@@ -135,9 +135,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await postAuthAppleCallback({
         body: {
           identityToken: credential.identityToken,
-          email: credential.email ?? undefined,
-          firstName,
-          lastName,
+          user: {
+            email: credential.email ?? undefined,
+            name: {
+              firstName,
+              lastName,
+            },
+          },
         },
       })
 

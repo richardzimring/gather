@@ -23,6 +23,7 @@ import { Card } from '../../components/ui/Card'
 import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { useAuth } from '../../lib/hooks/useAuth'
 import { useInviteCode, useRefresh, useCalendarConnections, useUpdateCalendarConnection, useDeleteCalendarConnection } from '../../lib/hooks'
+import type { CalendarConnection } from '../../lib/api/client'
 
 interface SettingsItemProps {
   icon: React.ReactNode
@@ -277,7 +278,7 @@ export default function ProfileScreen() {
               </YStack>
             ) : (
               <YStack gap="$3">
-                {calendarConnections.map((connection) => (
+                {calendarConnections.map((connection: CalendarConnection) => (
                   <YStack 
                     key={connection.connectionId} 
                     gap="$2"
