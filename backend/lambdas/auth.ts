@@ -1,9 +1,12 @@
 import { createRoute, z } from '@hono/zod-openapi';
-import { createApp, handle, verifyAppleToken } from '../src/middleware/hono';
+import { createApp, handle, verifyAppleToken, authMiddleware } from '../src/middleware/hono';
 import { UserSchema, ErrorResponseSchema } from '../src/types';
 import * as userService from '../src/services/users';
 
 const app = createApp();
+
+// Apply auth middleware only to /auth/me (not /auth/apple/callback which is public)
+app.use('/auth/me', authMiddleware);
 
 // ============================================
 // Schemas
@@ -238,53 +241,16 @@ app.openapi(appleCallbackRoute, async (c) => {
 });
 
 app.openapi(getMeRoute, async (c) => {
-  // This endpoint will be protected by Apple JWT middleware
-  // The middleware will set the appleUserId from the JWT
-  const appleUserId = c.get('appleUserId') as string | undefined;
+  // authMiddleware already verified the token and fetched the user
+  const user = c.get('user');
 
-  if (!appleUserId) {
-    return c.json(
-      {
-        success: false as const,
-        error: 'Unauthorized',
-        message: 'Not authenticated',
-      },
-      401,
-    );
-  }
-
-  try {
-    const user = await userService.getUserByAppleUserId(appleUserId);
-
-    if (!user) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Not Found',
-          message: 'User not found',
-        },
-        404,
-      );
-    }
-
-    return c.json(
-      {
-        success: true as const,
-        data: { user },
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in /auth/me:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to retrieve user',
-      },
-      500,
-    );
-  }
+  return c.json(
+    {
+      success: true as const,
+      data: { user },
+    },
+    200,
+  );
 });
 
 // Export the app for OpenAPI generation

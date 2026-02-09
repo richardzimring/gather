@@ -4,6 +4,7 @@ import * as AppleAuthentication from 'expo-apple-authentication'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { setAuthToken, getAuthMe, postAuthAppleCallback, type User } from '../api/client'
+import { DEV_APPLE_USER_ID } from '../config'
 
 const AUTH_TOKEN_KEY = 'gather_auth_token'
 const APPLE_USER_ID_KEY = 'gather_apple_user_id'
@@ -46,7 +47,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadStoredAuth = async () => {
     try {
       // Check for stored token
-      const token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY)
+      let token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY)
+
+      // In dev mode, auto-inject a dev token if none exists
+      if (__DEV__ && !token && DEV_APPLE_USER_ID) {
+        token = `dev-${DEV_APPLE_USER_ID}`
+        await SecureStore.setItemAsync(AUTH_TOKEN_KEY, token)
+        console.log('Dev mode: Auto-injected dev auth token')
+      }
+
       if (token) {
         setAuthToken(token)
 
