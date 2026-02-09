@@ -1,9 +1,7 @@
-import { Calendar, Home, User, Users } from '@tamagui/lucide-icons'
+import { CalendarPlus, Home, User, Users } from '@tamagui/lucide-icons'
 import { Tabs } from 'expo-router'
 import * as Haptics from 'expo-haptics'
 import { useColorScheme, Platform, Pressable } from 'react-native'
-
-import { THEME_CONSTANTS } from '../../tamagui.config'
 
 // Tab bar colors based on theme
 const COLORS = {
@@ -88,11 +86,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="calendar"
+        name="plan"
         options={{
-          title: 'Calendar',
+          title: 'Plan',
           tabBarIcon: ({ color, size }) => (
-            <Calendar size={size} color={color} />
+            <CalendarPlus size={size} color={color} />
           ),
         }}
       />

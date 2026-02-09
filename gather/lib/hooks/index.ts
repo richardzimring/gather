@@ -7,6 +7,7 @@ export * from './useGroups'
 export * from './useActivities'
 export * from './useAvailability'
 export * from './useEvents'
+export * from './useCalendars'
 
 // Utilities
 export * from './useRefresh'

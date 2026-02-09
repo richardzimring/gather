@@ -14,6 +14,7 @@ import * as path from 'path';
 import { app as activitiesApp } from '../lambdas/activities';
 import { app as authApp } from '../lambdas/auth';
 import { app as availabilityApp } from '../lambdas/availability';
+import { app as calendarsApp } from '../lambdas/calendars';
 import { app as eventsApp } from '../lambdas/events';
 import { app as friendsApp } from '../lambdas/friends';
 import { app as groupsApp } from '../lambdas/groups';
@@ -36,6 +37,7 @@ mainApp.openAPIRegistry.registerComponent('securitySchemes', 'BearerAuth', {
 mainApp.route('/', activitiesApp);
 mainApp.route('/', authApp);
 mainApp.route('/', availabilityApp);
+mainApp.route('/', calendarsApp);
 mainApp.route('/', eventsApp);
 mainApp.route('/', friendsApp);
 mainApp.route('/', groupsApp);

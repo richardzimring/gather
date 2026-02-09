@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteActivitiesByActivityIdData, DeleteActivitiesByActivityIdErrors, DeleteActivitiesByActivityIdResponses, DeleteAvailabilityByWindowIdData, DeleteAvailabilityByWindowIdErrors, DeleteAvailabilityByWindowIdResponses, DeleteEventsByEventIdData, DeleteEventsByEventIdErrors, DeleteEventsByEventIdResponses, DeleteFriendsByFriendIdData, DeleteFriendsByFriendIdErrors, DeleteFriendsByFriendIdResponses, DeleteGroupsByGroupIdData, DeleteGroupsByGroupIdErrors, DeleteGroupsByGroupIdResponses, DeleteUsersMeData, DeleteUsersMeErrors, DeleteUsersMeResponses, GetActivitiesData, GetActivitiesErrors, GetActivitiesResponses, GetAuthMeData, GetAuthMeErrors, GetAuthMeResponses, GetAvailabilityData, GetAvailabilityErrors, GetAvailabilityFriendsData, GetAvailabilityFriendsErrors, GetAvailabilityFriendsResponses, GetAvailabilityResponses, GetEventsByEventIdData, GetEventsByEventIdErrors, GetEventsByEventIdResponses, GetEventsData, GetEventsErrors, GetEventsResponses, GetFriendsData, GetFriendsErrors, GetFriendsInviteCodeData, GetFriendsInviteCodeErrors, GetFriendsInviteCodeResponses, GetFriendsResponses, GetFriendsSearchData, GetFriendsSearchErrors, GetFriendsSearchResponses, GetGroupsData, GetGroupsErrors, GetGroupsResponses, GetUsersMeData, GetUsersMeErrors, GetUsersMeResponses, PatchActivitiesByActivityIdData, PatchActivitiesByActivityIdErrors, PatchActivitiesByActivityIdResponses, PatchAvailabilityByWindowIdData, PatchAvailabilityByWindowIdErrors, PatchAvailabilityByWindowIdResponses, PatchEventsByEventIdData, PatchEventsByEventIdErrors, PatchEventsByEventIdResponses, PatchGroupsByGroupIdData, PatchGroupsByGroupIdErrors, PatchGroupsByGroupIdResponses, PatchUsersMeData, PatchUsersMeErrors, PatchUsersMeResponses, PostActivitiesData, PostActivitiesErrors, PostActivitiesResponses, PostAuthAppleCallbackData, PostAuthAppleCallbackErrors, PostAuthAppleCallbackResponses, PostAvailabilityData, PostAvailabilityErrors, PostAvailabilityResponses, PostEventsByEventIdRespondData, PostEventsByEventIdRespondErrors, PostEventsByEventIdRespondResponses, PostEventsData, PostEventsErrors, PostEventsResponses, PostFriendsByFriendIdAcceptData, PostFriendsByFriendIdAcceptErrors, PostFriendsByFriendIdAcceptResponses, PostFriendsByFriendIdBlockData, PostFriendsByFriendIdBlockErrors, PostFriendsByFriendIdBlockResponses, PostFriendsByFriendIdDeclineData, PostFriendsByFriendIdDeclineErrors, PostFriendsByFriendIdDeclineResponses, PostFriendsInviteCodeRegenerateData, PostFriendsInviteCodeRegenerateErrors, PostFriendsInviteCodeRegenerateResponses, PostFriendsRequestData, PostFriendsRequestErrors, PostFriendsRequestResponses, PostGroupsData, PostGroupsErrors, PostGroupsResponses, PostUsersMePushTokenData, PostUsersMePushTokenErrors, PostUsersMePushTokenResponses } from './types.gen';
+import type { DeleteActivitiesByActivityIdData, DeleteActivitiesByActivityIdErrors, DeleteActivitiesByActivityIdResponses, DeleteAvailabilityByWindowIdData, DeleteAvailabilityByWindowIdErrors, DeleteAvailabilityByWindowIdResponses, DeleteCalendarsByConnectionIdData, DeleteCalendarsByConnectionIdErrors, DeleteCalendarsByConnectionIdResponses, DeleteEventsByEventIdData, DeleteEventsByEventIdErrors, DeleteEventsByEventIdResponses, DeleteFriendsByFriendIdData, DeleteFriendsByFriendIdErrors, DeleteFriendsByFriendIdResponses, DeleteGroupsByGroupIdData, DeleteGroupsByGroupIdErrors, DeleteGroupsByGroupIdResponses, DeleteUsersMeData, DeleteUsersMeErrors, DeleteUsersMeResponses, GetActivitiesData, GetActivitiesErrors, GetActivitiesResponses, GetAuthMeData, GetAuthMeErrors, GetAuthMeResponses, GetAvailabilityData, GetAvailabilityErrors, GetAvailabilityFriendsData, GetAvailabilityFriendsErrors, GetAvailabilityFriendsResponses, GetAvailabilityResponses, GetCalendarsBusySlotsData, GetCalendarsBusySlotsErrors, GetCalendarsBusySlotsResponses, GetCalendarsByConnectionIdData, GetCalendarsByConnectionIdErrors, GetCalendarsByConnectionIdResponses, GetCalendarsData, GetCalendarsErrors, GetCalendarsResponses, GetEventsByEventIdData, GetEventsByEventIdErrors, GetEventsByEventIdResponses, GetEventsData, GetEventsErrors, GetEventsResponses, GetFriendsData, GetFriendsErrors, GetFriendsInviteCodeData, GetFriendsInviteCodeErrors, GetFriendsInviteCodeResponses, GetFriendsResponses, GetFriendsSearchData, GetFriendsSearchErrors, GetFriendsSearchResponses, GetGroupsData, GetGroupsErrors, GetGroupsResponses, GetUsersMeData, GetUsersMeErrors, GetUsersMeResponses, PatchActivitiesByActivityIdData, PatchActivitiesByActivityIdErrors, PatchActivitiesByActivityIdResponses, PatchAvailabilityByWindowIdData, PatchAvailabilityByWindowIdErrors, PatchAvailabilityByWindowIdResponses, PatchCalendarsByConnectionIdData, PatchCalendarsByConnectionIdErrors, PatchCalendarsByConnectionIdResponses, PatchEventsByEventIdData, PatchEventsByEventIdErrors, PatchEventsByEventIdResponses, PatchGroupsByGroupIdData, PatchGroupsByGroupIdErrors, PatchGroupsByGroupIdResponses, PatchUsersMeData, PatchUsersMeErrors, PatchUsersMeResponses, PostActivitiesData, PostActivitiesErrors, PostActivitiesResponses, PostAuthAppleCallbackData, PostAuthAppleCallbackErrors, PostAuthAppleCallbackResponses, PostAvailabilityData, PostAvailabilityErrors, PostAvailabilityResponses, PostCalendarsData, PostCalendarsErrors, PostCalendarsResponses, PostEventsByEventIdRespondData, PostEventsByEventIdRespondErrors, PostEventsByEventIdRespondResponses, PostEventsData, PostEventsErrors, PostEventsResponses, PostFriendsByFriendIdAcceptData, PostFriendsByFriendIdAcceptErrors, PostFriendsByFriendIdAcceptResponses, PostFriendsByFriendIdBlockData, PostFriendsByFriendIdBlockErrors, PostFriendsByFriendIdBlockResponses, PostFriendsByFriendIdDeclineData, PostFriendsByFriendIdDeclineErrors, PostFriendsByFriendIdDeclineResponses, PostFriendsInviteCodeRegenerateData, PostFriendsInviteCodeRegenerateErrors, PostFriendsInviteCodeRegenerateResponses, PostFriendsRequestData, PostFriendsRequestErrors, PostFriendsRequestResponses, PostGroupsData, PostGroupsErrors, PostGroupsResponses, PostUsersMePushTokenData, PostUsersMePushTokenErrors, PostUsersMePushTokenResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -156,6 +156,80 @@ export const getAvailabilityFriends = <ThrowOnError extends boolean = false>(opt
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/availability/friends',
     ...options
+});
+
+/**
+ * List calendar connections
+ *
+ * Get all calendar connections for the current user
+ */
+export const getCalendars = <ThrowOnError extends boolean = false>(options?: Options<GetCalendarsData, ThrowOnError>) => (options?.client ?? client).get<GetCalendarsResponses, GetCalendarsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/calendars',
+    ...options
+});
+
+/**
+ * Create calendar connection
+ *
+ * Create a new calendar connection
+ */
+export const postCalendars = <ThrowOnError extends boolean = false>(options: Options<PostCalendarsData, ThrowOnError>) => (options.client ?? client).post<PostCalendarsResponses, PostCalendarsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/calendars',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get busy slots
+ *
+ * Get busy time slots from connected calendars
+ */
+export const getCalendarsBusySlots = <ThrowOnError extends boolean = false>(options?: Options<GetCalendarsBusySlotsData, ThrowOnError>) => (options?.client ?? client).get<GetCalendarsBusySlotsResponses, GetCalendarsBusySlotsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/calendars/busy-slots',
+    ...options
+});
+
+/**
+ * Delete calendar connection
+ *
+ * Delete a calendar connection
+ */
+export const deleteCalendarsByConnectionId = <ThrowOnError extends boolean = false>(options: Options<DeleteCalendarsByConnectionIdData, ThrowOnError>) => (options.client ?? client).delete<DeleteCalendarsByConnectionIdResponses, DeleteCalendarsByConnectionIdErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/calendars/{connectionId}',
+    ...options
+});
+
+/**
+ * Get calendar connection
+ *
+ * Get a specific calendar connection by ID
+ */
+export const getCalendarsByConnectionId = <ThrowOnError extends boolean = false>(options: Options<GetCalendarsByConnectionIdData, ThrowOnError>) => (options.client ?? client).get<GetCalendarsByConnectionIdResponses, GetCalendarsByConnectionIdErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/calendars/{connectionId}',
+    ...options
+});
+
+/**
+ * Update calendar connection
+ *
+ * Update a calendar connection settings
+ */
+export const patchCalendarsByConnectionId = <ThrowOnError extends boolean = false>(options: Options<PatchCalendarsByConnectionIdData, ThrowOnError>) => (options.client ?? client).patch<PatchCalendarsByConnectionIdResponses, PatchCalendarsByConnectionIdErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/calendars/{connectionId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 /**

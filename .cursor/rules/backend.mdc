@@ -38,7 +38,6 @@ backend/
   - `npm run db:push` - Push schema changes to database
   - `npm run db:generate` - Generate migrations
   - `npm run db:migrate` - Run migrations
-  - `npm run db:studio` - Open Drizzle Studio
 
 # Code Guidelines
 

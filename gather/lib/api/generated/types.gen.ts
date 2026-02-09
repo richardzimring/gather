@@ -149,6 +149,74 @@ export type FriendsAvailabilityResponse = {
     };
 };
 
+export type CalendarListResponse = {
+    success: true;
+    data: {
+        connections: Array<CalendarConnection>;
+    };
+};
+
+export type CalendarConnection = {
+    connectionId: string;
+    userId: string;
+    provider: CalendarProvider;
+    externalCalendarId: string;
+    calendarName: string;
+    color?: string;
+    importEnabled: boolean;
+    exportEnabled: boolean;
+    lastSyncAt?: string;
+    createdAt: string;
+};
+
+export type CalendarProvider = 'apple' | 'google' | 'outlook';
+
+export type SingleCalendarResponse = {
+    success: true;
+    data: {
+        connection: CalendarConnection;
+    };
+    message?: string;
+};
+
+export type CreateCalendarConnection = {
+    provider: CalendarProvider;
+    externalCalendarId: string;
+    calendarName: string;
+    color?: string;
+    importEnabled?: boolean;
+    exportEnabled?: boolean;
+    accessToken?: string;
+    refreshToken?: string;
+    tokenExpiresAt?: string;
+};
+
+export type BusySlotsResponse = {
+    success: true;
+    data: {
+        busySlots: Array<BusySlot>;
+    };
+};
+
+export type BusySlot = {
+    startTime: string;
+    endTime: string;
+    calendarName?: string;
+};
+
+export type UpdateCalendarConnection = {
+    importEnabled?: boolean;
+    exportEnabled?: boolean;
+    accessToken?: string;
+    refreshToken?: string;
+    tokenExpiresAt?: string;
+};
+
+export type DeleteCalendarResponse = {
+    success: true;
+    message?: string;
+};
+
 export type EventsResponse = {
     success: true;
     data: {
@@ -172,6 +240,7 @@ export type Event = {
     invitees: Array<EventInvitee>;
     showInviteList?: boolean;
     status: EventStatus;
+    commitmentType?: CommitmentType;
     calendarEventId?: string;
     createdAt: string;
     updatedAt: string;
@@ -199,6 +268,8 @@ export type CounterProposal = {
 
 export type EventStatus = 'draft' | 'sent' | 'confirmed' | 'cancelled';
 
+export type CommitmentType = 'going' | 'planning';
+
 export type SingleEventResponse = {
     success: true;
     data: {
@@ -217,6 +288,15 @@ export type CreateEvent = {
     notes?: string;
     inviteeIds: Array<string>;
     showInviteList?: boolean;
+    commitmentType?: CommitmentType;
+    recurring?: EventRecurring;
+};
+
+export type EventRecurring = {
+    isRecurring: boolean;
+    pattern?: 'weekly';
+    daysOfWeek?: Array<number>;
+    endDate?: string;
 };
 
 export type UpdateEvent = {
@@ -732,6 +812,205 @@ export type GetAvailabilityFriendsResponses = {
 };
 
 export type GetAvailabilityFriendsResponse = GetAvailabilityFriendsResponses[keyof GetAvailabilityFriendsResponses];
+
+export type GetCalendarsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendars';
+};
+
+export type GetCalendarsErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type GetCalendarsError = GetCalendarsErrors[keyof GetCalendarsErrors];
+
+export type GetCalendarsResponses = {
+    /**
+     * List of calendar connections
+     */
+    200: CalendarListResponse;
+};
+
+export type GetCalendarsResponse = GetCalendarsResponses[keyof GetCalendarsResponses];
+
+export type PostCalendarsData = {
+    body: CreateCalendarConnection;
+    path?: never;
+    query?: never;
+    url: '/calendars';
+};
+
+export type PostCalendarsErrors = {
+    /**
+     * Bad request
+     */
+    400: ErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostCalendarsError = PostCalendarsErrors[keyof PostCalendarsErrors];
+
+export type PostCalendarsResponses = {
+    /**
+     * Calendar connection created
+     */
+    201: SingleCalendarResponse;
+};
+
+export type PostCalendarsResponse = PostCalendarsResponses[keyof PostCalendarsResponses];
+
+export type GetCalendarsBusySlotsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        startDate?: string;
+        endDate?: string;
+    };
+    url: '/calendars/busy-slots';
+};
+
+export type GetCalendarsBusySlotsErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type GetCalendarsBusySlotsError = GetCalendarsBusySlotsErrors[keyof GetCalendarsBusySlotsErrors];
+
+export type GetCalendarsBusySlotsResponses = {
+    /**
+     * List of busy slots
+     */
+    200: BusySlotsResponse;
+};
+
+export type GetCalendarsBusySlotsResponse = GetCalendarsBusySlotsResponses[keyof GetCalendarsBusySlotsResponses];
+
+export type DeleteCalendarsByConnectionIdData = {
+    body?: never;
+    path: {
+        connectionId: string;
+    };
+    query?: never;
+    url: '/calendars/{connectionId}';
+};
+
+export type DeleteCalendarsByConnectionIdErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Not found
+     */
+    404: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type DeleteCalendarsByConnectionIdError = DeleteCalendarsByConnectionIdErrors[keyof DeleteCalendarsByConnectionIdErrors];
+
+export type DeleteCalendarsByConnectionIdResponses = {
+    /**
+     * Calendar connection deleted
+     */
+    200: DeleteCalendarResponse;
+};
+
+export type DeleteCalendarsByConnectionIdResponse = DeleteCalendarsByConnectionIdResponses[keyof DeleteCalendarsByConnectionIdResponses];
+
+export type GetCalendarsByConnectionIdData = {
+    body?: never;
+    path: {
+        connectionId: string;
+    };
+    query?: never;
+    url: '/calendars/{connectionId}';
+};
+
+export type GetCalendarsByConnectionIdErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Not found
+     */
+    404: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type GetCalendarsByConnectionIdError = GetCalendarsByConnectionIdErrors[keyof GetCalendarsByConnectionIdErrors];
+
+export type GetCalendarsByConnectionIdResponses = {
+    /**
+     * Calendar connection details
+     */
+    200: SingleCalendarResponse;
+};
+
+export type GetCalendarsByConnectionIdResponse = GetCalendarsByConnectionIdResponses[keyof GetCalendarsByConnectionIdResponses];
+
+export type PatchCalendarsByConnectionIdData = {
+    body: UpdateCalendarConnection;
+    path: {
+        connectionId: string;
+    };
+    query?: never;
+    url: '/calendars/{connectionId}';
+};
+
+export type PatchCalendarsByConnectionIdErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Not found
+     */
+    404: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PatchCalendarsByConnectionIdError = PatchCalendarsByConnectionIdErrors[keyof PatchCalendarsByConnectionIdErrors];
+
+export type PatchCalendarsByConnectionIdResponses = {
+    /**
+     * Calendar connection updated
+     */
+    200: SingleCalendarResponse;
+};
+
+export type PatchCalendarsByConnectionIdResponse = PatchCalendarsByConnectionIdResponses[keyof PatchCalendarsByConnectionIdResponses];
 
 export type GetEventsData = {
     body?: never;

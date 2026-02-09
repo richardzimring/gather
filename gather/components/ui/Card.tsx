@@ -31,6 +31,16 @@ export const Card = styled(YStack, {
       },
     },
 
+    /** Outlined card style for pending/proposal events */
+    outlined: {
+      true: {
+        backgroundColor: 'transparent',
+        borderStyle: 'dashed',
+        borderWidth: 2,
+        borderColor: '$borderColorHover',
+      },
+    },
+
     /** Size variants */
     cardSize: {
       sm: {

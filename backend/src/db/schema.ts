@@ -44,6 +44,17 @@ export const recurringPatternEnum = pgEnum('recurring_pattern', [
   'monthly',
 ]);
 
+export const commitmentTypeEnum = pgEnum('commitment_type', [
+  'going',
+  'planning',
+]);
+
+export const calendarProviderEnum = pgEnum('calendar_provider', [
+  'apple',
+  'google',
+  'outlook',
+]);
+
 // ============================================
 // Users Table
 // ============================================
@@ -79,6 +90,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   availabilityWindows: many(availabilityWindows),
   hostedEvents: many(events),
   eventInvitations: many(eventInvitees),
+  calendarConnections: many(calendarConnections),
 }));
 
 // ============================================
@@ -268,6 +280,12 @@ export const events = pgTable(
     notes: text('notes'),
     showInviteList: boolean('show_invite_list').notNull().default(true),
     status: eventStatusEnum('status').notNull().default('sent'),
+    commitmentType: commitmentTypeEnum('commitment_type').notNull().default('going'),
+    // Recurring event fields
+    isRecurring: boolean('is_recurring').notNull().default(false),
+    recurringPattern: recurringPatternEnum('event_recurring_pattern'),
+    recurringDaysOfWeek: integer('event_recurring_days_of_week').array(),
+    recurringEndDate: timestamp('event_recurring_end_date', { withTimezone: true }),
     calendarEventId: varchar('calendar_event_id', { length: 255 }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -338,6 +356,101 @@ export const eventInviteesRelations = relations(eventInvitees, ({ one }) => ({
 }));
 
 // ============================================
+// Locations Table (for saved places)
+// ============================================
+
+export const locations = pgTable(
+  'locations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    placeId: varchar('place_id', { length: 255 }).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    address: text('address'),
+    latitude: varchar('latitude', { length: 50 }),
+    longitude: varchar('longitude', { length: 50 }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('locations_place_id_idx').on(table.placeId),
+  ],
+);
+
+// ============================================
+// Calendar Connections Table
+// ============================================
+
+export const calendarConnections = pgTable(
+  'calendar_connections',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    provider: calendarProviderEnum('provider').notNull(),
+    externalCalendarId: varchar('external_calendar_id', { length: 255 }).notNull(),
+    calendarName: varchar('calendar_name', { length: 255 }).notNull(),
+    color: varchar('color', { length: 20 }),
+    importEnabled: boolean('import_enabled').notNull().default(true),
+    exportEnabled: boolean('export_enabled').notNull().default(false),
+    accessToken: text('access_token'),
+    refreshToken: text('refresh_token'),
+    tokenExpiresAt: timestamp('token_expires_at', { withTimezone: true }),
+    lastSyncAt: timestamp('last_sync_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('calendar_connections_user_id_idx').on(table.userId),
+    uniqueIndex('calendar_connections_user_provider_calendar_idx').on(
+      table.userId,
+      table.provider,
+      table.externalCalendarId
+    ),
+  ],
+);
+
+export const calendarConnectionsRelations = relations(calendarConnections, ({ one, many }) => ({
+  user: one(users, {
+    fields: [calendarConnections.userId],
+    references: [users.id],
+  }),
+  cachedEvents: many(calendarEventsCache),
+}));
+
+// ============================================
+// Calendar Events Cache Table
+// ============================================
+
+export const calendarEventsCache = pgTable(
+  'calendar_events_cache',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    connectionId: uuid('connection_id')
+      .notNull()
+      .references(() => calendarConnections.id, { onDelete: 'cascade' }),
+    externalEventId: varchar('external_event_id', { length: 255 }).notNull(),
+    startTime: timestamp('start_time', { withTimezone: true }).notNull(),
+    endTime: timestamp('end_time', { withTimezone: true }).notNull(),
+    isBusy: boolean('is_busy').notNull().default(true),
+    lastFetchedAt: timestamp('last_fetched_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('calendar_events_cache_connection_id_idx').on(table.connectionId),
+    index('calendar_events_cache_start_time_idx').on(table.startTime),
+    uniqueIndex('calendar_events_cache_connection_event_idx').on(
+      table.connectionId,
+      table.externalEventId
+    ),
+  ],
+);
+
+export const calendarEventsCacheRelations = relations(calendarEventsCache, ({ one }) => ({
+  connection: one(calendarConnections, {
+    fields: [calendarEventsCache.connectionId],
+    references: [calendarConnections.id],
+  }),
+}));
+
+// ============================================
 // Type Exports
 // ============================================
 
@@ -364,3 +477,12 @@ export type NewEvent = typeof events.$inferInsert;
 
 export type EventInvitee = typeof eventInvitees.$inferSelect;
 export type NewEventInvitee = typeof eventInvitees.$inferInsert;
+
+export type CalendarConnection = typeof calendarConnections.$inferSelect;
+export type NewCalendarConnection = typeof calendarConnections.$inferInsert;
+
+export type CalendarEventCache = typeof calendarEventsCache.$inferSelect;
+export type NewCalendarEventCache = typeof calendarEventsCache.$inferInsert;
+
+export type Location = typeof locations.$inferSelect;
+export type NewLocation = typeof locations.$inferInsert;

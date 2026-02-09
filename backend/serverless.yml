@@ -212,3 +212,31 @@ functions:
       - httpApi:
           path: /events/{eventId}/respond
           method: POST
+
+  # ============================================
+  # Calendars Function
+  # ============================================
+  Calendars:
+    handler: lambdas/calendars.handler
+    name: ${self:provider.stage}-${self:service}-calendars
+    memorySize: 256
+    timeout: 15
+    events:
+      - httpApi:
+          path: /calendars
+          method: GET
+      - httpApi:
+          path: /calendars
+          method: POST
+      - httpApi:
+          path: /calendars/busy-slots
+          method: GET
+      - httpApi:
+          path: /calendars/{connectionId}
+          method: GET
+      - httpApi:
+          path: /calendars/{connectionId}
+          method: PATCH
+      - httpApi:
+          path: /calendars/{connectionId}
+          method: DELETE

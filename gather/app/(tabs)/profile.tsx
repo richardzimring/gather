@@ -4,8 +4,10 @@ import {
   ChevronRight,
   Copy,
   LogOut,
+  Plus,
   Share2,
   Shield,
+  Trash2,
   User,
 } from '@tamagui/lucide-icons'
 import { router } from 'expo-router'
@@ -13,14 +15,14 @@ import { Alert, Share, Platform, RefreshControl } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import * as Haptics from 'expo-haptics'
 import { useState } from 'react'
-import { H1, ScrollView, Text, XStack, YStack, Circle, Theme } from 'tamagui'
+import { H1, ScrollView, Text, XStack, YStack, Circle, Theme, Switch } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { useAuth } from '../../lib/hooks/useAuth'
-import { useInviteCode, useRefresh } from '../../lib/hooks'
+import { useInviteCode, useRefresh, useCalendarConnections, useUpdateCalendarConnection, useDeleteCalendarConnection } from '../../lib/hooks'
 
 interface SettingsItemProps {
   icon: React.ReactNode
@@ -75,8 +77,44 @@ export default function ProfileScreen() {
   const { data: inviteCodeData } = inviteCodeQuery
   const [copied, setCopied] = useState(false)
   const { isRefreshing, onRefresh } = useRefresh(inviteCodeQuery)
+  
+  // Calendar connections
+  const { data: calendarConnections } = useCalendarConnections()
+  const updateCalendarConnection = useUpdateCalendarConnection()
+  const deleteCalendarConnection = useDeleteCalendarConnection()
 
   const inviteCode = inviteCodeData?.inviteCode ?? user?.inviteCode ?? ''
+  
+  const handleToggleImport = async (connectionId: string, currentValue: boolean) => {
+    await updateCalendarConnection.mutateAsync({
+      connectionId,
+      data: { importEnabled: !currentValue }
+    })
+  }
+  
+  const handleToggleExport = async (connectionId: string, currentValue: boolean) => {
+    await updateCalendarConnection.mutateAsync({
+      connectionId,
+      data: { exportEnabled: !currentValue }
+    })
+  }
+  
+  const handleDeleteCalendar = (connectionId: string, calendarName: string) => {
+    Alert.alert(
+      'Remove Calendar',
+      `Are you sure you want to remove "${calendarName}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteCalendarConnection.mutateAsync(connectionId)
+          },
+        },
+      ]
+    )
+  }
 
   const handleSignOut = async () => {
     Alert.alert(
@@ -207,18 +245,90 @@ export default function ProfileScreen() {
           </Card>
         </Theme>
 
+        {/* Calendar Connections */}
+        <Theme name="Card">
+          <Card marginBottom="$4">
+            <XStack justifyContent="space-between" alignItems="center" marginBottom="$3">
+              <Text color="$colorMuted" fontSize={13} fontWeight="600">
+                CALENDAR CONNECTIONS
+              </Text>
+              <Button
+                variant="ghost"
+                buttonSize="sm"
+                icon={<Plus size={16} />}
+                onPress={() => {
+                  // TODO: Open calendar connection flow
+                  Alert.alert('Coming Soon', 'Calendar connection will be available soon.')
+                }}
+              >
+                Add
+              </Button>
+            </XStack>
+            
+            {(!calendarConnections || calendarConnections.length === 0) ? (
+              <YStack alignItems="center" padding="$4" gap="$2">
+                <Calendar size={32} color="$colorMuted" />
+                <Text color="$colorMuted" textAlign="center">
+                  Connect your calendars to sync availability
+                </Text>
+                <Text color="$colorMuted" fontSize={12} textAlign="center">
+                  Apple, Google, and Outlook supported
+                </Text>
+              </YStack>
+            ) : (
+              <YStack gap="$3">
+                {calendarConnections.map((connection) => (
+                  <YStack 
+                    key={connection.connectionId} 
+                    gap="$2"
+                    padding="$3"
+                    backgroundColor="$backgroundHover"
+                    borderRadius="$3"
+                  >
+                    <XStack justifyContent="space-between" alignItems="center">
+                      <YStack flex={1}>
+                        <Text fontWeight="600">{connection.calendarName}</Text>
+                        <Text color="$colorMuted" fontSize={12}>
+                          {connection.provider.charAt(0).toUpperCase() + connection.provider.slice(1)}
+                        </Text>
+                      </YStack>
+                      <Button
+                        variant="ghost"
+                        buttonSize="sm"
+                        circular
+                        icon={<Trash2 size={16} color="$error" />}
+                        onPress={() => handleDeleteCalendar(connection.connectionId, connection.calendarName)}
+                      />
+                    </XStack>
+                    <XStack justifyContent="space-between" alignItems="center">
+                      <Text fontSize={13}>Import (read busy times)</Text>
+                      <Switch
+                        size="$3"
+                        checked={connection.importEnabled}
+                        onCheckedChange={() => handleToggleImport(connection.connectionId, connection.importEnabled)}
+                      />
+                    </XStack>
+                    <XStack justifyContent="space-between" alignItems="center">
+                      <Text fontSize={13}>Export (write events)</Text>
+                      <Switch
+                        size="$3"
+                        checked={connection.exportEnabled}
+                        onCheckedChange={() => handleToggleExport(connection.connectionId, connection.exportEnabled)}
+                      />
+                    </XStack>
+                  </YStack>
+                ))}
+              </YStack>
+            )}
+          </Card>
+        </Theme>
+
         {/* Settings Sections */}
         <Theme name="Card">
           <Card marginBottom="$4">
             <Text color="$colorMuted" fontSize={13} fontWeight="600" marginBottom="$2">
               PREFERENCES
             </Text>
-            <SettingsItem
-              icon={<Calendar size={18} color="$accent" />}
-              label="Calendar Sync"
-              value={user?.calendarSyncEnabled ? 'Enabled' : 'Disabled'}
-              onPress={() => {}}
-            />
             <SettingsItem
               icon={<Bell size={18} color="$accent" />}
               label="Notifications"

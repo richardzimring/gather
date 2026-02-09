@@ -183,6 +183,7 @@ export const UpdateAvailabilitySchema = z
 // Event schemas
 export const InviteeStatusSchema = z.enum(['pending', 'accepted', 'declined', 'maybe']).openapi('InviteeStatus');
 export const EventStatusSchema = z.enum(['draft', 'sent', 'confirmed', 'cancelled']).openapi('EventStatus');
+export const CommitmentTypeSchema = z.enum(['going', 'planning']).openapi('CommitmentType');
 
 export const CounterProposalSchema = z
   .object({
@@ -223,11 +224,21 @@ export const EventSchema = z
     invitees: z.array(EventInviteeSchema),
     showInviteList: z.boolean().default(true).openapi({ example: true }),
     status: EventStatusSchema,
+    commitmentType: CommitmentTypeSchema.default('going').openapi({ example: 'going' }),
     calendarEventId: z.string().optional().openapi({ example: 'google_calendar_event_123' }),
     createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
     updatedAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
   })
   .openapi('Event');
+
+export const EventRecurringSchema = z
+  .object({
+    isRecurring: z.boolean().openapi({ example: true }),
+    pattern: z.enum(['weekly']).optional().openapi({ example: 'weekly' }),
+    daysOfWeek: z.array(z.number().min(0).max(6)).optional().openapi({ example: [1, 3, 5] }),
+    endDate: z.string().datetime().optional().openapi({ example: '2024-03-15T23:59:59.000Z' }),
+  })
+  .openapi('EventRecurring');
 
 export const CreateEventSchema = z
   .object({
@@ -240,6 +251,8 @@ export const CreateEventSchema = z
     notes: z.string().max(500).optional().openapi({ example: 'Looking forward to catching up!' }),
     inviteeIds: z.array(z.string().uuid()).openapi({ example: [EXAMPLE_UUID_2] }),
     showInviteList: z.boolean().default(true).openapi({ example: true }),
+    commitmentType: CommitmentTypeSchema.default('going').openapi({ example: 'going' }),
+    recurring: EventRecurringSchema.optional(),
   })
   .openapi('CreateEvent');
 
@@ -328,7 +341,9 @@ export type UpdateAvailability = z.infer<typeof UpdateAvailabilitySchema>;
 
 export type InviteeStatus = z.infer<typeof InviteeStatusSchema>;
 export type EventStatus = z.infer<typeof EventStatusSchema>;
+export type CommitmentType = z.infer<typeof CommitmentTypeSchema>;
 export type CounterProposal = z.infer<typeof CounterProposalSchema>;
+export type EventRecurring = z.infer<typeof EventRecurringSchema>;
 export type EventInvitee = z.infer<typeof EventInviteeSchema>;
 export type Event = z.infer<typeof EventSchema>;
 export type CreateEvent = z.infer<typeof CreateEventSchema>;
@@ -338,6 +353,85 @@ export type EventResponse = z.infer<typeof EventResponseSchema>;
 export type RegisterPushToken = z.infer<typeof RegisterPushTokenSchema>;
 export type UserSearch = z.infer<typeof UserSearchSchema>;
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
+
+// Calendar schemas
+export const CalendarProviderSchema = z.enum(['apple', 'google', 'outlook']).openapi('CalendarProvider');
+
+export const CalendarConnectionSchema = z
+  .object({
+    connectionId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
+    userId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
+    provider: CalendarProviderSchema,
+    externalCalendarId: z.string().openapi({ example: 'primary' }),
+    calendarName: z.string().openapi({ example: 'Personal Calendar' }),
+    color: z.string().optional().openapi({ example: '#4285F4' }),
+    importEnabled: z.boolean().openapi({ example: true }),
+    exportEnabled: z.boolean().openapi({ example: false }),
+    lastSyncAt: z.string().datetime().optional().openapi({ example: EXAMPLE_DATETIME }),
+    createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
+  })
+  .openapi('CalendarConnection');
+
+export const CreateCalendarConnectionSchema = z
+  .object({
+    provider: CalendarProviderSchema,
+    externalCalendarId: z.string().openapi({ example: 'primary' }),
+    calendarName: z.string().openapi({ example: 'Personal Calendar' }),
+    color: z.string().optional().openapi({ example: '#4285F4' }),
+    importEnabled: z.boolean().default(true).openapi({ example: true }),
+    exportEnabled: z.boolean().default(false).openapi({ example: false }),
+    accessToken: z.string().optional().openapi({ example: 'ya29.xxx' }),
+    refreshToken: z.string().optional().openapi({ example: '1//xxx' }),
+    tokenExpiresAt: z.string().datetime().optional().openapi({ example: EXAMPLE_DATETIME }),
+  })
+  .openapi('CreateCalendarConnection');
+
+export const UpdateCalendarConnectionSchema = z
+  .object({
+    importEnabled: z.boolean().optional().openapi({ example: true }),
+    exportEnabled: z.boolean().optional().openapi({ example: true }),
+    accessToken: z.string().optional().openapi({ example: 'ya29.xxx' }),
+    refreshToken: z.string().optional().openapi({ example: '1//xxx' }),
+    tokenExpiresAt: z.string().datetime().optional().openapi({ example: EXAMPLE_DATETIME }),
+  })
+  .openapi('UpdateCalendarConnection');
+
+export const BusySlotSchema = z
+  .object({
+    startTime: z.string().datetime().openapi({ example: '2024-01-15T14:00:00.000Z' }),
+    endTime: z.string().datetime().openapi({ example: '2024-01-15T15:00:00.000Z' }),
+    calendarName: z.string().optional().openapi({ example: 'Work Calendar' }),
+  })
+  .openapi('BusySlot');
+
+export type CalendarProvider = z.infer<typeof CalendarProviderSchema>;
+export type CalendarConnection = z.infer<typeof CalendarConnectionSchema>;
+export type CreateCalendarConnection = z.infer<typeof CreateCalendarConnectionSchema>;
+export type UpdateCalendarConnection = z.infer<typeof UpdateCalendarConnectionSchema>;
+export type BusySlot = z.infer<typeof BusySlotSchema>;
+
+// Location schemas
+export const LocationSchema = z
+  .object({
+    locationId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
+    placeId: z.string().openapi({ example: 'ChIJN1t_tDeuEmsRUsoyG83frY4' }),
+    name: z.string().openapi({ example: 'Spyhouse Coffee' }),
+    address: z.string().optional().openapi({ example: '945 Broadway St NE, Minneapolis, MN 55413' }),
+    latitude: z.string().optional().openapi({ example: '45.0012' }),
+    longitude: z.string().optional().openapi({ example: '-93.2342' }),
+  })
+  .openapi('Location');
+
+export const PlaceSearchResultSchema = z
+  .object({
+    placeId: z.string().openapi({ example: 'ChIJN1t_tDeuEmsRUsoyG83frY4' }),
+    name: z.string().openapi({ example: 'Spyhouse Coffee' }),
+    address: z.string().openapi({ example: '945 Broadway St NE, Minneapolis, MN 55413' }),
+  })
+  .openapi('PlaceSearchResult');
+
+export type Location = z.infer<typeof LocationSchema>;
+export type PlaceSearchResult = z.infer<typeof PlaceSearchResultSchema>;
 
 // ============================================
 // API Response Types

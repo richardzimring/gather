@@ -40,6 +40,38 @@ const animations = createAnimations({
 // ============================================================================
 // FONTS
 // ============================================================================
+
+// Display font for logo and greetings (Roslindale-style)
+// Note: To use actual Roslindale font, add the font files and update the face mappings
+const displayFont = createInterFont({
+  size: {
+    1: 12,
+    2: 14,
+    3: 16,
+    4: 18,
+    5: 20,
+    6: 24,
+    7: 28,
+    8: 32,
+    9: 40,
+    10: 48,
+  },
+  weight: {
+    4: '400',
+    5: '500',
+    6: '600',
+    7: '700',
+  },
+  face: {
+    // Using serif-style font as fallback until Roslindale is loaded
+    // Replace with 'Roslindale-Regular', 'Roslindale-Medium', etc. when available
+    400: { normal: 'System' },
+    500: { normal: 'System' },
+    600: { normal: 'System' },
+    700: { normal: 'System' },
+  },
+})
+
 const headingFont = createInterFont({
   size: {
     1: 12,
@@ -110,16 +142,16 @@ const tokens = createTokens({
     lightGray11: '#171717', // dark text
     lightGray12: '#0a0a0a', // black
 
-    // Accent (subtle blue)
-    accent1: '#eff6ff',   // lightest (light mode bg)
-    accent2: '#dbeafe',
-    accent3: '#bfdbfe',
-    accent4: '#93c5fd',
-    accent5: '#60a5fa',   // muted accent
-    accent6: '#3b82f6',   // primary accent
-    accent7: '#2563eb',   // hover
-    accent8: '#1d4ed8',   // pressed
-    accent9: '#1e40af',   // dark accent
+    // Accent (deep purple/indigo - trust and connection)
+    accent1: '#f5f3ff',   // lightest (light mode bg)
+    accent2: '#ede9fe',
+    accent3: '#ddd6fe',
+    accent4: '#c4b5fd',
+    accent5: '#a78bfa',   // muted accent
+    accent6: '#8b5cf6',   // primary accent
+    accent7: '#7c3aed',   // hover
+    accent8: '#6d28d9',   // pressed
+    accent9: '#5b21b6',   // dark accent
 
     // Semantic
     success: '#22c55e',
@@ -302,6 +334,7 @@ export const config = createTamagui({
   themeClassNameOnRoot: true,
   shorthands,
   fonts: {
+    display: displayFont,
     heading: headingFont,
     body: bodyFont,
   },
