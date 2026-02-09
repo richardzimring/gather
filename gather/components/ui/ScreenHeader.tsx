@@ -2,7 +2,7 @@ import { ChevronLeft } from '@tamagui/lucide-icons'
 import { router } from 'expo-router'
 import { H1, XStack, YStack, GetProps } from 'tamagui'
 
-import { Button } from './Button'
+import { GlassButton } from './GlassFAB'
 
 export interface ScreenHeaderProps extends GetProps<typeof XStack> {
   /** Main title of the screen */
@@ -54,11 +54,8 @@ export function ScreenHeader({
     }
     if (showBack) {
       return (
-        <Button
-          variant="ghost"
-          buttonSize="sm"
-          circular
-          icon={<ChevronLeft size={20} />}
+        <GlassButton
+          icon={<ChevronLeft size={20} color="$color" />}
           onPress={handleBack}
         />
       )
@@ -101,7 +98,7 @@ export function ScreenHeader({
   return (
     <XStack
       alignItems="center"
-      gap="$2"
+      gap="$3"
       marginBottom="$3"
       {...props}
     >

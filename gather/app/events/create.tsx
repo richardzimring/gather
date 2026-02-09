@@ -18,6 +18,7 @@ import { Check, Users, Sparkles, CalendarPlus } from "@tamagui/lucide-icons";
 
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { GlassBottomBar } from "../../components/ui/GlassBottomBar";
 import { CancelHeader } from "../../components/ui/ScreenHeader";
 import {
   useCreateEvent,
@@ -137,7 +138,7 @@ export default function CreateEventScreen() {
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
-          paddingBottom: insets.bottom + 100,
+          paddingBottom: insets.bottom + 140,
           paddingHorizontal: 16,
         }}
       >
@@ -478,7 +479,10 @@ export default function CreateEventScreen() {
           </Card>
         </Theme>
 
-        {/* Create Button */}
+      </ScrollView>
+
+      {/* Glass bottom bar for create action */}
+      <GlassBottomBar>
         <Button
           variant="primary"
           buttonSize="lg"
@@ -496,7 +500,7 @@ export default function CreateEventScreen() {
             ? "Send Invitation"
             : "Propose Event"}
         </Button>
-      </ScrollView>
+      </GlassBottomBar>
     </YStack>
   );
 }

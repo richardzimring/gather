@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
+import { GlassButton } from '../../components/ui/GlassFAB'
 import { useFriends, useFriendsAvailability, useGroups, useRefresh } from '../../lib/hooks'
 
 type DateRange = 'this_week' | 'next_week' | 'custom'
@@ -288,14 +289,10 @@ export default function PlanScreen() {
           <H1 fontSize={28} fontWeight="700">
             Plan
           </H1>
-          <Button
-            variant="primary"
-            buttonSize="sm"
-            icon={<Plus size={14} color="$primaryForeground" />}
+          <GlassButton
+            icon={<Plus size={20} color="$color" />}
             onPress={navigateToCreate}
-          >
-            Create
-          </Button>
+          />
         </XStack>
         
         {/* Date Range Selection */}

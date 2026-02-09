@@ -1,7 +1,7 @@
 import { Search, UserPlus, Users as UsersIcon } from '@tamagui/lucide-icons'
 import { router } from 'expo-router'
 import { useMemo, useState } from 'react'
-import { RefreshControl } from 'react-native'
+import { RefreshControl, StyleSheet } from 'react-native'
 import {
   H1,
   Input,
@@ -13,9 +13,15 @@ import {
   Theme,
 } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import {
+  GlassView,
+  isLiquidGlassAvailable,
+  isGlassEffectAPIAvailable,
+} from 'expo-glass-effect'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
+import { GlassButton } from '../../components/ui/GlassFAB'
 import { EmptyState } from '../../components/common/EmptyState'
 import {
   useFriends,
@@ -24,12 +30,15 @@ import {
   useDeclineFriendRequest,
   useRefresh,
 } from '../../lib/hooks'
+
 export default function FriendsScreen() {
   const insets = useSafeAreaInsets()
   const [activeTab, setActiveTab] = useState('friends')
   const [searchQuery, setSearchQuery] = useState('')
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null)
   const [pendingAction, setPendingAction] = useState<'accept' | 'decline' | null>(null)
+
+  const useGlass = isLiquidGlassAvailable() && isGlassEffectAPIAvailable()
 
   const friendsQuery = useFriends()
   const groupsQuery = useGroups()
@@ -94,56 +103,59 @@ export default function FriendsScreen() {
     router.push(`/groups/${groupId}` as const)
   }
 
+  const searchBar = (
+    <XStack alignItems="center" paddingHorizontal="$3" height={36}>
+      <Search size={16} color="$colorMuted" />
+      <Input
+        flex={1}
+        placeholder="Search friends..."
+        placeholderTextColor="$colorMuted"
+        backgroundColor="transparent"
+        borderWidth={0}
+        fontSize={14}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
+    </XStack>
+  )
+
   return (
     <YStack flex={1} backgroundColor="$background">
-      <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-        }
-        contentContainerStyle={{
-          paddingTop: insets.top + 16,
-          paddingBottom: insets.bottom + 100,
-          paddingHorizontal: 16,
-        }}
+      {/* Fixed header area */}
+      <YStack
+        paddingTop={insets.top + 16}
+        paddingHorizontal={16}
+        gap="$3"
+        paddingBottom="$3"
       >
         {/* Header */}
-        <XStack justifyContent="space-between" alignItems="center" marginBottom="$4">
+        <XStack justifyContent="space-between" alignItems="center">
           <H1 fontSize={28} fontWeight="700">
             Friends
           </H1>
-          <Button
-            variant="ghost"
-            buttonSize="sm"
-            circular
-            icon={<UserPlus size={22} color="$color" />}
+          <GlassButton
+            icon={<UserPlus size={20} color="$color" />}
             onPress={() => router.push('/friends/add')}
           />
         </XStack>
 
-        {/* Search */}
-        <XStack
-          backgroundColor="$backgroundHover"
-          borderRadius="$2"
-          paddingHorizontal="$3"
-          alignItems="center"
-          marginBottom="$4"
-          height={36}
-        >
-          <Search size={16} color="$colorMuted" />
-          <Input
-            flex={1}
-            placeholder="Search friends..."
-            placeholderTextColor="$colorMuted"
-            backgroundColor="transparent"
-            borderWidth={0}
-            fontSize={14}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </XStack>
+        {/* Glass search bar */}
+        {useGlass ? (
+          <GlassView style={glassStyles.searchBar}>
+            {searchBar}
+          </GlassView>
+        ) : (
+          <XStack
+            backgroundColor="$backgroundHover"
+            borderRadius="$2"
+            overflow="hidden"
+          >
+            {searchBar}
+          </XStack>
+        )}
 
         {/* Tab Bar */}
-        <XStack marginBottom="$4" gap="$1">
+        <XStack gap="$1">
           <XStack
             flex={1}
             backgroundColor={activeTab === 'friends' ? '$primary' : 'transparent'}
@@ -207,7 +219,18 @@ export default function FriendsScreen() {
             )}
           </XStack>
         </XStack>
+      </YStack>
 
+      {/* Scrollable tab content */}
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + 100,
+          paddingHorizontal: 16,
+        }}
+      >
         {/* Tab Content */}
         {activeTab === 'friends' && (
             <YStack gap="$3">
@@ -373,6 +396,14 @@ export default function FriendsScreen() {
             </YStack>
         )}
       </ScrollView>
+
     </YStack>
   )
 }
+
+const glassStyles = StyleSheet.create({
+  searchBar: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+})

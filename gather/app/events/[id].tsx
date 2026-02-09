@@ -23,6 +23,7 @@ import { useState } from 'react'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
+import { GlassBottomBar } from '../../components/ui/GlassBottomBar'
 import { BackHeader } from '../../components/ui/ScreenHeader'
 import { useAuth } from '../../lib/hooks/useAuth'
 import { useEvent, useRespondToEvent, useCancelEvent } from '../../lib/hooks'
@@ -108,6 +109,7 @@ export default function EventDetailScreen() {
   const isHost = event?.hostId === user?.userId
   const userInvitee = event?.invitees.find((i) => i.userId === user?.userId)
   const canRespond = !isHost && userInvitee
+  const showBottomBar = canRespond && event?.status !== 'cancelled'
 
   const handleResponse = async (status: InviteeStatus) => {
     if (!id) return
@@ -189,7 +191,7 @@ export default function EventDetailScreen() {
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
-          paddingBottom: insets.bottom + 100,
+          paddingBottom: showBottomBar ? insets.bottom + 140 : insets.bottom + 100,
           paddingHorizontal: 16,
         }}
       >
@@ -380,11 +382,14 @@ export default function EventDetailScreen() {
           </Theme>
         )}
 
-        {/* Response Buttons (for invitees) */}
-        {canRespond && event.status !== 'cancelled' && (
-          <YStack gap="$3">
-            <Text fontWeight="600" textAlign="center">
-              Are you going
+      </ScrollView>
+
+      {/* Glass bottom bar for RSVP actions */}
+      {canRespond && event.status !== 'cancelled' && (
+        <GlassBottomBar>
+          <YStack gap="$2">
+            <Text fontWeight="600" textAlign="center" fontSize={14}>
+              Are you going?
             </Text>
             <XStack gap="$3">
               <Button
@@ -416,8 +421,8 @@ export default function EventDetailScreen() {
               </Button>
             </XStack>
           </YStack>
-        )}
-      </ScrollView>
+        </GlassBottomBar>
+      )}
     </YStack>
   )
 }
