@@ -15,7 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { CancelHeader } from '../../components/ui/ScreenHeader'
 import { useCreateGroup, useFriends } from '../../lib/hooks'
 
@@ -56,7 +55,7 @@ export default function CreateGroupScreen() {
   }
 
   return (
-    <DottedGridBackground>
+    <YStack flex={1} backgroundColor="$background">
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
@@ -70,21 +69,21 @@ export default function CreateGroupScreen() {
         {/* Group Info */}
         <Theme name="Card">
           <Card marginBottom="$4">
-            <YStack gap="$4">
+            <YStack gap="$3">
               {/* Emoji Selection */}
               <YStack gap="$2">
-                <Text fontWeight="500">Choose an emoji</Text>
+                <Text fontWeight="500" fontSize={14}>Choose an emoji</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <XStack gap="$2">
                     {EMOJI_OPTIONS.map((e) => (
                       <Circle
                         key={e}
-                        size={48}
-                        backgroundColor={emoji === e ? '$accent' : '$backgroundHover'}
-                        pressStyle={{ scale: 0.95 }}
+                        size={40}
+                        backgroundColor={emoji === e ? '$primary' : '$backgroundHover'}
+                        pressStyle={{ scale: 0.98 }}
                         onPress={() => setEmoji(e)}
                       >
-                        <Text fontSize={24}>{e}</Text>
+                        <Text fontSize={20}>{e}</Text>
                       </Circle>
                     ))}
                   </XStack>
@@ -93,7 +92,7 @@ export default function CreateGroupScreen() {
 
               {/* Group Name */}
               <YStack gap="$2">
-                <Text fontWeight="500">Group Name</Text>
+                <Text fontWeight="500" fontSize={14}>Group Name</Text>
                 <Input
                   placeholder="e.g., Tennis Club"
                   placeholderTextColor="$colorMuted"
@@ -102,9 +101,10 @@ export default function CreateGroupScreen() {
                   backgroundColor="$backgroundHover"
                   borderColor="$borderColor"
                   borderWidth={1}
-                  borderRadius="$3"
-                  paddingHorizontal="$4"
-                  height={48}
+                  borderRadius="$2"
+                  paddingHorizontal="$3"
+                  height={36}
+                  fontSize={14}
                 />
               </YStack>
             </YStack>
@@ -115,9 +115,9 @@ export default function CreateGroupScreen() {
         <Theme name="Card">
           <Card marginBottom="$4">
             <XStack justifyContent="space-between" alignItems="center" marginBottom="$3">
-              <Text fontWeight="600">Add Members</Text>
+              <Text fontWeight="500" fontSize={14}>Add Members</Text>
               {selectedMembers.length > 0 && (
-                <Text color="$accent" fontSize={13} fontWeight="500">
+                <Text color="$color" fontSize={13} fontWeight="500">
                   {selectedMembers.length} selected
                 </Text>
               )}
@@ -125,7 +125,7 @@ export default function CreateGroupScreen() {
 
             {friends.length === 0 ? (
               <YStack alignItems="center" padding="$4">
-                <Text color="$colorMuted" textAlign="center">
+                <Text color="$colorMuted" fontSize={13} textAlign="center">
                   Add friends first to add them to groups
                 </Text>
               </YStack>
@@ -143,24 +143,24 @@ export default function CreateGroupScreen() {
                         onPress={() => toggleMember(friend.friendId)}
                       >
                         <YStack
-                          width={24}
-                          height={24}
-                          borderRadius={6}
-                          borderWidth={2}
-                          borderColor={isSelected ? '$accent' : '$borderColor'}
-                          backgroundColor={isSelected ? '$accent' : 'transparent'}
+                          width={20}
+                          height={20}
+                          borderRadius={4}
+                          borderWidth={1}
+                          borderColor={isSelected ? '$primary' : '$borderColor'}
+                          backgroundColor={isSelected ? '$primary' : 'transparent'}
                           alignItems="center"
                           justifyContent="center"
                         >
                           {isSelected && (
-                            <Check size={14} color="white" strokeWidth={3} />
+                            <Check size={12} color="$primaryForeground" strokeWidth={3} />
                           )}
                         </YStack>
-                        <Circle size={40} backgroundColor="$backgroundHover">
-                          <Text fontWeight="500">{friend.friend.initials}</Text>
+                        <Circle size={36} backgroundColor="$backgroundHover">
+                          <Text fontWeight="500" fontSize={13}>{friend.friend.initials}</Text>
                         </Circle>
                         <YStack flex={1}>
-                          <Text fontWeight="500">{friend.friend.fullName}</Text>
+                          <Text fontWeight="500" fontSize={14}>{friend.friend.fullName}</Text>
                         </YStack>
                       </XStack>
                       {index < friends.length - 1 && (
@@ -185,6 +185,6 @@ export default function CreateGroupScreen() {
           {createGroup.isPending ? 'Creating...' : 'Create Group'}
         </Button>
       </ScrollView>
-    </DottedGridBackground>
+    </YStack>
   )
 }

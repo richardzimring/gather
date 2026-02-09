@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useState } from 'react'
 
 import { Card } from '../../components/ui/Card'
-import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { BackHeader } from '../../components/ui/ScreenHeader'
 
 interface NotificationSettingProps {
@@ -70,7 +69,7 @@ export default function NotificationSettingsScreen() {
   const [messages, setMessages] = useState(true)
 
   return (
-    <DottedGridBackground>
+    <YStack flex={1} backgroundColor="$background">
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
@@ -89,17 +88,17 @@ export default function NotificationSettingsScreen() {
           <Card marginBottom="$4">
             <XStack gap="$3" alignItems="center">
               <YStack
-                width={40}
-                height={40}
-                borderRadius={20}
-                backgroundColor="$accentBackground"
+                width={36}
+                height={36}
+                borderRadius={6}
+                backgroundColor="$backgroundHover"
                 alignItems="center"
                 justifyContent="center"
               >
-                <Bell size={20} color="$accent" />
+                <Bell size={16} color="$colorMuted" />
               </YStack>
               <YStack flex={1}>
-                <Text fontSize={15} color="$colorMuted">
+                <Text fontSize={13} color="$colorMuted">
                   Choose which notifications you want to receive from Gather.
                 </Text>
               </YStack>
@@ -110,18 +109,18 @@ export default function NotificationSettingsScreen() {
         {/* Events */}
         <Theme name="Card">
           <Card marginBottom="$4">
-            <Text color="$colorMuted" fontSize={13} fontWeight="600" marginBottom="$2">
+            <Text color="$colorMuted" fontSize={12} fontWeight="600" marginBottom="$2">
               EVENTS
             </Text>
             <NotificationSetting
-              icon={<Calendar size={18} color="$accent" />}
+              icon={<Calendar size={16} color="$colorMuted" />}
               label="Event Invites"
               description="Get notified when someone invites you to an event"
               value={eventInvites}
               onToggle={setEventInvites}
             />
             <NotificationSetting
-              icon={<Calendar size={18} color="$accent" />}
+              icon={<Calendar size={16} color="$colorMuted" />}
               label="Event Updates"
               description="Get notified about changes to events you're attending"
               value={eventUpdates}
@@ -133,25 +132,25 @@ export default function NotificationSettingsScreen() {
         {/* Social */}
         <Theme name="Card">
           <Card marginBottom="$4">
-            <Text color="$colorMuted" fontSize={13} fontWeight="600" marginBottom="$2">
+            <Text color="$colorMuted" fontSize={12} fontWeight="600" marginBottom="$2">
               SOCIAL
             </Text>
             <NotificationSetting
-              icon={<UserPlus size={18} color="$accent" />}
+              icon={<UserPlus size={16} color="$colorMuted" />}
               label="Friend Requests"
               description="Get notified when someone sends you a friend request"
               value={friendRequests}
               onToggle={setFriendRequests}
             />
             <NotificationSetting
-              icon={<Users size={18} color="$accent" />}
+              icon={<Users size={16} color="$colorMuted" />}
               label="Group Invites"
               description="Get notified when someone adds you to a group"
               value={groupInvites}
               onToggle={setGroupInvites}
             />
             <NotificationSetting
-              icon={<MessageSquare size={18} color="$accent" />}
+              icon={<MessageSquare size={16} color="$colorMuted" />}
               label="Messages"
               description="Get notified about new messages and comments"
               value={messages}
@@ -160,6 +159,6 @@ export default function NotificationSettingsScreen() {
           </Card>
         </Theme>
       </ScrollView>
-    </DottedGridBackground>
+    </YStack>
   )
 }

@@ -25,11 +25,12 @@ interface AppProvidersProps {
  */
 export function AppProviders({ children }: AppProvidersProps) {
   const colorScheme = useColorScheme()
+  const theme = colorScheme === 'light' ? 'light' : 'dark'
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TamaguiProvider config={config} defaultTheme={colorScheme ?? 'dark'}>
-        <Theme name={colorScheme ?? 'dark'}>
+      <TamaguiProvider config={config} defaultTheme={theme}>
+        <Theme name={theme}>
           <AuthProvider>{children}</AuthProvider>
         </Theme>
       </TamaguiProvider>

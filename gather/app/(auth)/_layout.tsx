@@ -1,6 +1,8 @@
 import { Stack } from 'expo-router'
 import { useColorScheme } from 'react-native'
 
+import { tokens } from '../../tamagui.config'
+
 export default function AuthLayout() {
   const colorScheme = useColorScheme()
 
@@ -9,7 +11,7 @@ export default function AuthLayout() {
       screenOptions={{
         headerShown: false,
         contentStyle: {
-          backgroundColor: colorScheme === 'dark' ? '#0a0a0a' : '#ffffff',
+          backgroundColor: colorScheme === 'dark' ? tokens.color.gray1.val : tokens.color.lightGray1.val,
         },
         animation: 'slide_from_right',
       }}

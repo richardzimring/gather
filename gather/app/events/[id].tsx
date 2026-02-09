@@ -23,7 +23,6 @@ import { useState } from 'react'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { BackHeader } from '../../components/ui/ScreenHeader'
 import { useAuth } from '../../lib/hooks/useAuth'
 import { useEvent, useRespondToEvent, useCancelEvent } from '../../lib/hooks'
@@ -150,37 +149,34 @@ export default function EventDetailScreen() {
 
   if (isLoading) {
     return (
-      <DottedGridBackground>
-        <YStack flex={1} alignItems="center" justifyContent="center">
-          <Spinner size="large" color="$accent" />
-        </YStack>
-      </DottedGridBackground>
+      <YStack flex={1} backgroundColor="$background" alignItems="center" justifyContent="center">
+        <Spinner size="large" color="$color" />
+      </YStack>
     )
   }
 
   if (error || !event) {
     return (
-      <DottedGridBackground>
-        <YStack
-          flex={1}
-          alignItems="center"
-          justifyContent="center"
-          paddingHorizontal="$4"
-        >
-          <Text fontSize={48} marginBottom="$4">
-            😕
-          </Text>
-          <Text fontSize={18} fontWeight="600" textAlign="center">
-            Event not found
-          </Text>
-          <Text color="$colorMuted" textAlign="center" marginTop="$2">
-            This event may have been cancelled or you do not have access.
-          </Text>
-          <Button variant="secondary" marginTop="$4" onPress={() => router.back()}>
-            Go Back
-          </Button>
-        </YStack>
-      </DottedGridBackground>
+      <YStack
+        flex={1}
+        backgroundColor="$background"
+        alignItems="center"
+        justifyContent="center"
+        paddingHorizontal="$4"
+      >
+        <Text fontSize={48} marginBottom="$4">
+          😕
+        </Text>
+        <Text fontSize={18} fontWeight="600" textAlign="center">
+          Event not found
+        </Text>
+        <Text color="$colorMuted" textAlign="center" marginTop="$2">
+          This event may have been cancelled or you do not have access.
+        </Text>
+        <Button variant="secondary" marginTop="$4" onPress={() => router.back()}>
+          Go Back
+        </Button>
+      </YStack>
     )
   }
 
@@ -189,7 +185,7 @@ export default function EventDetailScreen() {
   const totalInvitees = event.invitees.length
 
   return (
-    <DottedGridBackground>
+    <YStack flex={1} backgroundColor="$background">
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
@@ -226,18 +222,18 @@ export default function EventDetailScreen() {
         />
 
         {/* Event Header */}
-        <YStack alignItems="center" marginBottom="$5">
+        <YStack alignItems="center" marginBottom="$4">
           <Circle
-            size={80}
-            backgroundColor="$accentSubtle"
+            size={64}
+            backgroundColor="$backgroundHover"
             marginBottom="$3"
           >
-            <Text fontSize={40}>{event.emoji ?? '📅'}</Text>
+            <Text fontSize={32}>{event.emoji ?? '📅'}</Text>
           </Circle>
-          <H1 fontSize={24} fontWeight="700" textAlign="center">
+          <H1 fontSize={20} fontWeight="600" textAlign="center">
             {event.title}
           </H1>
-          <Text color="$colorMuted" fontSize={14} marginTop="$1">
+          <Text color="$colorMuted" fontSize={13} marginTop="$1">
             Hosted by {event.hostName}
           </Text>
           <XStack
@@ -248,17 +244,17 @@ export default function EventDetailScreen() {
               event.status === 'confirmed'
                 ? '$success'
                 : event.status === 'cancelled'
-                  ? '$error'
+                  ? '$destructive'
                   : '$warning'
             }
             opacity={0.9}
-            paddingHorizontal="$3"
+            paddingHorizontal="$2"
             paddingVertical="$1"
-            borderRadius="$4"
+            borderRadius="$2"
           >
             <Text
-              color="$white"
-              fontSize={12}
+              color="$primaryForeground"
+              fontSize={11}
               fontWeight="600"
               textTransform="uppercase"
             >
@@ -274,18 +270,18 @@ export default function EventDetailScreen() {
               {/* Date & Time */}
               <XStack alignItems="flex-start" gap="$3">
                 <YStack
-                  width={40}
-                  height={40}
-                  borderRadius={10}
+                  width={36}
+                  height={36}
+                  borderRadius={6}
                   backgroundColor="$backgroundHover"
                   alignItems="center"
                   justifyContent="center"
                 >
-                  <Calendar size={20} color="$accent" />
+                  <Calendar size={16} color="$colorMuted" />
                 </YStack>
                 <YStack flex={1}>
-                  <Text fontWeight="600">{date}</Text>
-                  <Text color="$colorMuted" fontSize={14}>
+                  <Text fontWeight="500" fontSize={14}>{date}</Text>
+                  <Text color="$colorMuted" fontSize={13}>
                     {time}
                   </Text>
                 </YStack>
@@ -295,17 +291,17 @@ export default function EventDetailScreen() {
               {event.location && (
                 <XStack alignItems="flex-start" gap="$3">
                   <YStack
-                    width={40}
-                    height={40}
-                    borderRadius={10}
+                    width={36}
+                    height={36}
+                    borderRadius={6}
                     backgroundColor="$backgroundHover"
                     alignItems="center"
                     justifyContent="center"
                   >
-                    <MapPin size={20} color="$accent" />
+                    <MapPin size={16} color="$colorMuted" />
                   </YStack>
-                  <YStack flex={1} justifyContent="center" minHeight={40}>
-                    <Text fontWeight="500">{event.location}</Text>
+                  <YStack flex={1} justifyContent="center" minHeight={36}>
+                    <Text fontWeight="500" fontSize={14}>{event.location}</Text>
                   </YStack>
                 </XStack>
               )}
@@ -313,17 +309,17 @@ export default function EventDetailScreen() {
               {/* Attendees */}
               <XStack alignItems="flex-start" gap="$3">
                 <YStack
-                  width={40}
-                  height={40}
-                  borderRadius={10}
+                  width={36}
+                  height={36}
+                  borderRadius={6}
                   backgroundColor="$backgroundHover"
                   alignItems="center"
                   justifyContent="center"
                 >
-                  <Users size={20} color="$accent" />
+                  <Users size={16} color="$colorMuted" />
                 </YStack>
-                <YStack flex={1} justifyContent="center" minHeight={40}>
-                  <Text fontWeight="500">
+                <YStack flex={1} justifyContent="center" minHeight={36}>
+                  <Text fontWeight="500" fontSize={14}>
                     {acceptedCount + 1} of {totalInvitees + 1} going
                   </Text>
                 </YStack>
@@ -360,8 +356,8 @@ export default function EventDetailScreen() {
                     </Circle>
                     <YStack flex={1}>
                       <XStack alignItems="center" gap="$2">
-                        <Text fontWeight="500">{event.hostName}</Text>
-                        <Text fontSize={12} color="$accent" fontWeight="600">
+                        <Text fontWeight="500" fontSize={14}>{event.hostName}</Text>
+                        <Text fontSize={11} color="$color" fontWeight="600">
                           Host
                         </Text>
                       </XStack>
@@ -410,7 +406,7 @@ export default function EventDetailScreen() {
                 Maybe
               </Button>
               <Button
-                variant={userInvitee.status === 'declined' ? 'danger' : 'secondary'}
+                variant={userInvitee.status === 'declined' ? 'destructive' : 'secondary'}
                 flex={1}
                 onPress={() => handleResponse('declined')}
                 loading={pendingResponse === 'declined'}
@@ -422,6 +418,6 @@ export default function EventDetailScreen() {
           </YStack>
         )}
       </ScrollView>
-    </DottedGridBackground>
+    </YStack>
   )
 }

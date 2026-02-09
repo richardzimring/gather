@@ -26,7 +26,6 @@ import { useMemo, useState } from 'react'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { BackHeader } from '../../components/ui/ScreenHeader'
 import {
   useGroups,
@@ -176,42 +175,39 @@ export default function GroupDetailScreen() {
 
   if (isLoading) {
     return (
-      <DottedGridBackground>
-        <YStack flex={1} alignItems="center" justifyContent="center">
-          <Spinner size="large" color="$accent" />
-        </YStack>
-      </DottedGridBackground>
+      <YStack flex={1} backgroundColor="$background" alignItems="center" justifyContent="center">
+        <Spinner size="large" color="$color" />
+      </YStack>
     )
   }
 
   if (!group) {
     return (
-      <DottedGridBackground>
-        <YStack
-          flex={1}
-          alignItems="center"
-          justifyContent="center"
-          paddingHorizontal="$4"
-        >
-          <Text fontSize={48} marginBottom="$4">
-            😕
-          </Text>
-          <Text fontSize={18} fontWeight="600" textAlign="center">
-            Group not found
-          </Text>
-          <Text color="$colorMuted" textAlign="center" marginTop="$2">
-            This group may have been deleted.
-          </Text>
-          <Button variant="secondary" marginTop="$4" onPress={() => router.back()}>
-            Go Back
-          </Button>
-        </YStack>
-      </DottedGridBackground>
+      <YStack
+        flex={1}
+        backgroundColor="$background"
+        alignItems="center"
+        justifyContent="center"
+        paddingHorizontal="$4"
+      >
+        <Text fontSize={48} marginBottom="$4">
+          😕
+        </Text>
+        <Text fontSize={18} fontWeight="600" textAlign="center">
+          Group not found
+        </Text>
+        <Text color="$colorMuted" textAlign="center" marginTop="$2">
+          This group may have been deleted.
+        </Text>
+        <Button variant="secondary" marginTop="$4" onPress={() => router.back()}>
+          Go Back
+        </Button>
+      </YStack>
     )
   }
 
   return (
-    <DottedGridBackground>
+    <YStack flex={1} backgroundColor="$background">
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
@@ -228,36 +224,36 @@ export default function GroupDetailScreen() {
               variant="ghost"
               buttonSize="sm"
               circular
-              icon={<MoreHorizontal size={22} />}
+              icon={<MoreHorizontal size={20} />}
               onPress={() => setShowActionSheet(true)}
             />
           }
         />
 
         {/* Group Header */}
-        <YStack alignItems="center" marginBottom="$5">
-          <Circle size={100} backgroundColor="$accentSubtle" marginBottom="$3">
-            <Text fontSize={48}>{group.emoji ?? '👥'}</Text>
+        <YStack alignItems="center" marginBottom="$4">
+          <Circle size={80} backgroundColor="$backgroundHover" marginBottom="$3">
+            <Text fontSize={36}>{group.emoji ?? '👥'}</Text>
           </Circle>
-          <H1 fontSize={24} fontWeight="700" textAlign="center">
+          <H1 fontSize={20} fontWeight="600" textAlign="center">
             {group.name}
           </H1>
-          <Text color="$colorMuted" fontSize={14}>
+          <Text color="$colorMuted" fontSize={13}>
             {group.memberIds.length} members
           </Text>
           {group.isDefault && (
-            <Text color="$accent" fontSize={12} marginTop="$1">
+            <Text color="$color" fontSize={11} marginTop="$1">
               Default Group
             </Text>
           )}
         </YStack>
 
         {/* Quick Actions */}
-        <XStack gap="$3" marginBottom="$5">
+        <XStack gap="$2" marginBottom="$4">
           <Button
             variant="primary"
             flex={1}
-            icon={<Calendar size={18} color="white" />}
+            icon={<Calendar size={16} color="$primaryForeground" />}
             onPress={handleInviteGroupToEvent}
           >
             Invite to Event
@@ -265,7 +261,7 @@ export default function GroupDetailScreen() {
           <Button
             variant="secondary"
             flex={1}
-            icon={<UserPlus size={18} />}
+            icon={<UserPlus size={16} />}
             onPress={() => setShowAddMemberSheet(true)}
           >
             Add Member
@@ -365,9 +361,9 @@ export default function GroupDetailScreen() {
                   Edit Group
                 </Button>
                 <Button
-                  variant="danger"
+                  variant="destructive"
                   fullWidth
-                  icon={deleteGroup.isPending ? undefined : <Trash2 size={18} color="white" />}
+                  icon={deleteGroup.isPending ? undefined : <Trash2 size={16} color="$destructiveForeground" />}
                   onPress={() => {
                     setShowActionSheet(false)
                     handleDeleteGroup()
@@ -405,21 +401,21 @@ export default function GroupDetailScreen() {
             </Text>
 
             <YStack gap="$2">
-              <Text fontWeight="500">Emoji</Text>
+              <Text fontWeight="500" fontSize={14}>Emoji</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <XStack gap="$2">
                   {['👥', '💜', '🏠', '💼', '🎾', '🎮', '🍕', '☕', '🎬', '🎵'].map(
                     (emoji) => (
                       <Circle
                         key={emoji}
-                        size={48}
+                        size={40}
                         backgroundColor={
-                          editEmoji === emoji ? '$accent' : '$backgroundHover'
+                          editEmoji === emoji ? '$primary' : '$backgroundHover'
                         }
-                        pressStyle={{ scale: 0.95 }}
+                        pressStyle={{ scale: 0.98 }}
                         onPress={() => setEditEmoji(emoji)}
                       >
-                        <Text fontSize={24}>{emoji}</Text>
+                        <Text fontSize={20}>{emoji}</Text>
                       </Circle>
                     )
                   )}
@@ -428,7 +424,7 @@ export default function GroupDetailScreen() {
             </YStack>
 
             <YStack gap="$2">
-              <Text fontWeight="500">Group Name</Text>
+              <Text fontWeight="500" fontSize={14}>Group Name</Text>
               <Input
                 placeholder="Group name"
                 placeholderTextColor="$colorMuted"
@@ -437,9 +433,10 @@ export default function GroupDetailScreen() {
                 backgroundColor="$backgroundHover"
                 borderColor="$borderColor"
                 borderWidth={1}
-                borderRadius="$3"
-                paddingHorizontal="$4"
-                height={48}
+                borderRadius="$2"
+                paddingHorizontal="$3"
+                height={36}
+                fontSize={14}
               />
             </YStack>
 
@@ -528,6 +525,6 @@ export default function GroupDetailScreen() {
           </YStack>
         </Sheet.Frame>
       </Sheet>
-    </DottedGridBackground>
+    </YStack>
   )
 }

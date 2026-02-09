@@ -7,7 +7,6 @@ import { Circle, H1, Text, XStack, YStack } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '../../components/ui/Button'
-import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
@@ -103,18 +102,18 @@ export default function OnboardingScreen() {
       justifyContent="center"
       paddingHorizontal="$6"
     >
-      <Circle size={120} backgroundColor="$accentSubtle" marginBottom="$6">
-        <Text fontSize={64}>{item.emoji}</Text>
+      <Circle size={100} backgroundColor="$secondary" marginBottom="$5">
+        <Text fontSize={48}>{item.emoji}</Text>
       </Circle>
-      <H1 fontSize={28} fontWeight="700" textAlign="center" marginBottom="$3">
+      <H1 fontSize={24} fontWeight="600" textAlign="center" marginBottom="$3">
         {item.title}
       </H1>
       <Text
         color="$colorMuted"
-        fontSize={16}
+        fontSize={14}
         textAlign="center"
-        lineHeight={24}
-        maxWidth={320}
+        lineHeight={22}
+        maxWidth={300}
       >
         {item.description}
       </Text>
@@ -122,12 +121,12 @@ export default function OnboardingScreen() {
   )
 
   const renderDots = () => (
-    <XStack gap="$2" justifyContent="center" marginBottom="$6">
+    <XStack gap="$2" justifyContent="center" marginBottom="$5">
       {slides.map((_, index) => (
         <Circle
           key={index}
-          size={8}
-          backgroundColor={index === currentIndex ? '$accent' : '$colorMuted'}
+          size={6}
+          backgroundColor={index === currentIndex ? '$color' : '$colorMuted'}
           opacity={index === currentIndex ? 1 : 0.3}
         />
       ))}
@@ -135,12 +134,12 @@ export default function OnboardingScreen() {
   )
 
   return (
-    <DottedGridBackground>
-      <YStack
-        flex={1}
-        paddingTop={insets.top + 20}
-        paddingBottom={insets.bottom + 20}
-      >
+    <YStack
+      flex={1}
+      backgroundColor="$background"
+      paddingTop={insets.top + 20}
+      paddingBottom={insets.bottom + 20}
+    >
         {/* Skip button */}
         {!isLastSlide && (
           <XStack justifyContent="flex-end" paddingHorizontal="$4">
@@ -193,7 +192,6 @@ export default function OnboardingScreen() {
             </Button>
           )}
         </YStack>
-      </YStack>
-    </DottedGridBackground>
+    </YStack>
   )
 }

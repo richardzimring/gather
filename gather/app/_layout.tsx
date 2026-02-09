@@ -6,6 +6,7 @@ import { useEffect } from 'react'
 import { useColorScheme } from 'react-native'
 
 import { AppProviders } from '../lib/providers'
+import { tokens } from '../tamagui.config'
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync()
@@ -32,7 +33,7 @@ export default function RootLayout() {
         screenOptions={{
           headerShown: false,
           contentStyle: {
-            backgroundColor: colorScheme === 'dark' ? '#0a0a0a' : '#ffffff',
+            backgroundColor: colorScheme === 'dark' ? tokens.color.gray1.val : tokens.color.lightGray1.val,
           },
         }}
       >

@@ -51,14 +51,13 @@ backend/
 - Do _not_ use eslint disables unless absolutely necessary
 - Do _not_ cast to any or force unsafe casts. Use clean types and parse with Zod on unknown external inputs.
 - Use built-in and recommended features whenever possible instead of implementing by hand something which could have been cleanly imported from an existing or common package
-
-# Misc. Guidance
-
-- Do not write or run tests for now
-- Always check for errors in your code after your changes (e.g. by running `npm run lint`)
-- Always regenerate the OpenAPI spec after making changes to the API interface
 - Always look up documentation to get the latest guidance on best and standard practices for a package
   - https://hono.dev/llms.txt
   - https://orm.drizzle.team/docs/overview
 
-Consider these rules if they affect your changes.
+## After Making Changes
+
+- Run `npm run lint` from `backend/` **in the terminal** (not the IDE's inline linter — it only shows ESLint errors, not TypeScript type errors). This runs both ESLint and `tsc`.
+- If you changed any route interface (params, body, response shape), regenerate the OpenAPI spec: `npm run generate:openapi`
+- The frontend consumes `backend/openapi.json` — after regenerating, the frontend needs `npm run generate:api` to pick up changes
+- Do not write or run tests

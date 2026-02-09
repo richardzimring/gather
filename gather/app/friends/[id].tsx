@@ -21,7 +21,6 @@ import { useMemo, useState } from 'react'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { BackHeader } from '../../components/ui/ScreenHeader'
 import { useFriends, useRemoveFriend, useFriendsAvailability, useEvents } from '../../lib/hooks'
 
@@ -112,37 +111,34 @@ export default function FriendProfileScreen() {
 
   if (isLoading) {
     return (
-      <DottedGridBackground>
-        <YStack flex={1} alignItems="center" justifyContent="center">
-          <Spinner size="large" color="$accent" />
-        </YStack>
-      </DottedGridBackground>
+      <YStack flex={1} backgroundColor="$background" alignItems="center" justifyContent="center">
+        <Spinner size="large" color="$color" />
+      </YStack>
     )
   }
 
   if (!friend) {
     return (
-      <DottedGridBackground>
-        <YStack
-          flex={1}
-          alignItems="center"
-          justifyContent="center"
-          paddingHorizontal="$4"
-        >
-          <Text fontSize={48} marginBottom="$4">
-            😕
-          </Text>
-          <Text fontSize={18} fontWeight="600" textAlign="center">
-            Friend not found
-          </Text>
-          <Text color="$colorMuted" textAlign="center" marginTop="$2">
-            This person may no longer be in your friends list.
-          </Text>
-          <Button variant="secondary" marginTop="$4" onPress={() => router.back()}>
-            Go Back
-          </Button>
-        </YStack>
-      </DottedGridBackground>
+      <YStack
+        flex={1}
+        backgroundColor="$background"
+        alignItems="center"
+        justifyContent="center"
+        paddingHorizontal="$4"
+      >
+        <Text fontSize={48} marginBottom="$4">
+          😕
+        </Text>
+        <Text fontSize={18} fontWeight="600" textAlign="center">
+          Friend not found
+        </Text>
+        <Text color="$colorMuted" textAlign="center" marginTop="$2">
+          This person may no longer be in your friends list.
+        </Text>
+        <Button variant="secondary" marginTop="$4" onPress={() => router.back()}>
+          Go Back
+        </Button>
+      </YStack>
     )
   }
 
@@ -150,7 +146,7 @@ export default function FriendProfileScreen() {
   const initials = friend.friend.initials
 
   return (
-    <DottedGridBackground>
+    <YStack flex={1} backgroundColor="$background">
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
@@ -167,33 +163,33 @@ export default function FriendProfileScreen() {
               variant="ghost"
               buttonSize="sm"
               circular
-              icon={<MoreHorizontal size={22} />}
+              icon={<MoreHorizontal size={20} />}
               onPress={() => setShowActionSheet(true)}
             />
           }
         />
 
         {/* Profile Header */}
-        <YStack alignItems="center" marginBottom="$5">
-          <Circle size={100} backgroundColor="$accent" marginBottom="$3">
-            <Text fontSize={40} color="$white" fontWeight="600">
+        <YStack alignItems="center" marginBottom="$4">
+          <Circle size={80} backgroundColor="$primary" marginBottom="$3">
+            <Text fontSize={32} color="$primaryForeground" fontWeight="600">
               {initials}
             </Text>
           </Circle>
-          <H1 fontSize={24} fontWeight="700" textAlign="center">
+          <H1 fontSize={20} fontWeight="600" textAlign="center">
             {displayName}
           </H1>
-          <Text color="$colorMuted" fontSize={14}>
+          <Text color="$colorMuted" fontSize={13}>
             Friends since {formatDate(friend.acceptedAt ?? friend.createdAt)}
           </Text>
         </YStack>
 
         {/* Quick Actions */}
-        <XStack gap="$3" marginBottom="$5">
+        <XStack gap="$2" marginBottom="$4">
           <Button
             variant="primary"
             flex={1}
-            icon={<Calendar size={18} color="white" />}
+            icon={<Calendar size={16} color="$primaryForeground" />}
             onPress={handleInviteToEvent}
           >
             Invite to Event
@@ -201,37 +197,37 @@ export default function FriendProfileScreen() {
         </XStack>
 
         {/* Availability Section */}
-        <YStack marginBottom="$5">
-          <Text fontWeight="600" fontSize={16} marginBottom="$3">
+        <YStack marginBottom="$4">
+          <Text fontWeight="500" fontSize={14} marginBottom="$3">
             Upcoming Availability
           </Text>
           {friendAvailability.length === 0 ? (
             <Theme name="Card">
               <Card>
                 <YStack alignItems="center" padding="$2">
-                  <Text color="$colorMuted" textAlign="center">
+                  <Text color="$colorMuted" fontSize={13} textAlign="center">
                     No availability shared with you
                   </Text>
                 </YStack>
               </Card>
             </Theme>
           ) : (
-            <YStack gap="$3">
+            <YStack gap="$2">
               {friendAvailability.slice(0, 5).map((window) => (
-                <Theme key={window.windowId} name="accent">
+                <Theme key={window.windowId} name="Card">
                   <Card>
                     <XStack alignItems="center" gap="$3">
                       <YStack
-                        width={4}
-                        height={40}
+                        width={3}
+                        height={36}
                         borderRadius={2}
-                        backgroundColor="$accent"
+                        backgroundColor="$success"
                       />
                       <YStack flex={1}>
-                        <Text fontWeight="500" color="$accent">
+                        <Text fontWeight="500" fontSize={14}>
                           Available
                         </Text>
-                        <Text color="$colorMuted" fontSize={13}>
+                        <Text color="$colorMuted" fontSize={12}>
                           {formatDate(window.startTime)} • {formatTime(window.startTime)} - {formatTime(window.endTime)}
                         </Text>
                       </YStack>
@@ -305,9 +301,9 @@ export default function FriendProfileScreen() {
               Invite to Event
             </Button>
             <Button
-              variant="danger"
+              variant="destructive"
               fullWidth
-              icon={removeFriend.isPending ? undefined : <UserMinus size={18} color="white" />}
+              icon={removeFriend.isPending ? undefined : <UserMinus size={16} color="$destructiveForeground" />}
               onPress={handleRemoveFriend}
               loading={removeFriend.isPending}
               loadingText="Removing..."
@@ -324,6 +320,6 @@ export default function FriendProfileScreen() {
           </YStack>
         </Sheet.Frame>
       </Sheet>
-    </DottedGridBackground>
+    </YStack>
   )
 }

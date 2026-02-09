@@ -58,7 +58,7 @@ export function ScreenHeader({
           variant="ghost"
           buttonSize="sm"
           circular
-          icon={<ChevronLeft size={24} />}
+          icon={<ChevronLeft size={20} />}
           onPress={handleBack}
         />
       )
@@ -74,23 +74,23 @@ export function ScreenHeader({
       <XStack
         alignItems="center"
         justifyContent="space-between"
-        marginBottom="$4"
+        marginBottom="$3"
         {...props}
       >
-        <YStack width={44} alignItems="flex-start">
+        <YStack width={40} alignItems="flex-start">
           {leftElement}
         </YStack>
         <YStack flex={1} alignItems="center">
-          <H1 fontSize={20} fontWeight="700" numberOfLines={1}>
+          <H1 fontSize={16} fontWeight="600" numberOfLines={1}>
             {title}
           </H1>
           {subtitle && (
-            <H1 fontSize={14} color="$colorMuted" fontWeight="400">
+            <H1 fontSize={13} color="$colorMuted" fontWeight="400">
               {subtitle}
             </H1>
           )}
         </YStack>
-        <YStack width={44} alignItems="flex-end">
+        <YStack width={40} alignItems="flex-end">
           {rightAction}
         </YStack>
       </XStack>
@@ -101,17 +101,17 @@ export function ScreenHeader({
   return (
     <XStack
       alignItems="center"
-      gap="$3"
-      marginBottom="$4"
+      gap="$2"
+      marginBottom="$3"
       {...props}
     >
       {leftElement}
       <YStack flex={1}>
-        <H1 fontSize={28} fontWeight="700" numberOfLines={1}>
+        <H1 fontSize={20} fontWeight="600" numberOfLines={1}>
           {title}
         </H1>
         {subtitle && (
-          <H1 fontSize={14} color="$colorMuted" fontWeight="400" marginTop="$1">
+          <H1 fontSize={13} color="$colorMuted" fontWeight="400" marginTop="$1">
             {subtitle}
           </H1>
         )}

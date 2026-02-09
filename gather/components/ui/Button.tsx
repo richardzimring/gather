@@ -4,32 +4,48 @@ import { Platform } from 'react-native'
 
 /**
  * Base styled button with theme integration.
+ * shadcn Mira style - compact, neutral colors
  */
 const StyledButton = styled(TamaguiButton, {
   name: 'Button',
-  borderRadius: '$3',
-  fontWeight: '600',
+  borderRadius: '$2',
+  fontWeight: '500',
 
   variants: {
-    /** Visual style variants */
+    /** Visual style variants (shadcn Mira - neutral primary) */
     variant: {
       primary: {
-        backgroundColor: '$accent',
-        color: '$white',
+        backgroundColor: '$primary',
+        color: '$primaryForeground',
         pressStyle: {
-          backgroundColor: '$accentPress',
+          backgroundColor: '$primaryPress',
         },
         hoverStyle: {
-          backgroundColor: '$accentHover',
+          backgroundColor: '$primaryHover',
         },
       },
       secondary: {
-        backgroundColor: '$backgroundHover',
+        backgroundColor: '$secondary',
+        color: '$secondaryForeground',
+        borderWidth: 1,
+        borderColor: '$borderColor',
+        pressStyle: {
+          backgroundColor: '$secondaryPress',
+        },
+        hoverStyle: {
+          backgroundColor: '$secondaryHover',
+        },
+      },
+      outline: {
+        backgroundColor: 'transparent',
         color: '$color',
         borderWidth: 1,
         borderColor: '$borderColor',
         pressStyle: {
-          backgroundColor: '$backgroundPress',
+          backgroundColor: '$backgroundHover',
+        },
+        hoverStyle: {
+          backgroundColor: '$backgroundHover',
         },
       },
       ghost: {
@@ -38,32 +54,35 @@ const StyledButton = styled(TamaguiButton, {
         pressStyle: {
           backgroundColor: '$backgroundHover',
         },
+        hoverStyle: {
+          backgroundColor: '$backgroundHover',
+        },
       },
-      danger: {
-        backgroundColor: '$error',
-        color: '$white',
+      destructive: {
+        backgroundColor: '$destructive',
+        color: '$destructiveForeground',
         pressStyle: {
-          opacity: 0.8,
+          opacity: 0.9,
         },
       },
     },
 
-    /** Size variants */
+    /** Size variants (Mira style - compact) */
     buttonSize: {
       sm: {
-        height: 36,
+        height: 32,
         paddingHorizontal: '$3',
-        fontSize: 14,
+        fontSize: 13,
       },
       md: {
-        height: 44,
+        height: 36,
         paddingHorizontal: '$4',
-        fontSize: 16,
+        fontSize: 14,
       },
       lg: {
-        height: 52,
+        height: 44,
         paddingHorizontal: '$5',
-        fontSize: 18,
+        fontSize: 15,
       },
     },
 
@@ -113,7 +132,7 @@ export function Button({
 
   // Determine spinner color based on variant
   const spinnerColor =
-    variant === 'primary' || variant === 'danger' ? '$white' : '$color'
+    variant === 'primary' || variant === 'destructive' ? '$primaryForeground' : '$color'
 
   return (
     <StyledButton

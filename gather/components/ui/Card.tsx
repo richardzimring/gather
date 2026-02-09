@@ -2,15 +2,16 @@ import { styled, YStack, GetProps } from 'tamagui'
 
 /**
  * Card component with themed styling.
+ * shadcn Mira style - compact, smaller radii
  * Automatically uses the Card sub-theme for proper background colors.
  */
 export const Card = styled(YStack, {
   name: 'Card',
   backgroundColor: '$background',
-  borderRadius: '$4',
+  borderRadius: '$2',
   borderWidth: 1,
   borderColor: '$borderColor',
-  padding: '$4',
+  padding: '$3',
 
   variants: {
     /** Elevated card with slightly different background */
@@ -25,7 +26,7 @@ export const Card = styled(YStack, {
       true: {
         pressStyle: {
           backgroundColor: '$backgroundPress',
-          scale: 0.98,
+          scale: 0.99,
         },
         cursor: 'pointer',
       },
@@ -36,24 +37,24 @@ export const Card = styled(YStack, {
       true: {
         backgroundColor: 'transparent',
         borderStyle: 'dashed',
-        borderWidth: 2,
+        borderWidth: 1,
         borderColor: '$borderColorHover',
       },
     },
 
-    /** Size variants */
+    /** Size variants (Mira style - compact) */
     cardSize: {
       sm: {
         padding: '$2',
-        borderRadius: '$3',
+        borderRadius: '$1',
       },
       md: {
-        padding: '$4',
-        borderRadius: '$4',
+        padding: '$3',
+        borderRadius: '$2',
       },
       lg: {
-        padding: '$5',
-        borderRadius: '$5',
+        padding: '$4',
+        borderRadius: '$3',
       },
     },
   } as const,

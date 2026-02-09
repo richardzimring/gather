@@ -18,7 +18,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { BackHeader } from '../../components/ui/ScreenHeader'
 import { useInviteCode, useSendFriendRequest } from '../../lib/hooks'
 
@@ -85,7 +84,7 @@ export default function AddFriendScreen() {
   }
 
   return (
-    <DottedGridBackground>
+    <YStack flex={1} backgroundColor="$background">
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
@@ -98,11 +97,11 @@ export default function AddFriendScreen() {
 
         {/* Enter Invite Code Section */}
         <Theme name="Card">
-          <Card marginBottom="$5">
-            <YStack gap="$4">
+          <Card marginBottom="$4">
+            <YStack gap="$3">
               <XStack alignItems="center" gap="$3">
-                <Circle size={44} backgroundColor="$accentSubtle">
-                  <UserPlus size={22} color="$accent" />
+                <Circle size={40} backgroundColor="$secondary">
+                  <UserPlus size={18} color="$color" />
                 </Circle>
                 <YStack flex={1}>
                   <Text fontWeight="600" fontSize={16}>
@@ -126,12 +125,12 @@ export default function AddFriendScreen() {
                   autoCapitalize="characters"
                   autoCorrect={false}
                   backgroundColor="$backgroundHover"
-                  borderColor={error ? '$error' : '$borderColor'}
+                  borderColor={error ? '$destructive' : '$borderColor'}
                   borderWidth={1}
-                  borderRadius="$3"
-                  paddingHorizontal="$4"
-                  height={52}
-                  fontSize={18}
+                  borderRadius="$2"
+                  paddingHorizontal="$3"
+                  height={44}
+                  fontSize={16}
                   fontWeight="600"
                   letterSpacing={2}
                   textAlign="center"
@@ -158,13 +157,13 @@ export default function AddFriendScreen() {
         {/* Your Invite Code Section */}
         <Theme name="Card">
           <Card>
-            <YStack gap="$4">
+            <YStack gap="$3">
               <XStack alignItems="center" gap="$3">
-                <Circle size={44} backgroundColor="$successSubtle">
-                  <Share2 size={22} color="$success" />
+                <Circle size={40} backgroundColor="$successSubtle">
+                  <Share2 size={18} color="$success" />
                 </Circle>
                 <YStack flex={1}>
-                  <Text fontWeight="600" fontSize={16}>
+                  <Text fontWeight="500" fontSize={14}>
                     Share Your Code
                   </Text>
                   <Text color="$colorMuted" fontSize={13}>
@@ -175,31 +174,30 @@ export default function AddFriendScreen() {
 
               {isLoadingCode ? (
                 <YStack alignItems="center" padding="$4">
-                  <Spinner size="small" color="$accent" />
+                  <Spinner size="small" color="$color" />
                 </YStack>
               ) : (
                 <>
                   <YStack
                     backgroundColor="$backgroundHover"
-                    borderRadius="$3"
-                    padding="$4"
+                    borderRadius="$2"
+                    padding="$3"
                     alignItems="center"
                   >
                     <Text
-                      fontSize={28}
-                      fontWeight="700"
-                      letterSpacing={4}
-                      color="$accent"
+                      fontSize={20}
+                      fontWeight="600"
+                      letterSpacing={2}
                     >
                       {myInviteCode || '------'}
                     </Text>
                   </YStack>
 
-                  <XStack gap="$3">
+                  <XStack gap="$2">
                     <Button
-                      variant="secondary"
+                      variant="outline"
                       flex={1}
-                      icon={<Copy size={18} />}
+                      icon={<Copy size={14} />}
                       onPress={handleCopyCode}
                       disabled={!myInviteCode}
                     >
@@ -208,7 +206,7 @@ export default function AddFriendScreen() {
                     <Button
                       variant="primary"
                       flex={1}
-                      icon={<Share2 size={18} color="white" />}
+                      icon={<Share2 size={14} color="$primaryForeground" />}
                       onPress={handleShare}
                       disabled={!myInviteCode}
                     >
@@ -222,12 +220,12 @@ export default function AddFriendScreen() {
         </Theme>
 
         {/* Help Text */}
-        <YStack marginTop="$5" alignItems="center">
-          <Text color="$colorMuted" fontSize={13} textAlign="center">
+        <YStack marginTop="$4" alignItems="center">
+          <Text color="$colorMuted" fontSize={12} textAlign="center">
             Friend requests must be accepted before you can see each other&apos;s availability and create events together.
           </Text>
         </YStack>
       </ScrollView>
-    </DottedGridBackground>
+    </YStack>
   )
 }

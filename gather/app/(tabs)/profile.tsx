@@ -20,7 +20,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { useAuth } from '../../lib/hooks/useAuth'
 import { useInviteCode, useRefresh, useCalendarConnections, useUpdateCalendarConnection, useDeleteCalendarConnection } from '../../lib/hooks'
 import type { CalendarConnection } from '../../lib/api/client'
@@ -157,7 +156,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <DottedGridBackground>
+    <YStack flex={1} backgroundColor="$background">
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
@@ -209,25 +208,25 @@ export default function ProfileScreen() {
             </Text>
             <YStack
               backgroundColor="$backgroundHover"
-              borderRadius="$3"
+              borderRadius="$2"
               padding="$3"
               alignItems="center"
               marginBottom="$3"
             >
               <Text
-                fontSize={24}
-                fontWeight="700"
-                letterSpacing={3}
-                color="$accent"
+                fontSize={20}
+                fontWeight="600"
+                letterSpacing={2}
+                fontFamily="$body"
               >
                 {inviteCode || '------'}
               </Text>
             </YStack>
-            <XStack gap="$3">
+            <XStack gap="$2">
               <Button
-                variant="secondary"
+                variant="outline"
                 flex={1}
-                icon={<Copy size={16} />}
+                icon={<Copy size={14} />}
                 onPress={handleCopyInviteCode}
                 disabled={!inviteCode}
               >
@@ -236,7 +235,7 @@ export default function ProfileScreen() {
               <Button
                 variant="primary"
                 flex={1}
-                icon={<Share2 size={16} color="white" />}
+                icon={<Share2 size={14} color="$primaryForeground" />}
                 onPress={handleShareInviteCode}
                 disabled={!inviteCode}
               >
@@ -331,7 +330,7 @@ export default function ProfileScreen() {
               PREFERENCES
             </Text>
             <SettingsItem
-              icon={<Bell size={18} color="$accent" />}
+              icon={<Bell size={16} color="$colorMuted" />}
               label="Notifications"
               onPress={() => router.push('/notifications/settings')}
             />
@@ -344,12 +343,12 @@ export default function ProfileScreen() {
               ACCOUNT
             </Text>
             <SettingsItem
-              icon={<User size={18} color="$accent" />}
+              icon={<User size={16} color="$colorMuted" />}
               label="Account Settings"
               onPress={() => router.push('/profile/edit')}
             />
             <SettingsItem
-              icon={<Shield size={18} color="$accent" />}
+              icon={<Shield size={16} color="$colorMuted" />}
               label="Privacy"
               onPress={() => {}}
             />
@@ -358,9 +357,9 @@ export default function ProfileScreen() {
 
         {/* Sign Out */}
         <Button
-          variant="danger"
+          variant="destructive"
           fullWidth
-          icon={<LogOut size={18} color="white" />}
+          icon={<LogOut size={16} color="$destructiveForeground" />}
           onPress={handleSignOut}
         >
           Sign Out
@@ -376,6 +375,6 @@ export default function ProfileScreen() {
           Gather v1.0.0
         </Text>
       </ScrollView>
-    </DottedGridBackground>
+    </YStack>
   )
 }

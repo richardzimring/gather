@@ -14,7 +14,6 @@ import DateTimePicker from '@react-native-community/datetimepicker'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { CancelHeader } from '../../components/ui/ScreenHeader'
 import { useCreateAvailability } from '../../lib/hooks'
 import type { RecurringPattern } from '../../lib/api/client'
@@ -46,7 +45,7 @@ export default function CreateAvailabilityScreen() {
   }
 
   return (
-    <DottedGridBackground>
+    <YStack flex={1} backgroundColor="$background">
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
@@ -60,7 +59,7 @@ export default function CreateAvailabilityScreen() {
         {/* Time Selection */}
         <Theme name="Card">
           <Card marginBottom="$4">
-            <Text fontWeight="600" marginBottom="$3">
+            <Text fontWeight="500" fontSize={14} marginBottom="$3">
               Time
             </Text>
             <YStack gap="$3">
@@ -137,6 +136,6 @@ export default function CreateAvailabilityScreen() {
           {createAvailability.isPending ? 'Creating...' : 'Set Availability'}
         </Button>
       </ScrollView>
-    </DottedGridBackground>
+    </YStack>
   )
 }

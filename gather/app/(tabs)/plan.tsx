@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { useFriends, useFriendsAvailability, useGroups, useRefresh } from '../../lib/hooks'
 
 type DateRange = 'this_week' | 'next_week' | 'custom'
@@ -171,16 +170,16 @@ function findCommonFreeTime(
 function Checkbox({ checked }: { checked: boolean }) {
   return (
     <YStack
-      width={24}
-      height={24}
-      borderRadius={6}
-      borderWidth={2}
-      borderColor={checked ? '$accent' : '$borderColor'}
-      backgroundColor={checked ? '$accent' : 'transparent'}
+      width={20}
+      height={20}
+      borderRadius={4}
+      borderWidth={1}
+      borderColor={checked ? '$primary' : '$borderColor'}
+      backgroundColor={checked ? '$primary' : 'transparent'}
       alignItems="center"
       justifyContent="center"
     >
-      {checked && <Check size={14} color="white" strokeWidth={3} />}
+      {checked && <Check size={12} color="$primaryForeground" strokeWidth={3} />}
     </YStack>
   )
 }
@@ -273,7 +272,7 @@ export default function PlanScreen() {
   }
   
   return (
-    <DottedGridBackground>
+    <YStack flex={1} backgroundColor="$background">
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
@@ -292,7 +291,7 @@ export default function PlanScreen() {
           <Button
             variant="primary"
             buttonSize="sm"
-            icon={<Plus size={16} color="white" />}
+            icon={<Plus size={14} color="$primaryForeground" />}
             onPress={navigateToCreate}
           >
             Create
@@ -303,8 +302,8 @@ export default function PlanScreen() {
         <Theme name="Card">
           <Card marginBottom="$4">
             <XStack alignItems="center" gap="$2" marginBottom="$3">
-              <CalendarDays size={18} color="$accent" />
-              <Text fontWeight="600">When are you thinking?</Text>
+              <CalendarDays size={16} color="$colorMuted" />
+              <Text fontWeight="500" fontSize={14}>When are you thinking?</Text>
             </XStack>
             <XStack gap="$2">
               {(['this_week', 'next_week', 'custom'] as DateRange[]).map((range) => (
@@ -327,11 +326,11 @@ export default function PlanScreen() {
           <Card marginBottom="$4">
             <XStack alignItems="center" justifyContent="space-between" marginBottom="$3">
               <XStack alignItems="center" gap="$2">
-                <Users size={18} color="$accent" />
-                <Text fontWeight="600">Who do you want to see?</Text>
+                <Users size={16} color="$colorMuted" />
+                <Text fontWeight="500" fontSize={14}>Who do you want to see?</Text>
               </XStack>
               {selectedFriends.length > 0 && (
-                <Text color="$accent" fontSize={13} fontWeight="500">
+                <Text color="$color" fontSize={13} fontWeight="500">
                   {selectedFriends.length} selected
                 </Text>
               )}
@@ -351,17 +350,17 @@ export default function PlanScreen() {
                           key={group.groupId}
                           paddingVertical="$2"
                           paddingHorizontal="$3"
-                          backgroundColor={allSelected ? '$accent' : '$backgroundHover'}
-                          borderRadius="$3"
-                          pressStyle={{ scale: 0.95 }}
+                          backgroundColor={allSelected ? '$primary' : '$backgroundHover'}
+                          borderRadius="$2"
+                          pressStyle={{ scale: 0.98 }}
                           onPress={() => toggleGroup(group.memberIds)}
                         >
                           <XStack alignItems="center" gap="$2">
-                            <Text fontSize={16}>{group.emoji ?? '👥'}</Text>
+                            <Text fontSize={14}>{group.emoji ?? '👥'}</Text>
                             <Text
                               fontSize={13}
                               fontWeight="500"
-                              color={allSelected ? '$white' : '$color'}
+                              color={allSelected ? '$primaryForeground' : '$color'}
                             >
                               {group.name}
                             </Text>
@@ -495,10 +494,10 @@ export default function PlanScreen() {
                           {isEveryoneAvailable ? 'All selected friends' : friendNames}
                         </Text>
                         <XStack alignItems="center" justifyContent="flex-end" marginTop="$2">
-                          <Text color="$accent" fontSize={13} fontWeight="500">
+                          <Text color="$color" fontSize={13} fontWeight="500">
                             Plan for this time
                           </Text>
-                          <ChevronRight size={16} color="$accent" />
+                          <ChevronRight size={14} color="$color" />
                         </XStack>
                       </YStack>
                     </Card>
@@ -509,6 +508,6 @@ export default function PlanScreen() {
           )}
         </YStack>
       </ScrollView>
-    </DottedGridBackground>
+    </YStack>
   )
 }

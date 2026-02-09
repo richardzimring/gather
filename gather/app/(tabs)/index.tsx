@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { useAuth } from '../../lib/hooks/useAuth'
 import { useEvents, useRespondToEvent, useRefresh } from '../../lib/hooks'
 
@@ -229,7 +228,7 @@ export default function HomeScreen() {
   const sectionOrder = ['Today', 'Tomorrow', 'This Week', 'Later']
 
   return (
-    <DottedGridBackground>
+    <YStack flex={1} backgroundColor="$background">
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
@@ -241,20 +240,20 @@ export default function HomeScreen() {
         }}
       >
         {/* Greeting Header */}
-        <YStack marginBottom="$6">
+        <YStack marginBottom="$5">
           <Text
-            fontSize={32}
-            fontWeight="700"
+            fontSize={28}
+            fontWeight="600"
             letterSpacing={-0.5}
             fontFamily="$heading"
           >
             {getGreeting()},
           </Text>
           <Text
-            fontSize={32}
-            fontWeight="700"
+            fontSize={28}
+            fontWeight="600"
             letterSpacing={-0.5}
-            color="$accent"
+            color="$color"
             fontFamily="$heading"
           >
             {user?.firstName ?? 'there'}
@@ -262,13 +261,13 @@ export default function HomeScreen() {
         </YStack>
 
         {/* Quick Actions */}
-        <YStack gap="$3" marginBottom="$6">
+        <YStack gap="$2" marginBottom="$5">
           <Button
             variant="primary"
             buttonSize="lg"
             fullWidth
             onPress={navigateToCreate}
-            icon={<Sparkles size={20} color="white" />}
+            icon={<Sparkles size={18} color="$primaryForeground" />}
           >
             Share what you are doing
           </Button>
@@ -277,7 +276,7 @@ export default function HomeScreen() {
             buttonSize="lg"
             fullWidth
             onPress={navigateToPlan}
-            icon={<CalendarPlus size={20} />}
+            icon={<CalendarPlus size={18} />}
           >
             Start planning something
           </Button>
@@ -300,8 +299,8 @@ export default function HomeScreen() {
                     {section}
                   </H2>
                   {section === 'Today' && pendingCount > 0 && (
-                    <Circle size={24} backgroundColor="$accent">
-                      <Text color="$white" fontSize={12} fontWeight="600">
+                    <Circle size={22} backgroundColor="$primary">
+                      <Text color="$primaryForeground" fontSize={11} fontWeight="600">
                         {pendingCount}
                       </Text>
                     </Circle>
@@ -337,7 +336,7 @@ export default function HomeScreen() {
                               {/* Host text */}
                               <Text 
                                 fontSize={13} 
-                                color={isPending ? '$accent' : '$colorMuted'}
+                                color={isPending ? '$color' : '$colorMuted'}
                                 fontWeight={isPending ? '600' : '400'}
                               >
                                 {getHostText(event, user?.userId)}
@@ -346,8 +345,8 @@ export default function HomeScreen() {
                               {/* Event info row */}
                               <XStack alignItems="center" gap="$3">
                                 <Circle 
-                                  size={48} 
-                                  backgroundColor={isPending ? '$accentSubtle' : '$backgroundHover'}
+                                  size={44} 
+                                  backgroundColor="$backgroundHover"
                                 >
                                   <Text fontSize={24}>{event.emoji ?? '📅'}</Text>
                                 </Circle>
@@ -400,6 +399,6 @@ export default function HomeScreen() {
           })}
         </YStack>
       </ScrollView>
-    </DottedGridBackground>
+    </YStack>
   )
 }

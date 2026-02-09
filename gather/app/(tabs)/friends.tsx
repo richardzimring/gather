@@ -11,13 +11,11 @@ import {
   YStack,
   Circle,
   Theme,
-  Tabs,
 } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import { DottedGridBackground } from '../../components/ui/DottedGridBackground'
 import { EmptyState } from '../../components/common/EmptyState'
 import {
   useFriends,
@@ -97,7 +95,7 @@ export default function FriendsScreen() {
   }
 
   return (
-    <DottedGridBackground>
+    <YStack flex={1} backgroundColor="$background">
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
@@ -125,85 +123,93 @@ export default function FriendsScreen() {
         {/* Search */}
         <XStack
           backgroundColor="$backgroundHover"
-          borderRadius="$3"
+          borderRadius="$2"
           paddingHorizontal="$3"
           alignItems="center"
           marginBottom="$4"
+          height={36}
         >
-          <Search size={18} color="$colorMuted" />
+          <Search size={16} color="$colorMuted" />
           <Input
             flex={1}
             placeholder="Search friends..."
             placeholderTextColor="$colorMuted"
             backgroundColor="transparent"
             borderWidth={0}
+            fontSize={14}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
         </XStack>
 
-        {/* Tabs */}
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          orientation="horizontal"
-          flexDirection="column"
-        >
-          <Tabs.List marginBottom="$4">
-            <Tabs.Tab
-              value="friends"
-              flex={1}
-              backgroundColor={activeTab === 'friends' ? '$accent' : 'transparent'}
-              borderRadius="$3"
-              paddingVertical="$2"
+        {/* Tab Bar */}
+        <XStack marginBottom="$4" gap="$1">
+          <XStack
+            flex={1}
+            backgroundColor={activeTab === 'friends' ? '$primary' : 'transparent'}
+            borderRadius="$2"
+            paddingVertical="$2"
+            justifyContent="center"
+            alignItems="center"
+            pressStyle={{ opacity: 0.8 }}
+            onPress={() => setActiveTab('friends')}
+          >
+            <Text
+              color={activeTab === 'friends' ? '$primaryForeground' : '$colorMuted'}
+              fontWeight="500"
+              fontSize={14}
             >
-              <Text
-                color={activeTab === 'friends' ? '$white' : '$colorMuted'}
-                fontWeight="500"
-              >
-                All Friends
-              </Text>
-            </Tabs.Tab>
-            <Tabs.Tab
-              value="groups"
-              flex={1}
-              backgroundColor={activeTab === 'groups' ? '$accent' : 'transparent'}
-              borderRadius="$3"
-              paddingVertical="$2"
+              All Friends
+            </Text>
+          </XStack>
+          <XStack
+            flex={1}
+            backgroundColor={activeTab === 'groups' ? '$primary' : 'transparent'}
+            borderRadius="$2"
+            paddingVertical="$2"
+            justifyContent="center"
+            alignItems="center"
+            pressStyle={{ opacity: 0.8 }}
+            onPress={() => setActiveTab('groups')}
+          >
+            <Text
+              color={activeTab === 'groups' ? '$primaryForeground' : '$colorMuted'}
+              fontWeight="500"
+              fontSize={14}
             >
-              <Text
-                color={activeTab === 'groups' ? '$white' : '$colorMuted'}
-                fontWeight="500"
-              >
-                Groups
-              </Text>
-            </Tabs.Tab>
-            <Tabs.Tab
-              value="requests"
-              flex={1}
-              backgroundColor={activeTab === 'requests' ? '$accent' : 'transparent'}
-              borderRadius="$3"
-              paddingVertical="$2"
+              Groups
+            </Text>
+          </XStack>
+          <XStack
+            flex={1}
+            backgroundColor={activeTab === 'requests' ? '$primary' : 'transparent'}
+            borderRadius="$2"
+            paddingVertical="$2"
+            justifyContent="center"
+            alignItems="center"
+            pressStyle={{ opacity: 0.8 }}
+            onPress={() => setActiveTab('requests')}
+            gap="$2"
+          >
+            <Text
+              color={activeTab === 'requests' ? '$primaryForeground' : '$colorMuted'}
+              fontWeight="500"
+              fontSize={14}
             >
-              <XStack alignItems="center" gap="$2">
-                <Text
-                  color={activeTab === 'requests' ? '$white' : '$colorMuted'}
-                  fontWeight="500"
-                >
-                  Requests
+              Requests
+            </Text>
+            {pendingReceived.length > 0 && (
+              <Circle size={16} backgroundColor="$destructive">
+                <Text color="$destructiveForeground" fontSize={10} fontWeight="600">
+                  {pendingReceived.length}
                 </Text>
-                {pendingReceived.length > 0 && (
-                  <Circle size={18} backgroundColor="$error">
-                    <Text color="$white" fontSize={11} fontWeight="600">
-                      {pendingReceived.length}
-                    </Text>
-                  </Circle>
-                )}
-              </XStack>
-            </Tabs.Tab>
-          </Tabs.List>
+              </Circle>
+            )}
+          </XStack>
+        </XStack>
 
-          <Tabs.Content value="friends">
+        {/* Tab Content */}
+        {activeTab === 'friends' && (
             <YStack gap="$3">
               {filteredFriends.length === 0 ? (
                 <EmptyState
@@ -251,9 +257,9 @@ export default function FriendsScreen() {
                 )
               )}
             </YStack>
-          </Tabs.Content>
+        )}
 
-          <Tabs.Content value="groups">
+        {activeTab === 'groups' && (
             <YStack gap="$3">
               {filteredGroups.length === 0 ? (
                 <EmptyState
@@ -308,9 +314,9 @@ export default function FriendsScreen() {
                 </>
               )}
             </YStack>
-          </Tabs.Content>
+        )}
 
-          <Tabs.Content value="requests">
+        {activeTab === 'requests' && (
             <YStack gap="$3">
               {pendingReceived.length === 0 ? (
                 <EmptyState
@@ -365,9 +371,8 @@ export default function FriendsScreen() {
                 )
               )}
             </YStack>
-          </Tabs.Content>
-        </Tabs>
+        )}
       </ScrollView>
-    </DottedGridBackground>
+    </YStack>
   )
 }

@@ -1,7 +1,7 @@
 import { createAnimations } from '@tamagui/animations-react-native'
 import { createInterFont } from '@tamagui/font-inter'
 import { shorthands } from '@tamagui/shorthands'
-import { themes as defaultThemes, tokens as defaultTokens } from '@tamagui/themes'
+import { tokens as defaultTokens } from '@tamagui/themes'
 import { createTamagui, createTokens } from 'tamagui'
 
 // ============================================================================
@@ -111,49 +111,53 @@ const bodyFont = createInterFont({
 // ============================================================================
 // TOKENS (Static Design Values)
 // ============================================================================
+// Stone palette from shadcn - warm neutral grays with slight warm undertone
 const tokens = createTokens({
   ...defaultTokens,
   color: {
-    // Base grays (dark mode oriented)
-    gray1: '#0a0a0a',   // deepest background
-    gray2: '#0c0c0c',   // card background dark
-    gray3: '#141414',   // elevated surface
-    gray4: '#1a1a1a',   // borders dark
-    gray5: '#262626',   // subtle borders
-    gray6: '#404040',   // muted elements
-    gray7: '#525252',   // disabled text
-    gray8: '#737373',   // placeholder
-    gray9: '#a3a3a3',   // secondary text
-    gray10: '#d4d4d4',  // primary text dark mode
-    gray11: '#e5e5e5',  // bright text
-    gray12: '#fafafa',  // white
+    // Stone palette - Dark mode (12-step scale)
+    gray1: '#0c0a09',   // background - deepest
+    gray2: '#1c1917',   // card background
+    gray3: '#292524',   // elevated/popover
+    gray4: '#44403c',   // border
+    gray5: '#57534e',   // border hover
+    gray6: '#78716c',   // muted elements
+    gray7: '#a8a29e',   // disabled/placeholder
+    gray8: '#d6d3d1',   // secondary text
+    gray9: '#e7e5e4',   // primary text
+    gray10: '#f5f5f4',  // bright text
+    gray11: '#fafaf9',  // brightest
+    gray12: '#ffffff',  // white
 
-    // Light mode grays (inverted)
-    lightGray1: '#ffffff',  // background
-    lightGray2: '#fafafa',  // card background
-    lightGray3: '#f5f5f5',  // elevated surface
-    lightGray4: '#e5e5e5',  // borders
-    lightGray5: '#d4d4d4',  // subtle borders
-    lightGray6: '#a3a3a3',  // muted elements
-    lightGray7: '#737373',  // disabled text
-    lightGray8: '#525252',  // placeholder
-    lightGray9: '#404040',  // secondary text
-    lightGray10: '#262626', // primary text
-    lightGray11: '#171717', // dark text
-    lightGray12: '#0a0a0a', // black
+    // Stone palette - Light mode (12-step scale)
+    lightGray1: '#fafaf9',  // background
+    lightGray2: '#f5f5f4',  // card
+    lightGray3: '#e7e5e4',  // elevated
+    lightGray4: '#d6d3d1',  // border
+    lightGray5: '#a8a29e',  // border hover
+    lightGray6: '#78716c',  // muted
+    lightGray7: '#57534e',  // disabled
+    lightGray8: '#44403c',  // placeholder
+    lightGray9: '#292524',  // secondary text
+    lightGray10: '#1c1917', // primary text
+    lightGray11: '#0c0a09', // darkest text
+    lightGray12: '#000000', // black
 
-    // Accent (deep purple/indigo - trust and connection)
-    accent1: '#f5f3ff',   // lightest (light mode bg)
-    accent2: '#ede9fe',
-    accent3: '#ddd6fe',
-    accent4: '#c4b5fd',
-    accent5: '#a78bfa',   // muted accent
-    accent6: '#8b5cf6',   // primary accent
-    accent7: '#7c3aed',   // hover
-    accent8: '#6d28d9',   // pressed
-    accent9: '#5b21b6',   // dark accent
+    // Primary - using Stone foreground as primary (neutral, not colored)
+    // This follows shadcn Mira convention where primary is the foreground color
+    primary1: '#fafaf9',
+    primary2: '#f5f5f4',
+    primary3: '#e7e5e4',
+    primary4: '#d6d3d1',
+    primary5: '#a8a29e',
+    primary6: '#78716c',
+    primary7: '#57534e',
+    primary8: '#44403c',
+    primary9: '#292524',
+    primary10: '#1c1917',
+    primary11: '#0c0a09',
 
-    // Semantic
+    // Semantic colors (kept for functional use)
     success: '#22c55e',
     successLight: '#86efac',
     successDark: '#166534',
@@ -172,7 +176,7 @@ const tokens = createTokens({
 })
 
 // ============================================================================
-// THEMES
+// THEMES (shadcn Mira / Stone style)
 // ============================================================================
 
 // ===== DARK THEME =====
@@ -182,45 +186,58 @@ const dark = {
   backgroundPress: tokens.color.gray3,
   backgroundFocus: tokens.color.gray3,
   backgroundStrong: tokens.color.gray2,
-  backgroundTransparent: 'rgba(10, 10, 10, 0)',
+  backgroundTransparent: 'rgba(12, 10, 9, 0)',
 
   color: tokens.color.gray11,
   colorHover: tokens.color.gray12,
   colorPress: tokens.color.gray10,
   colorFocus: tokens.color.gray11,
-  colorTransparent: 'rgba(229, 229, 229, 0)',
+  colorTransparent: 'rgba(250, 250, 249, 0)',
 
-  colorMuted: tokens.color.gray8,
-  colorSubtle: tokens.color.gray9,
+  colorMuted: tokens.color.gray7,
+  colorSubtle: tokens.color.gray8,
 
   borderColor: tokens.color.gray4,
   borderColorHover: tokens.color.gray5,
   borderColorPress: tokens.color.gray4,
-  borderColorFocus: tokens.color.accent6,
+  borderColorFocus: tokens.color.gray6,
 
-  placeholderColor: tokens.color.gray7,
+  placeholderColor: tokens.color.gray6,
 
-  // Accent colors
-  accent: tokens.color.accent6,
-  accentHover: tokens.color.accent5,
-  accentPress: tokens.color.accent7,
-  accentBackground: tokens.color.accent9,
-  accentColor: tokens.color.accent1,
-  accentSubtle: 'rgba(59, 130, 246, 0.15)', // accent6 with 15% opacity
+  // Primary colors (neutral - Stone foreground becomes primary in Mira style)
+  primary: tokens.color.gray10,
+  primaryHover: tokens.color.gray11,
+  primaryPress: tokens.color.gray9,
+  primaryForeground: tokens.color.gray1,
+
+  // Secondary colors (muted backgrounds)
+  secondary: tokens.color.gray3,
+  secondaryHover: tokens.color.gray4,
+  secondaryPress: tokens.color.gray5,
+  secondaryForeground: tokens.color.gray11,
+
+  // Muted colors
+  muted: tokens.color.gray3,
+  mutedForeground: tokens.color.gray7,
 
   // Semantic
   success: tokens.color.success,
-  successSubtle: 'rgba(34, 197, 94, 0.15)', // success with 15% opacity
+  successSubtle: 'rgba(34, 197, 94, 0.15)',
   warning: tokens.color.warning,
   error: tokens.color.error,
-  errorSubtle: 'rgba(239, 68, 68, 0.15)', // error with 15% opacity
+  errorSubtle: 'rgba(239, 68, 68, 0.15)',
+  destructive: tokens.color.error,
+  destructiveForeground: tokens.color.gray11,
 
   // Shadows (minimal in dark mode)
   shadowColor: 'rgba(0,0,0,0.5)',
   shadowColorHover: 'rgba(0,0,0,0.6)',
+
+  // Ring (focus indicator)
+  ring: tokens.color.gray6,
 }
 
-// Dark Card sub-theme - deep black cards
+// Dark Card sub-theme
 const dark_Card = {
   ...dark,
   background: tokens.color.gray2,
@@ -229,25 +246,25 @@ const dark_Card = {
   borderColor: tokens.color.gray4,
 }
 
-// Dark Button sub-theme
+// Dark Button sub-theme (primary style - inverted colors)
 const dark_Button = {
   ...dark,
-  background: tokens.color.accent6,
-  backgroundHover: tokens.color.accent5,
-  backgroundPress: tokens.color.accent7,
-  color: tokens.color.white,
-  colorHover: tokens.color.white,
-  colorPress: tokens.color.white,
+  background: tokens.color.gray10,
+  backgroundHover: tokens.color.gray9,
+  backgroundPress: tokens.color.gray8,
+  color: tokens.color.gray1,
+  colorHover: tokens.color.gray1,
+  colorPress: tokens.color.gray2,
 }
 
-// Dark Accent sub-theme - for tinted sections
-const dark_accent = {
+// Dark secondary/muted theme
+const dark_secondary = {
   ...dark,
-  background: tokens.color.accent9,
-  backgroundHover: tokens.color.accent8,
-  backgroundPress: tokens.color.accent7,
-  color: tokens.color.accent1,
-  borderColor: tokens.color.accent7,
+  background: tokens.color.gray3,
+  backgroundHover: tokens.color.gray4,
+  backgroundPress: tokens.color.gray5,
+  color: tokens.color.gray11,
+  borderColor: tokens.color.gray4,
 }
 
 // ===== LIGHT THEME =====
@@ -257,45 +274,58 @@ const light = {
   backgroundPress: tokens.color.lightGray3,
   backgroundFocus: tokens.color.lightGray3,
   backgroundStrong: tokens.color.lightGray2,
-  backgroundTransparent: 'rgba(255, 255, 255, 0)',
+  backgroundTransparent: 'rgba(250, 250, 249, 0)',
 
   color: tokens.color.lightGray11,
   colorHover: tokens.color.lightGray12,
   colorPress: tokens.color.lightGray10,
   colorFocus: tokens.color.lightGray11,
-  colorTransparent: 'rgba(23, 23, 23, 0)',
+  colorTransparent: 'rgba(12, 10, 9, 0)',
 
-  colorMuted: tokens.color.lightGray7,
-  colorSubtle: tokens.color.lightGray9,
+  colorMuted: tokens.color.lightGray6,
+  colorSubtle: tokens.color.lightGray8,
 
   borderColor: tokens.color.lightGray4,
   borderColorHover: tokens.color.lightGray5,
   borderColorPress: tokens.color.lightGray4,
-  borderColorFocus: tokens.color.accent6,
+  borderColorFocus: tokens.color.lightGray6,
 
-  placeholderColor: tokens.color.lightGray6,
+  placeholderColor: tokens.color.lightGray5,
 
-  // Accent colors
-  accent: tokens.color.accent6,
-  accentHover: tokens.color.accent7,
-  accentPress: tokens.color.accent8,
-  accentBackground: tokens.color.accent1,
-  accentColor: tokens.color.lightGray12,
-  accentSubtle: 'rgba(59, 130, 246, 0.15)', // accent6 with 15% opacity
+  // Primary colors (neutral - Stone foreground becomes primary in Mira style)
+  primary: tokens.color.lightGray10,
+  primaryHover: tokens.color.lightGray11,
+  primaryPress: tokens.color.lightGray9,
+  primaryForeground: tokens.color.lightGray1,
+
+  // Secondary colors (muted backgrounds)
+  secondary: tokens.color.lightGray3,
+  secondaryHover: tokens.color.lightGray4,
+  secondaryPress: tokens.color.lightGray5,
+  secondaryForeground: tokens.color.lightGray11,
+
+  // Muted colors
+  muted: tokens.color.lightGray3,
+  mutedForeground: tokens.color.lightGray6,
 
   // Semantic
   success: tokens.color.success,
-  successSubtle: 'rgba(34, 197, 94, 0.15)', // success with 15% opacity
+  successSubtle: 'rgba(34, 197, 94, 0.15)',
   warning: tokens.color.warning,
   error: tokens.color.error,
-  errorSubtle: 'rgba(239, 68, 68, 0.15)', // error with 15% opacity
+  errorSubtle: 'rgba(239, 68, 68, 0.15)',
+  destructive: tokens.color.error,
+  destructiveForeground: tokens.color.lightGray1,
 
   // Shadows
   shadowColor: 'rgba(0,0,0,0.08)',
   shadowColorHover: 'rgba(0,0,0,0.12)',
+
+  // Ring (focus indicator)
+  ring: tokens.color.lightGray5,
 }
 
-// Light Card sub-theme - pure white cards
+// Light Card sub-theme
 const light_Card = {
   ...light,
   background: tokens.color.lightGray1,
@@ -304,25 +334,25 @@ const light_Card = {
   borderColor: tokens.color.lightGray4,
 }
 
-// Light Button sub-theme
+// Light Button sub-theme (primary style - inverted colors)
 const light_Button = {
   ...light,
-  background: tokens.color.accent6,
-  backgroundHover: tokens.color.accent7,
-  backgroundPress: tokens.color.accent8,
-  color: tokens.color.white,
-  colorHover: tokens.color.white,
-  colorPress: tokens.color.white,
+  background: tokens.color.lightGray10,
+  backgroundHover: tokens.color.lightGray11,
+  backgroundPress: tokens.color.lightGray9,
+  color: tokens.color.lightGray1,
+  colorHover: tokens.color.lightGray1,
+  colorPress: tokens.color.lightGray2,
 }
 
-// Light Accent sub-theme
-const light_accent = {
+// Light secondary/muted theme
+const light_secondary = {
   ...light,
-  background: tokens.color.accent1,
-  backgroundHover: tokens.color.accent2,
-  backgroundPress: tokens.color.accent3,
-  color: tokens.color.accent9,
-  borderColor: tokens.color.accent3,
+  background: tokens.color.lightGray3,
+  backgroundHover: tokens.color.lightGray4,
+  backgroundPress: tokens.color.lightGray5,
+  color: tokens.color.lightGray11,
+  borderColor: tokens.color.lightGray4,
 }
 
 // ============================================================================
@@ -343,11 +373,11 @@ export const config = createTamagui({
     dark,
     dark_Card,
     dark_Button,
-    dark_accent,
+    dark_secondary,
     light,
     light_Card,
     light_Button,
-    light_accent,
+    light_secondary,
   },
   media: {
     xs: { maxWidth: 660 },
@@ -370,29 +400,34 @@ export const config = createTamagui({
 // ============================================================================
 // TYPE EXPORTS
 // ============================================================================
+export { tokens }
 export type AppConfig = typeof config
 
 declare module 'tamagui' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
   interface TamaguiCustomConfig extends AppConfig {}
 }
 
 // ============================================================================
 // THEME CONSTANTS (for custom usage outside Tamagui)
+// shadcn Mira style - compact, smaller radii
 // ============================================================================
 export const THEME_CONSTANTS = {
-  // Border radius
-  radiusSmall: 8,
-  radiusMedium: 12,
-  radiusLarge: 16,
-  radiusFull: 9999,
+  // Border radius (Mira style - smaller, more compact)
+  radiusNone: 0,
+  radiusSmall: 4,    // compact corners
+  radiusMedium: 6,   // default for most components
+  radiusLarge: 8,    // larger elements like cards
+  radiusFull: 9999,  // pills/circles
 
-  // Dotted grid background
-  gridDotSize: 2,
-  gridDotOpacity: 0.08,
-  gridDotSpacing: 24,
+  // Component sizing (compact)
+  buttonHeightSm: 32,
+  buttonHeightMd: 36,
+  buttonHeightLg: 44,
+  inputHeight: 36,
 
   // Animation durations
   durationFast: 150,
-  durationMedium: 250,
-  durationSlow: 400,
+  durationMedium: 200,
+  durationSlow: 300,
 } as const

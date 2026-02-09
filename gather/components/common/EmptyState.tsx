@@ -13,6 +13,7 @@ export interface EmptyStateProps extends GetProps<typeof YStack> {
 
 /**
  * Empty state component for lists and sections with no data.
+ * shadcn Mira style - compact spacing
  */
 export function EmptyState({
   icon,
@@ -25,16 +26,16 @@ export function EmptyState({
     <YStack
       alignItems="center"
       justifyContent="center"
-      padding="$6"
-      gap="$3"
+      padding="$5"
+      gap="$2"
       {...props}
     >
-      {icon && <YStack marginBottom="$2">{icon}</YStack>}
-      <Text fontSize={18} fontWeight="600" textAlign="center">
+      {icon && <YStack marginBottom="$1">{icon}</YStack>}
+      <Text fontSize={15} fontWeight="500" textAlign="center">
         {title}
       </Text>
       {description && (
-        <Text color="$colorMuted" textAlign="center" maxWidth={280}>
+        <Text color="$colorMuted" fontSize={13} textAlign="center" maxWidth={260}>
           {description}
         </Text>
       )}

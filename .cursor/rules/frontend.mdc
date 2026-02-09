@@ -5,11 +5,14 @@ alwaysApply: false
 
 # Frontend Stack
 
-- React Native + Expo
+- React Native + Expo (SDK 55)
+- **iOS only** — no Android or web support. Do not add platform conditionals for Android/web.
 - Tanstack Query
 - Hey API for integration with OpenAPI docs from backend
 - Zod for validation + type inference
 - Tamagui for component library
+- Tab bar uses native Liquid Glass tabs via `NativeTabs` from `expo-router/unstable-native-tabs`
+- `expo-glass-effect` available for custom Liquid Glass on iOS 26+ (use sparingly)
 
 # Code Guidelines
 
@@ -21,23 +24,95 @@ alwaysApply: false
   export const CreateEventSchema = z.object({...});
   export type CreateEvent = z.infer<typeof CreateEventSchema>;
   ```
-- Do *not* use eslint disables unless absolutely necessary
-- Do *not* cast to any or force unsafe casts. Use clean types and parse with Zod on unknown external inputs.
+- Do _not_ use eslint disables unless absolutely necessary
+- Do _not_ cast to any or force unsafe casts. Use clean types and parse with Zod on unknown external inputs.
 - Use built-in and recommended features whenever possible instead of implementing by hand something which could have been cleanly imported from an existing or common package
 - Define styles, colors, fonts, etc. in a central location so that they can be used and referenced by all components
 - Define reusable custom components and maintain a clean directory hierachy for shared and sub components for clean imports instead of sphaghetti dependencies
 
-# Design Guidelines
+# Liquid Glass (Apple HIG)
 
-- Maintain consistency in design language between all pages and components
-- UI/UX should be well thought out, clean, human, modern, and beautiful
+**Principle:** Liquid Glass belongs on the **navigation/controls layer**, not the content layer. Standard system components (tab bars, toolbars, sheets) get glass automatically. Avoid overusing custom glass -- limit to the most important functional elements.
+
+**Tab bar** (already configured in `app/(tabs)/_layout.tsx`):
+- Uses `NativeTabs` from `expo-router/unstable-native-tabs` with Liquid Glass
+- SDK 55 compound component API: `NativeTabs.Trigger.Icon`, `NativeTabs.Trigger.Label`, `NativeTabs.Trigger.Badge`
+- `minimizeBehavior="onScrollDown"` makes the tab bar recede on scroll (iOS 26+)
+- Wrapped in `ThemeProvider` from `@react-navigation/native` to prevent white flash on tab switch
+
+**`expo-glass-effect`** (`GlassView`, `GlassContainer`):
+- Falls back to regular `View` on platforms below iOS 26
+- Use `isLiquidGlassAvailable()` to check availability at runtime
+- Reserve for floating navigation elements, floating toolbars, mini players, or prominent custom controls
+- Combine multiple glass views in a `GlassContainer` for performance
+
+**Do NOT apply glass to:**
+- Cards, list items, or content containers
+- Standard buttons (unless it's a prominent floating action)
+- Inline headers within scroll content
+- Empty/loading/error states
+
+**`Stack.Toolbar`** (new in SDK 55):
+- Native `UIToolbar` API for iOS -- provides bottom toolbar with native styling
+- Useful alternative to custom bottom action bars; gets Liquid Glass automatically
+
+# Design System (shadcn Mira / Stone)
+
+**Color tokens** - NEVER hardcode colors. Use semantic tokens from `tamagui.config.ts`:
+- `$background`, `$backgroundHover` - screen/component backgrounds
+- `$color`, `$colorMuted`, `$colorSubtle` - text colors
+- `$borderColor` - borders
+- `$primary`, `$secondary` - button/action variants
+- `$success`, `$warning`, `$error` - semantic states
+
+**Spacing tokens** - Use Tamagui's `$1`-`$6` scale for Tamagui components:
+- `$2` (8px): small gaps, compact sections
+- `$3` (12px): default component gaps, card padding
+- `$4` (16px): section spacing, margins
+- `$5` (20px): larger section breaks
+- Note: Use raw numbers (e.g., `16`) for `contentContainerStyle` since it's not a Tamagui prop
+
+**Border radius** - Compact Mira style (small radii):
+- `$2` (6px): buttons, cards, inputs
+- `$3` (8px): larger containers
+- `$radiusFull` (9999): pills, avatars
+
+**Screen structure pattern** (see `app/(tabs)/index.tsx`, `app/events/[id].tsx`):
+```tsx
+<YStack flex={1} backgroundColor="$background">
+  <ScrollView
+    contentContainerStyle={{
+      paddingTop: insets.top + 16,
+      paddingBottom: insets.bottom + 100,
+      paddingHorizontal: 16,
+    }}
+  >
+    {/* Tab screens: custom inline header */}
+    {/* Detail screens: <BackHeader title="..." /> */}
+    {/* Create screens: <CancelHeader title="..." /> */}
+    {/* content */}
+  </ScrollView>
+</YStack>
+```
+
+**Header usage** (from `components/ui/ScreenHeader.tsx`):
+- Tab screens: custom inline headers (H1, XStack with actions)
+- `BackHeader` - detail screens with back navigation
+- `CancelHeader` - create/modal screens with cancel action
+- `SimpleHeader` - available but not currently used
+
+# Common Pitfalls
+
+- When removing/renaming a component, grep the entire codebase for imports AND re-exports in `index.ts` barrel files
+- Tamagui theme tokens (like `$background`) only work inside `<TamaguiProvider>` - use `tokens.color.gray1.val` for values outside (e.g., in `_layout.tsx` contentStyle)
+- Always wrap screen content in `<YStack flex={1} backgroundColor="$background">` - don't rely on parent backgrounds
+- Avoid `opacity` values less than `1` on `GlassView` or its parent views -- causes effects to render incorrectly
 
 # Misc. Guidance
 
 - Do not write or run tests for now
-- Always run `npm run lint` after your changes
+- Run `npm run lint` from `gather/` **in the terminal** (not the IDE's inline linter — it only shows ESLint errors, not TypeScript type errors). This runs both ESLint, Expo lint, and `tsc`.
 - Do not run the expo server
 - Always look up documentation with the Web Fetch tool to get the latest guidance on best and standard practices for a package, especially for these packages:
   - https://heyapi.dev/llms.txt
   - https://tamagui.dev/llms.txt
-
