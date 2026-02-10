@@ -81,6 +81,10 @@ const dbEventToEvent = (
     startTime: dbEvent.startTime.toISOString(),
     endTime: dbEvent.endTime.toISOString(),
     location: dbEvent.location ?? undefined,
+    locationPlaceId: dbEvent.locationPlaceId ?? undefined,
+    locationAddress: dbEvent.locationAddress ?? undefined,
+    latitude: dbEvent.latitude ?? undefined,
+    longitude: dbEvent.longitude ?? undefined,
     notes: dbEvent.notes ?? undefined,
     invitees,
     showInviteList: dbEvent.showInviteList,
@@ -209,6 +213,13 @@ export const getEventsForUser = async (userId: string): Promise<Event[]> => {
 };
 
 export const createEvent = async (hostId: string, input: CreateEvent): Promise<Event> => {
+  // Handle location data - if locationData is provided, use it; otherwise fall back to location string
+  const locationName = input.locationData?.name ?? input.location;
+  const locationPlaceId = input.locationData?.placeId;
+  const locationAddress = input.locationData?.address;
+  const latitude = input.locationData?.latitude;
+  const longitude = input.locationData?.longitude;
+
   const [newEvent] = await db
     .insert(events)
     .values({
@@ -218,7 +229,11 @@ export const createEvent = async (hostId: string, input: CreateEvent): Promise<E
       emoji: input.emoji,
       startTime: new Date(input.startTime),
       endTime: new Date(input.endTime),
-      location: input.location,
+      location: locationName,
+      locationPlaceId,
+      locationAddress,
+      latitude,
+      longitude,
       notes: input.notes,
       showInviteList: input.showInviteList ?? true,
       status: 'sent',
@@ -296,7 +311,24 @@ export const updateEvent = async (
   if (updates.endTime !== undefined) {
     updateData.endTime = new Date(updates.endTime);
   }
-  if (updates.location !== undefined) {
+  if (updates.locationData !== undefined) {
+    if (updates.locationData === null) {
+      // Clear all location fields
+      updateData.location = null;
+      updateData.locationPlaceId = null;
+      updateData.locationAddress = null;
+      updateData.latitude = null;
+      updateData.longitude = null;
+    } else {
+      // Update with structured location data
+      updateData.location = updates.locationData.name;
+      updateData.locationPlaceId = updates.locationData.placeId;
+      updateData.locationAddress = updates.locationData.address;
+      updateData.latitude = updates.locationData.latitude ?? null;
+      updateData.longitude = updates.locationData.longitude ?? null;
+    }
+  } else if (updates.location !== undefined) {
+    // Backward compatibility: simple string location update
     updateData.location = updates.location === null ? null : updates.location;
   }
   if (updates.notes !== undefined) {
@@ -410,16 +442,23 @@ export const respondToEvent = async (
     }
   }
 
-  // Check if all invitees have responded and all accepted - mark event as confirmed
+  // Update event status based on invitee responses
   const updatedEvent = await getEvent(eventId);
   if (updatedEvent) {
     const allResponded = updatedEvent.invitees.every((i) => i.status !== 'pending');
     const allAccepted = updatedEvent.invitees.every((i) => i.status === 'accepted');
 
     if (allResponded && allAccepted && updatedEvent.status === 'sent') {
+      // All invitees accepted - mark event as confirmed
       await db
         .update(events)
         .set({ status: 'confirmed', updatedAt: now })
+        .where(eq(events.id, eventId));
+    } else if (!allAccepted && updatedEvent.status === 'confirmed') {
+      // Someone changed their response - revert to sent
+      await db
+        .update(events)
+        .set({ status: 'sent', updatedAt: now })
         .where(eq(events.id, eventId));
     }
   }

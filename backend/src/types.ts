@@ -185,6 +185,16 @@ export const InviteeStatusSchema = z.enum(['pending', 'accepted', 'declined', 'm
 export const EventStatusSchema = z.enum(['draft', 'sent', 'confirmed', 'cancelled']).openapi('EventStatus');
 export const CommitmentTypeSchema = z.enum(['going', 'planning']).openapi('CommitmentType');
 
+export const LocationDataSchema = z
+  .object({
+    name: z.string().max(200).openapi({ example: 'Spyhouse Coffee' }),
+    address: z.string().openapi({ example: '945 Broadway St NE, Minneapolis, MN 55413' }),
+    placeId: z.string().openapi({ example: 'ChIJN1t_tDeuEmsRUsoyG83frY4' }),
+    latitude: z.string().optional().openapi({ example: '45.0012' }),
+    longitude: z.string().optional().openapi({ example: '-93.2342' }),
+  })
+  .openapi('LocationData');
+
 export const CounterProposalSchema = z
   .object({
     startTime: z.string().datetime().optional().openapi({ example: '2024-01-15T15:00:00.000Z' }),
@@ -220,6 +230,10 @@ export const EventSchema = z
     startTime: z.string().datetime().openapi({ example: '2024-01-15T14:00:00.000Z' }),
     endTime: z.string().datetime().openapi({ example: '2024-01-15T15:00:00.000Z' }),
     location: z.string().max(200).optional().openapi({ example: 'Blue Bottle Coffee, SoHo' }),
+    locationPlaceId: z.string().optional().openapi({ example: 'ChIJN1t_tDeuEmsRUsoyG83frY4' }),
+    locationAddress: z.string().optional().openapi({ example: '945 Broadway St NE, Minneapolis, MN 55413' }),
+    latitude: z.string().optional().openapi({ example: '45.0012' }),
+    longitude: z.string().optional().openapi({ example: '-93.2342' }),
     notes: z.string().max(500).optional().openapi({ example: 'Looking forward to catching up!' }),
     invitees: z.array(EventInviteeSchema),
     showInviteList: z.boolean().default(true).openapi({ example: true }),
@@ -248,6 +262,7 @@ export const CreateEventSchema = z
     startTime: z.string().datetime().openapi({ example: '2024-01-15T14:00:00.000Z' }),
     endTime: z.string().datetime().openapi({ example: '2024-01-15T15:00:00.000Z' }),
     location: z.string().max(200).optional().openapi({ example: 'Blue Bottle Coffee, SoHo' }),
+    locationData: LocationDataSchema.optional(),
     notes: z.string().max(500).optional().openapi({ example: 'Looking forward to catching up!' }),
     inviteeIds: z.array(z.string().uuid()).openapi({ example: [EXAMPLE_UUID_2] }),
     showInviteList: z.boolean().default(true).openapi({ example: true }),
@@ -264,6 +279,7 @@ export const UpdateEventSchema = z
     startTime: z.string().datetime().optional().openapi({ example: '2024-01-15T14:00:00.000Z' }),
     endTime: z.string().datetime().optional().openapi({ example: '2024-01-15T15:00:00.000Z' }),
     location: z.string().max(200).nullable().optional().openapi({ example: 'New Location' }),
+    locationData: LocationDataSchema.nullable().optional(),
     notes: z.string().max(500).nullable().optional().openapi({ example: 'Updated notes' }),
     showInviteList: z.boolean().optional().openapi({ example: false }),
   })
@@ -343,6 +359,7 @@ export type InviteeStatus = z.infer<typeof InviteeStatusSchema>;
 export type EventStatus = z.infer<typeof EventStatusSchema>;
 export type CommitmentType = z.infer<typeof CommitmentTypeSchema>;
 export type CounterProposal = z.infer<typeof CounterProposalSchema>;
+export type LocationData = z.infer<typeof LocationDataSchema>;
 export type EventRecurring = z.infer<typeof EventRecurringSchema>;
 export type EventInvitee = z.infer<typeof EventInviteeSchema>;
 export type Event = z.infer<typeof EventSchema>;

@@ -236,6 +236,10 @@ export type Event = {
     startTime: string;
     endTime: string;
     location?: string;
+    locationPlaceId?: string;
+    locationAddress?: string;
+    latitude?: string;
+    longitude?: string;
     notes?: string;
     invitees: Array<EventInvitee>;
     showInviteList?: boolean;
@@ -285,11 +289,20 @@ export type CreateEvent = {
     startTime: string;
     endTime: string;
     location?: string;
+    locationData?: LocationData;
     notes?: string;
     inviteeIds: Array<string>;
     showInviteList?: boolean;
     commitmentType?: CommitmentType;
     recurring?: EventRecurring;
+};
+
+export type LocationData = {
+    name: string;
+    address: string;
+    placeId: string;
+    latitude?: string;
+    longitude?: string;
 };
 
 export type EventRecurring = {
@@ -306,6 +319,7 @@ export type UpdateEvent = {
     startTime?: string;
     endTime?: string;
     location?: string | null;
+    locationData?: LocationData & unknown;
     notes?: string | null;
     showInviteList?: boolean;
 };
