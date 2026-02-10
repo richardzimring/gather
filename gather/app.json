@@ -10,7 +10,10 @@
     "ios": {
       "supportsTablet": true,
       "usesAppleSignIn": true,
-      "bundleIdentifier": "com.gather.app"
+      "bundleIdentifier": "com.gather.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We need your location to help you find nearby places for events."
+      }
     },
     "android": {
       "adaptiveIcon": {

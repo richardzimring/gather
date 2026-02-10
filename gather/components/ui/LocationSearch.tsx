@@ -1,12 +1,34 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { MapPin, X, Search } from '@tamagui/lucide-icons'
 import { Input, XStack, YStack, Text, ScrollView, Spinner } from 'tamagui'
+import * as Location from 'expo-location'
 import debounce from 'lodash.debounce'
+
+const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY
+
+// Default search radius in meters (50km)
+const DEFAULT_SEARCH_RADIUS = 50000
 
 export interface PlaceResult {
   placeId: string
   name: string
   address: string
+  latitude?: string
+  longitude?: string
+}
+
+interface AutocompletePrediction {
+  place_id: string
+  structured_formatting: {
+    main_text: string
+    secondary_text?: string
+  }
+  description: string
+}
+
+interface UserLocation {
+  latitude: number
+  longitude: number
 }
 
 interface LocationSearchProps {
@@ -16,8 +38,8 @@ interface LocationSearchProps {
 }
 
 /**
- * Location search component with autocomplete
- * Note: This is a simplified version. For production, integrate with Google Places API.
+ * Location search component with Google Places autocomplete
+ * Uses user's current location to bias search results
  */
 export function LocationSearch({ value, onSelect, placeholder = 'Search for a place...' }: LocationSearchProps) {
   const [query, setQuery] = useState(value ?? '')
@@ -25,8 +47,57 @@ export function LocationSearch({ value, onSelect, placeholder = 'Search for a pl
   const [isSearching, setIsSearching] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null)
+  const userLocationRef = useRef<UserLocation | null>(null)
 
-  // Simulated search - replace with actual Google Places API call
+  // Get user's current location on mount to bias search results
+  useEffect(() => {
+    async function getCurrentLocation() {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync()
+        if (status !== 'granted') {
+          console.log('Location permission not granted, search results will not be location-biased')
+          return
+        }
+
+        const location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        })
+
+        userLocationRef.current = {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        }
+      } catch (error) {
+        console.log('Could not get user location:', error)
+      }
+    }
+
+    getCurrentLocation()
+  }, [])
+
+  // Fetch place details to get coordinates
+  const fetchPlaceDetails = useCallback(async (placeId: string): Promise<{ latitude: string; longitude: string } | null> => {
+    if (!GOOGLE_PLACES_API_KEY) return null
+
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=geometry&key=${GOOGLE_PLACES_API_KEY}`
+      )
+      const data = await response.json()
+
+      if (data.status === 'OK' && data.result?.geometry?.location) {
+        return {
+          latitude: String(data.result.geometry.location.lat),
+          longitude: String(data.result.geometry.location.lng),
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching place details:', error)
+    }
+    return null
+  }, [])
+
+  // Search places using Google Places Autocomplete API
   const searchPlaces = useMemo(
     () =>
       debounce(async (searchQuery: string) => {
@@ -36,32 +107,44 @@ export function LocationSearch({ value, onSelect, placeholder = 'Search for a pl
           return
         }
 
+        if (!GOOGLE_PLACES_API_KEY) {
+          console.warn('Google Places API key not configured')
+          setResults([])
+          setIsSearching(false)
+          return
+        }
+
         setIsSearching(true)
 
-        // TODO: Replace with actual Google Places API call
-        // For now, return empty results to show the UI pattern
-        // When implementing, use:
-        // const response = await fetch(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(searchQuery)}&key=${GOOGLE_PLACES_API_KEY}`)
+        try {
+          // Build the API URL with optional location bias
+          let apiUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(searchQuery)}&key=${GOOGLE_PLACES_API_KEY}`
 
-        // Simulated delay
-        await new Promise((resolve) => setTimeout(resolve, 300))
+          // Add location bias if user location is available
+          if (userLocationRef.current) {
+            const { latitude, longitude } = userLocationRef.current
+            apiUrl += `&location=${latitude},${longitude}&radius=${DEFAULT_SEARCH_RADIUS}`
+          }
 
-        // Simulated results for demo
-        const mockResults: PlaceResult[] = searchQuery.toLowerCase().includes('coffee')
-          ? [
-              { placeId: '1', name: 'Spyhouse Coffee', address: '945 Broadway St NE, Minneapolis, MN' },
-              { placeId: '2', name: 'Dogwood Coffee Co', address: '825 Carleton St, St Paul, MN' },
-              { placeId: '3', name: 'Five Watt Coffee', address: '3745 Nicollet Ave, Minneapolis, MN' },
-            ]
-          : searchQuery.toLowerCase().includes('gym')
-            ? [
-                { placeId: '4', name: 'Life Time Fitness', address: '1400 Nicollet Mall, Minneapolis, MN' },
-                { placeId: '5', name: 'YWCA Minneapolis', address: '1130 Nicollet Mall, Minneapolis, MN' },
-              ]
-            : []
+          const response = await fetch(apiUrl)
+          const data = await response.json()
 
-        setResults(mockResults)
-        setIsSearching(false)
+          if (data.status === 'OK' && data.predictions) {
+            const places: PlaceResult[] = data.predictions.map((prediction: AutocompletePrediction) => ({
+              placeId: prediction.place_id,
+              name: prediction.structured_formatting.main_text,
+              address: prediction.structured_formatting.secondary_text || prediction.description,
+            }))
+            setResults(places)
+          } else {
+            setResults([])
+          }
+        } catch (error) {
+          console.error('Error searching places:', error)
+          setResults([])
+        } finally {
+          setIsSearching(false)
+        }
       }, 300),
     []
   )
@@ -73,12 +156,23 @@ export function LocationSearch({ value, onSelect, placeholder = 'Search for a pl
     searchPlaces(text)
   }
 
-  const handleSelectPlace = (place: PlaceResult) => {
-    setSelectedPlace(place)
+  const handleSelectPlace = async (place: PlaceResult) => {
     setQuery(place.name)
     setShowResults(false)
     setResults([])
-    onSelect(place)
+    setIsSearching(true)
+
+    // Fetch coordinates for the selected place
+    const coords = await fetchPlaceDetails(place.placeId)
+    const placeWithCoords: PlaceResult = {
+      ...place,
+      latitude: coords?.latitude,
+      longitude: coords?.longitude,
+    }
+
+    setSelectedPlace(placeWithCoords)
+    setIsSearching(false)
+    onSelect(placeWithCoords)
   }
 
   const handleClear = () => {
