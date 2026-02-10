@@ -20,13 +20,15 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { GlassBottomBar } from "../../components/ui/GlassBottomBar";
 import { CancelHeader } from "../../components/ui/ScreenHeader";
+import { LocationSearch, type PlaceResult } from "../../components/ui/LocationSearch";
+import { MapPreview } from "../../components/ui/MapPreview";
 import {
   useCreateEvent,
   useFriends,
   useActivities,
   useGroups,
 } from "../../lib/hooks";
-import type { Group, CommitmentType } from "../../lib/api/generated/types.gen";
+import type { Group, CommitmentType, LocationData } from "../../lib/api/generated/types.gen";
 
 /**
  * Checkbox component
@@ -58,7 +60,7 @@ export default function CreateEventScreen() {
   const { data: groups } = useGroups();
 
   const [title, setTitle] = useState("");
-  const [location, setLocation] = useState("");
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [notes, setNotes] = useState("");
   const [startTime, setStartTime] = useState(new Date());
   const [endTime, setEndTime] = useState(new Date(Date.now() + 60 * 60 * 1000)); // +1 hour
@@ -83,7 +85,7 @@ export default function CreateEventScreen() {
         emoji: selectedEmoji,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
-        location: location.trim() || undefined,
+        locationData: locationData ?? undefined,
         notes: notes.trim() || undefined,
         inviteeIds: selectedFriends,
         commitmentType,
@@ -91,6 +93,20 @@ export default function CreateEventScreen() {
       router.back();
     } catch (err) {
       console.error("Failed to create event:", err);
+    }
+  };
+
+  const handleLocationSelect = (place: PlaceResult | null) => {
+    if (place) {
+      setLocationData({
+        name: place.name,
+        address: place.address,
+        placeId: place.placeId,
+        latitude: place.latitude,
+        longitude: place.longitude,
+      });
+    } else {
+      setLocationData(null);
     }
   };
 
@@ -287,19 +303,20 @@ export default function CreateEventScreen() {
 
               <YStack gap="$2">
                 <Text fontWeight="500" fontSize={14}>Location (optional)</Text>
-                <Input
-                  placeholder="Where?"
-                  placeholderTextColor="$colorMuted"
-                  value={location}
-                  onChangeText={setLocation}
-                  backgroundColor="$backgroundHover"
-                  borderColor="$borderColor"
-                  borderWidth={1}
-                  borderRadius="$2"
-                  paddingHorizontal="$3"
-                  height={36}
-                  fontSize={14}
+                <LocationSearch
+                  value={locationData?.name}
+                  onSelect={handleLocationSelect}
+                  placeholder="Search for a place..."
                 />
+                {locationData?.latitude && locationData?.longitude && (
+                  <MapPreview
+                    latitude={parseFloat(locationData.latitude)}
+                    longitude={parseFloat(locationData.longitude)}
+                    name={locationData.name}
+                    address={locationData.address}
+                    height={120}
+                  />
+                )}
               </YStack>
 
               <YStack gap="$2">

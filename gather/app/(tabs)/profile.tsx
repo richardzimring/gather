@@ -9,27 +9,42 @@ import {
   Shield,
   Trash2,
   User,
-} from '@tamagui/lucide-icons'
-import { router } from 'expo-router'
-import { Alert, Share, Platform, RefreshControl } from 'react-native'
-import * as Clipboard from 'expo-clipboard'
-import * as Haptics from 'expo-haptics'
-import { useState } from 'react'
-import { H1, ScrollView, Text, XStack, YStack, Circle, Theme, Switch } from 'tamagui'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+} from "@tamagui/lucide-icons";
+import { router } from "expo-router";
+import { Alert, Share, Platform, RefreshControl } from "react-native";
+import * as Clipboard from "expo-clipboard";
+import * as Haptics from "expo-haptics";
+import { useState } from "react";
+import {
+  H1,
+  ScrollView,
+  Text,
+  XStack,
+  YStack,
+  Circle,
+  Theme,
+  Switch,
+} from "tamagui";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
-import { useAuth } from '../../lib/hooks/useAuth'
-import { useInviteCode, useRefresh, useCalendarConnections, useUpdateCalendarConnection, useDeleteCalendarConnection } from '../../lib/hooks'
-import type { CalendarConnection } from '../../lib/api/client'
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
+import { useAuth } from "../../lib/hooks/useAuth";
+import {
+  useInviteCode,
+  useRefresh,
+  useCalendarConnections,
+  useUpdateCalendarConnection,
+  useDeleteCalendarConnection,
+} from "../../lib/hooks";
+import type { CalendarConnection } from "../../lib/api/client";
 
 interface SettingsItemProps {
-  icon: React.ReactNode
-  label: string
-  value?: string
-  showChevron?: boolean
-  onPress?: () => void
+  icon: React.ReactNode;
+  label: string;
+  value?: string;
+  showChevron?: boolean;
+  onPress?: () => void;
 }
 
 function SettingsItem({
@@ -67,93 +82,95 @@ function SettingsItem({
       )}
       {showChevron && <ChevronRight size={20} color="$colorMuted" />}
     </XStack>
-  )
+  );
 }
 
 export default function ProfileScreen() {
-  const insets = useSafeAreaInsets()
-  const { user, signOut } = useAuth()
-  const inviteCodeQuery = useInviteCode()
-  const { data: inviteCodeData } = inviteCodeQuery
-  const [copied, setCopied] = useState(false)
-  const { isRefreshing, onRefresh } = useRefresh(inviteCodeQuery)
-  
-  // Calendar connections
-  const { data: calendarConnections } = useCalendarConnections()
-  const updateCalendarConnection = useUpdateCalendarConnection()
-  const deleteCalendarConnection = useDeleteCalendarConnection()
+  const insets = useSafeAreaInsets();
+  const { user, signOut } = useAuth();
+  const inviteCodeQuery = useInviteCode();
+  const { data: inviteCodeData } = inviteCodeQuery;
+  const [copied, setCopied] = useState(false);
+  const { isRefreshing, onRefresh } = useRefresh(inviteCodeQuery);
 
-  const inviteCode = inviteCodeData?.inviteCode ?? user?.inviteCode ?? ''
-  
-  const handleToggleImport = async (connectionId: string, currentValue: boolean) => {
+  // Calendar connections
+  const { data: calendarConnections } = useCalendarConnections();
+  const updateCalendarConnection = useUpdateCalendarConnection();
+  const deleteCalendarConnection = useDeleteCalendarConnection();
+
+  const inviteCode = inviteCodeData?.inviteCode ?? user?.inviteCode ?? "";
+
+  const handleToggleImport = async (
+    connectionId: string,
+    currentValue: boolean
+  ) => {
     await updateCalendarConnection.mutateAsync({
       connectionId,
-      data: { importEnabled: !currentValue }
-    })
-  }
-  
-  const handleToggleExport = async (connectionId: string, currentValue: boolean) => {
+      data: { importEnabled: !currentValue },
+    });
+  };
+
+  const handleToggleExport = async (
+    connectionId: string,
+    currentValue: boolean
+  ) => {
     await updateCalendarConnection.mutateAsync({
       connectionId,
-      data: { exportEnabled: !currentValue }
-    })
-  }
-  
+      data: { exportEnabled: !currentValue },
+    });
+  };
+
   const handleDeleteCalendar = (connectionId: string, calendarName: string) => {
     Alert.alert(
-      'Remove Calendar',
+      "Remove Calendar",
       `Are you sure you want to remove "${calendarName}"?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Remove',
-          style: 'destructive',
+          text: "Remove",
+          style: "destructive",
           onPress: async () => {
-            await deleteCalendarConnection.mutateAsync(connectionId)
+            await deleteCalendarConnection.mutateAsync(connectionId);
           },
         },
       ]
-    )
-  }
+    );
+  };
 
   const handleSignOut = async () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            await signOut()
-            router.replace('/(auth)/login')
-          },
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          await signOut();
+          router.replace("/(auth)/login");
         },
-      ]
-    )
-  }
+      },
+    ]);
+  };
 
   const handleCopyInviteCode = async () => {
-    if (!inviteCode) return
-    
-    await Clipboard.setStringAsync(inviteCode)
-    if (Platform.OS === 'ios') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    if (!inviteCode) return;
+
+    await Clipboard.setStringAsync(inviteCode);
+    if (Platform.OS === "ios") {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleShareInviteCode = async () => {
     try {
       await Share.share({
         message: `Hey, add me on Gather! My invite code is: ${inviteCode}`,
-      })
+      });
     } catch (err) {
-      console.error('Failed to share:', err)
+      console.error("Failed to share:", err);
     }
-  }
+  };
 
   return (
     <YStack flex={1} backgroundColor="$background">
@@ -178,15 +195,15 @@ export default function ProfileScreen() {
             <XStack alignItems="center" gap="$4">
               <Circle size={72} backgroundColor="$backgroundHover">
                 <Text fontSize={32} color="$white">
-                  {user?.firstName?.[0]?.toUpperCase() ?? '?'}
-                  {user?.lastName?.[0]?.toUpperCase() ?? ''}
+                  {user?.firstName?.[0]?.toUpperCase() ?? "?"}
+                  {user?.lastName?.[0]?.toUpperCase() ?? ""}
                 </Text>
               </Circle>
               <YStack flex={1}>
                 <Text fontSize={20} fontWeight="600">
-                  {user?.fullName ?? 'Unknown'}
+                  {user?.fullName ?? "Unknown"}
                 </Text>
-                <Text color="$colorMuted">{user?.email ?? 'No email'}</Text>
+                <Text color="$colorMuted">{user?.email ?? "No email"}</Text>
               </YStack>
             </XStack>
             {/* <Button
@@ -203,7 +220,12 @@ export default function ProfileScreen() {
         {/* Invite Code */}
         <Theme name="Card">
           <Card marginBottom="$4">
-            <Text color="$colorMuted" fontSize={13} fontWeight="600" marginBottom="$2">
+            <Text
+              color="$colorMuted"
+              fontSize={13}
+              fontWeight="600"
+              marginBottom="$2"
+            >
               YOUR INVITE CODE
             </Text>
             <YStack
@@ -219,7 +241,7 @@ export default function ProfileScreen() {
                 letterSpacing={2}
                 fontFamily="$body"
               >
-                {inviteCode || '------'}
+                {inviteCode || "------"}
               </Text>
             </YStack>
             <XStack gap="$2">
@@ -230,7 +252,7 @@ export default function ProfileScreen() {
                 onPress={handleCopyInviteCode}
                 disabled={!inviteCode}
               >
-                {copied ? 'Copied!' : 'Copy'}
+                {copied ? "Copied!" : "Copy"}
               </Button>
               <Button
                 variant="primary"
@@ -248,9 +270,13 @@ export default function ProfileScreen() {
         {/* Calendar Connections */}
         <Theme name="Card">
           <Card marginBottom="$4">
-            <XStack justifyContent="space-between" alignItems="center" marginBottom="$3">
+            <XStack
+              justifyContent="space-between"
+              alignItems="center"
+              marginBottom="$3"
+            >
               <Text color="$colorMuted" fontSize={13} fontWeight="600">
-                CALENDAR CONNECTIONS
+                CALENDAR INTEGRATIONS
               </Text>
               <Button
                 variant="ghost"
@@ -258,14 +284,17 @@ export default function ProfileScreen() {
                 icon={<Plus size={16} />}
                 onPress={() => {
                   // TODO: Open calendar connection flow
-                  Alert.alert('Coming Soon', 'Calendar connection will be available soon.')
+                  Alert.alert(
+                    "Coming Soon",
+                    "Calendar connection will be available soon."
+                  );
                 }}
               >
                 Add
               </Button>
             </XStack>
-            
-            {(!calendarConnections || calendarConnections.length === 0) ? (
+
+            {!calendarConnections || calendarConnections.length === 0 ? (
               <YStack alignItems="center" padding="$4" gap="$2">
                 <Calendar size={32} color="$colorMuted" />
                 <Text color="$colorMuted" textAlign="center">
@@ -278,8 +307,8 @@ export default function ProfileScreen() {
             ) : (
               <YStack gap="$3">
                 {calendarConnections.map((connection: CalendarConnection) => (
-                  <YStack 
-                    key={connection.connectionId} 
+                  <YStack
+                    key={connection.connectionId}
                     gap="$2"
                     padding="$3"
                     backgroundColor="$backgroundHover"
@@ -289,7 +318,8 @@ export default function ProfileScreen() {
                       <YStack flex={1}>
                         <Text fontWeight="600">{connection.calendarName}</Text>
                         <Text color="$colorMuted" fontSize={12}>
-                          {connection.provider.charAt(0).toUpperCase() + connection.provider.slice(1)}
+                          {connection.provider.charAt(0).toUpperCase() +
+                            connection.provider.slice(1)}
                         </Text>
                       </YStack>
                       <Button
@@ -297,7 +327,12 @@ export default function ProfileScreen() {
                         buttonSize="sm"
                         circular
                         icon={<Trash2 size={16} color="$error" />}
-                        onPress={() => handleDeleteCalendar(connection.connectionId, connection.calendarName)}
+                        onPress={() =>
+                          handleDeleteCalendar(
+                            connection.connectionId,
+                            connection.calendarName
+                          )
+                        }
                       />
                     </XStack>
                     <XStack justifyContent="space-between" alignItems="center">
@@ -305,7 +340,12 @@ export default function ProfileScreen() {
                       <Switch
                         size="$3"
                         checked={connection.importEnabled}
-                        onCheckedChange={() => handleToggleImport(connection.connectionId, connection.importEnabled)}
+                        onCheckedChange={() =>
+                          handleToggleImport(
+                            connection.connectionId,
+                            connection.importEnabled
+                          )
+                        }
                       />
                     </XStack>
                     <XStack justifyContent="space-between" alignItems="center">
@@ -313,7 +353,12 @@ export default function ProfileScreen() {
                       <Switch
                         size="$3"
                         checked={connection.exportEnabled}
-                        onCheckedChange={() => handleToggleExport(connection.connectionId, connection.exportEnabled)}
+                        onCheckedChange={() =>
+                          handleToggleExport(
+                            connection.connectionId,
+                            connection.exportEnabled
+                          )
+                        }
                       />
                     </XStack>
                   </YStack>
@@ -326,26 +371,36 @@ export default function ProfileScreen() {
         {/* Settings Sections */}
         <Theme name="Card">
           <Card marginBottom="$4">
-            <Text color="$colorMuted" fontSize={13} fontWeight="600" marginBottom="$2">
+            <Text
+              color="$colorMuted"
+              fontSize={13}
+              fontWeight="600"
+              marginBottom="$2"
+            >
               PREFERENCES
             </Text>
             <SettingsItem
               icon={<Bell size={16} color="$colorMuted" />}
               label="Notifications"
-              onPress={() => router.push('/notifications/settings')}
+              onPress={() => router.push("/notifications/settings")}
             />
           </Card>
         </Theme>
 
         <Theme name="Card">
           <Card marginBottom="$4">
-            <Text color="$colorMuted" fontSize={13} fontWeight="600" marginBottom="$2">
+            <Text
+              color="$colorMuted"
+              fontSize={13}
+              fontWeight="600"
+              marginBottom="$2"
+            >
               ACCOUNT
             </Text>
             <SettingsItem
               icon={<User size={16} color="$colorMuted" />}
               label="Account Settings"
-              onPress={() => router.push('/profile/edit')}
+              onPress={() => router.push("/profile/edit")}
             />
             <SettingsItem
               icon={<Shield size={16} color="$colorMuted" />}
@@ -376,5 +431,5 @@ export default function ProfileScreen() {
         </Text>
       </ScrollView>
     </YStack>
-  )
+  );
 }

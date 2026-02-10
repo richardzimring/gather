@@ -1,15 +1,8 @@
-import {
-  Calendar,
-  MapPin,
-  Pencil,
-  Trash2,
-  Users,
-} from '@tamagui/lucide-icons'
-import { router, useLocalSearchParams } from 'expo-router'
-import { Alert } from 'react-native'
+import { Calendar, MapPin, Pencil, Trash2 } from "@tamagui/lucide-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { Alert } from "react-native";
 import {
   Circle,
-  H1,
   ScrollView,
   Text,
   Theme,
@@ -17,46 +10,54 @@ import {
   YStack,
   Spinner,
   Separator,
-} from 'tamagui'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useState } from 'react'
+} from "tamagui";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useState } from "react";
 
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
-import { GlassBottomBar } from '../../components/ui/GlassBottomBar'
-import { BackHeader } from '../../components/ui/ScreenHeader'
-import { useAuth } from '../../lib/hooks/useAuth'
-import { useEvent, useRespondToEvent, useCancelEvent } from '../../lib/hooks'
-import type { EventInvitee, InviteeStatus } from '../../lib/api/generated/types.gen'
+import { BadgeLabel } from "../../components/ui/Badge";
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
+import { GlassBottomBar } from "../../components/ui/GlassBottomBar";
+import { BackHeader } from "../../components/ui/ScreenHeader";
+import { MapPreview } from "../../components/ui/MapPreview";
+import { useAuth } from "../../lib/hooks/useAuth";
+import { useEvent, useRespondToEvent, useCancelEvent } from "../../lib/hooks";
+import type {
+  EventInvitee,
+  InviteeStatus,
+} from "../../lib/api/generated/types.gen";
 
 /**
  * Format date for display
  */
-function formatEventDate(startTime: string, endTime: string): {
-  date: string
-  time: string
+function formatEventDate(
+  startTime: string,
+  endTime: string
+): {
+  date: string;
+  time: string;
 } {
-  const start = new Date(startTime)
-  const end = new Date(endTime)
+  const start = new Date(startTime);
+  const end = new Date(endTime);
 
   const dateOptions: Intl.DateTimeFormatOptions = {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  }
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  };
   const timeOptions: Intl.DateTimeFormatOptions = {
-    hour: 'numeric',
-    minute: '2-digit',
-  }
+    hour: "numeric",
+    minute: "2-digit",
+  };
 
-  const date = start.toLocaleDateString('en-US', dateOptions)
-  const startTimeStr = start.toLocaleTimeString('en-US', timeOptions)
-  const endTimeStr = end.toLocaleTimeString('en-US', timeOptions)
+  const date = start.toLocaleDateString("en-US", dateOptions);
+  const startTimeStr = start.toLocaleTimeString("en-US", timeOptions);
+  const endTimeStr = end.toLocaleTimeString("en-US", timeOptions);
 
   return {
     date,
     time: `${startTimeStr} - ${endTimeStr}`,
-  }
+  };
 }
 
 /**
@@ -64,28 +65,49 @@ function formatEventDate(startTime: string, endTime: string): {
  */
 function getStatusColor(status: InviteeStatus) {
   switch (status) {
-    case 'accepted':
-      return '$success'
-    case 'declined':
-      return '$error'
-    case 'maybe':
-      return '$warning'
+    case "accepted":
+      return "$success";
+    case "declined":
+      return "$error";
+    case "maybe":
+      return "$warning";
     default:
-      return '$colorMuted'
+      return "$colorMuted";
   }
 }
 
 /**
  * Invitee item component
  */
-function InviteeItem({ invitee }: { invitee: EventInvitee }) {
+function InviteeItem({
+  invitee,
+  isCurrentUser,
+  canChange,
+  isEditing,
+  onChangePress,
+  onCancelPress,
+}: {
+  invitee: EventInvitee;
+  isCurrentUser?: boolean;
+  canChange?: boolean;
+  isEditing?: boolean;
+  onChangePress?: () => void;
+  onCancelPress?: () => void;
+}) {
   return (
     <XStack alignItems="center" gap="$3" paddingVertical="$2">
       <Circle size={40} backgroundColor="$backgroundHover">
         <Text fontSize={16}>{invitee.initials}</Text>
       </Circle>
       <YStack flex={1}>
-        <Text fontWeight="500">{invitee.fullName}</Text>
+        <XStack alignItems="center" gap="$2">
+          <Text fontWeight="500">{invitee.fullName}</Text>
+          {isCurrentUser && (
+            <Text fontSize={11} color="$colorMuted">
+              (You)
+            </Text>
+          )}
+        </XStack>
         <XStack alignItems="center" gap="$2">
           <Circle size={8} backgroundColor={getStatusColor(invitee.status)} />
           <Text fontSize={13} color="$colorMuted" textTransform="capitalize">
@@ -93,68 +115,92 @@ function InviteeItem({ invitee }: { invitee: EventInvitee }) {
           </Text>
         </XStack>
       </YStack>
+      {isCurrentUser &&
+        canChange &&
+        (isEditing ? (
+          <Button variant="outline" buttonSize="sm" onPress={onCancelPress}>
+            Cancel
+          </Button>
+        ) : (
+          <Button variant="outline" buttonSize="sm" onPress={onChangePress}>
+            Change
+          </Button>
+        ))}
     </XStack>
-  )
+  );
 }
 
 export default function EventDetailScreen() {
-  const insets = useSafeAreaInsets()
-  const { id } = useLocalSearchParams<{ id: string }>()
-  const { user } = useAuth()
-  const { data: event, isLoading, error } = useEvent(id ?? '')
-  const respondToEvent = useRespondToEvent()
-  const cancelEvent = useCancelEvent()
-  const [pendingResponse, setPendingResponse] = useState<InviteeStatus | null>(null)
+  const insets = useSafeAreaInsets();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useAuth();
+  const { data: event, isLoading, error } = useEvent(id ?? "");
+  const respondToEvent = useRespondToEvent();
+  const cancelEvent = useCancelEvent();
+  const [pendingResponse, setPendingResponse] = useState<InviteeStatus | null>(
+    null
+  );
+  const [isEditingResponse, setIsEditingResponse] = useState(false);
 
-  const isHost = event?.hostId === user?.userId
-  const userInvitee = event?.invitees.find((i) => i.userId === user?.userId)
-  const canRespond = !isHost && userInvitee
-  const showBottomBar = canRespond && event?.status !== 'cancelled'
+  const isHost = event?.hostId === user?.userId;
+  const userInvitee = event?.invitees.find((i) => i.userId === user?.userId);
+  const canRespond = !isHost && userInvitee;
+  // Only show bottom bar if user hasn't responded yet OR is editing their response
+  const showBottomBar =
+    canRespond &&
+    event?.status !== "cancelled" &&
+    (userInvitee?.status === "pending" || isEditingResponse);
 
   const handleResponse = async (status: InviteeStatus) => {
-    if (!id) return
-    setPendingResponse(status)
+    if (!id) return;
+    setPendingResponse(status);
     try {
       await respondToEvent.mutateAsync({
         eventId: id,
         response: { status },
-      })
+      });
+      setIsEditingResponse(false); // Close editing mode after successful response
     } catch (err) {
-      console.error('Failed to respond to event:', err)
+      console.error("Failed to respond to event:", err);
     } finally {
-      setPendingResponse(null)
+      setPendingResponse(null);
     }
-  }
+  };
 
   const handleCancel = () => {
     Alert.alert(
-      'Cancel Event',
-      'Are you sure you want to cancel this event? This action cannot be undone.',
+      "Cancel Event",
+      "Are you sure you want to cancel this event? This action cannot be undone.",
       [
-        { text: 'Keep Event', style: 'cancel' },
+        { text: "Keep Event", style: "cancel" },
         {
-          text: 'Cancel Event',
-          style: 'destructive',
+          text: "Cancel Event",
+          style: "destructive",
           onPress: async () => {
-            if (!id) return
+            if (!id) return;
             try {
-              await cancelEvent.mutateAsync(id)
-              router.back()
+              await cancelEvent.mutateAsync(id);
+              router.back();
             } catch (err) {
-              console.error('Failed to cancel event:', err)
+              console.error("Failed to cancel event:", err);
             }
           },
         },
       ]
-    )
-  }
+    );
+  };
 
   if (isLoading) {
     return (
-      <YStack flex={1} backgroundColor="$background" alignItems="center" justifyContent="center">
+      <YStack
+        flex={1}
+        backgroundColor="$background"
+        alignItems="center"
+        justifyContent="center"
+      >
         <Spinner size="large" color="$color" />
       </YStack>
-    )
+    );
   }
 
   if (error || !event) {
@@ -175,30 +221,35 @@ export default function EventDetailScreen() {
         <Text color="$colorMuted" textAlign="center" marginTop="$2">
           This event may have been cancelled or you do not have access.
         </Text>
-        <Button variant="secondary" marginTop="$4" onPress={() => router.back()}>
+        <Button
+          variant="secondary"
+          marginTop="$4"
+          onPress={() => router.back()}
+        >
           Go Back
         </Button>
       </YStack>
-    )
+    );
   }
 
-  const { date, time } = formatEventDate(event.startTime, event.endTime)
-  const acceptedCount = event.invitees.filter((i) => i.status === 'accepted').length
-  const totalInvitees = event.invitees.length
+  const { date, time } = formatEventDate(event.startTime, event.endTime);
 
   return (
     <YStack flex={1} backgroundColor="$background">
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
-          paddingBottom: showBottomBar ? insets.bottom + 140 : insets.bottom + 100,
+          paddingBottom: showBottomBar
+            ? insets.bottom + 140
+            : insets.bottom + 100,
           paddingHorizontal: 16,
         }}
       >
         {/* Header */}
         <BackHeader
-          title=""
-          marginBottom="$0"
+          title={event.title}
+          subtitle={`Hosted by ${isHost ? "you" : event.hostName}${event.status === "cancelled" ? " · Cancelled" : ""}`}
+          marginBottom="$4"
           rightAction={
             isHost ? (
               <XStack gap="$2">
@@ -213,7 +264,11 @@ export default function EventDetailScreen() {
                   variant="ghost"
                   buttonSize="sm"
                   circular
-                  icon={cancelEvent.isPending ? undefined : <Trash2 size={20} color="$error" />}
+                  icon={
+                    cancelEvent.isPending ? undefined : (
+                      <Trash2 size={20} color="$error" />
+                    )
+                  }
                   onPress={handleCancel}
                   loading={cancelEvent.isPending}
                   disabled={cancelEvent.isPending}
@@ -222,48 +277,6 @@ export default function EventDetailScreen() {
             ) : undefined
           }
         />
-
-        {/* Event Header */}
-        <YStack alignItems="center" marginBottom="$4">
-          <Circle
-            size={64}
-            backgroundColor="$backgroundHover"
-            marginBottom="$3"
-          >
-            <Text fontSize={32}>{event.emoji ?? '📅'}</Text>
-          </Circle>
-          <H1 fontSize={20} fontWeight="600" textAlign="center">
-            {event.title}
-          </H1>
-          <Text color="$colorMuted" fontSize={13} marginTop="$1">
-            Hosted by {event.hostName}
-          </Text>
-          <XStack
-            alignItems="center"
-            gap="$2"
-            marginTop="$2"
-            backgroundColor={
-              event.status === 'confirmed'
-                ? '$success'
-                : event.status === 'cancelled'
-                  ? '$destructive'
-                  : '$warning'
-            }
-            opacity={0.9}
-            paddingHorizontal="$2"
-            paddingVertical="$1"
-            borderRadius="$2"
-          >
-            <Text
-              color="$primaryForeground"
-              fontSize={11}
-              fontWeight="600"
-              textTransform="uppercase"
-            >
-              {event.status}
-            </Text>
-          </XStack>
-        </YStack>
 
         {/* Event Details */}
         <Theme name="Card">
@@ -282,7 +295,9 @@ export default function EventDetailScreen() {
                   <Calendar size={16} color="$colorMuted" />
                 </YStack>
                 <YStack flex={1}>
-                  <Text fontWeight="500" fontSize={14}>{date}</Text>
+                  <Text fontWeight="500" fontSize={14}>
+                    {date}
+                  </Text>
                   <Text color="$colorMuted" fontSize={13}>
                     {time}
                   </Text>
@@ -291,41 +306,40 @@ export default function EventDetailScreen() {
 
               {/* Location */}
               {event.location && (
-                <XStack alignItems="flex-start" gap="$3">
-                  <YStack
-                    width={36}
-                    height={36}
-                    borderRadius={6}
-                    backgroundColor="$backgroundHover"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <MapPin size={16} color="$colorMuted" />
-                  </YStack>
-                  <YStack flex={1} justifyContent="center" minHeight={36}>
-                    <Text fontWeight="500" fontSize={14}>{event.location}</Text>
-                  </YStack>
-                </XStack>
+                <YStack gap="$3">
+                  <XStack alignItems="flex-start" gap="$3">
+                    <YStack
+                      width={36}
+                      height={36}
+                      borderRadius={6}
+                      backgroundColor="$backgroundHover"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <MapPin size={16} color="$colorMuted" />
+                    </YStack>
+                    <YStack flex={1} justifyContent="center" minHeight={36}>
+                      <Text fontWeight="500" fontSize={14}>
+                        {event.location}
+                      </Text>
+                      {event.locationAddress && (
+                        <Text color="$colorMuted" fontSize={13}>
+                          {event.locationAddress}
+                        </Text>
+                      )}
+                    </YStack>
+                  </XStack>
+                  {event.latitude && event.longitude && (
+                    <MapPreview
+                      latitude={parseFloat(event.latitude)}
+                      longitude={parseFloat(event.longitude)}
+                      name={event.location}
+                      address={event.locationAddress}
+                      height={150}
+                    />
+                  )}
+                </YStack>
               )}
-
-              {/* Attendees */}
-              <XStack alignItems="flex-start" gap="$3">
-                <YStack
-                  width={36}
-                  height={36}
-                  borderRadius={6}
-                  backgroundColor="$backgroundHover"
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  <Users size={16} color="$colorMuted" />
-                </YStack>
-                <YStack flex={1} justifyContent="center" minHeight={36}>
-                  <Text fontWeight="500" fontSize={14}>
-                    {acceptedCount + 1} of {totalInvitees + 1} going
-                  </Text>
-                </YStack>
-              </XStack>
             </YStack>
           </Card>
         </Theme>
@@ -347,7 +361,7 @@ export default function EventDetailScreen() {
           <Theme name="Card">
             <Card marginBottom="$4">
               <Text fontWeight="600" marginBottom="$3">
-                Who is Coming
+                Who is Going
               </Text>
               <YStack>
                 {/* Host */}
@@ -358,71 +372,97 @@ export default function EventDetailScreen() {
                     </Circle>
                     <YStack flex={1}>
                       <XStack alignItems="center" gap="$2">
-                        <Text fontWeight="500" fontSize={14}>{event.hostName}</Text>
-                        <Text fontSize={11} color="$color" fontWeight="600">
-                          Host
+                        <Text fontWeight="500" fontSize={14}>
+                          {event.hostName}
+                        </Text>
+                        <BadgeLabel variant="host">Host</BadgeLabel>
+                      </XStack>
+                      <XStack alignItems="center" gap="$2">
+                        <Circle size={8} backgroundColor="$success" />
+                        <Text fontSize={13} color="$colorMuted">
+                          Organizer
                         </Text>
                       </XStack>
-                      <Text fontSize={13} color="$colorMuted">Organizer</Text>
                     </YStack>
                   </XStack>
-                  {event.invitees.length > 0 && <Separator marginVertical="$2" />}
+                  {event.invitees.length > 0 && (
+                    <Separator marginVertical="$2" />
+                  )}
                 </YStack>
                 {/* Invitees */}
-                {event.invitees.map((invitee, index) => (
-                  <YStack key={invitee.userId}>
-                    <InviteeItem invitee={invitee} />
-                    {index < event.invitees.length - 1 && (
-                      <Separator marginVertical="$2" />
-                    )}
-                  </YStack>
-                ))}
+                {event.invitees.map((invitee, index) => {
+                  const isCurrentUser = invitee.userId === user?.userId;
+                  const canChange =
+                    isCurrentUser &&
+                    invitee.status !== "pending" &&
+                    event.status !== "cancelled";
+                  return (
+                    <YStack key={invitee.userId}>
+                      <InviteeItem
+                        invitee={invitee}
+                        isCurrentUser={isCurrentUser}
+                        canChange={canChange}
+                        isEditing={isCurrentUser && isEditingResponse}
+                        onChangePress={() => setIsEditingResponse(true)}
+                        onCancelPress={() => setIsEditingResponse(false)}
+                      />
+                      {index < event.invitees.length - 1 && (
+                        <Separator marginVertical="$2" />
+                      )}
+                    </YStack>
+                  );
+                })}
               </YStack>
             </Card>
           </Theme>
         )}
-
       </ScrollView>
 
       {/* Glass bottom bar for RSVP actions */}
-      {canRespond && event.status !== 'cancelled' && (
+      {showBottomBar && userInvitee && (
         <GlassBottomBar>
-          <YStack gap="$2">
+          <YStack gap="$3">
             <Text fontWeight="600" textAlign="center" fontSize={14}>
               Are you going?
             </Text>
             <XStack gap="$3">
               <Button
-                variant={userInvitee.status === 'accepted' ? 'primary' : 'secondary'}
+                variant={
+                  userInvitee.status === "accepted" ? "primary" : "secondary"
+                }
                 flex={1}
-                onPress={() => handleResponse('accepted')}
-                loading={pendingResponse === 'accepted'}
+                onPress={() => handleResponse("accepted")}
+                loading={pendingResponse === "accepted"}
                 disabled={pendingResponse !== null}
               >
-                Going
+                Yes
               </Button>
               <Button
-                variant={userInvitee.status === 'maybe' ? 'primary' : 'secondary'}
+                variant={
+                  userInvitee.status === "declined" ? "primary" : "secondary"
+                }
                 flex={1}
-                onPress={() => handleResponse('maybe')}
-                loading={pendingResponse === 'maybe'}
+                onPress={() => handleResponse("declined")}
+                loading={pendingResponse === "declined"}
+                disabled={pendingResponse !== null}
+              >
+                No
+              </Button>
+              <Button
+                variant={
+                  userInvitee.status === "maybe" ? "primary" : "secondary"
+                }
+                flex={1}
+                onPress={() => handleResponse("maybe")}
+                loading={pendingResponse === "maybe"}
                 disabled={pendingResponse !== null}
               >
                 Maybe
-              </Button>
-              <Button
-                variant={userInvitee.status === 'declined' ? 'destructive' : 'secondary'}
-                flex={1}
-                onPress={() => handleResponse('declined')}
-                loading={pendingResponse === 'declined'}
-                disabled={pendingResponse !== null}
-              >
-                Cannot Go
               </Button>
             </XStack>
           </YStack>
         </GlassBottomBar>
       )}
     </YStack>
-  )
+  );
 }

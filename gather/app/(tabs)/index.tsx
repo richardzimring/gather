@@ -14,11 +14,16 @@ import {
 } from "tamagui";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import {
+  AttendeeAvatarStack,
+  type AvatarStackPerson,
+} from "../../components/ui/AttendeeAvatarStack";
+import { BadgeLabel } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { GlassButton } from "../../components/ui/GlassFAB";
 import { useAuth } from "../../lib/hooks/useAuth";
-import { useEvents, useRespondToEvent, useRefresh } from "../../lib/hooks";
+import { useEvents, useRefresh } from "../../lib/hooks";
 
 /**
  * Get time-based greeting with day awareness
@@ -137,42 +142,67 @@ function groupEventsBySection(events: EventData[]) {
 
 /**
  * Get attendee summary text
+ * Counts host (always going) + accepted invitees
  */
 function getAttendeeSummary(event: EventData): string {
-  const going = event.invitees.filter((i) => i.status === "accepted").length;
-  const maybe = event.invitees.filter((i) => i.status === "maybe").length;
+  const acceptedInvitees = event.invitees.filter(
+    (i) => i.status === "accepted"
+  ).length;
+  const maybeInvitees = event.invitees.filter(
+    (i) => i.status === "maybe"
+  ).length;
 
-  const parts: string[] = [];
-  if (going > 0) parts.push(`${going} going`);
-  if (maybe > 0) parts.push(`${maybe} maybe`);
+  // Host is always counted as going
+  const totalGoing = 1 + acceptedInvitees;
+  const totalInvited = event.invitees.length;
 
-  return parts.length > 0 ? parts.join(", ") : "No responses yet";
+  // If there are invitees, show "X of Y going" format
+  if (totalInvited > 0) {
+    const parts: string[] = [];
+    parts.push(`${totalGoing} of ${totalInvited + 1} going`);
+    if (maybeInvitees > 0) parts.push(`${maybeInvitees} maybe`);
+    return parts.join(", ");
+  }
+
+  // No invitees - just the host
+  return "Just you";
 }
 
 /**
- * Get humanized host text
+ * Build people array for AttendeeAvatarStack
+ * Includes host first, then invitees sorted by status
  */
-function getHostText(
-  event: EventData,
-  currentUserId: string | undefined
-): string {
-  const isHost = event.hostId === currentUserId;
-  const hostName = event.host?.firstName ?? "Someone";
+function buildAvatarStackPeople(event: EventData): AvatarStackPerson[] {
+  const people: AvatarStackPerson[] = [];
 
-  // Use commitment type to differentiate
-  const isCommitted = event.commitmentType === "going";
+  // Add host first (always "host" status)
+  people.push({
+    id: event.hostId,
+    initials: event.hostInitials,
+    status: "host",
+    avatarUrl: event.hostAvatarUrl,
+  });
 
-  if (isHost) {
-    return isCommitted ? "You are going to" : "You want to plan";
-  }
+  // Add invitees
+  event.invitees.forEach((invitee) => {
+    people.push({
+      id: invitee.userId,
+      initials: invitee.initials,
+      status: invitee.status as AvatarStackPerson["status"],
+      avatarUrl: invitee.avatarUrl,
+    });
+  });
 
-  return isCommitted ? `${hostName} is going to` : `${hostName} wants to`;
+  return people;
 }
 
-// Type for event data
+// Type for event data (matches API Event type)
 interface EventData {
   eventId: string;
   hostId: string;
+  hostName: string;
+  hostInitials: string;
+  hostAvatarUrl?: string;
   title: string;
   emoji?: string | null;
   startTime: string;
@@ -180,12 +210,11 @@ interface EventData {
   location?: string | null;
   status: string;
   commitmentType?: "going" | "planning";
-  host?: {
-    firstName?: string;
-    lastName?: string;
-  };
   invitees: {
     userId: string;
+    fullName: string;
+    initials: string;
+    avatarUrl?: string;
     status: string;
   }[];
 }
@@ -195,7 +224,6 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const eventsQuery = useEvents();
   const { data: events } = eventsQuery;
-  const respondToEvent = useRespondToEvent();
   const { isRefreshing, onRefresh } = useRefresh(eventsQuery);
 
   // Get today's date at midnight (memoized to prevent re-renders)
@@ -226,39 +254,28 @@ export default function HomeScreen() {
     [upcomingEvents]
   );
 
-  // Get pending invitation count for badge
-  const pendingCount = useMemo(() => {
-    return (
-      events?.filter((event) => {
-        const userInvitee = event.invitees.find(
-          (i) => i.userId === user?.userId && i.status === "pending"
-        );
-        return userInvitee && event.hostId !== user?.userId;
-      }).length ?? 0
-    );
-  }, [events, user?.userId]);
+  // Get pending invitation counts per section
+  const pendingCountBySection = useMemo(() => {
+    const counts: Record<string, number> = {
+      Today: 0,
+      Tomorrow: 0,
+      "This Week": 0,
+      Later: 0,
+    };
 
-  const handleAccept = async (
-    eventId: string,
-    e?: { stopPropagation: () => void }
-  ) => {
-    e?.stopPropagation();
-    await respondToEvent.mutateAsync({
-      eventId,
-      response: { status: "accepted" },
+    upcomingEvents.forEach((event) => {
+      const userInvitee = event.invitees.find(
+        (i) => i.userId === user?.userId && i.status === "pending"
+      );
+      if (userInvitee && event.hostId !== user?.userId) {
+        const date = new Date(event.startTime);
+        const section = getSectionTitle(date);
+        counts[section]++;
+      }
     });
-  };
 
-  const handleDecline = async (
-    eventId: string,
-    e?: { stopPropagation: () => void }
-  ) => {
-    e?.stopPropagation();
-    await respondToEvent.mutateAsync({
-      eventId,
-      response: { status: "declined" },
-    });
-  };
+    return counts;
+  }, [upcomingEvents, user?.userId]);
 
   const navigateToEvent = (eventId: string) => {
     router.push(`/events/${eventId}`);
@@ -330,14 +347,14 @@ export default function HomeScreen() {
                   <H2 fontSize={18} fontWeight="600">
                     {section}
                   </H2>
-                  {section === "Today" && pendingCount > 0 && (
+                  {pendingCountBySection[section] > 0 && (
                     <Circle size={22} backgroundColor="$primary">
                       <Text
                         color="$primaryForeground"
                         fontSize={11}
                         fontWeight="600"
                       >
-                        {pendingCount}
+                        {pendingCountBySection[section]}
                       </Text>
                     </Circle>
                   )}
@@ -362,7 +379,7 @@ export default function HomeScreen() {
                         onPress={navigateToPlan}
                         icon={<CalendarPlus size={18} />}
                       >
-                        Start planning something
+                        Plan something
                       </Button>
                     )}
                   </YStack>
@@ -370,28 +387,18 @@ export default function HomeScreen() {
                   <YStack gap="$3">
                     {sectionEvents.map((event) => {
                       const isPending = isPendingForUser(event);
-                      const isPlanning = event.commitmentType === "planning";
-                      // Use outlined style for pending invitations OR planning events
-                      const useOutlinedStyle = isPending || isPlanning;
+                      const isHost = event.hostId === user?.userId;
+                      const avatarPeople = buildAvatarStackPeople(event);
 
                       return (
                         <Theme key={event.eventId} name="Card">
                           <Card
                             pressable
                             onPress={() => navigateToEvent(event.eventId)}
-                            outlined={useOutlinedStyle}
+                            outlined={isPending}
                           >
                             <YStack gap="$3">
-                              {/* Host text */}
-                              <Text
-                                fontSize={13}
-                                color={isPending ? "$color" : "$colorMuted"}
-                                fontWeight={isPending ? "600" : "400"}
-                              >
-                                {getHostText(event, user?.userId)}
-                              </Text>
-
-                              {/* Event info row */}
+                              {/* Event header row */}
                               <XStack alignItems="center" gap="$3">
                                 <Circle
                                   size={44}
@@ -401,53 +408,52 @@ export default function HomeScreen() {
                                     {event.emoji ?? "📅"}
                                   </Text>
                                 </Circle>
-                                <YStack flex={1}>
-                                  <Text fontWeight="600" fontSize={16}>
-                                    {event.title}
-                                  </Text>
+                                <YStack flex={1} gap="$1">
+                                  <XStack alignItems="center" gap="$2">
+                                    <Text fontWeight="600" fontSize={16}>
+                                      {event.title}
+                                    </Text>
+                                    {isHost && (
+                                      <BadgeLabel variant="host">Host</BadgeLabel>
+                                    )}
+                                  </XStack>
                                   <Text color="$colorMuted" fontSize={14}>
                                     {formatRelativeDate(event.startTime)}
-                                    {event.location
-                                      ? ` · ${event.location}`
-                                      : ""}
                                   </Text>
-                                  <Text
-                                    color="$colorMuted"
-                                    fontSize={13}
-                                    marginTop="$1"
-                                  >
-                                    {getAttendeeSummary(event)}
-                                  </Text>
+                                  {event.location && (
+                                    <Text
+                                      color="$colorMuted"
+                                      fontSize={13}
+                                      numberOfLines={1}
+                                    >
+                                      {event.location}
+                                    </Text>
+                                  )}
                                 </YStack>
                               </XStack>
 
-                              {/* Quick actions for pending invitations */}
-                              {isPending && (
-                                <XStack gap="$2" marginTop="$1">
+                              {/* Attendees info with optional Respond button */}
+                              <XStack
+                                alignItems="center"
+                                justifyContent="space-between"
+                              >
+                                <AttendeeAvatarStack
+                                  people={avatarPeople}
+                                  maxVisible={4}
+                                  avatarSize={28}
+                                  overlap={6}
+                                  summaryText={getAttendeeSummary(event)}
+                                />
+                                {isPending && (
                                   <Button
                                     variant="primary"
                                     buttonSize="sm"
-                                    flex={1}
-                                    onPress={(e) =>
-                                      handleAccept(event.eventId, e)
-                                    }
-                                    disabled={respondToEvent.isPending}
+                                    onPress={() => navigateToEvent(event.eventId)}
                                   >
-                                    Going
+                                    Respond
                                   </Button>
-                                  <Button
-                                    variant="secondary"
-                                    buttonSize="sm"
-                                    flex={1}
-                                    onPress={(e) =>
-                                      handleDecline(event.eventId, e)
-                                    }
-                                    disabled={respondToEvent.isPending}
-                                  >
-                                    Decline
-                                  </Button>
-                                </XStack>
-                              )}
+                                )}
+                              </XStack>
                             </YStack>
                           </Card>
                         </Theme>

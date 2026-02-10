@@ -1,24 +1,24 @@
-import { ChevronLeft } from '@tamagui/lucide-icons'
-import { router } from 'expo-router'
-import { H1, XStack, YStack, GetProps } from 'tamagui'
+import { ChevronLeft } from "@tamagui/lucide-icons";
+import { router } from "expo-router";
+import { H1, Text, XStack, YStack, GetProps } from "tamagui";
 
-import { GlassButton } from './GlassFAB'
+import { GlassButton } from "./GlassFAB";
 
 export interface ScreenHeaderProps extends GetProps<typeof XStack> {
   /** Main title of the screen */
-  title: string
+  title: string;
   /** Subtitle text (optional) */
-  subtitle?: string
+  subtitle?: string;
   /** Whether to show a back button */
-  showBack?: boolean
+  showBack?: boolean;
   /** Custom back button handler (defaults to router.back()) */
-  onBack?: () => void
+  onBack?: () => void;
   /** Left action element (replaces back button) */
-  leftAction?: React.ReactNode
+  leftAction?: React.ReactNode;
   /** Right action element(s) */
-  rightAction?: React.ReactNode
+  rightAction?: React.ReactNode;
   /** Title alignment */
-  titleAlign?: 'left' | 'center'
+  titleAlign?: "left" | "center";
 }
 
 /**
@@ -37,20 +37,20 @@ export function ScreenHeader({
   onBack,
   leftAction,
   rightAction,
-  titleAlign = 'left',
+  titleAlign = "left",
   ...props
 }: ScreenHeaderProps) {
   const handleBack = () => {
     if (onBack) {
-      onBack()
+      onBack();
     } else {
-      router.back()
+      router.back();
     }
-  }
+  };
 
   const renderLeftSection = () => {
     if (leftAction) {
-      return leftAction
+      return leftAction;
     }
     if (showBack) {
       return (
@@ -58,15 +58,15 @@ export function ScreenHeader({
           icon={<ChevronLeft size={20} color="$color" />}
           onPress={handleBack}
         />
-      )
+      );
     }
-    return null
-  }
+    return null;
+  };
 
-  const leftElement = renderLeftSection()
+  const leftElement = renderLeftSection();
 
   // Center alignment with back button
-  if (titleAlign === 'center') {
+  if (titleAlign === "center") {
     return (
       <XStack
         alignItems="center"
@@ -82,40 +82,35 @@ export function ScreenHeader({
             {title}
           </H1>
           {subtitle && (
-            <H1 fontSize={13} color="$colorMuted" fontWeight="400">
+            <Text fontSize={13} color="$colorMuted">
               {subtitle}
-            </H1>
+            </Text>
           )}
         </YStack>
         <YStack width={40} alignItems="flex-end">
           {rightAction}
         </YStack>
       </XStack>
-    )
+    );
   }
 
   // Left alignment (default)
   return (
-    <XStack
-      alignItems="center"
-      gap="$3"
-      marginBottom="$3"
-      {...props}
-    >
+    <XStack alignItems="center" gap="$4" marginBottom="$3" {...props}>
       {leftElement}
       <YStack flex={1}>
-        <H1 fontSize={20} fontWeight="600" numberOfLines={1}>
+        <Text fontSize={20} fontWeight="600" numberOfLines={1}>
           {title}
-        </H1>
+        </Text>
         {subtitle && (
-          <H1 fontSize={13} color="$colorMuted" fontWeight="400" marginTop="$1">
+          <Text fontSize={13} color="$colorMuted">
             {subtitle}
-          </H1>
+          </Text>
         )}
       </YStack>
       {rightAction}
     </XStack>
-  )
+  );
 }
 
 // Pre-configured variants for common use cases
@@ -127,7 +122,7 @@ export function SimpleHeader({
   title,
   rightAction,
   ...props
-}: Omit<ScreenHeaderProps, 'showBack' | 'onBack' | 'leftAction'>) {
+}: Omit<ScreenHeaderProps, "showBack" | "onBack" | "leftAction">) {
   return (
     <ScreenHeader
       title={title}
@@ -135,7 +130,7 @@ export function SimpleHeader({
       showBack={false}
       {...props}
     />
-  )
+  );
 }
 
 /**
@@ -147,7 +142,7 @@ export function BackHeader({
   onBack,
   rightAction,
   ...props
-}: Omit<ScreenHeaderProps, 'showBack' | 'leftAction'>) {
+}: Omit<ScreenHeaderProps, "showBack" | "leftAction">) {
   return (
     <ScreenHeader
       title={title}
@@ -157,7 +152,7 @@ export function BackHeader({
       showBack
       {...props}
     />
-  )
+  );
 }
 
 /**
@@ -169,8 +164,8 @@ export function CancelHeader({
   onCancel,
   rightAction,
   ...props
-}: Omit<ScreenHeaderProps, 'showBack' | 'onBack' | 'leftAction'> & {
-  onCancel?: () => void
+}: Omit<ScreenHeaderProps, "showBack" | "onBack" | "leftAction"> & {
+  onCancel?: () => void;
 }) {
   return (
     <ScreenHeader
@@ -181,5 +176,5 @@ export function CancelHeader({
       showBack
       {...props}
     />
-  )
+  );
 }

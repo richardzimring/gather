@@ -168,6 +168,12 @@ const tokens = createTokens({
     errorLight: '#fca5a5',
     errorDark: '#991b1b',
 
+    // Purple accent (for host badges, etc.)
+    purple: '#a855f7',
+    purpleLight: '#e9d5ff',
+    purpleDark: '#7c3aed',
+    purpleSubtle: 'rgba(168, 85, 247, 0.15)',
+
     // Transparent
     transparent: 'transparent',
     white: '#ffffff',
@@ -228,6 +234,10 @@ const dark = {
   errorSubtle: 'rgba(239, 68, 68, 0.15)',
   destructive: tokens.color.error,
   destructiveForeground: tokens.color.gray11,
+
+  // Purple accent
+  purple: tokens.color.purple,
+  purpleSubtle: tokens.color.purpleSubtle,
 
   // Shadows (minimal in dark mode)
   shadowColor: 'rgba(0,0,0,0.5)',
@@ -316,6 +326,10 @@ const light = {
   errorSubtle: 'rgba(239, 68, 68, 0.15)',
   destructive: tokens.color.error,
   destructiveForeground: tokens.color.lightGray1,
+
+  // Purple accent
+  purple: tokens.color.purpleDark,
+  purpleSubtle: tokens.color.purpleLight,
 
   // Shadows
   shadowColor: 'rgba(0,0,0,0.08)',
