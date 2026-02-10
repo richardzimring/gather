@@ -21,13 +21,23 @@ import { useAuth } from "../../lib/hooks/useAuth";
 import { useEvents, useRespondToEvent, useRefresh } from "../../lib/hooks";
 
 /**
- * Get time-based greeting
+ * Get time-based greeting with day awareness
  */
 function getGreeting(): string {
-  const hour = new Date().getHours();
+  const now = new Date();
+  const hour = now.getHours();
+  const day = now.getDay(); // 0 = Sunday, 6 = Saturday
+
+  // Friday evening/night - celebrate the weekend
+  if (day === 5 && hour >= 17) return "Happy Friday";
+
+  // Weekday time-based greetings
+  if (hour < 5) return "You're up late";
+  if (hour < 8) return "Rise and shine";
   if (hour < 12) return "Good morning";
   if (hour < 17) return "Good afternoon";
-  return "Good evening";
+  if (hour < 21) return "Good evening";
+  return "Good night";
 }
 
 /**
