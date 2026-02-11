@@ -414,7 +414,9 @@ export default function HomeScreen() {
                                       {event.title}
                                     </Text>
                                     {isHost && (
-                                      <BadgeLabel variant="host">Host</BadgeLabel>
+                                      <BadgeLabel variant="host">
+                                        Host
+                                      </BadgeLabel>
                                     )}
                                   </XStack>
                                   <Text color="$colorMuted" fontSize={14}>
@@ -440,15 +442,18 @@ export default function HomeScreen() {
                                 <AttendeeAvatarStack
                                   people={avatarPeople}
                                   maxVisible={4}
-                                  avatarSize={28}
+                                  avatarSize={35}
                                   overlap={6}
                                   summaryText={getAttendeeSummary(event)}
+                                  showStatus={true}
                                 />
                                 {isPending && (
                                   <Button
                                     variant="primary"
                                     buttonSize="sm"
-                                    onPress={() => navigateToEvent(event.eventId)}
+                                    onPress={() =>
+                                      navigateToEvent(event.eventId)
+                                    }
                                   >
                                     Respond
                                   </Button>

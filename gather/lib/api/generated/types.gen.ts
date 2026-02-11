@@ -36,7 +36,7 @@ export type ActivityResponse = {
 
 export type CreateActivity = {
     name: string;
-    emoji: string;
+    emoji?: string;
 };
 
 export type UpdateActivity = {

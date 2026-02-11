@@ -2,12 +2,15 @@ import { eq, or, isNull } from 'drizzle-orm';
 import { db, activities } from '../db';
 import type { Activity, CreateActivity, UpdateActivity } from '../types';
 import { DEFAULT_ACTIVITIES } from '../constants';
+import { generateEmoji } from './emoji';
 
 // ============================================
 // Helpers
 // ============================================
 
-const dbActivityToActivity = (dbActivity: typeof activities.$inferSelect): Activity => {
+const dbActivityToActivity = (
+  dbActivity: typeof activities.$inferSelect,
+): Activity => {
   return {
     activityId: dbActivity.id,
     userId: dbActivity.userId,
@@ -35,19 +38,31 @@ export const getActivities = async (userId: string): Promise<Activity[]> => {
   return results.map(dbActivityToActivity);
 };
 
-export const getActivity = async (activityId: string): Promise<Activity | null> => {
-  const result = await db.select().from(activities).where(eq(activities.id, activityId)).limit(1);
+export const getActivity = async (
+  activityId: string,
+): Promise<Activity | null> => {
+  const result = await db
+    .select()
+    .from(activities)
+    .where(eq(activities.id, activityId))
+    .limit(1);
   const activity = result[0];
   return activity ? dbActivityToActivity(activity) : null;
 };
 
-export const createActivity = async (userId: string, input: CreateActivity): Promise<Activity> => {
+export const createActivity = async (
+  userId: string,
+  input: CreateActivity,
+): Promise<Activity> => {
+  // Generate emoji if not provided
+  const emoji = input.emoji ?? (await generateEmoji(input.name));
+
   const [newActivity] = await db
     .insert(activities)
     .values({
       userId,
       name: input.name,
-      emoji: input.emoji,
+      emoji,
       isDefault: false,
     })
     .returning();
@@ -132,7 +147,11 @@ export const deleteActivity = async (
 
 const ensureDefaultActivities = async (): Promise<void> => {
   // Check if default activities already exist
-  const existing = await db.select().from(activities).where(eq(activities.isDefault, true)).limit(1);
+  const existing = await db
+    .select()
+    .from(activities)
+    .where(eq(activities.isDefault, true))
+    .limit(1);
 
   if (existing.length > 0) return;
 

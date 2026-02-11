@@ -1,6 +1,6 @@
 import { ChevronLeft } from "@tamagui/lucide-icons";
 import { router } from "expo-router";
-import { H1, Text, XStack, YStack, GetProps } from "tamagui";
+import { Text, XStack, YStack, GetProps } from "tamagui";
 
 import { GlassButton } from "./GlassFAB";
 
@@ -17,8 +17,6 @@ export interface ScreenHeaderProps extends GetProps<typeof XStack> {
   leftAction?: React.ReactNode;
   /** Right action element(s) */
   rightAction?: React.ReactNode;
-  /** Title alignment */
-  titleAlign?: "left" | "center";
 }
 
 /**
@@ -37,7 +35,6 @@ export function ScreenHeader({
   onBack,
   leftAction,
   rightAction,
-  titleAlign = "left",
   ...props
 }: ScreenHeaderProps) {
   const handleBack = () => {
@@ -65,35 +62,6 @@ export function ScreenHeader({
 
   const leftElement = renderLeftSection();
 
-  // Center alignment with back button
-  if (titleAlign === "center") {
-    return (
-      <XStack
-        alignItems="center"
-        justifyContent="space-between"
-        marginBottom="$3"
-        {...props}
-      >
-        <YStack width={40} alignItems="flex-start">
-          {leftElement}
-        </YStack>
-        <YStack flex={1} alignItems="center">
-          <H1 fontSize={16} fontWeight="600" numberOfLines={1}>
-            {title}
-          </H1>
-          {subtitle && (
-            <Text fontSize={13} color="$colorMuted">
-              {subtitle}
-            </Text>
-          )}
-        </YStack>
-        <YStack width={40} alignItems="flex-end">
-          {rightAction}
-        </YStack>
-      </XStack>
-    );
-  }
-
   // Left alignment (default)
   return (
     <XStack alignItems="center" gap="$4" marginBottom="$3" {...props}>
@@ -103,7 +71,7 @@ export function ScreenHeader({
           {title}
         </Text>
         {subtitle && (
-          <Text fontSize={13} color="$colorMuted">
+          <Text fontSize={13} color="$colorMuted" paddingTop="$1">
             {subtitle}
           </Text>
         )}

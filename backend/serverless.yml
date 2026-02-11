@@ -25,6 +25,7 @@ provider:
     REGION: ${self:provider.region}
     APPLE_BUNDLE_ID: ${self:custom.appBundleIdentifier.${self:provider.stage}}
     PG_CONNECTION_STRING: ${self:custom.pgConnectionString.${self:provider.stage}}
+    GEMINI_API_KEY: ${env:GEMINI_API_KEY}
   httpApi:
     cors:
       allowedOrigins:

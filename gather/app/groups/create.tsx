@@ -18,15 +18,12 @@ import { Card } from '../../components/ui/Card'
 import { CancelHeader } from '../../components/ui/ScreenHeader'
 import { useCreateGroup, useFriends } from '../../lib/hooks'
 
-const EMOJI_OPTIONS = ['👥', '💜', '🏠', '💼', '🎾', '🎮', '🍕', '☕', '🎬', '🎵', '🏃', '📚']
-
 export default function CreateGroupScreen() {
   const insets = useSafeAreaInsets()
   const { data: friendsData } = useFriends()
   const createGroup = useCreateGroup()
 
   const [name, setName] = useState('')
-  const [emoji, setEmoji] = useState('👥')
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
 
   const friends = friendsData?.friends ?? []
@@ -45,7 +42,6 @@ export default function CreateGroupScreen() {
     try {
       await createGroup.mutateAsync({
         name: name.trim(),
-        emoji: emoji || undefined,
         memberIds: selectedMembers,
       })
       router.back()
@@ -69,44 +65,21 @@ export default function CreateGroupScreen() {
         {/* Group Info */}
         <Theme name="Card">
           <Card marginBottom="$4">
-            <YStack gap="$3">
-              {/* Emoji Selection */}
-              <YStack gap="$2">
-                <Text fontWeight="500" fontSize={14}>Choose an emoji</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <XStack gap="$2">
-                    {EMOJI_OPTIONS.map((e) => (
-                      <Circle
-                        key={e}
-                        size={40}
-                        backgroundColor={emoji === e ? '$primary' : '$backgroundHover'}
-                        pressStyle={{ scale: 0.98 }}
-                        onPress={() => setEmoji(e)}
-                      >
-                        <Text fontSize={20}>{e}</Text>
-                      </Circle>
-                    ))}
-                  </XStack>
-                </ScrollView>
-              </YStack>
-
-              {/* Group Name */}
-              <YStack gap="$2">
-                <Text fontWeight="500" fontSize={14}>Group Name</Text>
-                <Input
-                  placeholder="e.g., Tennis Club"
-                  placeholderTextColor="$colorMuted"
-                  value={name}
-                  onChangeText={setName}
-                  backgroundColor="$backgroundHover"
-                  borderColor="$borderColor"
-                  borderWidth={1}
-                  borderRadius="$2"
-                  paddingHorizontal="$3"
-                  height={36}
-                  fontSize={14}
-                />
-              </YStack>
+            <YStack gap="$2">
+              <Text fontWeight="500" fontSize={14}>Group Name</Text>
+              <Input
+                placeholder="e.g., Tennis Club"
+                placeholderTextColor="$colorMuted"
+                value={name}
+                onChangeText={setName}
+                backgroundColor="$backgroundHover"
+                borderColor="$borderColor"
+                borderWidth={1}
+                borderRadius="$2"
+                paddingHorizontal="$3"
+                height={36}
+                fontSize={14}
+              />
             </YStack>
           </Card>
         </Theme>

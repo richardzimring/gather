@@ -5,9 +5,9 @@ import {
   Trash2,
   UserMinus,
   UserPlus,
-} from '@tamagui/lucide-icons'
-import { router, useLocalSearchParams } from 'expo-router'
-import { Alert } from 'react-native'
+} from "@tamagui/lucide-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { Alert } from "react-native";
 import {
   Circle,
   H1,
@@ -20,70 +20,70 @@ import {
   YStack,
   Sheet,
   Input,
-} from 'tamagui'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useMemo, useState } from 'react'
+} from "tamagui";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useMemo, useState } from "react";
 
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
-import { BackHeader } from '../../components/ui/ScreenHeader'
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
+import { BackHeader } from "../../components/ui/ScreenHeader";
 import {
   useGroups,
   useFriends,
   useUpdateGroup,
   useDeleteGroup,
-} from '../../lib/hooks'
-import type { FriendWithUser } from '../../lib/api/generated/types.gen'
+} from "../../lib/hooks";
+import type { FriendWithUser } from "../../lib/api/generated/types.gen";
 
-type Friendship = FriendWithUser
+type Friendship = FriendWithUser;
 
 export default function GroupDetailScreen() {
-  const insets = useSafeAreaInsets()
-  const { id } = useLocalSearchParams<{ id: string }>()
-  const [showActionSheet, setShowActionSheet] = useState(false)
-  const [showEditSheet, setShowEditSheet] = useState(false)
-  const [showAddMemberSheet, setShowAddMemberSheet] = useState(false)
-  const [editName, setEditName] = useState('')
-  const [editEmoji, setEditEmoji] = useState('')
-  const [pendingMemberId, setPendingMemberId] = useState<string | null>(null)
+  const insets = useSafeAreaInsets();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [showActionSheet, setShowActionSheet] = useState(false);
+  const [showEditSheet, setShowEditSheet] = useState(false);
+  const [showAddMemberSheet, setShowAddMemberSheet] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editEmoji, setEditEmoji] = useState("");
+  const [pendingMemberId, setPendingMemberId] = useState<string | null>(null);
 
-  const { data: groups, isLoading } = useGroups()
-  const { data: friendsData } = useFriends()
-  const updateGroup = useUpdateGroup()
-  const deleteGroup = useDeleteGroup()
+  const { data: groups, isLoading } = useGroups();
+  const { data: friendsData } = useFriends();
+  const updateGroup = useUpdateGroup();
+  const deleteGroup = useDeleteGroup();
 
-  const friends = useMemo(() => friendsData?.friends ?? [], [friendsData])
+  const friends = useMemo(() => friendsData?.friends ?? [], [friendsData]);
 
   // Find the specific group
   const group = useMemo(() => {
-    if (!groups || !id) return null
-    return groups.find((g) => g.groupId === id) ?? null
-  }, [groups, id])
+    if (!groups || !id) return null;
+    return groups.find((g) => g.groupId === id) ?? null;
+  }, [groups, id]);
 
   // Get members with friend details
   const members = useMemo(() => {
-    if (!group) return []
+    if (!group) return [];
     return group.memberIds
       .map((memberId) => friends.find((f) => f.friendId === memberId))
-      .filter((f): f is Friendship => f !== undefined)
-  }, [group, friends])
+      .filter((f): f is Friendship => f !== undefined);
+  }, [group, friends]);
 
   // Get non-members (friends who can be added)
   const nonMembers = useMemo(() => {
-    if (!group) return []
-    return friends.filter((f) => !group.memberIds.includes(f.friendId))
-  }, [group, friends])
+    if (!group) return [];
+    return friends.filter((f) => !group.memberIds.includes(f.friendId));
+  }, [group, friends]);
 
   const handleEditGroup = () => {
-    if (!group) return
-    setEditName(group.name)
-    setEditEmoji(group.emoji ?? '')
-    setShowActionSheet(false)
-    setShowEditSheet(true)
-  }
+    if (!group) return;
+    setEditName(group.name);
+    setEditEmoji(group.emoji ?? "");
+    setShowActionSheet(false);
+    setShowEditSheet(true);
+  };
 
   const handleSaveEdit = async () => {
-    if (!id || !editName.trim()) return
+    if (!id || !editName.trim()) return;
     try {
       await updateGroup.mutateAsync({
         groupId: id,
@@ -91,94 +91,99 @@ export default function GroupDetailScreen() {
           name: editName.trim(),
           emoji: editEmoji || undefined,
         },
-      })
-      setShowEditSheet(false)
+      });
+      setShowEditSheet(false);
     } catch (err) {
-      console.error('Failed to update group:', err)
+      console.error("Failed to update group:", err);
     }
-  }
+  };
 
   const handleDeleteGroup = () => {
     Alert.alert(
-      'Delete Group',
-      'Are you sure you want to delete this group? This action cannot be undone.',
+      "Delete Group",
+      "Are you sure you want to delete this group? This action cannot be undone.",
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Delete',
-          style: 'destructive',
+          text: "Delete",
+          style: "destructive",
           onPress: async () => {
-            if (!id) return
+            if (!id) return;
             try {
-              await deleteGroup.mutateAsync(id)
-              router.back()
+              await deleteGroup.mutateAsync(id);
+              router.back();
             } catch (err) {
-              console.error('Failed to delete group:', err)
+              console.error("Failed to delete group:", err);
             }
           },
         },
       ]
-    )
-  }
+    );
+  };
 
   const handleAddMember = async (friendId: string) => {
-    if (!group || !id) return
-    setPendingMemberId(friendId)
+    if (!group || !id) return;
+    setPendingMemberId(friendId);
     try {
       await updateGroup.mutateAsync({
         groupId: id,
         data: {
           memberIds: [...group.memberIds, friendId],
         },
-      })
+      });
     } catch (err) {
-      console.error('Failed to add member:', err)
+      console.error("Failed to add member:", err);
     } finally {
-      setPendingMemberId(null)
+      setPendingMemberId(null);
     }
-  }
+  };
 
   const handleRemoveMember = async (friendId: string) => {
-    if (!group || !id) return
+    if (!group || !id) return;
     Alert.alert(
-      'Remove Member',
-      'Are you sure you want to remove this member from the group?',
+      "Remove Member",
+      "Are you sure you want to remove this member from the group?",
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Remove',
-          style: 'destructive',
+          text: "Remove",
+          style: "destructive",
           onPress: async () => {
-            setPendingMemberId(friendId)
+            setPendingMemberId(friendId);
             try {
               await updateGroup.mutateAsync({
                 groupId: id,
                 data: {
                   memberIds: group.memberIds.filter((m) => m !== friendId),
                 },
-              })
+              });
             } catch (err) {
-              console.error('Failed to remove member:', err)
+              console.error("Failed to remove member:", err);
             } finally {
-              setPendingMemberId(null)
+              setPendingMemberId(null);
             }
           },
         },
       ]
-    )
-  }
+    );
+  };
 
   const handleInviteGroupToEvent = () => {
-    setShowActionSheet(false)
-    router.push('/events/create')
-  }
+    setShowActionSheet(false);
+    router.push("/events/create");
+  };
 
   if (isLoading) {
     return (
-      <YStack flex={1} backgroundColor="$background" alignItems="center" justifyContent="center">
+      <YStack
+        flex={1}
+        backgroundColor="$background"
+        alignItems="center"
+        justifyContent="center"
+      >
         <Spinner size="large" color="$color" />
       </YStack>
-    )
+    );
   }
 
   if (!group) {
@@ -199,11 +204,15 @@ export default function GroupDetailScreen() {
         <Text color="$colorMuted" textAlign="center" marginTop="$2">
           This group may have been deleted.
         </Text>
-        <Button variant="secondary" marginTop="$4" onPress={() => router.back()}>
+        <Button
+          variant="secondary"
+          marginTop="$4"
+          onPress={() => router.back()}
+        >
           Go Back
         </Button>
       </YStack>
-    )
+    );
   }
 
   return (
@@ -232,8 +241,12 @@ export default function GroupDetailScreen() {
 
         {/* Group Header */}
         <YStack alignItems="center" marginBottom="$4">
-          <Circle size={80} backgroundColor="$backgroundHover" marginBottom="$3">
-            <Text fontSize={36}>{group.emoji ?? '👥'}</Text>
+          <Circle
+            size={80}
+            backgroundColor="$backgroundHover"
+            marginBottom="$3"
+          >
+            <Text fontSize={36}>{group.emoji ?? "👥"}</Text>
           </Circle>
           <H1 fontSize={20} fontWeight="600" textAlign="center">
             {group.name}
@@ -271,7 +284,11 @@ export default function GroupDetailScreen() {
         {/* Members Section */}
         <Theme name="Card">
           <Card>
-            <XStack justifyContent="space-between" alignItems="center" marginBottom="$3">
+            <XStack
+              justifyContent="space-between"
+              alignItems="center"
+              marginBottom="$3"
+            >
               <Text fontWeight="600" fontSize={16}>
                 Members
               </Text>
@@ -302,7 +319,11 @@ export default function GroupDetailScreen() {
                           variant="ghost"
                           buttonSize="sm"
                           circular
-                          icon={pendingMemberId === member.friendId ? undefined : <UserMinus size={18} color="$error" />}
+                          icon={
+                            pendingMemberId === member.friendId ? undefined : (
+                              <UserMinus size={18} color="$error" />
+                            )
+                          }
                           onPress={() => handleRemoveMember(member.friendId)}
                           loading={pendingMemberId === member.friendId}
                           disabled={pendingMemberId !== null}
@@ -312,7 +333,7 @@ export default function GroupDetailScreen() {
                         <Separator marginVertical="$1" />
                       )}
                     </YStack>
-                  )
+                  );
                 })}
               </YStack>
             )}
@@ -344,8 +365,8 @@ export default function GroupDetailScreen() {
               fullWidth
               icon={<UserPlus size={18} />}
               onPress={() => {
-                setShowActionSheet(false)
-                setShowAddMemberSheet(true)
+                setShowActionSheet(false);
+                setShowAddMemberSheet(true);
               }}
             >
               Add Members
@@ -363,10 +384,14 @@ export default function GroupDetailScreen() {
                 <Button
                   variant="destructive"
                   fullWidth
-                  icon={deleteGroup.isPending ? undefined : <Trash2 size={16} color="$destructiveForeground" />}
+                  icon={
+                    deleteGroup.isPending ? undefined : (
+                      <Trash2 size={16} color="$destructiveForeground" />
+                    )
+                  }
                   onPress={() => {
-                    setShowActionSheet(false)
-                    handleDeleteGroup()
+                    setShowActionSheet(false);
+                    handleDeleteGroup();
                   }}
                   loading={deleteGroup.isPending}
                 >
@@ -401,30 +426,43 @@ export default function GroupDetailScreen() {
             </Text>
 
             <YStack gap="$2">
-              <Text fontWeight="500" fontSize={14}>Emoji</Text>
+              <Text fontWeight="500" fontSize={14}>
+                Emoji
+              </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <XStack gap="$2">
-                  {['👥', '💜', '🏠', '💼', '🎾', '🎮', '🍕', '☕', '🎬', '🎵'].map(
-                    (emoji) => (
-                      <Circle
-                        key={emoji}
-                        size={40}
-                        backgroundColor={
-                          editEmoji === emoji ? '$primary' : '$backgroundHover'
-                        }
-                        pressStyle={{ scale: 0.98 }}
-                        onPress={() => setEditEmoji(emoji)}
-                      >
-                        <Text fontSize={20}>{emoji}</Text>
-                      </Circle>
-                    )
-                  )}
+                  {[
+                    "👥",
+                    "💜",
+                    "🏠",
+                    "💼",
+                    "🎾",
+                    "🎮",
+                    "🍕",
+                    "☕",
+                    "🎬",
+                    "🎵",
+                  ].map((emoji) => (
+                    <Circle
+                      key={emoji}
+                      size={40}
+                      backgroundColor={
+                        editEmoji === emoji ? "$primary" : "$backgroundHover"
+                      }
+                      pressStyle={{ scale: 0.98 }}
+                      onPress={() => setEditEmoji(emoji)}
+                    >
+                      <Text fontSize={20}>{emoji}</Text>
+                    </Circle>
+                  ))}
                 </XStack>
               </ScrollView>
             </YStack>
 
             <YStack gap="$2">
-              <Text fontWeight="500" fontSize={14}>Group Name</Text>
+              <Text fontWeight="500" fontSize={14}>
+                Group Name
+              </Text>
               <Input
                 placeholder="Group name"
                 placeholderTextColor="$colorMuted"
@@ -454,7 +492,7 @@ export default function GroupDetailScreen() {
                 onPress={handleSaveEdit}
                 disabled={!editName.trim() || updateGroup.isPending}
               >
-                {updateGroup.isPending ? 'Saving...' : 'Save'}
+                {updateGroup.isPending ? "Saving..." : "Save"}
               </Button>
             </XStack>
           </YStack>
@@ -509,7 +547,7 @@ export default function GroupDetailScreen() {
                           Add
                         </Button>
                       </XStack>
-                    )
+                    );
                   })}
                 </YStack>
               </ScrollView>
@@ -526,5 +564,5 @@ export default function GroupDetailScreen() {
         </Sheet.Frame>
       </Sheet>
     </YStack>
-  )
+  );
 }

@@ -1,3 +1,4 @@
+import { Check, X } from "@tamagui/lucide-icons";
 import { Circle, Text, XStack, GetProps } from "tamagui";
 
 import type { InviteeStatus } from "../../lib/api/generated/types.gen";
@@ -27,6 +28,41 @@ function getStatusColor(status: InviteeStatus | "host"): string {
     case "pending":
     default:
       return "$colorMuted";
+  }
+}
+
+/**
+ * Get status indicator icon component
+ */
+function StatusIcon({
+  status,
+  size,
+}: {
+  status: InviteeStatus | "host";
+  size: number;
+}) {
+  const iconSize = Math.max(8, Math.round(size * 0.65));
+  const strokeWidth = 3;
+
+  switch (status) {
+    case "accepted":
+    case "host":
+      return <Check size={iconSize} color="white" strokeWidth={strokeWidth} />;
+    case "declined":
+      return <X size={iconSize} color="white" strokeWidth={strokeWidth} />;
+    case "maybe":
+      return (
+        <Text
+          fontSize={Math.max(6, Math.round(size * 0.6))}
+          fontWeight="800"
+          color="white"
+        >
+          ?
+        </Text>
+      );
+    case "pending":
+    default:
+      return null;
   }
 }
 
@@ -93,8 +129,8 @@ export function AttendeeAvatarStack({
   const visiblePeople = sortedPeople.slice(0, maxVisible);
   const overflowCount = Math.max(0, sortedPeople.length - maxVisible);
 
-  // Calculate status dot size relative to avatar
-  const statusDotSize = Math.max(6, Math.round(avatarSize * 0.28));
+  // Calculate status badge size relative to avatar (slightly larger to fit icons)
+  const statusDotSize = Math.max(10, Math.round(avatarSize * 0.38));
   const statusBorderWidth = Math.max(1.5, Math.round(avatarSize * 0.06));
   const fontSize = Math.max(10, Math.round(avatarSize * 0.4));
 
@@ -116,7 +152,7 @@ export function AttendeeAvatarStack({
               {person.initials}
             </Text>
 
-            {/* Status indicator dot */}
+            {/* Status indicator badge with icon */}
             {showStatus && (
               <Circle
                 size={statusDotSize}
@@ -126,7 +162,11 @@ export function AttendeeAvatarStack({
                 right={-1}
                 borderWidth={statusBorderWidth}
                 borderColor="$background"
-              />
+                alignItems="center"
+                justifyContent="center"
+              >
+                <StatusIcon status={person.status} size={statusDotSize} />
+              </Circle>
             )}
           </Circle>
         ))}
@@ -149,11 +189,7 @@ export function AttendeeAvatarStack({
       </XStack>
 
       {/* Summary text */}
-      {summaryText && (
-        <Text fontWeight="500" fontSize={14}>
-          {summaryText}
-        </Text>
-      )}
+      {summaryText && <Text fontSize={14}>{summaryText}</Text>}
     </XStack>
   );
 }

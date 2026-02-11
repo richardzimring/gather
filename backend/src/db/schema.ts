@@ -455,6 +455,21 @@ export const calendarEventsCacheRelations = relations(calendarEventsCache, ({ on
 }));
 
 // ============================================
+// Emoji Cache Table
+// ============================================
+
+export const emojiCache = pgTable(
+  'emoji_cache',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    text: text('text').notNull(),
+    emoji: text('emoji').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('emoji_cache_text_idx').on(table.text)],
+);
+
+// ============================================
 // Type Exports
 // ============================================
 
@@ -490,3 +505,6 @@ export type NewCalendarEventCache = typeof calendarEventsCache.$inferInsert;
 
 export type Location = typeof locations.$inferSelect;
 export type NewLocation = typeof locations.$inferInsert;
+
+export type EmojiCache = typeof emojiCache.$inferSelect;
+export type NewEmojiCache = typeof emojiCache.$inferInsert;

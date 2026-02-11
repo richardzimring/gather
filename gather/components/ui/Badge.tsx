@@ -1,73 +1,74 @@
-import { styled, Text, XStack, GetProps } from 'tamagui'
+import { styled, Text, XStack, GetProps } from "tamagui";
 
 /**
  * Badge text component with proper styling
  */
 const BadgeText = styled(Text, {
-  name: 'BadgeText',
+  name: "BadgeText",
   fontSize: 11,
-  fontWeight: '600',
-})
+  fontWeight: "600",
+});
 
 /**
  * Badge component for labels and status indicators.
  * Supports multiple color variants for different contexts.
  */
 export const Badge = styled(XStack, {
-  name: 'Badge',
-  paddingHorizontal: '$2',
+  name: "Badge",
+  paddingHorizontal: "$2",
   paddingVertical: 2,
-  borderRadius: '$3',
-  alignItems: 'center',
-  justifyContent: 'center',
+  borderRadius: "$3",
+  alignItems: "center",
+  justifyContent: "center",
 
   variants: {
     /** Color variant for different badge types */
     variant: {
       host: {
-        backgroundColor: '$purpleSubtle',
+        backgroundColor: "$purpleSubtle",
       },
       success: {
-        backgroundColor: '$successSubtle',
+        backgroundColor: "$successSubtle",
       },
       warning: {
-        backgroundColor: '$warningSubtle',
+        backgroundColor: "$warningSubtle",
       },
       error: {
-        backgroundColor: '$destructiveSubtle',
+        backgroundColor: "$destructiveSubtle",
       },
       muted: {
-        backgroundColor: '$backgroundHover',
+        backgroundColor: "$backgroundHover",
       },
     },
   } as const,
 
   defaultVariants: {
-    variant: 'muted',
+    variant: "muted",
   },
-})
+});
 
 /**
  * Convenience component that combines Badge container with text
  */
 export function BadgeLabel({
   children,
-  variant = 'muted',
+  variant = "muted",
   ...props
 }: GetProps<typeof Badge> & { children: string }) {
-  const textColor = {
-    host: '$purple',
-    success: '$success',
-    warning: '$warning',
-    error: '$error',
-    muted: '$colorMuted',
-  }[variant as string] ?? '$colorMuted'
+  const textColor =
+    {
+      host: "$purple",
+      success: "$success",
+      warning: "$warning",
+      error: "$error",
+      muted: "$colorMuted",
+    }[variant as string] ?? "$colorMuted";
 
   return (
     <Badge variant={variant} {...props}>
       <BadgeText color={textColor}>{children}</BadgeText>
     </Badge>
-  )
+  );
 }
 
-export type BadgeProps = GetProps<typeof Badge>
+export type BadgeProps = GetProps<typeof Badge>;

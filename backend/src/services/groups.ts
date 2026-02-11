@@ -1,6 +1,7 @@
 import { eq, and } from 'drizzle-orm';
 import { db, groups, groupMembers } from '../db';
 import type { Group, CreateGroup, UpdateGroup } from '../types';
+import { generateEmoji } from './emoji';
 
 // ============================================
 // Helpers
@@ -31,7 +32,10 @@ const dbGroupToGroup = async (
 // ============================================
 
 export const getGroups = async (userId: string): Promise<Group[]> => {
-  const dbGroups = await db.select().from(groups).where(eq(groups.ownerId, userId));
+  const dbGroups = await db
+    .select()
+    .from(groups)
+    .where(eq(groups.ownerId, userId));
 
   // Get all member IDs in one query for efficiency
   const groupIds = dbGroups.map((g) => g.id);
@@ -65,20 +69,30 @@ export const getGroups = async (userId: string): Promise<Group[]> => {
 };
 
 export const getGroup = async (groupId: string): Promise<Group | null> => {
-  const result = await db.select().from(groups).where(eq(groups.id, groupId)).limit(1);
+  const result = await db
+    .select()
+    .from(groups)
+    .where(eq(groups.id, groupId))
+    .limit(1);
   const group = result[0];
   if (!group) return null;
 
   return dbGroupToGroup(group);
 };
 
-export const createGroup = async (userId: string, input: CreateGroup): Promise<Group> => {
+export const createGroup = async (
+  userId: string,
+  input: CreateGroup,
+): Promise<Group> => {
+  // Generate emoji if not provided
+  const emoji = input.emoji ?? (await generateEmoji(input.name));
+
   const [newGroup] = await db
     .insert(groups)
     .values({
       ownerId: userId,
       name: input.name,
-      emoji: input.emoji,
+      emoji,
       isDefault: false,
     })
     .returning();
@@ -227,7 +241,9 @@ export const removeMemberFromGroup = async (
 
   await db
     .delete(groupMembers)
-    .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, memberId)));
+    .where(
+      and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, memberId)),
+    );
 
   return { success: true };
 };

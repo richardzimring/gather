@@ -16,6 +16,7 @@ import {
   notifyEventCancelled,
   notifyCounterProposal,
 } from './notifications';
+import { generateEmoji } from './emoji';
 
 // ============================================
 // Helpers
@@ -102,7 +103,8 @@ const getHostInfo = (hostUser: typeof users.$inferSelect | null): HostInfo => {
   }
   return {
     hostName: `${hostUser.firstName} ${hostUser.lastName}`,
-    hostInitials: `${hostUser.firstName.charAt(0)}${hostUser.lastName.charAt(0)}`.toUpperCase(),
+    hostInitials:
+      `${hostUser.firstName.charAt(0)}${hostUser.lastName.charAt(0)}`.toUpperCase(),
     hostAvatarUrl: hostUser.avatarUrl ?? undefined,
   };
 };
@@ -208,11 +210,18 @@ export const getEventsForUser = async (userId: string): Promise<Event[]> => {
 
   return eventResults.map((r) => {
     const hostInfo = getHostInfo(r.host);
-    return dbEventToEvent(r.event, inviteesByEvent.get(r.event.id) ?? [], hostInfo);
+    return dbEventToEvent(
+      r.event,
+      inviteesByEvent.get(r.event.id) ?? [],
+      hostInfo,
+    );
   });
 };
 
-export const createEvent = async (hostId: string, input: CreateEvent): Promise<Event> => {
+export const createEvent = async (
+  hostId: string,
+  input: CreateEvent,
+): Promise<Event> => {
   // Handle location data - if locationData is provided, use it; otherwise fall back to location string
   const locationName = input.locationData?.name ?? input.location;
   const locationPlaceId = input.locationData?.placeId;
@@ -220,13 +229,16 @@ export const createEvent = async (hostId: string, input: CreateEvent): Promise<E
   const latitude = input.locationData?.latitude;
   const longitude = input.locationData?.longitude;
 
+  // Generate emoji if not provided
+  const emoji = input.emoji ?? (await generateEmoji(input.title));
+
   const [newEvent] = await db
     .insert(events)
     .values({
       hostId,
       title: input.title,
       activityId: input.activityId,
-      emoji: input.emoji,
+      emoji,
       startTime: new Date(input.startTime),
       endTime: new Date(input.endTime),
       location: locationName,
@@ -300,7 +312,8 @@ export const updateEvent = async (
     updateData.title = updates.title;
   }
   if (updates.activityId !== undefined) {
-    updateData.activityId = updates.activityId === null ? null : updates.activityId;
+    updateData.activityId =
+      updates.activityId === null ? null : updates.activityId;
   }
   if (updates.emoji !== undefined) {
     updateData.emoji = updates.emoji === null ? null : updates.emoji;
@@ -421,20 +434,30 @@ export const respondToEvent = async (
     updateData.counterProposalEndTime = responseData.counterProposal.endTime
       ? new Date(responseData.counterProposal.endTime)
       : null;
-    updateData.counterProposalLocation = responseData.counterProposal.location ?? null;
-    updateData.counterProposalActivityId = responseData.counterProposal.activityId ?? null;
-    updateData.counterProposalMessage = responseData.counterProposal.message ?? null;
+    updateData.counterProposalLocation =
+      responseData.counterProposal.location ?? null;
+    updateData.counterProposalActivityId =
+      responseData.counterProposal.activityId ?? null;
+    updateData.counterProposalMessage =
+      responseData.counterProposal.message ?? null;
   }
 
   await db
     .update(eventInvitees)
     .set(updateData)
-    .where(and(eq(eventInvitees.eventId, eventId), eq(eventInvitees.userId, userId)));
+    .where(
+      and(eq(eventInvitees.eventId, eventId), eq(eventInvitees.userId, userId)),
+    );
 
   // Notify the host of the response
   const responder = await getUserById(userId);
   if (responder) {
-    await notifyEventResponse(event.hostId, event, responder.fullName, responseData.status);
+    await notifyEventResponse(
+      event.hostId,
+      event,
+      responder.fullName,
+      responseData.status,
+    );
 
     // If there's a counter proposal, send additional notification
     if (responseData.counterProposal) {
@@ -445,8 +468,12 @@ export const respondToEvent = async (
   // Update event status based on invitee responses
   const updatedEvent = await getEvent(eventId);
   if (updatedEvent) {
-    const allResponded = updatedEvent.invitees.every((i) => i.status !== 'pending');
-    const allAccepted = updatedEvent.invitees.every((i) => i.status === 'accepted');
+    const allResponded = updatedEvent.invitees.every(
+      (i) => i.status !== 'pending',
+    );
+    const allAccepted = updatedEvent.invitees.every(
+      (i) => i.status === 'accepted',
+    );
 
     if (allResponded && allAccepted && updatedEvent.status === 'sent') {
       // All invitees accepted - mark event as confirmed

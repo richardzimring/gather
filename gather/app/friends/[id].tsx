@@ -1,10 +1,6 @@
-import {
-  Calendar,
-  MoreHorizontal,
-  UserMinus,
-} from '@tamagui/lucide-icons'
-import { router, useLocalSearchParams } from 'expo-router'
-import { Alert } from 'react-native'
+import { Calendar, MoreHorizontal, UserMinus } from "@tamagui/lucide-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { Alert } from "react-native";
 import {
   Circle,
   H1,
@@ -15,106 +11,116 @@ import {
   XStack,
   YStack,
   Sheet,
-} from 'tamagui'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useMemo, useState } from 'react'
+} from "tamagui";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useMemo, useState } from "react";
 
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
-import { BackHeader } from '../../components/ui/ScreenHeader'
-import { useFriends, useRemoveFriend, useFriendsAvailability, useEvents } from '../../lib/hooks'
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
+import { BackHeader } from "../../components/ui/ScreenHeader";
+import {
+  useFriends,
+  useRemoveFriend,
+  useFriendsAvailability,
+  useEvents,
+} from "../../lib/hooks";
 
 /**
  * Format date for display
  */
 function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 /**
  * Format time for display
  */
 function formatTime(dateString: string): string {
-  const date = new Date(dateString)
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  })
+  const date = new Date(dateString);
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 export default function FriendProfileScreen() {
-  const insets = useSafeAreaInsets()
-  const { id } = useLocalSearchParams<{ id: string }>()
-  const [showActionSheet, setShowActionSheet] = useState(false)
+  const insets = useSafeAreaInsets();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [showActionSheet, setShowActionSheet] = useState(false);
 
-  const { data: friendsData, isLoading } = useFriends()
-  const { data: availability } = useFriendsAvailability()
-  const { data: events } = useEvents()
-  const removeFriend = useRemoveFriend()
+  const { data: friendsData, isLoading } = useFriends();
+  const { data: availability } = useFriendsAvailability();
+  const { data: events } = useEvents();
+  const removeFriend = useRemoveFriend();
 
   // Find the specific friend
   const friend = useMemo(() => {
-    if (!friendsData?.friends || !id) return null
-    return friendsData.friends.find((f) => f.friendId === id) ?? null
-  }, [friendsData, id])
+    if (!friendsData?.friends || !id) return null;
+    return friendsData.friends.find((f) => f.friendId === id) ?? null;
+  }, [friendsData, id]);
 
   // Get this friend's availability
   const friendAvailability = useMemo(() => {
-    if (!availability || !id) return []
-    const friendData = availability.find((a) => a.userId === id)
-    return friendData?.windows ?? []
-  }, [availability, id])
+    if (!availability || !id) return [];
+    const friendData = availability.find((a) => a.userId === id);
+    return friendData?.windows ?? [];
+  }, [availability, id]);
 
   // Get shared events with this friend
   const sharedEvents = useMemo(() => {
-    if (!events || !id) return []
+    if (!events || !id) return [];
     return events.filter(
       (event) =>
         event.invitees.some((i) => i.userId === id) &&
-        event.status !== 'cancelled'
-    )
-  }, [events, id])
+        event.status !== "cancelled"
+    );
+  }, [events, id]);
 
   const handleRemoveFriend = () => {
     Alert.alert(
-      'Remove Friend',
-      'Are you sure you want to remove this friend? This action cannot be undone.',
+      "Remove Friend",
+      "Are you sure you want to remove this friend? This action cannot be undone.",
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Remove',
-          style: 'destructive',
+          text: "Remove",
+          style: "destructive",
           onPress: async () => {
-            if (!id) return
-            setShowActionSheet(false) // Close sheet to show loading feedback
+            if (!id) return;
+            setShowActionSheet(false); // Close sheet to show loading feedback
             try {
-              await removeFriend.mutateAsync(id)
-              router.back()
+              await removeFriend.mutateAsync(id);
+              router.back();
             } catch (err) {
-              console.error('Failed to remove friend:', err)
+              console.error("Failed to remove friend:", err);
             }
           },
         },
       ]
-    )
-  }
+    );
+  };
 
   const handleInviteToEvent = () => {
-    setShowActionSheet(false)
-    router.push('/events/create')
-  }
+    setShowActionSheet(false);
+    router.push("/events/create");
+  };
 
   if (isLoading) {
     return (
-      <YStack flex={1} backgroundColor="$background" alignItems="center" justifyContent="center">
+      <YStack
+        flex={1}
+        backgroundColor="$background"
+        alignItems="center"
+        justifyContent="center"
+      >
         <Spinner size="large" color="$color" />
       </YStack>
-    )
+    );
   }
 
   if (!friend) {
@@ -135,15 +141,19 @@ export default function FriendProfileScreen() {
         <Text color="$colorMuted" textAlign="center" marginTop="$2">
           This person may no longer be in your friends list.
         </Text>
-        <Button variant="secondary" marginTop="$4" onPress={() => router.back()}>
+        <Button
+          variant="secondary"
+          marginTop="$4"
+          onPress={() => router.back()}
+        >
           Go Back
         </Button>
       </YStack>
-    )
+    );
   }
 
-  const displayName = friend.friend.fullName
-  const initials = friend.friend.initials
+  const displayName = friend.friend.fullName;
+  const initials = friend.friend.initials;
 
   return (
     <YStack flex={1} backgroundColor="$background">
@@ -228,7 +238,9 @@ export default function FriendProfileScreen() {
                           Available
                         </Text>
                         <Text color="$colorMuted" fontSize={12}>
-                          {formatDate(window.startTime)} • {formatTime(window.startTime)} - {formatTime(window.endTime)}
+                          {formatDate(window.startTime)} •{" "}
+                          {formatTime(window.startTime)} -{" "}
+                          {formatTime(window.endTime)}
                         </Text>
                       </YStack>
                     </XStack>
@@ -264,12 +276,13 @@ export default function FriendProfileScreen() {
                   >
                     <XStack alignItems="center" gap="$3">
                       <Circle size={44} backgroundColor="$backgroundHover">
-                        <Text fontSize={20}>{event.emoji ?? '📅'}</Text>
+                        <Text fontSize={20}>{event.emoji ?? "📅"}</Text>
                       </Circle>
                       <YStack flex={1}>
                         <Text fontWeight="600">{event.title}</Text>
                         <Text color="$colorMuted" fontSize={13}>
-                          {formatDate(event.startTime)} at {formatTime(event.startTime)}
+                          {formatDate(event.startTime)} at{" "}
+                          {formatTime(event.startTime)}
                         </Text>
                       </YStack>
                     </XStack>
@@ -303,7 +316,11 @@ export default function FriendProfileScreen() {
             <Button
               variant="destructive"
               fullWidth
-              icon={removeFriend.isPending ? undefined : <UserMinus size={16} color="$destructiveForeground" />}
+              icon={
+                removeFriend.isPending ? undefined : (
+                  <UserMinus size={16} color="$destructiveForeground" />
+                )
+              }
               onPress={handleRemoveFriend}
               loading={removeFriend.isPending}
               loadingText="Removing..."
@@ -321,5 +338,5 @@ export default function FriendProfileScreen() {
         </Sheet.Frame>
       </Sheet>
     </YStack>
-  )
+  );
 }

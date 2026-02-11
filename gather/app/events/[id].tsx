@@ -239,16 +239,16 @@ export default function EventDetailScreen() {
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
-          paddingBottom: showBottomBar
-            ? insets.bottom + 140
-            : insets.bottom + 100,
+          paddingBottom: showBottomBar ? insets.bottom + 100 : insets.bottom,
           paddingHorizontal: 16,
         }}
       >
         {/* Header */}
         <BackHeader
           title={event.title}
-          subtitle={`Hosted by ${isHost ? "you" : event.hostName}${event.status === "cancelled" ? " · Cancelled" : ""}`}
+          subtitle={`Hosted by ${isHost ? "you" : event.hostName}${
+            event.status === "cancelled" ? " · Cancelled" : ""
+          }`}
           marginBottom="$4"
           rightAction={
             isHost ? (

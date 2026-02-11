@@ -128,7 +128,7 @@ export const ActivitySchema = z
 export const CreateActivitySchema = z
   .object({
     name: z.string().min(1).max(50).openapi({ example: 'Board Games' }),
-    emoji: z.string().min(1).max(4).openapi({ example: '🎲' }),
+    emoji: z.string().min(1).max(4).optional().openapi({ example: '🎲' }),
   })
   .openapi('CreateActivity');
 

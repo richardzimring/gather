@@ -1,6 +1,6 @@
 import { Linking, Platform } from "react-native";
 import MapView, { Marker, PROVIDER_DEFAULT } from "react-native-maps";
-import { YStack, Text } from "tamagui";
+import { YStack } from "tamagui";
 
 export interface MapPreviewProps {
   latitude: number;
@@ -66,20 +66,6 @@ export function MapPreview({
           description={address}
         />
       </MapView>
-      {/* {!interactive && (
-        <YStack
-          position="absolute"
-          bottom={0}
-          left={0}
-          right={0}
-          padding="$2"
-          backgroundColor="rgba(0,0,0,0.5)"
-        >
-          <Text color="white" fontSize={12} textAlign="center">
-            Tap to open in Maps
-          </Text>
-        </YStack>
-      )} */}
     </YStack>
   );
 }

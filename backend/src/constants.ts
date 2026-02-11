@@ -9,7 +9,10 @@ const getEnvironmentVariable = (param: string): string => {
 // AWS Configuration
 export const REGION = getEnvironmentVariable('REGION');
 export const STAGE = getEnvironmentVariable('STAGE');
-export const PG_CONNECTION_STRING = getEnvironmentVariable('PG_CONNECTION_STRING');
+export const PG_CONNECTION_STRING = getEnvironmentVariable(
+  'PG_CONNECTION_STRING',
+);
+export const GEMINI_API_KEY = getEnvironmentVariable('GEMINI_API_KEY');
 
 // Apple Sign In Configuration
 // Bundle ID for verifying Apple identity tokens

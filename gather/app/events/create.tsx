@@ -25,7 +25,6 @@ import { MapPreview } from "../../components/ui/MapPreview";
 import {
   useCreateEvent,
   useFriends,
-  useActivities,
   useGroups,
 } from "../../lib/hooks";
 import type { Group, CommitmentType, LocationData } from "../../lib/api/generated/types.gen";
@@ -56,7 +55,6 @@ export default function CreateEventScreen() {
   const themeVariant = colorScheme === 'light' ? 'light' as const : 'dark' as const;
   const createEvent = useCreateEvent();
   const { data: friendsData } = useFriends();
-  const { data: activities } = useActivities();
   const { data: groups } = useGroups();
 
   const [title, setTitle] = useState("");
@@ -64,12 +62,10 @@ export default function CreateEventScreen() {
   const [notes, setNotes] = useState("");
   const [startTime, setStartTime] = useState(new Date());
   const [endTime, setEndTime] = useState(new Date(Date.now() + 60 * 60 * 1000)); // +1 hour
-  const [selectedEmoji, setSelectedEmoji] = useState("🎉");
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [commitmentType, setCommitmentType] = useState<CommitmentType>("going");
 
   const friends = friendsData?.friends ?? [];
-  const activityList = activities ?? [];
 
   // Filter groups that have members
   const availableGroups = useMemo(() => {
@@ -82,7 +78,6 @@ export default function CreateEventScreen() {
     try {
       await createEvent.mutateAsync({
         title: title.trim(),
-        emoji: selectedEmoji,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
         locationData: locationData ?? undefined,
@@ -235,48 +230,6 @@ export default function CreateEventScreen() {
                 </Text>
               </YStack>
             </XStack>
-          </Card>
-        </Theme>
-
-        {/* Activity/Emoji Selection */}
-        <Theme name="Card">
-          <Card marginBottom="$4">
-            <Text fontWeight="500" fontSize={14} marginBottom="$3">
-              What are you doing?
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <XStack gap="$2">
-                {activityList.map((activity, index) => (
-                  <YStack
-                    key={activity.emoji + index}
-                    alignItems="center"
-                    paddingVertical="$2"
-                    paddingHorizontal="$3"
-                    backgroundColor={
-                      selectedEmoji === activity.emoji
-                        ? "$primary"
-                        : "$backgroundHover"
-                    }
-                    borderRadius="$2"
-                    pressStyle={{ scale: 0.98 }}
-                    onPress={() => setSelectedEmoji(activity.emoji)}
-                  >
-                    <Text fontSize={20}>{activity.emoji}</Text>
-                    <Text
-                      fontSize={10}
-                      color={
-                        selectedEmoji === activity.emoji
-                          ? "$primaryForeground"
-                          : "$colorMuted"
-                      }
-                      marginTop="$1"
-                    >
-                      {activity.name}
-                    </Text>
-                  </YStack>
-                ))}
-              </XStack>
-            </ScrollView>
           </Card>
         </Theme>
 

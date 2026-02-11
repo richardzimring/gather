@@ -169,8 +169,7 @@
           }
         },
         "required": [
-          "name",
-          "emoji"
+          "name"
         ]
       },
       "UpdateActivity": {
