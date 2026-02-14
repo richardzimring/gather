@@ -99,7 +99,13 @@ export default function CreateBlockedScreen() {
                 size="$3"
                 checked={isRecurring}
                 onCheckedChange={setIsRecurring}
-              />
+                backgroundColor={isRecurring ? '$primary' : '$backgroundHover'}
+              >
+                <Switch.Thumb
+                  animation="quick"
+                  backgroundColor={isRecurring ? '$primaryForeground' : '$color'}
+                />
+              </Switch>
             </XStack>
 
             {isRecurring && (

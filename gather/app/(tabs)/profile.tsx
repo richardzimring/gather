@@ -24,6 +24,7 @@ import {
   Circle,
   Theme,
   Switch,
+  useTheme,
 } from "tamagui";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -87,6 +88,7 @@ function SettingsItem({
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
   const { user, signOut } = useAuth();
   const inviteCodeQuery = useInviteCode();
   const { data: inviteCodeData } = inviteCodeQuery;
@@ -174,21 +176,31 @@ export default function ProfileScreen() {
 
   return (
     <YStack flex={1} backgroundColor="$background">
+      {/* Fixed header area */}
+      <YStack
+        paddingTop={insets.top + 16}
+        paddingHorizontal={16}
+        paddingBottom="$3"
+      >
+        <H1 fontSize={28} fontWeight="700">
+          Profile
+        </H1>
+      </YStack>
+
       <ScrollView
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.color.val}
+            colors={[theme.color.val]}
+          />
         }
         contentContainerStyle={{
-          paddingTop: insets.top + 16,
           paddingBottom: insets.bottom + 100,
           paddingHorizontal: 16,
         }}
       >
-        {/* Header */}
-        <H1 fontSize={28} fontWeight="700" marginBottom="$4">
-          Profile
-        </H1>
-
         {/* Profile Card */}
         <Theme name="Card">
           <Card marginBottom="$4">
@@ -346,7 +358,13 @@ export default function ProfileScreen() {
                             connection.importEnabled
                           )
                         }
-                      />
+                        backgroundColor={connection.importEnabled ? '$primary' : '$backgroundHover'}
+                      >
+                        <Switch.Thumb
+                          animation="quick"
+                          backgroundColor={connection.importEnabled ? '$primaryForeground' : '$color'}
+                        />
+                      </Switch>
                     </XStack>
                     <XStack justifyContent="space-between" alignItems="center">
                       <Text fontSize={13}>Export (write events)</Text>
@@ -359,7 +377,13 @@ export default function ProfileScreen() {
                             connection.exportEnabled
                           )
                         }
-                      />
+                        backgroundColor={connection.exportEnabled ? '$primary' : '$backgroundHover'}
+                      >
+                        <Switch.Thumb
+                          animation="quick"
+                          backgroundColor={connection.exportEnabled ? '$primaryForeground' : '$color'}
+                        />
+                      </Switch>
                     </XStack>
                   </YStack>
                 ))}

@@ -11,6 +11,7 @@ import {
   YStack,
   Circle,
   Theme,
+  useTheme,
 } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
@@ -33,6 +34,7 @@ import {
 
 export default function FriendsScreen() {
   const insets = useSafeAreaInsets()
+  const theme = useTheme()
   const [activeTab, setActiveTab] = useState('friends')
   const [searchQuery, setSearchQuery] = useState('')
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null)
@@ -224,7 +226,12 @@ export default function FriendsScreen() {
       {/* Scrollable tab content */}
       <ScrollView
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.color.val}
+            colors={[theme.color.val]}
+          />
         }
         contentContainerStyle={{
           paddingBottom: insets.bottom + 100,

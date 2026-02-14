@@ -51,8 +51,12 @@ function NotificationSetting({
         size="$3"
         checked={value}
         onCheckedChange={onToggle}
+        backgroundColor={value ? '$primary' : '$backgroundHover'}
       >
-        <Switch.Thumb animation="quick" />
+        <Switch.Thumb
+          animation="quick"
+          backgroundColor={value ? '$primaryForeground' : '$color'}
+        />
       </Switch>
     </XStack>
   )

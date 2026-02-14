@@ -143,11 +143,14 @@ export function Button({
       ? "$primaryForeground"
       : "$color";
 
+  const isDisabled = (disabled || loading) ?? false;
+
   return (
     <StyledButton
       onPress={handlePress}
-      disabled={disabled || loading}
+      disabled={isDisabled}
       variant={variant}
+      opacity={isDisabled && !loading ? 0.5 : 1}
       {...props}
     >
       {loading ? (
