@@ -249,7 +249,6 @@ export type Event = {
     invitees: Array<EventInvitee>;
     showInviteList?: boolean;
     status: EventStatus;
-    commitmentType?: CommitmentType;
     calendarEventId?: string;
     createdAt: string;
     updatedAt: string;
@@ -277,8 +276,6 @@ export type CounterProposal = {
 
 export type EventStatus = 'draft' | 'sent' | 'confirmed' | 'cancelled';
 
-export type CommitmentType = 'going' | 'planning';
-
 export type SingleEventResponse = {
     success: true;
     data: {
@@ -298,7 +295,6 @@ export type CreateEvent = {
     notes?: string;
     inviteeIds: Array<string>;
     showInviteList?: boolean;
-    commitmentType?: CommitmentType;
     recurring?: EventRecurring;
 };
 

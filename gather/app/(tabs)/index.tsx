@@ -11,16 +11,16 @@ import {
   YStack,
   Circle,
   Theme,
+  useTheme,
 } from "tamagui";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
-  AttendeeAvatarStack,
   type AvatarStackPerson,
 } from "../../components/ui/AttendeeAvatarStack";
-import { BadgeLabel } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { EventCard } from "../../components/ui/EventCard";
 import { GlassButton } from "../../components/ui/GlassFAB";
 import { useAuth } from "../../lib/hooks/useAuth";
 import { useEvents, useRefresh } from "../../lib/hooks";
@@ -209,7 +209,6 @@ interface EventData {
   endTime: string;
   location?: string | null;
   status: string;
-  commitmentType?: "going" | "planning";
   invitees: {
     userId: string;
     fullName: string;
@@ -221,6 +220,7 @@ interface EventData {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
   const { user } = useAuth();
   const eventsQuery = useEvents();
   const { data: events } = eventsQuery;
@@ -286,7 +286,7 @@ export default function HomeScreen() {
   };
 
   const navigateToCreate = () => {
-    router.push("/events/create");
+    router.push("/(tabs)/plan");
   };
 
   // Check if user has pending invitation for this event
@@ -301,15 +301,11 @@ export default function HomeScreen() {
 
   return (
     <YStack flex={1} backgroundColor="$background">
-      <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-        }
-        contentContainerStyle={{
-          paddingTop: insets.top + greetingPadding,
-          paddingBottom: insets.bottom + 100,
-          paddingHorizontal: 16,
-        }}
+      {/* Fixed header area */}
+      <YStack
+        paddingTop={insets.top + greetingPadding}
+        paddingHorizontal={16}
+        paddingBottom="$3"
       >
         {/* Greeting */}
         <Text fontSize={14} color="$colorMuted" marginBottom={-greetingPadding}>
@@ -320,7 +316,6 @@ export default function HomeScreen() {
         <XStack
           justifyContent="space-between"
           alignItems="center"
-          marginBottom="$3"
         >
           <H1 fontSize={28} fontWeight="700">
             Events
@@ -330,7 +325,22 @@ export default function HomeScreen() {
             onPress={navigateToCreate}
           />
         </XStack>
+      </YStack>
 
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.color.val}
+            colors={[theme.color.val]}
+          />
+        }
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + 100,
+          paddingHorizontal: 16,
+        }}
+      >
         {/* Events Timeline */}
         <YStack gap="$5">
           {sectionOrder.map((section) => {
@@ -391,77 +401,21 @@ export default function HomeScreen() {
                       const avatarPeople = buildAvatarStackPeople(event);
 
                       return (
-                        <Theme key={event.eventId} name="Card">
-                          <Card
-                            pressable
-                            onPress={() => navigateToEvent(event.eventId)}
-                            outlined={isPending}
-                          >
-                            <YStack gap="$3">
-                              {/* Event header row */}
-                              <XStack alignItems="center" gap="$3">
-                                <Circle
-                                  size={44}
-                                  backgroundColor="$backgroundHover"
-                                >
-                                  <Text fontSize={24}>
-                                    {event.emoji ?? "📅"}
-                                  </Text>
-                                </Circle>
-                                <YStack flex={1} gap="$1">
-                                  <XStack alignItems="center" gap="$2">
-                                    <Text fontWeight="600" fontSize={16}>
-                                      {event.title}
-                                    </Text>
-                                    {isHost && (
-                                      <BadgeLabel variant="host">
-                                        Host
-                                      </BadgeLabel>
-                                    )}
-                                  </XStack>
-                                  <Text color="$colorMuted" fontSize={14}>
-                                    {formatRelativeDate(event.startTime)}
-                                  </Text>
-                                  {event.location && (
-                                    <Text
-                                      color="$colorMuted"
-                                      fontSize={13}
-                                      numberOfLines={1}
-                                    >
-                                      {event.location}
-                                    </Text>
-                                  )}
-                                </YStack>
-                              </XStack>
-
-                              {/* Attendees info with optional Respond button */}
-                              <XStack
-                                alignItems="center"
-                                justifyContent="space-between"
-                              >
-                                <AttendeeAvatarStack
-                                  people={avatarPeople}
-                                  maxVisible={4}
-                                  avatarSize={35}
-                                  overlap={6}
-                                  summaryText={getAttendeeSummary(event)}
-                                  showStatus={true}
-                                />
-                                {isPending && (
-                                  <Button
-                                    variant="primary"
-                                    buttonSize="sm"
-                                    onPress={() =>
-                                      navigateToEvent(event.eventId)
-                                    }
-                                  >
-                                    Respond
-                                  </Button>
-                                )}
-                              </XStack>
-                            </YStack>
-                          </Card>
-                        </Theme>
+                        <EventCard
+                          key={event.eventId}
+                          title={event.title}
+                          emoji={event.emoji}
+                          timeLabel={formatRelativeDate(event.startTime)}
+                          location={event.location}
+                          isHost={isHost}
+                          isPending={isPending}
+                          people={avatarPeople}
+                          attendeeSummary={getAttendeeSummary(event)}
+                          showAvatarStatus={true}
+                          onPress={() => navigateToEvent(event.eventId)}
+                          showRespondButton={isPending}
+                          onRespondPress={() => navigateToEvent(event.eventId)}
+                        />
                       );
                     })}
                   </YStack>

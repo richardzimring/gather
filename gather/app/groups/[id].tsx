@@ -170,7 +170,7 @@ export default function GroupDetailScreen() {
 
   const handleInviteGroupToEvent = () => {
     setShowActionSheet(false);
-    router.push("/events/create");
+    router.push("/(tabs)/plan");
   };
 
   if (isLoading) {

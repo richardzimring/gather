@@ -121,7 +121,7 @@ export default function FriendProfileScreen() {
 
   const handleInviteToEvent = () => {
     setShowActionSheet(false);
-    router.push("/events/create");
+    router.push("/(tabs)/plan");
   };
 
   if (isLoading) {
