@@ -90,7 +90,6 @@ const dbEventToEvent = (
     invitees,
     showInviteList: dbEvent.showInviteList,
     status: dbEvent.status,
-    commitmentType: dbEvent.commitmentType,
     calendarEventId: dbEvent.calendarEventId ?? undefined,
     createdAt: dbEvent.createdAt.toISOString(),
     updatedAt: dbEvent.updatedAt.toISOString(),
@@ -249,7 +248,6 @@ export const createEvent = async (
       notes: input.notes,
       showInviteList: input.showInviteList ?? true,
       status: 'sent',
-      commitmentType: input.commitmentType ?? 'going',
     })
     .returning();
 

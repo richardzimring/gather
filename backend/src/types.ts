@@ -183,7 +183,6 @@ export const UpdateBlockedWindowSchema = z
 // Event schemas
 export const InviteeStatusSchema = z.enum(['pending', 'accepted', 'declined', 'maybe']).openapi('InviteeStatus');
 export const EventStatusSchema = z.enum(['draft', 'sent', 'confirmed', 'cancelled']).openapi('EventStatus');
-export const CommitmentTypeSchema = z.enum(['going', 'planning']).openapi('CommitmentType');
 
 export const LocationDataSchema = z
   .object({
@@ -238,7 +237,6 @@ export const EventSchema = z
     invitees: z.array(EventInviteeSchema),
     showInviteList: z.boolean().default(true).openapi({ example: true }),
     status: EventStatusSchema,
-    commitmentType: CommitmentTypeSchema.default('going').openapi({ example: 'going' }),
     calendarEventId: z.string().optional().openapi({ example: 'google_calendar_event_123' }),
     createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
     updatedAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
@@ -266,7 +264,6 @@ export const CreateEventSchema = z
     notes: z.string().max(500).optional().openapi({ example: 'Looking forward to catching up!' }),
     inviteeIds: z.array(z.string().uuid()).openapi({ example: [EXAMPLE_UUID_2] }),
     showInviteList: z.boolean().default(true).openapi({ example: true }),
-    commitmentType: CommitmentTypeSchema.default('going').openapi({ example: 'going' }),
     recurring: EventRecurringSchema.optional(),
   })
   .openapi('CreateEvent');
@@ -357,7 +354,6 @@ export type UpdateBlockedWindow = z.infer<typeof UpdateBlockedWindowSchema>;
 
 export type InviteeStatus = z.infer<typeof InviteeStatusSchema>;
 export type EventStatus = z.infer<typeof EventStatusSchema>;
-export type CommitmentType = z.infer<typeof CommitmentTypeSchema>;
 export type CounterProposal = z.infer<typeof CounterProposalSchema>;
 export type LocationData = z.infer<typeof LocationDataSchema>;
 export type EventRecurring = z.infer<typeof EventRecurringSchema>;

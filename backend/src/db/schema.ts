@@ -44,11 +44,6 @@ export const recurringPatternEnum = pgEnum('recurring_pattern', [
   'monthly',
 ]);
 
-export const commitmentTypeEnum = pgEnum('commitment_type', [
-  'going',
-  'planning',
-]);
-
 export const calendarProviderEnum = pgEnum('calendar_provider', [
   'apple',
   'google',
@@ -284,7 +279,6 @@ export const events = pgTable(
     notes: text('notes'),
     showInviteList: boolean('show_invite_list').notNull().default(true),
     status: eventStatusEnum('status').notNull().default('sent'),
-    commitmentType: commitmentTypeEnum('commitment_type').notNull().default('going'),
     // Recurring event fields
     isRecurring: boolean('is_recurring').notNull().default(false),
     recurringPattern: recurringPatternEnum('event_recurring_pattern'),

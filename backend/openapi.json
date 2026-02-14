@@ -1025,9 +1025,6 @@
           "status": {
             "$ref": "#/components/schemas/EventStatus"
           },
-          "commitmentType": {
-            "$ref": "#/components/schemas/CommitmentType"
-          },
           "calendarEventId": {
             "type": "string",
             "example": "google_calendar_event_123"
@@ -1145,15 +1142,6 @@
           "cancelled"
         ]
       },
-      "CommitmentType": {
-        "type": "string",
-        "enum": [
-          "going",
-          "planning"
-        ],
-        "default": "going",
-        "example": "going"
-      },
       "SingleEventResponse": {
         "type": "object",
         "properties": {
@@ -1238,9 +1226,6 @@
             "type": "boolean",
             "default": true,
             "example": true
-          },
-          "commitmentType": {
-            "$ref": "#/components/schemas/CommitmentType"
           },
           "recurring": {
             "$ref": "#/components/schemas/EventRecurring"

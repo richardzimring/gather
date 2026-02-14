@@ -1,9 +1,5 @@
 import { createRoute, z } from '@hono/zod-openapi';
-import {
-  createApp,
-  handle,
-  authMiddleware,
-} from '../src/middleware/hono';
+import { createApp, handle, authMiddleware } from '../src/middleware/hono';
 import {
   EventSchema,
   CreateEventSchema,
@@ -142,7 +138,10 @@ const getEventRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      eventId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      eventId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
@@ -198,7 +197,10 @@ const updateEventRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      eventId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      eventId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
     body: {
       content: {
@@ -254,7 +256,10 @@ const deleteEventRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      eventId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      eventId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
@@ -306,7 +311,10 @@ const respondToEventRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      eventId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      eventId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
     body: {
       content: {
