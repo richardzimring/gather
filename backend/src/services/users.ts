@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 import { eq, ilike, or, and, ne } from 'drizzle-orm';
 import { db, users, groups, activities } from '../db';
-import type { User, CreateUser, UpdateUser } from '../types';
+import type { User, CreateUser, UpdateUser, NotificationPreferences, UpdateNotificationPreferences } from '../types';
 import { DEFAULT_GROUPS, DEFAULT_ACTIVITIES, INVITE_CODE_LENGTH } from '../constants';
 
 // ============================================
@@ -143,6 +143,48 @@ export const updateUser = async (userId: string, updates: UpdateUser): Promise<U
 
 export const updatePushToken = async (userId: string, pushToken: string): Promise<void> => {
   await db.update(users).set({ pushToken }).where(eq(users.id, userId));
+};
+
+const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  eventInvites: true,
+  eventUpdates: true,
+  friendRequests: true,
+  groupInvites: true,
+  messages: true,
+};
+
+export const getNotificationPreferences = async (userId: string): Promise<NotificationPreferences> => {
+  const result = await db
+    .select({ notificationPreferences: users.notificationPreferences })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  const user = result[0];
+  if (!user?.notificationPreferences) {
+    return DEFAULT_NOTIFICATION_PREFERENCES;
+  }
+
+  return {
+    ...DEFAULT_NOTIFICATION_PREFERENCES,
+    ...(user.notificationPreferences as Partial<NotificationPreferences>),
+  };
+};
+
+export const updateNotificationPreferences = async (
+  userId: string,
+  updates: UpdateNotificationPreferences,
+): Promise<NotificationPreferences> => {
+  // Get current preferences
+  const current = await getNotificationPreferences(userId);
+  const merged = { ...current, ...updates };
+
+  await db
+    .update(users)
+    .set({ notificationPreferences: merged })
+    .where(eq(users.id, userId));
+
+  return merged;
 };
 
 export const deleteUser = async (userId: string): Promise<void> => {

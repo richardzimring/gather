@@ -7,6 +7,7 @@ import { Circle, H1, Text, XStack, YStack } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '../../components/ui/Button'
+import { registerPushTokenAsync } from '../../lib/hooks/useNotifications'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
@@ -84,6 +85,8 @@ export default function OnboardingScreen() {
       const { status } = await Notifications.requestPermissionsAsync()
       if (status === 'granted') {
         setNotificationsEnabled(true)
+        // Register push token immediately after permission is granted
+        registerPushTokenAsync().catch(console.error)
       }
     }
     router.replace('/(tabs)')
@@ -92,6 +95,10 @@ export default function OnboardingScreen() {
   const handleEnableNotifications = async () => {
     const { status } = await Notifications.requestPermissionsAsync()
     setNotificationsEnabled(status === 'granted')
+    if (status === 'granted') {
+      // Register push token immediately after permission is granted
+      registerPushTokenAsync().catch(console.error)
+    }
   }
 
   const renderSlide = ({ item }: { item: OnboardingSlide }) => (

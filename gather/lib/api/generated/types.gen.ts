@@ -462,6 +462,28 @@ export type RegisterPushToken = {
     pushToken: string;
 };
 
+export type NotificationPreferencesResponse = {
+    success: true;
+    data: NotificationPreferences;
+    message?: string;
+};
+
+export type NotificationPreferences = {
+    eventInvites?: boolean;
+    eventUpdates?: boolean;
+    friendRequests?: boolean;
+    groupInvites?: boolean;
+    messages?: boolean;
+};
+
+export type UpdateNotificationPreferences = {
+    eventInvites?: boolean;
+    eventUpdates?: boolean;
+    friendRequests?: boolean;
+    groupInvites?: boolean;
+    messages?: boolean;
+};
+
 export type GetActivitiesData = {
     body?: never;
     path?: never;
@@ -1789,3 +1811,65 @@ export type PostUsersMePushTokenResponses = {
 };
 
 export type PostUsersMePushTokenResponse = PostUsersMePushTokenResponses[keyof PostUsersMePushTokenResponses];
+
+export type GetUsersMeNotificationPreferencesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/users/me/notification-preferences';
+};
+
+export type GetUsersMeNotificationPreferencesErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type GetUsersMeNotificationPreferencesError = GetUsersMeNotificationPreferencesErrors[keyof GetUsersMeNotificationPreferencesErrors];
+
+export type GetUsersMeNotificationPreferencesResponses = {
+    /**
+     * Notification preferences retrieved successfully
+     */
+    200: NotificationPreferencesResponse;
+};
+
+export type GetUsersMeNotificationPreferencesResponse = GetUsersMeNotificationPreferencesResponses[keyof GetUsersMeNotificationPreferencesResponses];
+
+export type PutUsersMeNotificationPreferencesData = {
+    body: UpdateNotificationPreferences;
+    path?: never;
+    query?: never;
+    url: '/users/me/notification-preferences';
+};
+
+export type PutUsersMeNotificationPreferencesErrors = {
+    /**
+     * Validation error
+     */
+    400: ErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PutUsersMeNotificationPreferencesError = PutUsersMeNotificationPreferencesErrors[keyof PutUsersMeNotificationPreferencesErrors];
+
+export type PutUsersMeNotificationPreferencesResponses = {
+    /**
+     * Notification preferences updated successfully
+     */
+    200: NotificationPreferencesResponse;
+};
+
+export type PutUsersMeNotificationPreferencesResponse = PutUsersMeNotificationPreferencesResponses[keyof PutUsersMeNotificationPreferencesResponses];

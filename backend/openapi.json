@@ -1903,6 +1903,82 @@
         "required": [
           "pushToken"
         ]
+      },
+      "NotificationPreferencesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/NotificationPreferences"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "NotificationPreferences": {
+        "type": "object",
+        "properties": {
+          "eventInvites": {
+            "type": "boolean",
+            "default": true,
+            "example": true
+          },
+          "eventUpdates": {
+            "type": "boolean",
+            "default": true,
+            "example": true
+          },
+          "friendRequests": {
+            "type": "boolean",
+            "default": true,
+            "example": true
+          },
+          "groupInvites": {
+            "type": "boolean",
+            "default": true,
+            "example": true
+          },
+          "messages": {
+            "type": "boolean",
+            "default": true,
+            "example": true
+          }
+        }
+      },
+      "UpdateNotificationPreferences": {
+        "type": "object",
+        "properties": {
+          "eventInvites": {
+            "type": "boolean",
+            "example": true
+          },
+          "eventUpdates": {
+            "type": "boolean",
+            "example": true
+          },
+          "friendRequests": {
+            "type": "boolean",
+            "example": false
+          },
+          "groupInvites": {
+            "type": "boolean",
+            "example": true
+          },
+          "messages": {
+            "type": "boolean",
+            "example": true
+          }
+        }
       }
     },
     "parameters": {}
@@ -4373,6 +4449,116 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PushTokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/notification-preferences": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get notification preferences",
+        "description": "Get the notification preferences for the current user",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification preferences retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferencesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update notification preferences",
+        "description": "Update the notification preferences for the current user",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNotificationPreferences"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Notification preferences updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferencesResponse"
                 }
               }
             }

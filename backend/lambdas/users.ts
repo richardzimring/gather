@@ -8,6 +8,8 @@ import {
   UserSchema,
   UpdateUserSchema,
   RegisterPushTokenSchema,
+  NotificationPreferencesSchema,
+  UpdateNotificationPreferencesSchema,
   ErrorResponseSchema,
 } from '../src/types';
 import * as userService from '../src/services/users';
@@ -38,6 +40,14 @@ const PushTokenResponseSchema = z
     message: z.string().optional(),
   })
   .openapi('PushTokenResponse');
+
+const NotificationPreferencesResponseSchema = z
+  .object({
+    success: z.literal(true),
+    data: NotificationPreferencesSchema,
+    message: z.string().optional(),
+  })
+  .openapi('NotificationPreferencesResponse');
 
 // ============================================
 // Route Definitions
@@ -214,6 +224,94 @@ const registerPushTokenRoute = createRoute({
   },
 });
 
+const getNotificationPreferencesRoute = createRoute({
+  method: 'get',
+  path: '/users/me/notification-preferences',
+  tags: ['Users'],
+  summary: 'Get notification preferences',
+  description: 'Get the notification preferences for the current user',
+  security: [{ BearerAuth: [] }],
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: NotificationPreferencesResponseSchema,
+        },
+      },
+      description: 'Notification preferences retrieved successfully',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+const updateNotificationPreferencesRoute = createRoute({
+  method: 'put',
+  path: '/users/me/notification-preferences',
+  tags: ['Users'],
+  summary: 'Update notification preferences',
+  description: 'Update the notification preferences for the current user',
+  security: [{ BearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateNotificationPreferencesSchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: NotificationPreferencesResponseSchema,
+        },
+      },
+      description: 'Notification preferences updated successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Validation error',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
 // ============================================
 // Route Handlers
 // ============================================
@@ -307,6 +405,58 @@ app.openapi(registerPushTokenRoute, async (c) => {
         success: false as const,
         error: 'Internal Server Error',
         message: 'Failed to register push token',
+      },
+      500,
+    );
+  }
+});
+
+app.openapi(getNotificationPreferencesRoute, async (c) => {
+  const user = c.get('user');
+
+  try {
+    const preferences = await userService.getNotificationPreferences(user.userId);
+    return c.json(
+      {
+        success: true as const,
+        data: preferences,
+      },
+      200,
+    );
+  } catch (error) {
+    console.error('Error in GET /users/me/notification-preferences:', error);
+    return c.json(
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to get notification preferences',
+      },
+      500,
+    );
+  }
+});
+
+app.openapi(updateNotificationPreferencesRoute, async (c) => {
+  const user = c.get('user');
+  const updates = c.req.valid('json');
+
+  try {
+    const preferences = await userService.updateNotificationPreferences(user.userId, updates);
+    return c.json(
+      {
+        success: true as const,
+        data: preferences,
+        message: 'Notification preferences updated successfully',
+      },
+      200,
+    );
+  } catch (error) {
+    console.error('Error in PUT /users/me/notification-preferences:', error);
+    return c.json(
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to update notification preferences',
       },
       500,
     );

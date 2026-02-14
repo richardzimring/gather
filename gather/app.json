@@ -44,11 +44,19 @@
       ],
       "expo-secure-store",
       "@react-native-community/datetimepicker",
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "67421a2d-b7fc-490d-a430-574f2e91e0d3"
+      }
+    },
+    "owner": "richard-zimring"
   }
 }

@@ -10,6 +10,7 @@ import {
   primaryKey,
   index,
   uniqueIndex,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -66,6 +67,7 @@ export const users = pgTable(
     inviteCode: varchar('invite_code', { length: 8 }),
     calendarSyncEnabled: boolean('calendar_sync_enabled').notNull().default(false),
     pushToken: text('push_token'),
+    notificationPreferences: jsonb('notification_preferences'),
     timezone: varchar('timezone', { length: 100 }).notNull().default('America/New_York'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },

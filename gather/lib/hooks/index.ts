@@ -19,6 +19,15 @@ export {
   useDeleteCalendarConnection,
 } from './useCalendars'
 
+// Notifications
+export {
+  useNotifications,
+  registerPushTokenAsync,
+  useNotificationPreferences,
+  useUpdateNotificationPreferences,
+  notificationPreferencesKeys,
+} from './useNotifications'
+
 // Utilities
 export * from './useRefresh'
 

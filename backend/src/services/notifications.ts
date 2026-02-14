@@ -1,10 +1,13 @@
-// SNS imports - uncomment when implementing actual push notifications
-// import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
-// import { REGION, SNS_TOPIC_ARN } from '../constants';
-// const snsClient = new SNSClient({ region: REGION });
+import Expo, { type ExpoPushMessage, type ExpoPushTicket } from 'expo-server-sdk';
 import { eq } from 'drizzle-orm';
 import { db, users } from '../db';
 import type { Event } from '../types';
+
+// ============================================
+// Expo Push Service Client
+// ============================================
+
+const expo = new Expo();
 
 // ============================================
 // Notification Types
@@ -19,6 +22,18 @@ export type NotificationType =
   | 'event_cancelled'
   | 'event_reminder'
   | 'counter_proposal';
+
+// Map notification types to preference keys
+const NOTIFICATION_TYPE_TO_PREFERENCE: Record<NotificationType, string | null> = {
+  friend_request: 'friendRequests',
+  friend_accepted: 'friendRequests',
+  event_invitation: 'eventInvites',
+  event_response: 'eventUpdates',
+  event_updated: 'eventUpdates',
+  event_cancelled: 'eventUpdates',
+  event_reminder: 'eventUpdates',
+  counter_proposal: 'eventUpdates',
+};
 
 interface NotificationPayload {
   type: NotificationType;
@@ -36,9 +51,9 @@ export const sendPushNotification = async (
   payload: NotificationPayload,
 ): Promise<void> => {
   try {
-    // Get user's push token
+    // Get user's push token and notification preferences
     const result = await db
-      .select({ pushToken: users.pushToken })
+      .select({ pushToken: users.pushToken, notificationPreferences: users.notificationPreferences })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
@@ -50,29 +65,35 @@ export const sendPushNotification = async (
       return;
     }
 
-    // For now, log the notification
-    // TODO: Implement actual APNs sending via SNS Platform Application
-    console.log(`[PUSH] To: ${userId}`, payload);
+    // Check notification preferences
+    const prefKey = NOTIFICATION_TYPE_TO_PREFERENCE[payload.type];
+    if (prefKey && user.notificationPreferences) {
+      const prefs = user.notificationPreferences as Record<string, boolean>;
+      if (prefs[prefKey] === false) {
+        console.log(`User ${userId} has disabled ${prefKey} notifications`);
+        return;
+      }
+    }
 
-    // In production with SNS Platform Application:
-    // const command = new PublishCommand({
-    //   TargetArn: user.pushEndpointArn, // SNS endpoint ARN
-    //   Message: JSON.stringify({
-    //     APNS: JSON.stringify({
-    //       aps: {
-    //         alert: {
-    //           title: payload.title,
-    //           body: payload.body,
-    //         },
-    //         badge: 1,
-    //         sound: 'default',
-    //       },
-    //       ...payload.data,
-    //     }),
-    //   }),
-    //   MessageStructure: 'json',
-    // });
-    // await snsClient.send(command);
+    if (!Expo.isExpoPushToken(user.pushToken)) {
+      console.error(`Push token for user ${userId} is not a valid Expo push token`);
+      return;
+    }
+
+    const message: ExpoPushMessage = {
+      to: user.pushToken,
+      title: payload.title,
+      body: payload.body,
+      data: payload.data,
+      sound: 'default',
+    };
+
+    const chunks = expo.chunkPushNotifications([message]);
+
+    for (const chunk of chunks) {
+      const tickets = await expo.sendPushNotificationsAsync(chunk);
+      await handlePushTickets(tickets, [userId]);
+    }
   } catch (error) {
     console.error(`Failed to send push notification to ${userId}:`, error);
   }
@@ -82,7 +103,96 @@ export const sendPushNotifications = async (
   userIds: string[],
   payload: NotificationPayload,
 ): Promise<void> => {
-  await Promise.all(userIds.map((userId) => sendPushNotification(userId, payload)));
+  if (userIds.length === 0) return;
+
+  try {
+    // Get all users' push tokens and preferences
+    const results = await Promise.all(
+      userIds.map((userId) =>
+        db
+          .select({
+            id: users.id,
+            pushToken: users.pushToken,
+            notificationPreferences: users.notificationPreferences,
+          })
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1),
+      ),
+    );
+
+    const messages: ExpoPushMessage[] = [];
+    const messageUserIds: string[] = [];
+
+    for (const result of results) {
+      const user = result[0];
+      if (!user?.pushToken) continue;
+
+      // Check notification preferences
+      const prefKey = NOTIFICATION_TYPE_TO_PREFERENCE[payload.type];
+      if (prefKey && user.notificationPreferences) {
+        const prefs = user.notificationPreferences as Record<string, boolean>;
+        if (prefs[prefKey] === false) continue;
+      }
+
+      if (!Expo.isExpoPushToken(user.pushToken)) {
+        console.error(`Push token for user ${user.id} is not a valid Expo push token`);
+        continue;
+      }
+
+      messages.push({
+        to: user.pushToken,
+        title: payload.title,
+        body: payload.body,
+        data: payload.data,
+        sound: 'default',
+      });
+      messageUserIds.push(user.id);
+    }
+
+    if (messages.length === 0) return;
+
+    const chunks = expo.chunkPushNotifications(messages);
+    let ticketIndex = 0;
+
+    for (const chunk of chunks) {
+      const tickets = await expo.sendPushNotificationsAsync(chunk);
+      const chunkUserIds = messageUserIds.slice(ticketIndex, ticketIndex + chunk.length);
+      await handlePushTickets(tickets, chunkUserIds);
+      ticketIndex += chunk.length;
+    }
+  } catch (error) {
+    console.error('Failed to send push notifications:', error);
+  }
+};
+
+// ============================================
+// Ticket Error Handling
+// ============================================
+
+const handlePushTickets = async (
+  tickets: ExpoPushTicket[],
+  userIds: string[],
+): Promise<void> => {
+  for (let i = 0; i < tickets.length; i++) {
+    const ticket = tickets[i];
+    const userId = userIds[i];
+
+    if (!ticket || !userId) continue;
+
+    if (ticket.status === 'error') {
+      console.error(`Push notification error for user ${userId}:`, ticket.message);
+
+      // If the device is not registered, clear the push token
+      if (ticket.details?.error === 'DeviceNotRegistered') {
+        console.log(`Clearing invalid push token for user ${userId}`);
+        await db
+          .update(users)
+          .set({ pushToken: null })
+          .where(eq(users.id, userId));
+      }
+    }
+  }
 };
 
 // ============================================

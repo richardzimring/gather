@@ -296,6 +296,27 @@ export const RegisterPushTokenSchema = z
   })
   .openapi('RegisterPushToken');
 
+// Notification preferences schema
+export const NotificationPreferencesSchema = z
+  .object({
+    eventInvites: z.boolean().default(true).openapi({ example: true }),
+    eventUpdates: z.boolean().default(true).openapi({ example: true }),
+    friendRequests: z.boolean().default(true).openapi({ example: true }),
+    groupInvites: z.boolean().default(true).openapi({ example: true }),
+    messages: z.boolean().default(true).openapi({ example: true }),
+  })
+  .openapi('NotificationPreferences');
+
+export const UpdateNotificationPreferencesSchema = z
+  .object({
+    eventInvites: z.boolean().optional().openapi({ example: true }),
+    eventUpdates: z.boolean().optional().openapi({ example: true }),
+    friendRequests: z.boolean().optional().openapi({ example: false }),
+    groupInvites: z.boolean().optional().openapi({ example: true }),
+    messages: z.boolean().optional().openapi({ example: true }),
+  })
+  .openapi('UpdateNotificationPreferences');
+
 // User search schema
 export const UserSearchSchema = z
   .object({
@@ -364,6 +385,8 @@ export type UpdateEvent = z.infer<typeof UpdateEventSchema>;
 export type EventResponse = z.infer<typeof EventResponseSchema>;
 
 export type RegisterPushToken = z.infer<typeof RegisterPushTokenSchema>;
+export type NotificationPreferences = z.infer<typeof NotificationPreferencesSchema>;
+export type UpdateNotificationPreferences = z.infer<typeof UpdateNotificationPreferencesSchema>;
 export type UserSearch = z.infer<typeof UserSearchSchema>;
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
 

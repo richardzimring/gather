@@ -1,11 +1,14 @@
 import { Bell, Calendar, MessageSquare, UserPlus, Users } from '@tamagui/lucide-icons'
 import { router } from 'expo-router'
-import { ScrollView, Text, XStack, YStack, Switch, Theme } from 'tamagui'
+import { ScrollView, Text, XStack, YStack, Switch, Theme, Spinner } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useState } from 'react'
 
 import { Card } from '../../components/ui/Card'
 import { BackHeader } from '../../components/ui/ScreenHeader'
+import {
+  useNotificationPreferences,
+  useUpdateNotificationPreferences,
+} from '../../lib/hooks'
 
 interface NotificationSettingProps {
   icon: React.ReactNode
@@ -13,6 +16,7 @@ interface NotificationSettingProps {
   description: string
   value: boolean
   onToggle: (value: boolean) => void
+  disabled?: boolean
 }
 
 function NotificationSetting({
@@ -21,12 +25,14 @@ function NotificationSetting({
   description,
   value,
   onToggle,
+  disabled,
 }: NotificationSettingProps) {
   return (
     <XStack
       alignItems="center"
       paddingVertical="$3"
       gap="$3"
+      opacity={disabled ? 0.5 : 1}
     >
       <YStack
         width={36}
@@ -51,6 +57,7 @@ function NotificationSetting({
         size="$3"
         checked={value}
         onCheckedChange={onToggle}
+        disabled={disabled}
         backgroundColor={value ? '$primary' : '$backgroundHover'}
       >
         <Switch.Thumb
@@ -64,13 +71,13 @@ function NotificationSetting({
 
 export default function NotificationSettingsScreen() {
   const insets = useSafeAreaInsets()
-  
-  // TODO: These should be stored in user preferences on the backend
-  const [eventInvites, setEventInvites] = useState(true)
-  const [eventUpdates, setEventUpdates] = useState(true)
-  const [friendRequests, setFriendRequests] = useState(true)
-  const [groupInvites, setGroupInvites] = useState(true)
-  const [messages, setMessages] = useState(true)
+
+  const { data: preferences, isLoading } = useNotificationPreferences()
+  const { mutate: updatePreferences, isPending } = useUpdateNotificationPreferences()
+
+  const handleToggle = (key: string) => (value: boolean) => {
+    updatePreferences({ [key]: value })
+  }
 
   return (
     <YStack flex={1} backgroundColor="$background">
@@ -110,58 +117,71 @@ export default function NotificationSettingsScreen() {
           </Card>
         </Theme>
 
-        {/* Events */}
-        <Theme name="Card">
-          <Card marginBottom="$4">
-            <Text color="$colorMuted" fontSize={12} fontWeight="600" marginBottom="$2">
-              EVENTS
-            </Text>
-            <NotificationSetting
-              icon={<Calendar size={16} color="$colorMuted" />}
-              label="Event Invites"
-              description="Get notified when someone invites you to an event"
-              value={eventInvites}
-              onToggle={setEventInvites}
-            />
-            <NotificationSetting
-              icon={<Calendar size={16} color="$colorMuted" />}
-              label="Event Updates"
-              description="Get notified about changes to events you're attending"
-              value={eventUpdates}
-              onToggle={setEventUpdates}
-            />
-          </Card>
-        </Theme>
+        {isLoading ? (
+          <YStack alignItems="center" paddingVertical="$6">
+            <Spinner size="large" />
+          </YStack>
+        ) : (
+          <>
+            {/* Events */}
+            <Theme name="Card">
+              <Card marginBottom="$4">
+                <Text color="$colorMuted" fontSize={12} fontWeight="600" marginBottom="$2">
+                  EVENTS
+                </Text>
+                <NotificationSetting
+                  icon={<Calendar size={16} color="$colorMuted" />}
+                  label="Event Invites"
+                  description="Get notified when someone invites you to an event"
+                  value={preferences?.eventInvites ?? true}
+                  onToggle={handleToggle('eventInvites')}
+                  disabled={isPending}
+                />
+                <NotificationSetting
+                  icon={<Calendar size={16} color="$colorMuted" />}
+                  label="Event Updates"
+                  description="Get notified about changes to events you're attending"
+                  value={preferences?.eventUpdates ?? true}
+                  onToggle={handleToggle('eventUpdates')}
+                  disabled={isPending}
+                />
+              </Card>
+            </Theme>
 
-        {/* Social */}
-        <Theme name="Card">
-          <Card marginBottom="$4">
-            <Text color="$colorMuted" fontSize={12} fontWeight="600" marginBottom="$2">
-              SOCIAL
-            </Text>
-            <NotificationSetting
-              icon={<UserPlus size={16} color="$colorMuted" />}
-              label="Friend Requests"
-              description="Get notified when someone sends you a friend request"
-              value={friendRequests}
-              onToggle={setFriendRequests}
-            />
-            <NotificationSetting
-              icon={<Users size={16} color="$colorMuted" />}
-              label="Group Invites"
-              description="Get notified when someone adds you to a group"
-              value={groupInvites}
-              onToggle={setGroupInvites}
-            />
-            <NotificationSetting
-              icon={<MessageSquare size={16} color="$colorMuted" />}
-              label="Messages"
-              description="Get notified about new messages and comments"
-              value={messages}
-              onToggle={setMessages}
-            />
-          </Card>
-        </Theme>
+            {/* Social */}
+            <Theme name="Card">
+              <Card marginBottom="$4">
+                <Text color="$colorMuted" fontSize={12} fontWeight="600" marginBottom="$2">
+                  SOCIAL
+                </Text>
+                <NotificationSetting
+                  icon={<UserPlus size={16} color="$colorMuted" />}
+                  label="Friend Requests"
+                  description="Get notified when someone sends you a friend request"
+                  value={preferences?.friendRequests ?? true}
+                  onToggle={handleToggle('friendRequests')}
+                  disabled={isPending}
+                />
+                <NotificationSetting
+                  icon={<Users size={16} color="$colorMuted" />}
+                  label="Group Invites"
+                  description="Get notified when someone adds you to a group"
+                  value={preferences?.groupInvites ?? true}
+                  onToggle={handleToggle('groupInvites')}
+                  disabled={isPending}
+                />
+                <NotificationSetting
+                  icon={<MessageSquare size={16} color="$colorMuted" />}
+                  label="Messages"
+                  description="Get notified about new messages and comments"
+                  value={preferences?.messages ?? true}
+                  onToggle={handleToggle('messages')}
+                  disabled={isPending}
+                />
+              </Card>
+            </Theme>
+          </>
+        )}
       </ScrollView>
     </YStack>
   )

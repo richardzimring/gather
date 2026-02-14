@@ -4,11 +4,14 @@ import { useMemo } from 'react'
 import { DynamicColorIOS, useColorScheme } from 'react-native'
 
 import { useAuth } from '../../lib/hooks/useAuth'
-import { useEvents, useFriends } from '../../lib/hooks'
+import { useEvents, useFriends, useNotifications } from '../../lib/hooks'
 
 export default function TabLayout() {
   const colorScheme = useColorScheme()
   const { user } = useAuth()
+
+  // Register push token and set up notification listeners
+  useNotifications()
 
   // Pending event invitations (where user is invitee with status "pending" and not the host)
   const { data: events } = useEvents()
