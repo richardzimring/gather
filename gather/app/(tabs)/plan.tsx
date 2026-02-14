@@ -1358,7 +1358,10 @@ export default function PlanScreen() {
                     <XStack alignItems="center" gap="$2">
                       <MapPin size={14} color="$colorMuted" />
                       <Text fontWeight="500" fontSize={14}>
-                        Location (optional)
+                        Location{' '}
+                        <Text fontSize={14} color="$colorMuted" fontWeight="400">
+                          (optional)
+                        </Text>
                       </Text>
                     </XStack>
                     <LocationSearch
@@ -1382,7 +1385,10 @@ export default function PlanScreen() {
                     <XStack alignItems="center" gap="$2">
                       <FileText size={14} color="$colorMuted" />
                       <Text fontWeight="500" fontSize={14}>
-                        Notes (optional)
+                        Notes{' '}
+                        <Text fontSize={14} color="$colorMuted" fontWeight="400">
+                          (optional)
+                        </Text>
                       </Text>
                     </XStack>
                     <TextArea
