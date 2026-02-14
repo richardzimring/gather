@@ -15,12 +15,12 @@ import DateTimePicker from '@react-native-community/datetimepicker'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { CancelHeader } from '../../components/ui/ScreenHeader'
-import { useCreateAvailability } from '../../lib/hooks'
+import { useCreateBlockedWindow } from '../../lib/hooks'
 import type { RecurringPattern } from '../../lib/api/client'
 
-export default function CreateAvailabilityScreen() {
+export default function CreateBlockedScreen() {
   const insets = useSafeAreaInsets()
-  const createAvailability = useCreateAvailability()
+  const createBlockedWindow = useCreateBlockedWindow()
 
   const [startTime, setStartTime] = useState(new Date())
   const [endTime, setEndTime] = useState(new Date(Date.now() + 2 * 60 * 60 * 1000)) // +2 hours
@@ -29,7 +29,7 @@ export default function CreateAvailabilityScreen() {
 
   const handleCreate = async () => {
     try {
-      await createAvailability.mutateAsync({
+      await createBlockedWindow.mutateAsync({
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
         ...(isRecurring && {
@@ -40,7 +40,7 @@ export default function CreateAvailabilityScreen() {
       })
       router.back()
     } catch (err) {
-      console.error('Failed to create availability:', err)
+      console.error('Failed to create blocked window:', err)
     }
   }
 
@@ -54,13 +54,13 @@ export default function CreateAvailabilityScreen() {
         }}
       >
         {/* Header */}
-        <CancelHeader title="Set Availability" />
+        <CancelHeader title="Block Time" />
 
         {/* Time Selection */}
         <Theme name="Card">
           <Card marginBottom="$4">
             <Text fontWeight="500" fontSize={14} marginBottom="$3">
-              Time
+              Time to block
             </Text>
             <YStack gap="$3">
               <XStack alignItems="center" justifyContent="space-between">
@@ -92,7 +92,7 @@ export default function CreateAvailabilityScreen() {
               <YStack>
                 <Text fontWeight="600">Repeat</Text>
                 <Text color="$colorMuted" fontSize={13}>
-                  Make this a recurring time slot
+                  Make this a recurring blocked time
                 </Text>
               </YStack>
               <Switch
@@ -131,9 +131,9 @@ export default function CreateAvailabilityScreen() {
           buttonSize="lg"
           fullWidth
           onPress={handleCreate}
-          disabled={createAvailability.isPending}
+          disabled={createBlockedWindow.isPending}
         >
-          {createAvailability.isPending ? 'Creating...' : 'Set Availability'}
+          {createBlockedWindow.isPending ? 'Blocking...' : 'Block This Time'}
         </Button>
       </ScrollView>
     </YStack>

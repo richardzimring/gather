@@ -24,7 +24,7 @@ import {
   activities,
   events,
   eventInvitees,
-  availabilityWindows,
+  blockedWindows,
 } from '../src/db';
 import { DEFAULT_GROUPS, DEFAULT_ACTIVITIES, INVITE_CODE_LENGTH } from '../src/constants';
 import { eq, and, inArray, or } from 'drizzle-orm';
@@ -180,9 +180,9 @@ async function cleanupDatabase(myUserId: string | null): Promise<void> {
     await db.delete(activities).where(and(eq(activities.userId, myUserId), eq(activities.isDefault, false)));
   }
 
-  // Delete availability windows for my user
+  // Delete blocked windows for my user
   if (myUserId) {
-    await db.delete(availabilityWindows).where(eq(availabilityWindows.userId, myUserId));
+    await db.delete(blockedWindows).where(eq(blockedWindows.userId, myUserId));
   }
 
   console.log('✅ Cleanup complete');

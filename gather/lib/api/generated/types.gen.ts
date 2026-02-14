@@ -92,14 +92,14 @@ export type AuthMeResponse = {
     };
 };
 
-export type AvailabilityWindowsResponse = {
+export type BlockedWindowsResponse = {
     success: true;
     data: {
-        windows: Array<AvailabilityWindow>;
+        windows: Array<BlockedWindow>;
     };
 };
 
-export type AvailabilityWindow = {
+export type BlockedWindow = {
     userId: string;
     windowId: string;
     startTime: string;
@@ -117,36 +117,41 @@ export type Recurring = {
 
 export type RecurringPattern = 'daily' | 'weekly' | 'biweekly' | 'monthly';
 
-export type AvailabilityWindowResponse = {
+export type BlockedWindowResponse = {
     success: true;
     data: {
-        window: AvailabilityWindow;
+        window: BlockedWindow;
     };
     message?: string;
 };
 
-export type CreateAvailability = {
+export type CreateBlockedWindow = {
     startTime: string;
     endTime: string;
     recurring?: Recurring;
     notes?: string;
 };
 
-export type UpdateAvailability = {
+export type UpdateBlockedWindow = {
     startTime?: string;
     endTime?: string;
     recurring?: Recurring & unknown;
     notes?: string | null;
 };
 
-export type FriendsAvailabilityResponse = {
+export type FriendsFreeTimeResponse = {
     success: true;
     data: {
-        availability: Array<{
+        freeTime: Array<{
             userId: string;
-            windows: Array<AvailabilityWindow>;
+            freeSlots: Array<FreeTimeSlot>;
         }>;
     };
+};
+
+export type FreeTimeSlot = {
+    startTime: string;
+    endTime: string;
 };
 
 export type CalendarListResponse = {
@@ -659,14 +664,14 @@ export type GetAuthMeResponses = {
 
 export type GetAuthMeResponse = GetAuthMeResponses[keyof GetAuthMeResponses];
 
-export type GetAvailabilityData = {
+export type GetBlockedData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/availability';
+    url: '/blocked';
 };
 
-export type GetAvailabilityErrors = {
+export type GetBlockedErrors = {
     /**
      * Unauthorized
      */
@@ -677,25 +682,25 @@ export type GetAvailabilityErrors = {
     500: ErrorResponse;
 };
 
-export type GetAvailabilityError = GetAvailabilityErrors[keyof GetAvailabilityErrors];
+export type GetBlockedError = GetBlockedErrors[keyof GetBlockedErrors];
 
-export type GetAvailabilityResponses = {
+export type GetBlockedResponses = {
     /**
-     * Availability windows retrieved successfully
+     * Blocked windows retrieved successfully
      */
-    200: AvailabilityWindowsResponse;
+    200: BlockedWindowsResponse;
 };
 
-export type GetAvailabilityResponse = GetAvailabilityResponses[keyof GetAvailabilityResponses];
+export type GetBlockedResponse = GetBlockedResponses[keyof GetBlockedResponses];
 
-export type PostAvailabilityData = {
-    body: CreateAvailability;
+export type PostBlockedData = {
+    body: CreateBlockedWindow;
     path?: never;
     query?: never;
-    url: '/availability';
+    url: '/blocked';
 };
 
-export type PostAvailabilityErrors = {
+export type PostBlockedErrors = {
     /**
      * Validation error
      */
@@ -710,27 +715,27 @@ export type PostAvailabilityErrors = {
     500: ErrorResponse;
 };
 
-export type PostAvailabilityError = PostAvailabilityErrors[keyof PostAvailabilityErrors];
+export type PostBlockedError = PostBlockedErrors[keyof PostBlockedErrors];
 
-export type PostAvailabilityResponses = {
+export type PostBlockedResponses = {
     /**
-     * Availability window created successfully
+     * Blocked window created successfully
      */
-    201: AvailabilityWindowResponse;
+    201: BlockedWindowResponse;
 };
 
-export type PostAvailabilityResponse = PostAvailabilityResponses[keyof PostAvailabilityResponses];
+export type PostBlockedResponse = PostBlockedResponses[keyof PostBlockedResponses];
 
-export type DeleteAvailabilityByWindowIdData = {
+export type DeleteBlockedByWindowIdData = {
     body?: never;
     path: {
         windowId: string;
     };
     query?: never;
-    url: '/availability/{windowId}';
+    url: '/blocked/{windowId}';
 };
 
-export type DeleteAvailabilityByWindowIdErrors = {
+export type DeleteBlockedByWindowIdErrors = {
     /**
      * Delete failed
      */
@@ -745,27 +750,27 @@ export type DeleteAvailabilityByWindowIdErrors = {
     500: ErrorResponse;
 };
 
-export type DeleteAvailabilityByWindowIdError = DeleteAvailabilityByWindowIdErrors[keyof DeleteAvailabilityByWindowIdErrors];
+export type DeleteBlockedByWindowIdError = DeleteBlockedByWindowIdErrors[keyof DeleteBlockedByWindowIdErrors];
 
-export type DeleteAvailabilityByWindowIdResponses = {
+export type DeleteBlockedByWindowIdResponses = {
     /**
-     * Availability window deleted successfully
+     * Blocked window deleted successfully
      */
     204: void;
 };
 
-export type DeleteAvailabilityByWindowIdResponse = DeleteAvailabilityByWindowIdResponses[keyof DeleteAvailabilityByWindowIdResponses];
+export type DeleteBlockedByWindowIdResponse = DeleteBlockedByWindowIdResponses[keyof DeleteBlockedByWindowIdResponses];
 
-export type PatchAvailabilityByWindowIdData = {
-    body: UpdateAvailability;
+export type PatchBlockedByWindowIdData = {
+    body: UpdateBlockedWindow;
     path: {
         windowId: string;
     };
     query?: never;
-    url: '/availability/{windowId}';
+    url: '/blocked/{windowId}';
 };
 
-export type PatchAvailabilityByWindowIdErrors = {
+export type PatchBlockedByWindowIdErrors = {
     /**
      * Validation error or update failed
      */
@@ -780,28 +785,28 @@ export type PatchAvailabilityByWindowIdErrors = {
     500: ErrorResponse;
 };
 
-export type PatchAvailabilityByWindowIdError = PatchAvailabilityByWindowIdErrors[keyof PatchAvailabilityByWindowIdErrors];
+export type PatchBlockedByWindowIdError = PatchBlockedByWindowIdErrors[keyof PatchBlockedByWindowIdErrors];
 
-export type PatchAvailabilityByWindowIdResponses = {
+export type PatchBlockedByWindowIdResponses = {
     /**
-     * Availability window updated successfully
+     * Blocked window updated successfully
      */
-    200: AvailabilityWindowResponse;
+    200: BlockedWindowResponse;
 };
 
-export type PatchAvailabilityByWindowIdResponse = PatchAvailabilityByWindowIdResponses[keyof PatchAvailabilityByWindowIdResponses];
+export type PatchBlockedByWindowIdResponse = PatchBlockedByWindowIdResponses[keyof PatchBlockedByWindowIdResponses];
 
-export type GetAvailabilityFriendsData = {
+export type GetBlockedFriendsFreeTimeData = {
     body?: never;
     path?: never;
-    query?: {
-        startDate?: string;
-        endDate?: string;
+    query: {
+        startDate: string;
+        endDate: string;
     };
-    url: '/availability/friends';
+    url: '/blocked/friends-free-time';
 };
 
-export type GetAvailabilityFriendsErrors = {
+export type GetBlockedFriendsFreeTimeErrors = {
     /**
      * Validation error
      */
@@ -816,16 +821,16 @@ export type GetAvailabilityFriendsErrors = {
     500: ErrorResponse;
 };
 
-export type GetAvailabilityFriendsError = GetAvailabilityFriendsErrors[keyof GetAvailabilityFriendsErrors];
+export type GetBlockedFriendsFreeTimeError = GetBlockedFriendsFreeTimeErrors[keyof GetBlockedFriendsFreeTimeErrors];
 
-export type GetAvailabilityFriendsResponses = {
+export type GetBlockedFriendsFreeTimeResponses = {
     /**
-     * Friends availability retrieved successfully
+     * Friends free time retrieved successfully
      */
-    200: FriendsAvailabilityResponse;
+    200: FriendsFreeTimeResponse;
 };
 
-export type GetAvailabilityFriendsResponse = GetAvailabilityFriendsResponses[keyof GetAvailabilityFriendsResponses];
+export type GetBlockedFriendsFreeTimeResponse = GetBlockedFriendsFreeTimeResponses[keyof GetBlockedFriendsFreeTimeResponses];
 
 export type GetCalendarsData = {
     body?: never;

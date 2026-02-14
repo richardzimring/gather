@@ -1,14 +1,14 @@
 import { eq, and, gte, lte, inArray } from 'drizzle-orm';
-import { db, availabilityWindows, friendships, calendarConnections, calendarEventsCache } from '../db';
-import type { AvailabilityWindow, CreateAvailability, UpdateAvailability, Recurring, BusySlot } from '../types';
+import { db, blockedWindows, friendships, calendarConnections, calendarEventsCache } from '../db';
+import type { BlockedWindow, CreateBlockedWindow, UpdateBlockedWindow, Recurring, BusySlot, FreeTimeSlot } from '../types';
 
 // ============================================
 // Helpers
 // ============================================
 
-const dbWindowToAvailabilityWindow = (
-  dbWindow: typeof availabilityWindows.$inferSelect,
-): AvailabilityWindow => {
+const dbWindowToBlockedWindow = (
+  dbWindow: typeof blockedWindows.$inferSelect,
+): BlockedWindow => {
   // Build recurring object if pattern exists
   let recurring: Recurring | undefined;
   if (dbWindow.recurringPattern) {
@@ -31,40 +31,40 @@ const dbWindowToAvailabilityWindow = (
 };
 
 // ============================================
-// Availability Operations
+// Blocked Window Operations
 // ============================================
 
-export const getAvailabilityWindows = async (userId: string): Promise<AvailabilityWindow[]> => {
+export const getBlockedWindows = async (userId: string): Promise<BlockedWindow[]> => {
   const windows = await db
     .select()
-    .from(availabilityWindows)
-    .where(eq(availabilityWindows.userId, userId));
+    .from(blockedWindows)
+    .where(eq(blockedWindows.userId, userId));
 
-  return windows.map((w) => dbWindowToAvailabilityWindow(w));
+  return windows.map((w) => dbWindowToBlockedWindow(w));
 };
 
-export const getAvailabilityWindow = async (
+export const getBlockedWindow = async (
   userId: string,
   windowId: string,
-): Promise<AvailabilityWindow | null> => {
+): Promise<BlockedWindow | null> => {
   const result = await db
     .select()
-    .from(availabilityWindows)
-    .where(and(eq(availabilityWindows.userId, userId), eq(availabilityWindows.id, windowId)))
+    .from(blockedWindows)
+    .where(and(eq(blockedWindows.userId, userId), eq(blockedWindows.id, windowId)))
     .limit(1);
 
   const window = result[0];
   if (!window) return null;
 
-  return dbWindowToAvailabilityWindow(window);
+  return dbWindowToBlockedWindow(window);
 };
 
-export const createAvailabilityWindow = async (
+export const createBlockedWindow = async (
   userId: string,
-  input: CreateAvailability,
-): Promise<AvailabilityWindow> => {
+  input: CreateBlockedWindow,
+): Promise<BlockedWindow> => {
   const [newWindow] = await db
-    .insert(availabilityWindows)
+    .insert(blockedWindows)
     .values({
       userId,
       startTime: new Date(input.startTime),
@@ -77,29 +77,29 @@ export const createAvailabilityWindow = async (
     .returning();
 
   if (!newWindow) {
-    throw new Error('Failed to create availability window');
+    throw new Error('Failed to create blocked window');
   }
 
-  return dbWindowToAvailabilityWindow(newWindow);
+  return dbWindowToBlockedWindow(newWindow);
 };
 
-export const updateAvailabilityWindow = async (
+export const updateBlockedWindow = async (
   userId: string,
   windowId: string,
-  updates: UpdateAvailability,
+  updates: UpdateBlockedWindow,
 ): Promise<{
   success: boolean;
-  window?: AvailabilityWindow;
+  window?: BlockedWindow;
   message?: string;
 }> => {
-  const existing = await getAvailabilityWindow(userId, windowId);
+  const existing = await getBlockedWindow(userId, windowId);
 
   if (!existing) {
-    return { success: false, message: 'Availability window not found' };
+    return { success: false, message: 'Blocked window not found' };
   }
 
   // Build update data
-  const updateData: Partial<typeof availabilityWindows.$inferInsert> = {};
+  const updateData: Partial<typeof blockedWindows.$inferInsert> = {};
 
   if (updates.startTime !== undefined) {
     updateData.startTime = new Date(updates.startTime);
@@ -125,10 +125,10 @@ export const updateAvailabilityWindow = async (
   }
 
   if (Object.keys(updateData).length > 0) {
-    await db.update(availabilityWindows).set(updateData).where(eq(availabilityWindows.id, windowId));
+    await db.update(blockedWindows).set(updateData).where(eq(blockedWindows.id, windowId));
   }
 
-  const updatedWindow = await getAvailabilityWindow(userId, windowId);
+  const updatedWindow = await getBlockedWindow(userId, windowId);
 
   return {
     success: true,
@@ -136,91 +136,32 @@ export const updateAvailabilityWindow = async (
   };
 };
 
-export const deleteAvailabilityWindow = async (
+export const deleteBlockedWindow = async (
   userId: string,
   windowId: string,
 ): Promise<{ success: boolean; message?: string }> => {
-  const existing = await getAvailabilityWindow(userId, windowId);
+  const existing = await getBlockedWindow(userId, windowId);
 
   if (!existing) {
-    return { success: false, message: 'Availability window not found' };
+    return { success: false, message: 'Blocked window not found' };
   }
 
-  await db.delete(availabilityWindows).where(eq(availabilityWindows.id, windowId));
+  await db.delete(blockedWindows).where(eq(blockedWindows.id, windowId));
   return { success: true };
 };
 
 // ============================================
-// Friends' Availability
-// ============================================
-
-export interface FriendAvailability {
-  userId: string;
-  windows: AvailabilityWindow[];
-}
-
-export const getFriendsAvailability = async (
-  userId: string,
-  startDate?: string,
-  endDate?: string,
-): Promise<FriendAvailability[]> => {
-  // Get accepted friend IDs using a subquery join
-  const friendIds = await db
-    .select({ friendId: friendships.friendId })
-    .from(friendships)
-    .where(and(eq(friendships.userId, userId), eq(friendships.status, 'accepted')));
-
-  if (friendIds.length === 0) {
-    return [];
-  }
-
-  const friendIdList = friendIds.map((f) => f.friendId);
-
-  // Build query conditions
-  const conditions = [inArray(availabilityWindows.userId, friendIdList)];
-
-  if (startDate) {
-    conditions.push(gte(availabilityWindows.endTime, new Date(startDate)));
-  }
-  if (endDate) {
-    conditions.push(lte(availabilityWindows.startTime, new Date(endDate)));
-  }
-
-  // Get all friends' availability windows in one query
-  const allWindows = await db
-    .select()
-    .from(availabilityWindows)
-    .where(and(...conditions));
-
-  if (allWindows.length === 0) {
-    return [];
-  }
-
-  // Group windows by userId
-  const windowsByUser = new Map<string, AvailabilityWindow[]>();
-  for (const window of allWindows) {
-    const existing = windowsByUser.get(window.userId) ?? [];
-    existing.push(dbWindowToAvailabilityWindow(window));
-    windowsByUser.set(window.userId, existing);
-  }
-
-  // Convert to array
-  const results: FriendAvailability[] = [];
-  for (const [friendUserId, windows] of windowsByUser) {
-    results.push({ userId: friendUserId, windows });
-  }
-
-  return results;
-};
-
-// ============================================
-// Combined Availability Engine
+// Time Slot Types
 // ============================================
 
 export interface TimeSlot {
   startTime: Date;
   endTime: Date;
 }
+
+// ============================================
+// Calendar Busy Slots
+// ============================================
 
 /**
  * Get busy slots from external calendars for a user
@@ -269,16 +210,68 @@ export const getCalendarBusySlots = async (
   }));
 };
 
+// ============================================
+// Free Time Calculation (24/7 availability by default)
+// ============================================
+
 /**
- * Calculate free time slots given busy periods within a date range
+ * Get all busy slots for a user (manual blocked windows + calendar events)
+ */
+export const getAllBusySlots = async (
+  userId: string,
+  startDate: Date,
+  endDate: Date
+): Promise<TimeSlot[]> => {
+  const busySlots: TimeSlot[] = [];
+
+  // Get manual blocked windows
+  const manualWindows = await db
+    .select()
+    .from(blockedWindows)
+    .where(
+      and(
+        eq(blockedWindows.userId, userId),
+        gte(blockedWindows.endTime, startDate),
+        lte(blockedWindows.startTime, endDate)
+      )
+    );
+
+  for (const window of manualWindows) {
+    busySlots.push({
+      startTime: window.startTime,
+      endTime: window.endTime,
+    });
+  }
+
+  // Get calendar busy slots
+  const calendarSlots = await getCalendarBusySlots(userId, startDate, endDate);
+  for (const slot of calendarSlots) {
+    busySlots.push({
+      startTime: new Date(slot.startTime),
+      endTime: new Date(slot.endTime),
+    });
+  }
+
+  return busySlots;
+};
+
+/**
+ * Calculate free time slots given busy periods within a date range.
+ * Users are available 24/7 by default, minus their blocked times.
  */
 export const calculateFreeTime = (
   busySlots: TimeSlot[],
   startDate: Date,
   endDate: Date,
-  workingHoursStart = 9, // 9 AM
-  workingHoursEnd = 21,   // 9 PM
 ): TimeSlot[] => {
+  // If no busy slots, return the entire range as free
+  if (busySlots.length === 0) {
+    return [{
+      startTime: new Date(startDate),
+      endTime: new Date(endDate),
+    }];
+  }
+
   const freeSlots: TimeSlot[] = [];
   
   // Sort busy slots by start time
@@ -291,82 +284,115 @@ export const calculateFreeTime = (
   for (const slot of sortedBusy) {
     const last = mergedBusy[mergedBusy.length - 1];
     if (!last) {
-      mergedBusy.push({ ...slot });
-    } else if (slot.startTime <= last.endTime) {
-      // Overlapping, extend the last slot
+      mergedBusy.push({ 
+        startTime: new Date(slot.startTime), 
+        endTime: new Date(slot.endTime) 
+      });
+    } else if (slot.startTime.getTime() <= last.endTime.getTime()) {
+      // Overlapping or adjacent, extend the last slot
       last.endTime = new Date(Math.max(last.endTime.getTime(), slot.endTime.getTime()));
     } else {
-      mergedBusy.push({ ...slot });
+      mergedBusy.push({ 
+        startTime: new Date(slot.startTime), 
+        endTime: new Date(slot.endTime) 
+      });
     }
   }
   
-  // Iterate through each day in the range
-  const current = new Date(startDate);
-  current.setHours(0, 0, 0, 0);
+  // Calculate free slots by finding gaps between busy slots
+  let freeStart = new Date(startDate);
   
-  while (current <= endDate) {
-    const dayStart = new Date(current);
-    dayStart.setHours(workingHoursStart, 0, 0, 0);
+  for (const busy of mergedBusy) {
+    // Clamp busy slot to the date range
+    const busyStart = new Date(Math.max(busy.startTime.getTime(), startDate.getTime()));
+    const busyEnd = new Date(Math.min(busy.endTime.getTime(), endDate.getTime()));
     
-    const dayEnd = new Date(current);
-    dayEnd.setHours(workingHoursEnd, 0, 0, 0);
-    
-    // Find busy slots that overlap with this day's working hours
-    const dayBusy = mergedBusy.filter(
-      (slot) => slot.startTime < dayEnd && slot.endTime > dayStart
-    );
-    
-    // Calculate free slots for this day
-    let freeStart = dayStart;
-    
-    for (const busy of dayBusy) {
-      const busyStart = new Date(Math.max(busy.startTime.getTime(), dayStart.getTime()));
-      const busyEnd = new Date(Math.min(busy.endTime.getTime(), dayEnd.getTime()));
-      
-      if (freeStart < busyStart) {
-        freeSlots.push({
-          startTime: new Date(freeStart),
-          endTime: new Date(busyStart),
-        });
-      }
-      
-      freeStart = busyEnd;
-    }
-    
-    // Add remaining free time until end of working hours
-    if (freeStart < dayEnd) {
+    // If there's a gap before this busy slot, it's free time
+    if (freeStart.getTime() < busyStart.getTime()) {
       freeSlots.push({
         startTime: new Date(freeStart),
-        endTime: new Date(dayEnd),
+        endTime: new Date(busyStart),
       });
     }
     
-    // Move to next day
-    current.setDate(current.getDate() + 1);
+    // Move free start to end of this busy slot
+    freeStart = new Date(Math.max(freeStart.getTime(), busyEnd.getTime()));
+  }
+  
+  // Add remaining free time until end of range
+  if (freeStart.getTime() < endDate.getTime()) {
+    freeSlots.push({
+      startTime: new Date(freeStart),
+      endTime: new Date(endDate),
+    });
   }
   
   return freeSlots;
 };
 
 /**
- * Get combined free time for a user, considering calendar busy slots and manual availability
+ * Get free time for a user (24/7 minus blocked windows and calendar busy slots)
  */
 export const getUserFreeTime = async (
   userId: string,
   startDate: Date,
   endDate: Date
 ): Promise<TimeSlot[]> => {
-  // Get calendar busy slots
-  const busySlots = await getCalendarBusySlots(userId, startDate, endDate);
+  // Get all busy slots (manual + calendar)
+  const busySlots = await getAllBusySlots(userId, startDate, endDate);
   
-  // Convert to TimeSlot format
-  const busyTimeSlots: TimeSlot[] = busySlots.map((slot) => ({
-    startTime: new Date(slot.startTime),
-    endTime: new Date(slot.endTime),
-  }));
+  // Calculate free time (24/7 minus busy)
+  return calculateFreeTime(busySlots, startDate, endDate);
+};
+
+// ============================================
+// Friends' Free Time
+// ============================================
+
+export interface FriendFreeTime {
+  userId: string;
+  freeSlots: FreeTimeSlot[];
+}
+
+/**
+ * Get computed free time for all friends within a date range.
+ * Each friend is available 24/7 by default, minus their blocked windows and calendar events.
+ */
+export const getFriendsFreeTime = async (
+  userId: string,
+  startDate: string,
+  endDate: string,
+): Promise<FriendFreeTime[]> => {
+  // Get accepted friend IDs
+  const friendIds = await db
+    .select({ friendId: friendships.friendId })
+    .from(friendships)
+    .where(and(eq(friendships.userId, userId), eq(friendships.status, 'accepted')));
+
+  if (friendIds.length === 0) {
+    return [];
+  }
+
+  const friendIdList = friendIds.map((f) => f.friendId);
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  // Get free time for each friend
+  const results: FriendFreeTime[] = [];
   
-  // Calculate free time
-  return calculateFreeTime(busyTimeSlots, startDate, endDate);
+  for (const friendId of friendIdList) {
+    const freeSlots = await getUserFreeTime(friendId, start, end);
+    
+    results.push({
+      userId: friendId,
+      freeSlots: freeSlots.map((slot) => ({
+        startTime: slot.startTime.toISOString(),
+        endTime: slot.endTime.toISOString(),
+      })),
+    });
+  }
+
+  return results;
 };
 
 /**

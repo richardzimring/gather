@@ -5,7 +5,7 @@ export { useAuth, useAuthReady, AuthProvider } from './useAuth'
 export * from './useFriends'
 export * from './useGroups'
 export * from './useActivities'
-export * from './useAvailability'
+export * from './useBlocked'
 export * from './useEvents'
 
 // Calendar connections (server-side)

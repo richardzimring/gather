@@ -87,7 +87,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   ownedGroups: many(groups),
   groupMemberships: many(groupMembers),
   activities: many(activities),
-  availabilityWindows: many(availabilityWindows),
+  blockedWindows: many(blockedWindows),
   hostedEvents: many(events),
   eventInvitations: many(eventInvitees),
   calendarConnections: many(calendarConnections),
@@ -228,11 +228,11 @@ export const activitiesRelations = relations(activities, ({ one, many }) => ({
 }));
 
 // ============================================
-// Availability Windows Table (Simplified - visible to all friends)
+// Blocked Windows Table (times when user is NOT available)
 // ============================================
 
-export const availabilityWindows = pgTable(
-  'availability_windows',
+export const blockedWindows = pgTable(
+  'blocked_windows',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     userId: uuid('user_id')
@@ -248,14 +248,14 @@ export const availabilityWindows = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    index('availability_windows_user_id_idx').on(table.userId),
-    index('availability_windows_start_time_idx').on(table.startTime),
+    index('blocked_windows_user_id_idx').on(table.userId),
+    index('blocked_windows_start_time_idx').on(table.startTime),
   ],
 );
 
-export const availabilityWindowsRelations = relations(availabilityWindows, ({ one }) => ({
+export const blockedWindowsRelations = relations(blockedWindows, ({ one }) => ({
   user: one(users, {
-    fields: [availabilityWindows.userId],
+    fields: [blockedWindows.userId],
     references: [users.id],
   }),
 }));
@@ -488,8 +488,8 @@ export type NewGroupMember = typeof groupMembers.$inferInsert;
 export type Activity = typeof activities.$inferSelect;
 export type NewActivity = typeof activities.$inferInsert;
 
-export type AvailabilityWindow = typeof availabilityWindows.$inferSelect;
-export type NewAvailabilityWindow = typeof availabilityWindows.$inferInsert;
+export type BlockedWindow = typeof blockedWindows.$inferSelect;
+export type NewBlockedWindow = typeof blockedWindows.$inferInsert;
 
 export type Event = typeof events.$inferSelect;
 export type NewEvent = typeof events.$inferInsert;

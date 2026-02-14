@@ -139,7 +139,7 @@ export const UpdateActivitySchema = z
   })
   .openapi('UpdateActivity');
 
-// Availability schemas
+// Blocked window schemas (times when user is NOT available)
 export const RecurringPatternSchema = z.enum(['daily', 'weekly', 'biweekly', 'monthly']).openapi('RecurringPattern');
 
 export const RecurringSchema = z
@@ -150,35 +150,35 @@ export const RecurringSchema = z
   })
   .openapi('Recurring');
 
-export const AvailabilityWindowSchema = z
+export const BlockedWindowSchema = z
   .object({
     userId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
     windowId: z.string().uuid().openapi({ example: EXAMPLE_UUID_2 }),
     startTime: z.string().datetime().openapi({ example: '2024-01-15T14:00:00.000Z' }),
     endTime: z.string().datetime().openapi({ example: '2024-01-15T18:00:00.000Z' }),
     recurring: RecurringSchema.optional(),
-    notes: z.string().max(500).optional().openapi({ example: 'Free for coffee or lunch!' }),
+    notes: z.string().max(500).optional().openapi({ example: 'Work meeting' }),
     createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
   })
-  .openapi('AvailabilityWindow');
+  .openapi('BlockedWindow');
 
-export const CreateAvailabilitySchema = z
+export const CreateBlockedWindowSchema = z
   .object({
     startTime: z.string().datetime().openapi({ example: '2024-01-15T14:00:00.000Z' }),
     endTime: z.string().datetime().openapi({ example: '2024-01-15T18:00:00.000Z' }),
     recurring: RecurringSchema.optional(),
-    notes: z.string().max(500).optional().openapi({ example: 'Free for coffee or lunch!' }),
+    notes: z.string().max(500).optional().openapi({ example: 'Work meeting' }),
   })
-  .openapi('CreateAvailability');
+  .openapi('CreateBlockedWindow');
 
-export const UpdateAvailabilitySchema = z
+export const UpdateBlockedWindowSchema = z
   .object({
     startTime: z.string().datetime().optional().openapi({ example: '2024-01-15T14:00:00.000Z' }),
     endTime: z.string().datetime().optional().openapi({ example: '2024-01-15T18:00:00.000Z' }),
     recurring: RecurringSchema.nullable().optional(),
     notes: z.string().max(500).nullable().optional().openapi({ example: 'Updated notes' }),
   })
-  .openapi('UpdateAvailability');
+  .openapi('UpdateBlockedWindow');
 
 // Event schemas
 export const InviteeStatusSchema = z.enum(['pending', 'accepted', 'declined', 'maybe']).openapi('InviteeStatus');
@@ -351,9 +351,9 @@ export type UpdateActivity = z.infer<typeof UpdateActivitySchema>;
 
 export type RecurringPattern = z.infer<typeof RecurringPatternSchema>;
 export type Recurring = z.infer<typeof RecurringSchema>;
-export type AvailabilityWindow = z.infer<typeof AvailabilityWindowSchema>;
-export type CreateAvailability = z.infer<typeof CreateAvailabilitySchema>;
-export type UpdateAvailability = z.infer<typeof UpdateAvailabilitySchema>;
+export type BlockedWindow = z.infer<typeof BlockedWindowSchema>;
+export type CreateBlockedWindow = z.infer<typeof CreateBlockedWindowSchema>;
+export type UpdateBlockedWindow = z.infer<typeof UpdateBlockedWindowSchema>;
 
 export type InviteeStatus = z.infer<typeof InviteeStatusSchema>;
 export type EventStatus = z.infer<typeof EventStatusSchema>;
@@ -421,11 +421,19 @@ export const BusySlotSchema = z
   })
   .openapi('BusySlot');
 
+export const FreeTimeSlotSchema = z
+  .object({
+    startTime: z.string().datetime().openapi({ example: '2024-01-15T14:00:00.000Z' }),
+    endTime: z.string().datetime().openapi({ example: '2024-01-15T18:00:00.000Z' }),
+  })
+  .openapi('FreeTimeSlot');
+
 export type CalendarProvider = z.infer<typeof CalendarProviderSchema>;
 export type CalendarConnection = z.infer<typeof CalendarConnectionSchema>;
 export type CreateCalendarConnection = z.infer<typeof CreateCalendarConnectionSchema>;
 export type UpdateCalendarConnection = z.infer<typeof UpdateCalendarConnectionSchema>;
 export type BusySlot = z.infer<typeof BusySlotSchema>;
+export type FreeTimeSlot = z.infer<typeof FreeTimeSlotSchema>;
 
 // Location schemas
 export const LocationSchema = z

@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteActivitiesByActivityIdData, DeleteActivitiesByActivityIdErrors, DeleteActivitiesByActivityIdResponses, DeleteAvailabilityByWindowIdData, DeleteAvailabilityByWindowIdErrors, DeleteAvailabilityByWindowIdResponses, DeleteCalendarsByConnectionIdData, DeleteCalendarsByConnectionIdErrors, DeleteCalendarsByConnectionIdResponses, DeleteEventsByEventIdData, DeleteEventsByEventIdErrors, DeleteEventsByEventIdResponses, DeleteFriendsByFriendIdData, DeleteFriendsByFriendIdErrors, DeleteFriendsByFriendIdResponses, DeleteGroupsByGroupIdData, DeleteGroupsByGroupIdErrors, DeleteGroupsByGroupIdResponses, DeleteUsersMeData, DeleteUsersMeErrors, DeleteUsersMeResponses, GetActivitiesData, GetActivitiesErrors, GetActivitiesResponses, GetAuthMeData, GetAuthMeErrors, GetAuthMeResponses, GetAvailabilityData, GetAvailabilityErrors, GetAvailabilityFriendsData, GetAvailabilityFriendsErrors, GetAvailabilityFriendsResponses, GetAvailabilityResponses, GetCalendarsBusySlotsData, GetCalendarsBusySlotsErrors, GetCalendarsBusySlotsResponses, GetCalendarsByConnectionIdData, GetCalendarsByConnectionIdErrors, GetCalendarsByConnectionIdResponses, GetCalendarsData, GetCalendarsErrors, GetCalendarsResponses, GetEventsByEventIdData, GetEventsByEventIdErrors, GetEventsByEventIdResponses, GetEventsData, GetEventsErrors, GetEventsResponses, GetFriendsData, GetFriendsErrors, GetFriendsInviteCodeData, GetFriendsInviteCodeErrors, GetFriendsInviteCodeResponses, GetFriendsResponses, GetFriendsSearchData, GetFriendsSearchErrors, GetFriendsSearchResponses, GetGroupsData, GetGroupsErrors, GetGroupsResponses, GetUsersMeData, GetUsersMeErrors, GetUsersMeResponses, PatchActivitiesByActivityIdData, PatchActivitiesByActivityIdErrors, PatchActivitiesByActivityIdResponses, PatchAvailabilityByWindowIdData, PatchAvailabilityByWindowIdErrors, PatchAvailabilityByWindowIdResponses, PatchCalendarsByConnectionIdData, PatchCalendarsByConnectionIdErrors, PatchCalendarsByConnectionIdResponses, PatchEventsByEventIdData, PatchEventsByEventIdErrors, PatchEventsByEventIdResponses, PatchGroupsByGroupIdData, PatchGroupsByGroupIdErrors, PatchGroupsByGroupIdResponses, PatchUsersMeData, PatchUsersMeErrors, PatchUsersMeResponses, PostActivitiesData, PostActivitiesErrors, PostActivitiesResponses, PostAuthAppleCallbackData, PostAuthAppleCallbackErrors, PostAuthAppleCallbackResponses, PostAvailabilityData, PostAvailabilityErrors, PostAvailabilityResponses, PostCalendarsData, PostCalendarsErrors, PostCalendarsResponses, PostEventsByEventIdRespondData, PostEventsByEventIdRespondErrors, PostEventsByEventIdRespondResponses, PostEventsData, PostEventsErrors, PostEventsResponses, PostFriendsByFriendIdAcceptData, PostFriendsByFriendIdAcceptErrors, PostFriendsByFriendIdAcceptResponses, PostFriendsByFriendIdBlockData, PostFriendsByFriendIdBlockErrors, PostFriendsByFriendIdBlockResponses, PostFriendsByFriendIdDeclineData, PostFriendsByFriendIdDeclineErrors, PostFriendsByFriendIdDeclineResponses, PostFriendsInviteCodeRegenerateData, PostFriendsInviteCodeRegenerateErrors, PostFriendsInviteCodeRegenerateResponses, PostFriendsRequestData, PostFriendsRequestErrors, PostFriendsRequestResponses, PostGroupsData, PostGroupsErrors, PostGroupsResponses, PostUsersMePushTokenData, PostUsersMePushTokenErrors, PostUsersMePushTokenResponses } from './types.gen';
+import type { DeleteActivitiesByActivityIdData, DeleteActivitiesByActivityIdErrors, DeleteActivitiesByActivityIdResponses, DeleteBlockedByWindowIdData, DeleteBlockedByWindowIdErrors, DeleteBlockedByWindowIdResponses, DeleteCalendarsByConnectionIdData, DeleteCalendarsByConnectionIdErrors, DeleteCalendarsByConnectionIdResponses, DeleteEventsByEventIdData, DeleteEventsByEventIdErrors, DeleteEventsByEventIdResponses, DeleteFriendsByFriendIdData, DeleteFriendsByFriendIdErrors, DeleteFriendsByFriendIdResponses, DeleteGroupsByGroupIdData, DeleteGroupsByGroupIdErrors, DeleteGroupsByGroupIdResponses, DeleteUsersMeData, DeleteUsersMeErrors, DeleteUsersMeResponses, GetActivitiesData, GetActivitiesErrors, GetActivitiesResponses, GetAuthMeData, GetAuthMeErrors, GetAuthMeResponses, GetBlockedData, GetBlockedErrors, GetBlockedFriendsFreeTimeData, GetBlockedFriendsFreeTimeErrors, GetBlockedFriendsFreeTimeResponses, GetBlockedResponses, GetCalendarsBusySlotsData, GetCalendarsBusySlotsErrors, GetCalendarsBusySlotsResponses, GetCalendarsByConnectionIdData, GetCalendarsByConnectionIdErrors, GetCalendarsByConnectionIdResponses, GetCalendarsData, GetCalendarsErrors, GetCalendarsResponses, GetEventsByEventIdData, GetEventsByEventIdErrors, GetEventsByEventIdResponses, GetEventsData, GetEventsErrors, GetEventsResponses, GetFriendsData, GetFriendsErrors, GetFriendsInviteCodeData, GetFriendsInviteCodeErrors, GetFriendsInviteCodeResponses, GetFriendsResponses, GetFriendsSearchData, GetFriendsSearchErrors, GetFriendsSearchResponses, GetGroupsData, GetGroupsErrors, GetGroupsResponses, GetUsersMeData, GetUsersMeErrors, GetUsersMeResponses, PatchActivitiesByActivityIdData, PatchActivitiesByActivityIdErrors, PatchActivitiesByActivityIdResponses, PatchBlockedByWindowIdData, PatchBlockedByWindowIdErrors, PatchBlockedByWindowIdResponses, PatchCalendarsByConnectionIdData, PatchCalendarsByConnectionIdErrors, PatchCalendarsByConnectionIdResponses, PatchEventsByEventIdData, PatchEventsByEventIdErrors, PatchEventsByEventIdResponses, PatchGroupsByGroupIdData, PatchGroupsByGroupIdErrors, PatchGroupsByGroupIdResponses, PatchUsersMeData, PatchUsersMeErrors, PatchUsersMeResponses, PostActivitiesData, PostActivitiesErrors, PostActivitiesResponses, PostAuthAppleCallbackData, PostAuthAppleCallbackErrors, PostAuthAppleCallbackResponses, PostBlockedData, PostBlockedErrors, PostBlockedResponses, PostCalendarsData, PostCalendarsErrors, PostCalendarsResponses, PostEventsByEventIdRespondData, PostEventsByEventIdRespondErrors, PostEventsByEventIdRespondResponses, PostEventsData, PostEventsErrors, PostEventsResponses, PostFriendsByFriendIdAcceptData, PostFriendsByFriendIdAcceptErrors, PostFriendsByFriendIdAcceptResponses, PostFriendsByFriendIdBlockData, PostFriendsByFriendIdBlockErrors, PostFriendsByFriendIdBlockResponses, PostFriendsByFriendIdDeclineData, PostFriendsByFriendIdDeclineErrors, PostFriendsByFriendIdDeclineResponses, PostFriendsInviteCodeRegenerateData, PostFriendsInviteCodeRegenerateErrors, PostFriendsInviteCodeRegenerateResponses, PostFriendsRequestData, PostFriendsRequestErrors, PostFriendsRequestResponses, PostGroupsData, PostGroupsErrors, PostGroupsResponses, PostUsersMePushTokenData, PostUsersMePushTokenErrors, PostUsersMePushTokenResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -96,24 +96,24 @@ export const getAuthMe = <ThrowOnError extends boolean = false>(options?: Option
 });
 
 /**
- * Get availability windows
+ * Get blocked windows
  *
- * Get availability windows for the current user
+ * Get blocked time windows for the current user (times when NOT available)
  */
-export const getAvailability = <ThrowOnError extends boolean = false>(options?: Options<GetAvailabilityData, ThrowOnError>) => (options?.client ?? client).get<GetAvailabilityResponses, GetAvailabilityErrors, ThrowOnError>({
+export const getBlocked = <ThrowOnError extends boolean = false>(options?: Options<GetBlockedData, ThrowOnError>) => (options?.client ?? client).get<GetBlockedResponses, GetBlockedErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/availability',
+    url: '/blocked',
     ...options
 });
 
 /**
- * Create availability window
+ * Create blocked window
  *
- * Create a new availability window
+ * Create a new blocked time window (mark time as unavailable)
  */
-export const postAvailability = <ThrowOnError extends boolean = false>(options: Options<PostAvailabilityData, ThrowOnError>) => (options.client ?? client).post<PostAvailabilityResponses, PostAvailabilityErrors, ThrowOnError>({
+export const postBlocked = <ThrowOnError extends boolean = false>(options: Options<PostBlockedData, ThrowOnError>) => (options.client ?? client).post<PostBlockedResponses, PostBlockedErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/availability',
+    url: '/blocked',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -122,24 +122,24 @@ export const postAvailability = <ThrowOnError extends boolean = false>(options: 
 });
 
 /**
- * Delete availability window
+ * Delete blocked window
  *
- * Delete an existing availability window
+ * Delete an existing blocked time window
  */
-export const deleteAvailabilityByWindowId = <ThrowOnError extends boolean = false>(options: Options<DeleteAvailabilityByWindowIdData, ThrowOnError>) => (options.client ?? client).delete<DeleteAvailabilityByWindowIdResponses, DeleteAvailabilityByWindowIdErrors, ThrowOnError>({
+export const deleteBlockedByWindowId = <ThrowOnError extends boolean = false>(options: Options<DeleteBlockedByWindowIdData, ThrowOnError>) => (options.client ?? client).delete<DeleteBlockedByWindowIdResponses, DeleteBlockedByWindowIdErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/availability/{windowId}',
+    url: '/blocked/{windowId}',
     ...options
 });
 
 /**
- * Update availability window
+ * Update blocked window
  *
- * Update an existing availability window
+ * Update an existing blocked time window
  */
-export const patchAvailabilityByWindowId = <ThrowOnError extends boolean = false>(options: Options<PatchAvailabilityByWindowIdData, ThrowOnError>) => (options.client ?? client).patch<PatchAvailabilityByWindowIdResponses, PatchAvailabilityByWindowIdErrors, ThrowOnError>({
+export const patchBlockedByWindowId = <ThrowOnError extends boolean = false>(options: Options<PatchBlockedByWindowIdData, ThrowOnError>) => (options.client ?? client).patch<PatchBlockedByWindowIdResponses, PatchBlockedByWindowIdErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/availability/{windowId}',
+    url: '/blocked/{windowId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -148,13 +148,13 @@ export const patchAvailabilityByWindowId = <ThrowOnError extends boolean = false
 });
 
 /**
- * Get friends availability
+ * Get friends free time
  *
- * Get availability windows for friends
+ * Get computed free time for friends (24/7 minus their blocked windows and calendar events)
  */
-export const getAvailabilityFriends = <ThrowOnError extends boolean = false>(options?: Options<GetAvailabilityFriendsData, ThrowOnError>) => (options?.client ?? client).get<GetAvailabilityFriendsResponses, GetAvailabilityFriendsErrors, ThrowOnError>({
+export const getBlockedFriendsFreeTime = <ThrowOnError extends boolean = false>(options: Options<GetBlockedFriendsFreeTimeData, ThrowOnError>) => (options.client ?? client).get<GetBlockedFriendsFreeTimeResponses, GetBlockedFriendsFreeTimeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/availability/friends',
+    url: '/blocked/friends-free-time',
     ...options
 });
 

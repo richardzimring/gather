@@ -5,12 +5,13 @@ import {
   authMiddleware,
 } from '../src/middleware/hono';
 import {
-  AvailabilityWindowSchema,
-  CreateAvailabilitySchema,
-  UpdateAvailabilitySchema,
+  BlockedWindowSchema,
+  CreateBlockedWindowSchema,
+  UpdateBlockedWindowSchema,
+  FreeTimeSlotSchema,
   ErrorResponseSchema,
 } from '../src/types';
-import * as availabilityService from '../src/services/availability';
+import * as blockedService from '../src/services/blocked';
 
 const app = createApp();
 
@@ -21,64 +22,64 @@ app.use('*', authMiddleware);
 // Response Schemas
 // ============================================
 
-const AvailabilityWindowsResponseSchema = z
+const BlockedWindowsResponseSchema = z
   .object({
     success: z.literal(true),
     data: z.object({
-      windows: z.array(AvailabilityWindowSchema),
+      windows: z.array(BlockedWindowSchema),
     }),
   })
-  .openapi('AvailabilityWindowsResponse');
+  .openapi('BlockedWindowsResponse');
 
-const AvailabilityWindowResponseSchema = z
+const BlockedWindowResponseSchema = z
   .object({
     success: z.literal(true),
     data: z.object({
-      window: AvailabilityWindowSchema,
+      window: BlockedWindowSchema,
     }),
     message: z.string().optional(),
   })
-  .openapi('AvailabilityWindowResponse');
+  .openapi('BlockedWindowResponse');
 
-const FriendAvailabilitySchema = z.object({
+const FriendFreeTimeSchema = z.object({
   userId: z.string().uuid(),
-  windows: z.array(AvailabilityWindowSchema),
+  freeSlots: z.array(FreeTimeSlotSchema),
 });
 
-const FriendsAvailabilityResponseSchema = z
+const FriendsFreeTimeResponseSchema = z
   .object({
     success: z.literal(true),
     data: z.object({
-      availability: z.array(FriendAvailabilitySchema),
+      freeTime: z.array(FriendFreeTimeSchema),
     }),
   })
-  .openapi('FriendsAvailabilityResponse');
+  .openapi('FriendsFreeTimeResponse');
 
-// Query schema for friends availability
-const FriendsAvailabilityQuerySchema = z.object({
-  startDate: z.string().datetime().optional().openapi({ example: '2024-01-15T00:00:00.000Z' }),
-  endDate: z.string().datetime().optional().openapi({ example: '2024-01-22T23:59:59.000Z' }),
+// Query schema for friends free time (required dates)
+const FriendsFreeTimeQuerySchema = z.object({
+  startDate: z.string().datetime().openapi({ example: '2024-01-15T00:00:00.000Z' }),
+  endDate: z.string().datetime().openapi({ example: '2024-01-22T23:59:59.000Z' }),
 });
 
 // ============================================
 // Route Definitions
 // ============================================
 
-const getAvailabilityRoute = createRoute({
+const getBlockedRoute = createRoute({
   method: 'get',
-  path: '/availability',
-  tags: ['Availability'],
-  summary: 'Get availability windows',
-  description: 'Get availability windows for the current user',
+  path: '/blocked',
+  tags: ['Blocked'],
+  summary: 'Get blocked windows',
+  description: 'Get blocked time windows for the current user (times when NOT available)',
   security: [{ BearerAuth: [] }],
   responses: {
     200: {
       content: {
         'application/json': {
-          schema: AvailabilityWindowsResponseSchema,
+          schema: BlockedWindowsResponseSchema,
         },
       },
-      description: 'Availability windows retrieved successfully',
+      description: 'Blocked windows retrieved successfully',
     },
     401: {
       content: {
@@ -99,18 +100,18 @@ const getAvailabilityRoute = createRoute({
   },
 });
 
-const createAvailabilityRoute = createRoute({
+const createBlockedRoute = createRoute({
   method: 'post',
-  path: '/availability',
-  tags: ['Availability'],
-  summary: 'Create availability window',
-  description: 'Create a new availability window',
+  path: '/blocked',
+  tags: ['Blocked'],
+  summary: 'Create blocked window',
+  description: 'Create a new blocked time window (mark time as unavailable)',
   security: [{ BearerAuth: [] }],
   request: {
     body: {
       content: {
         'application/json': {
-          schema: CreateAvailabilitySchema,
+          schema: CreateBlockedWindowSchema,
         },
       },
       required: true,
@@ -120,10 +121,10 @@ const createAvailabilityRoute = createRoute({
     201: {
       content: {
         'application/json': {
-          schema: AvailabilityWindowResponseSchema,
+          schema: BlockedWindowResponseSchema,
         },
       },
-      description: 'Availability window created successfully',
+      description: 'Blocked window created successfully',
     },
     400: {
       content: {
@@ -152,12 +153,12 @@ const createAvailabilityRoute = createRoute({
   },
 });
 
-const updateAvailabilityRoute = createRoute({
+const updateBlockedRoute = createRoute({
   method: 'patch',
-  path: '/availability/{windowId}',
-  tags: ['Availability'],
-  summary: 'Update availability window',
-  description: 'Update an existing availability window',
+  path: '/blocked/{windowId}',
+  tags: ['Blocked'],
+  summary: 'Update blocked window',
+  description: 'Update an existing blocked time window',
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
@@ -166,7 +167,7 @@ const updateAvailabilityRoute = createRoute({
     body: {
       content: {
         'application/json': {
-          schema: UpdateAvailabilitySchema,
+          schema: UpdateBlockedWindowSchema,
         },
       },
       required: true,
@@ -176,10 +177,10 @@ const updateAvailabilityRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: AvailabilityWindowResponseSchema,
+          schema: BlockedWindowResponseSchema,
         },
       },
-      description: 'Availability window updated successfully',
+      description: 'Blocked window updated successfully',
     },
     400: {
       content: {
@@ -208,12 +209,12 @@ const updateAvailabilityRoute = createRoute({
   },
 });
 
-const deleteAvailabilityRoute = createRoute({
+const deleteBlockedRoute = createRoute({
   method: 'delete',
-  path: '/availability/{windowId}',
-  tags: ['Availability'],
-  summary: 'Delete availability window',
-  description: 'Delete an existing availability window',
+  path: '/blocked/{windowId}',
+  tags: ['Blocked'],
+  summary: 'Delete blocked window',
+  description: 'Delete an existing blocked time window',
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
@@ -222,7 +223,7 @@ const deleteAvailabilityRoute = createRoute({
   },
   responses: {
     204: {
-      description: 'Availability window deleted successfully',
+      description: 'Blocked window deleted successfully',
     },
     400: {
       content: {
@@ -251,24 +252,24 @@ const deleteAvailabilityRoute = createRoute({
   },
 });
 
-const getFriendsAvailabilityRoute = createRoute({
+const getFriendsFreeTimeRoute = createRoute({
   method: 'get',
-  path: '/availability/friends',
-  tags: ['Availability'],
-  summary: 'Get friends availability',
-  description: 'Get availability windows for friends',
+  path: '/blocked/friends-free-time',
+  tags: ['Blocked'],
+  summary: 'Get friends free time',
+  description: 'Get computed free time for friends (24/7 minus their blocked windows and calendar events)',
   security: [{ BearerAuth: [] }],
   request: {
-    query: FriendsAvailabilityQuerySchema,
+    query: FriendsFreeTimeQuerySchema,
   },
   responses: {
     200: {
       content: {
         'application/json': {
-          schema: FriendsAvailabilityResponseSchema,
+          schema: FriendsFreeTimeResponseSchema,
         },
       },
-      description: 'Friends availability retrieved successfully',
+      description: 'Friends free time retrieved successfully',
     },
     400: {
       content: {
@@ -301,11 +302,11 @@ const getFriendsAvailabilityRoute = createRoute({
 // Route Handlers
 // ============================================
 
-app.openapi(getAvailabilityRoute, async (c) => {
+app.openapi(getBlockedRoute, async (c) => {
   const user = c.get('user');
 
   try {
-    const windows = await availabilityService.getAvailabilityWindows(
+    const windows = await blockedService.getBlockedWindows(
       user.userId,
     );
     return c.json(
@@ -316,19 +317,19 @@ app.openapi(getAvailabilityRoute, async (c) => {
       200,
     );
   } catch (error) {
-    console.error('Error in GET /availability:', error);
+    console.error('Error in GET /blocked:', error);
     return c.json(
       {
         success: false as const,
         error: 'Internal Server Error',
-        message: 'Failed to fetch availability',
+        message: 'Failed to fetch blocked windows',
       },
       500,
     );
   }
 });
 
-app.openapi(createAvailabilityRoute, async (c) => {
+app.openapi(createBlockedRoute, async (c) => {
   const user = c.get('user');
   const data = c.req.valid('json');
 
@@ -345,7 +346,7 @@ app.openapi(createAvailabilityRoute, async (c) => {
   }
 
   try {
-    const window = await availabilityService.createAvailabilityWindow(
+    const window = await blockedService.createBlockedWindow(
       user.userId,
       data,
     );
@@ -353,24 +354,24 @@ app.openapi(createAvailabilityRoute, async (c) => {
       {
         success: true as const,
         data: { window },
-        message: 'Availability window created successfully',
+        message: 'Blocked window created successfully',
       },
       201,
     );
   } catch (error) {
-    console.error('Error in POST /availability:', error);
+    console.error('Error in POST /blocked:', error);
     return c.json(
       {
         success: false as const,
         error: 'Internal Server Error',
-        message: 'Failed to create availability window',
+        message: 'Failed to create blocked window',
       },
       500,
     );
   }
 });
 
-app.openapi(updateAvailabilityRoute, async (c) => {
+app.openapi(updateBlockedRoute, async (c) => {
   const user = c.get('user');
   const { windowId } = c.req.valid('param');
   const data = c.req.valid('json');
@@ -390,7 +391,7 @@ app.openapi(updateAvailabilityRoute, async (c) => {
   }
 
   try {
-    const result = await availabilityService.updateAvailabilityWindow(
+    const result = await blockedService.updateBlockedWindow(
       user.userId,
       windowId,
       data,
@@ -410,29 +411,29 @@ app.openapi(updateAvailabilityRoute, async (c) => {
       {
         success: true as const,
         data: { window: result.window },
-        message: 'Availability window updated successfully',
+        message: 'Blocked window updated successfully',
       },
       200,
     );
   } catch (error) {
-    console.error('Error in PATCH /availability/:windowId:', error);
+    console.error('Error in PATCH /blocked/:windowId:', error);
     return c.json(
       {
         success: false as const,
         error: 'Internal Server Error',
-        message: 'Failed to update availability window',
+        message: 'Failed to update blocked window',
       },
       500,
     );
   }
 });
 
-app.openapi(deleteAvailabilityRoute, async (c) => {
+app.openapi(deleteBlockedRoute, async (c) => {
   const user = c.get('user');
   const { windowId } = c.req.valid('param');
 
   try {
-    const result = await availabilityService.deleteAvailabilityWindow(
+    const result = await blockedService.deleteBlockedWindow(
       user.userId,
       windowId,
     );
@@ -449,24 +450,24 @@ app.openapi(deleteAvailabilityRoute, async (c) => {
 
     return c.body(null, 204);
   } catch (error) {
-    console.error('Error in DELETE /availability/:windowId:', error);
+    console.error('Error in DELETE /blocked/:windowId:', error);
     return c.json(
       {
         success: false as const,
         error: 'Internal Server Error',
-        message: 'Failed to delete availability window',
+        message: 'Failed to delete blocked window',
       },
       500,
     );
   }
 });
 
-app.openapi(getFriendsAvailabilityRoute, async (c) => {
+app.openapi(getFriendsFreeTimeRoute, async (c) => {
   const user = c.get('user');
   const { startDate, endDate } = c.req.valid('query');
 
   try {
-    const availability = await availabilityService.getFriendsAvailability(
+    const freeTime = await blockedService.getFriendsFreeTime(
       user.userId,
       startDate,
       endDate,
@@ -475,17 +476,17 @@ app.openapi(getFriendsAvailabilityRoute, async (c) => {
     return c.json(
       {
         success: true as const,
-        data: { availability },
+        data: { freeTime },
       },
       200,
     );
   } catch (error) {
-    console.error('Error in GET /availability/friends:', error);
+    console.error('Error in GET /blocked/friends-free-time:', error);
     return c.json(
       {
         success: false as const,
         error: 'Internal Server Error',
-        message: 'Failed to fetch friends availability',
+        message: 'Failed to fetch friends free time',
       },
       500,
     );

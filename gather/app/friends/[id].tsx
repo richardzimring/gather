@@ -21,7 +21,7 @@ import { BackHeader } from "../../components/ui/ScreenHeader";
 import {
   useFriends,
   useRemoveFriend,
-  useFriendsAvailability,
+  useFriendsFreeTime,
   useEvents,
 } from "../../lib/hooks";
 
@@ -54,7 +54,21 @@ export default function FriendProfileScreen() {
   const [showActionSheet, setShowActionSheet] = useState(false);
 
   const { data: friendsData, isLoading } = useFriends();
-  const { data: availability } = useFriendsAvailability();
+  
+  // Calculate date range for free time query (next 7 days)
+  const dateRange = useMemo(() => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 7);
+    end.setHours(23, 59, 59, 999);
+    return {
+      start: start.toISOString(),
+      end: end.toISOString(),
+    };
+  }, []);
+  
+  const { data: freeTime } = useFriendsFreeTime(dateRange.start, dateRange.end);
   const { data: events } = useEvents();
   const removeFriend = useRemoveFriend();
 
@@ -64,12 +78,12 @@ export default function FriendProfileScreen() {
     return friendsData.friends.find((f) => f.friendId === id) ?? null;
   }, [friendsData, id]);
 
-  // Get this friend's availability
-  const friendAvailability = useMemo(() => {
-    if (!availability || !id) return [];
-    const friendData = availability.find((a) => a.userId === id);
-    return friendData?.windows ?? [];
-  }, [availability, id]);
+  // Get this friend's free time slots
+  const friendFreeSlots = useMemo(() => {
+    if (!freeTime || !id) return [];
+    const friendData = freeTime.find((f) => f.userId === id);
+    return friendData?.freeSlots ?? [];
+  }, [freeTime, id]);
 
   // Get shared events with this friend
   const sharedEvents = useMemo(() => {
@@ -206,25 +220,25 @@ export default function FriendProfileScreen() {
           </Button>
         </XStack>
 
-        {/* Availability Section */}
+        {/* Free Time Section */}
         <YStack marginBottom="$4">
           <Text fontWeight="500" fontSize={14} marginBottom="$3">
-            Upcoming Availability
+            Available This Week
           </Text>
-          {friendAvailability.length === 0 ? (
+          {friendFreeSlots.length === 0 ? (
             <Theme name="Card">
               <Card>
                 <YStack alignItems="center" padding="$2">
                   <Text color="$colorMuted" fontSize={13} textAlign="center">
-                    No availability shared with you
+                    No availability this week
                   </Text>
                 </YStack>
               </Card>
             </Theme>
           ) : (
             <YStack gap="$2">
-              {friendAvailability.slice(0, 5).map((window) => (
-                <Theme key={window.windowId} name="Card">
+              {friendFreeSlots.slice(0, 5).map((slot, index) => (
+                <Theme key={`${slot.startTime}-${index}`} name="Card">
                   <Card>
                     <XStack alignItems="center" gap="$3">
                       <YStack
@@ -235,12 +249,12 @@ export default function FriendProfileScreen() {
                       />
                       <YStack flex={1}>
                         <Text fontWeight="500" fontSize={14}>
-                          Available
+                          Free
                         </Text>
                         <Text color="$colorMuted" fontSize={12}>
-                          {formatDate(window.startTime)} •{" "}
-                          {formatTime(window.startTime)} -{" "}
-                          {formatTime(window.endTime)}
+                          {formatDate(slot.startTime)} •{" "}
+                          {formatTime(slot.startTime)} -{" "}
+                          {formatTime(slot.endTime)}
                         </Text>
                       </YStack>
                     </XStack>

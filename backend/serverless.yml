@@ -162,28 +162,28 @@ functions:
           method: DELETE
 
   # ============================================
-  # Availability Function
+  # Blocked Windows Function
   # ============================================
-  Availability:
-    handler: lambdas/availability.handler
-    name: ${self:provider.stage}-${self:service}-availability
+  Blocked:
+    handler: lambdas/blocked.handler
+    name: ${self:provider.stage}-${self:service}-blocked
     memorySize: 256
     timeout: 15
     events:
       - httpApi:
-          path: /availability
+          path: /blocked
           method: GET
       - httpApi:
-          path: /availability
+          path: /blocked
           method: POST
       - httpApi:
-          path: /availability/{windowId}
+          path: /blocked/{windowId}
           method: PATCH
       - httpApi:
-          path: /availability/{windowId}
+          path: /blocked/{windowId}
           method: DELETE
       - httpApi:
-          path: /availability/friends
+          path: /blocked/friends-free-time
           method: GET
 
   # ============================================

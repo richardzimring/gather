@@ -13,7 +13,7 @@ import * as path from 'path';
 // Import all lambda apps
 import { app as activitiesApp } from '../lambdas/activities';
 import { app as authApp } from '../lambdas/auth';
-import { app as availabilityApp } from '../lambdas/availability';
+import { app as blockedApp } from '../lambdas/blocked';
 import { app as calendarsApp } from '../lambdas/calendars';
 import { app as eventsApp } from '../lambdas/events';
 import { app as friendsApp } from '../lambdas/friends';
@@ -36,7 +36,7 @@ mainApp.openAPIRegistry.registerComponent('securitySchemes', 'BearerAuth', {
 // so we mount them at the root
 mainApp.route('/', activitiesApp);
 mainApp.route('/', authApp);
-mainApp.route('/', availabilityApp);
+mainApp.route('/', blockedApp);
 mainApp.route('/', calendarsApp);
 mainApp.route('/', eventsApp);
 mainApp.route('/', friendsApp);

@@ -27,7 +27,7 @@ import { Card } from "../../components/ui/Card";
 import { GlassButton } from "../../components/ui/GlassFAB";
 import {
   useFriends,
-  useFriendsAvailability,
+  useFriendsFreeTime,
   useGroups,
   useRefresh,
 } from "../../lib/hooks";
@@ -104,7 +104,7 @@ function formatDate(date: Date): string {
 }
 
 /**
- * Find overlapping free time slots for selected friends
+ * Types for free time slots
  */
 interface TimeSlot {
   date: Date;
@@ -113,52 +113,83 @@ interface TimeSlot {
   friendIds: string[];
 }
 
-interface AvailabilityWindow {
-  userId: string;
-  windowId: string;
+interface FreeTimeSlot {
   startTime: string;
   endTime: string;
 }
 
+interface FriendFreeTime {
+  userId: string;
+  freeSlots: FreeTimeSlot[];
+}
+
+/**
+ * Find overlapping free time slots for selected friends.
+ * The backend returns computed free time (24/7 minus blocked windows).
+ */
 function findCommonFreeTime(
-  friendAvailability: AvailabilityWindow[],
+  friendsFreeTime: FriendFreeTime[],
   selectedFriendIds: string[],
   dateRange: { start: Date; end: Date }
 ): TimeSlot[] {
   if (selectedFriendIds.length === 0) return [];
 
-  // Group availability by date
+  // Filter to only selected friends
+  const selectedFriendsData = friendsFreeTime.filter((f) =>
+    selectedFriendIds.includes(f.userId)
+  );
+
+  if (selectedFriendsData.length === 0) return [];
+
+  // Flatten all free time slots with their friend IDs
+  interface FlatSlot {
+    userId: string;
+    startTime: Date;
+    endTime: Date;
+  }
+
+  const allSlots: FlatSlot[] = [];
+  for (const friend of selectedFriendsData) {
+    for (const slot of friend.freeSlots) {
+      const start = new Date(slot.startTime);
+      const end = new Date(slot.endTime);
+
+      // Only include slots within the date range
+      if (end > dateRange.start && start < dateRange.end) {
+        allSlots.push({
+          userId: friend.userId,
+          startTime: new Date(Math.max(start.getTime(), dateRange.start.getTime())),
+          endTime: new Date(Math.min(end.getTime(), dateRange.end.getTime())),
+        });
+      }
+    }
+  }
+
+  // Find overlapping slots across all selected friends
+  const resultSlots: TimeSlot[] = [];
   const slotsByDate = new Map<string, TimeSlot[]>();
 
-  friendAvailability.forEach((window) => {
-    if (!selectedFriendIds.includes(window.userId)) return;
-
-    const start = new Date(window.startTime);
-    const end = new Date(window.endTime);
-
-    // Check if within date range
-    if (start < dateRange.start || start > dateRange.end) return;
-
-    const dateKey = start.toDateString();
+  for (const slot of allSlots) {
+    const dateKey = slot.startTime.toDateString();
     const existingSlots = slotsByDate.get(dateKey) ?? [];
 
     // Check if this slot overlaps with existing slots
     let merged = false;
     for (const existing of existingSlots) {
-      // Simple overlap check
+      // Check for overlap
       const overlapStart = new Date(
-        Math.max(start.getTime(), existing.startTime.getTime())
+        Math.max(slot.startTime.getTime(), existing.startTime.getTime())
       );
       const overlapEnd = new Date(
-        Math.min(end.getTime(), existing.endTime.getTime())
+        Math.min(slot.endTime.getTime(), existing.endTime.getTime())
       );
 
       if (overlapStart < overlapEnd) {
         // There is an overlap - add friend to existing slot
-        if (!existing.friendIds.includes(window.userId)) {
-          existing.friendIds.push(window.userId);
+        if (!existing.friendIds.includes(slot.userId)) {
+          existing.friendIds.push(slot.userId);
         }
-        // Shrink to overlap
+        // Shrink to the overlap
         existing.startTime = overlapStart;
         existing.endTime = overlapEnd;
         merged = true;
@@ -168,23 +199,26 @@ function findCommonFreeTime(
 
     if (!merged) {
       existingSlots.push({
-        date: new Date(start.getFullYear(), start.getMonth(), start.getDate()),
-        startTime: start,
-        endTime: end,
-        friendIds: [window.userId],
+        date: new Date(
+          slot.startTime.getFullYear(),
+          slot.startTime.getMonth(),
+          slot.startTime.getDate()
+        ),
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        friendIds: [slot.userId],
       });
     }
 
     slotsByDate.set(dateKey, existingSlots);
-  });
+  }
 
   // Flatten and sort by number of friends (descending) then by date
-  const allSlots: TimeSlot[] = [];
   slotsByDate.forEach((slots) => {
-    allSlots.push(...slots);
+    resultSlots.push(...slots);
   });
 
-  return allSlots
+  return resultSlots
     .filter((slot) => slot.friendIds.length > 0)
     .sort((a, b) => {
       // Sort by friend count (more friends first)
@@ -228,18 +262,18 @@ export default function PlanScreen() {
   const { data: friendsData } = useFriends();
   const { data: groups } = useGroups();
 
-  // Calculate date range for availability query
+  // Calculate date range for free time query
   const { start: rangeStart, end: rangeEnd } = useMemo(
     () => getDateRangeFromSelection(dateRange),
     [dateRange]
   );
 
-  const availabilityQuery = useFriendsAvailability(
+  const freeTimeQuery = useFriendsFreeTime(
     rangeStart.toISOString(),
     rangeEnd.toISOString()
   );
-  const { data: friendsAvailability } = availabilityQuery;
-  const { isRefreshing, onRefresh } = useRefresh(availabilityQuery);
+  const { data: friendsFreeTime } = freeTimeQuery;
+  const { isRefreshing, onRefresh } = useRefresh(freeTimeQuery);
 
   const friends = useMemo(
     () => friendsData?.friends ?? [],
@@ -252,22 +286,12 @@ export default function PlanScreen() {
 
   // Find common free time slots
   const suggestedSlots = useMemo(() => {
-    if (!friendsAvailability || selectedFriends.length === 0) return [];
-    // Flatten the nested availability structure
-    const flattenedAvailability: AvailabilityWindow[] =
-      friendsAvailability.flatMap((friend) =>
-        friend.windows.map((window) => ({
-          userId: friend.userId,
-          windowId: window.windowId,
-          startTime: window.startTime,
-          endTime: window.endTime,
-        }))
-      );
-    return findCommonFreeTime(flattenedAvailability, selectedFriends, {
+    if (!friendsFreeTime || selectedFriends.length === 0) return [];
+    return findCommonFreeTime(friendsFreeTime, selectedFriends, {
       start: rangeStart,
       end: rangeEnd,
     });
-  }, [friendsAvailability, selectedFriends, rangeStart, rangeEnd]);
+  }, [friendsFreeTime, selectedFriends, rangeStart, rangeEnd]);
 
   // Get friend name map for display
   const friendNameMap = useMemo(() => {
