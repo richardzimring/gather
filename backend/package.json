@@ -53,6 +53,8 @@
     "@ai-sdk/google": "^3.0.24",
     "@googleapis/calendar": "^14.2.0",
     "@hono/zod-openapi": "^1.2.0",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "@microsoft/microsoft-graph-types": "^2.43.1",
     "@neondatabase/serverless": "^1.0.2",
     "ai": "^6.0.78",
     "drizzle-orm": "^0.45.1",

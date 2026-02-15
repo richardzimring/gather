@@ -62,6 +62,37 @@ app.get('/calendars/google/callback', async (c) => {
   }
 });
 
+// ============================================
+// Outlook OAuth Callback (no auth — Microsoft redirects here)
+// Must be registered BEFORE the auth middleware.
+// ============================================
+
+const OUTLOOK_APP_SCHEME_CALLBACK = 'gather://calendars/outlook/callback';
+
+app.get('/calendars/outlook/callback', async (c) => {
+  const code = c.req.query('code');
+  const state = c.req.query('state'); // userId encoded during auth URL generation
+  const error = c.req.query('error');
+
+  if (error || !code || !state) {
+    const reason = error ?? 'missing_code_or_state';
+    console.error('Outlook OAuth callback error:', reason);
+    return c.redirect(
+      `${OUTLOOK_APP_SCHEME_CALLBACK}?error=${encodeURIComponent(reason)}`,
+    );
+  }
+
+  try {
+    await handleProviderOAuthCallback(state, 'outlook', code);
+    return c.redirect(`${OUTLOOK_APP_SCHEME_CALLBACK}?success=true`);
+  } catch (err) {
+    console.error('Error in GET /calendars/outlook/callback:', err);
+    return c.redirect(
+      `${OUTLOOK_APP_SCHEME_CALLBACK}?error=${encodeURIComponent('oauth_exchange_failed')}`,
+    );
+  }
+});
+
 // Apply auth middleware to all remaining routes
 app.use('*', authMiddleware);
 
@@ -876,6 +907,253 @@ app.openapi(googleSyncRoute, async (c) => {
         success: false as const,
         error: 'Internal Server Error',
         message: 'Failed to sync Google calendars',
+      },
+      500,
+    );
+  }
+});
+
+// ============================================
+// Outlook Calendar Route Definitions
+// ============================================
+
+// GET /calendars/outlook/auth-url
+const outlookAuthUrlRoute = createRoute({
+  method: 'get',
+  path: '/calendars/outlook/auth-url',
+  tags: ['Calendars', 'Outlook'],
+  summary: 'Get Outlook OAuth URL',
+  description: 'Get the Outlook OAuth consent URL for the current user to authorize calendar access',
+  security: [{ BearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'OAuth URL generated',
+      content: {
+        'application/json': {
+          schema: GoogleAuthUrlResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: 'Unauthorized',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+  },
+});
+
+// GET /calendars/outlook/calendars
+const outlookCalendarsRoute = createRoute({
+  method: 'get',
+  path: '/calendars/outlook/calendars',
+  tags: ['Calendars', 'Outlook'],
+  summary: 'List Outlook calendars',
+  description:
+    "List the user's Outlook calendars (fetched live from Microsoft Graph API). Requires an existing Outlook connection.",
+  security: [{ BearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'List of Outlook calendars',
+      content: {
+        'application/json': {
+          schema: GoogleCalendarListResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: 'Unauthorized',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    404: {
+      description: 'No Outlook connection found',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+  },
+});
+
+// POST /calendars/outlook/select
+const outlookSelectRoute = createRoute({
+  method: 'post',
+  path: '/calendars/outlook/select',
+  tags: ['Calendars', 'Outlook'],
+  summary: 'Select Outlook calendars to import',
+  description: 'Choose which Outlook calendars to import for availability tracking',
+  security: [{ BearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: GoogleSelectCalendarsSchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      description: 'Calendar selection updated',
+      content: {
+        'application/json': {
+          schema: CalendarListResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: 'Unauthorized',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+  },
+});
+
+// POST /calendars/outlook/sync
+const outlookSyncRoute = createRoute({
+  method: 'post',
+  path: '/calendars/outlook/sync',
+  tags: ['Calendars', 'Outlook'],
+  summary: 'Sync Outlook calendars',
+  description: 'Trigger a server-side re-sync of all connected Outlook calendars for the current user',
+  security: [{ BearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Outlook calendars synced',
+      content: {
+        'application/json': {
+          schema: SyncCalendarsResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: 'Unauthorized',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+  },
+});
+
+// ============================================
+// Outlook Calendar Route Handlers
+// ============================================
+
+app.openapi(outlookAuthUrlRoute, async (c) => {
+  const user = c.get('user');
+
+  try {
+    const provider = getCalendarProvider('outlook');
+    const authUrl = provider.getAuthUrl(user.userId);
+    return c.json({ success: true as const, data: { authUrl } }, 200);
+  } catch (error) {
+    console.error('Error in GET /calendars/outlook/auth-url:', error);
+    return c.json(
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to generate Outlook auth URL',
+      },
+      500,
+    );
+  }
+});
+
+app.openapi(outlookCalendarsRoute, async (c) => {
+  const user = c.get('user');
+
+  try {
+    const accessToken = await getValidProviderAccessToken(user.userId, 'outlook');
+
+    if (!accessToken) {
+      return c.json(
+        {
+          success: false as const,
+          error: 'Not Found',
+          message: 'No Outlook Calendar connection found. Please connect Outlook Calendar first.',
+        },
+        404,
+      );
+    }
+
+    const provider = getCalendarProvider('outlook');
+    const calendars = await provider.fetchCalendars(accessToken);
+
+    return c.json(
+      {
+        success: true as const,
+        data: { calendars },
+      },
+      200,
+    );
+  } catch (error) {
+    console.error('Error in GET /calendars/outlook/calendars:', error);
+    return c.json(
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to fetch Outlook calendars',
+      },
+      500,
+    );
+  }
+});
+
+app.openapi(outlookSelectRoute, async (c) => {
+  const user = c.get('user');
+  const { calendarIds } = c.req.valid('json');
+
+  try {
+    const connections = await selectProviderCalendars(user.userId, 'outlook', calendarIds);
+    return c.json(
+      {
+        success: true as const,
+        data: { connections },
+      },
+      200,
+    );
+  } catch (error) {
+    console.error('Error in POST /calendars/outlook/select:', error);
+    return c.json(
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to update Outlook calendar selection',
+      },
+      500,
+    );
+  }
+});
+
+app.openapi(outlookSyncRoute, async (c) => {
+  const user = c.get('user');
+
+  try {
+    const connections = await syncServerProviderConnections(user.userId, 'outlook');
+    return c.json(
+      {
+        success: true as const,
+        data: { connections },
+        message: 'Outlook calendars synced successfully',
+      },
+      200,
+    );
+  } catch (error) {
+    console.error('Error in POST /calendars/outlook/sync:', error);
+    return c.json(
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to sync Outlook calendars',
       },
       500,
     );

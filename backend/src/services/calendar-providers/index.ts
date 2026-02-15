@@ -67,9 +67,11 @@ export interface CalendarProviderService {
 // ============================================
 
 import { GoogleCalendarProvider } from './google';
+import { OutlookCalendarProvider } from './outlook';
 
 const providers: Record<string, CalendarProviderService> = {
   google: new GoogleCalendarProvider(),
+  outlook: new OutlookCalendarProvider(),
 };
 
 /**

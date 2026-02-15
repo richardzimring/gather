@@ -14,7 +14,7 @@ import { getCalendarProvider } from './calendar-providers';
 // ============================================
 
 const dbConnectionToCalendarConnection = (
-  dbConn: typeof calendarConnections.$inferSelect
+  dbConn: typeof calendarConnections.$inferSelect,
 ): CalendarConnection => {
   return {
     connectionId: dbConn.id,
@@ -34,7 +34,9 @@ const dbConnectionToCalendarConnection = (
 // Calendar Connection Operations
 // ============================================
 
-export const getCalendarConnections = async (userId: string): Promise<CalendarConnection[]> => {
+export const getCalendarConnections = async (
+  userId: string,
+): Promise<CalendarConnection[]> => {
   const connections = await db
     .select()
     .from(calendarConnections)
@@ -46,7 +48,7 @@ export const getCalendarConnections = async (userId: string): Promise<CalendarCo
 
 export const getCalendarConnection = async (
   connectionId: string,
-  userId: string
+  userId: string,
 ): Promise<CalendarConnection | null> => {
   const [connection] = await db
     .select()
@@ -54,8 +56,8 @@ export const getCalendarConnection = async (
     .where(
       and(
         eq(calendarConnections.id, connectionId),
-        eq(calendarConnections.userId, userId)
-      )
+        eq(calendarConnections.userId, userId),
+      ),
     )
     .limit(1);
 
@@ -64,7 +66,7 @@ export const getCalendarConnection = async (
 
 export const createCalendarConnection = async (
   userId: string,
-  input: CreateCalendarConnection
+  input: CreateCalendarConnection,
 ): Promise<CalendarConnection> => {
   const [newConnection] = await db
     .insert(calendarConnections)
@@ -78,7 +80,9 @@ export const createCalendarConnection = async (
       exportEnabled: input.exportEnabled ?? false,
       accessToken: input.accessToken,
       refreshToken: input.refreshToken,
-      tokenExpiresAt: input.tokenExpiresAt ? new Date(input.tokenExpiresAt) : null,
+      tokenExpiresAt: input.tokenExpiresAt
+        ? new Date(input.tokenExpiresAt)
+        : null,
     })
     .returning();
 
@@ -92,8 +96,12 @@ export const createCalendarConnection = async (
 export const updateCalendarConnection = async (
   connectionId: string,
   userId: string,
-  updates: UpdateCalendarConnection
-): Promise<{ success: boolean; connection?: CalendarConnection; message?: string }> => {
+  updates: UpdateCalendarConnection,
+): Promise<{
+  success: boolean;
+  connection?: CalendarConnection;
+  message?: string;
+}> => {
   const existing = await getCalendarConnection(connectionId, userId);
 
   if (!existing) {
@@ -129,7 +137,7 @@ export const updateCalendarConnection = async (
 
 export const deleteCalendarConnection = async (
   connectionId: string,
-  userId: string
+  userId: string,
 ): Promise<{ success: boolean; message?: string }> => {
   const existing = await getCalendarConnection(connectionId, userId);
 
@@ -137,7 +145,9 @@ export const deleteCalendarConnection = async (
     return { success: false, message: 'Calendar connection not found' };
   }
 
-  await db.delete(calendarConnections).where(eq(calendarConnections.id, connectionId));
+  await db
+    .delete(calendarConnections)
+    .where(eq(calendarConnections.id, connectionId));
 
   return { success: true };
 };
@@ -149,7 +159,7 @@ export const deleteCalendarConnection = async (
 export const getBusySlotsForUser = async (
   userId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): Promise<BusySlot[]> => {
   // Get all import-enabled connections for the user
   const connections = await db
@@ -158,8 +168,8 @@ export const getBusySlotsForUser = async (
     .where(
       and(
         eq(calendarConnections.userId, userId),
-        eq(calendarConnections.importEnabled, true)
-      )
+        eq(calendarConnections.importEnabled, true),
+      ),
     );
 
   if (connections.length === 0) {
@@ -167,7 +177,9 @@ export const getBusySlotsForUser = async (
   }
 
   const connectionIds = connections.map((c) => c.id);
-  const connectionNameMap = new Map(connections.map((c) => [c.id, c.calendarName]));
+  const connectionNameMap = new Map(
+    connections.map((c) => [c.id, c.calendarName]),
+  );
 
   // Get cached events within the date range
   const cachedEvents = await db
@@ -178,8 +190,8 @@ export const getBusySlotsForUser = async (
         inArray(calendarEventsCache.connectionId, connectionIds),
         gte(calendarEventsCache.startTime, startDate),
         lte(calendarEventsCache.endTime, endDate),
-        eq(calendarEventsCache.isBusy, true)
-      )
+        eq(calendarEventsCache.isBusy, true),
+      ),
     )
     .orderBy(calendarEventsCache.startTime);
 
@@ -197,10 +209,12 @@ export const syncCalendarEvents = async (
     startTime: Date;
     endTime: Date;
     isBusy: boolean;
-  }[]
+  }[],
 ): Promise<void> => {
   // Delete existing cached events for this connection
-  await db.delete(calendarEventsCache).where(eq(calendarEventsCache.connectionId, connectionId));
+  await db
+    .delete(calendarEventsCache)
+    .where(eq(calendarEventsCache.connectionId, connectionId));
 
   // Insert new events
   if (events.length > 0) {
@@ -211,7 +225,7 @@ export const syncCalendarEvents = async (
         startTime: event.startTime,
         endTime: event.endTime,
         isBusy: event.isBusy,
-      }))
+      })),
     );
   }
 
@@ -235,10 +249,8 @@ export const syncCalendarEvents = async (
 export const syncCalendarsForUser = async (
   userId: string,
   input: SyncCalendars,
-  provider: 'apple' | 'google' | 'outlook' = 'apple'
+  provider: 'apple' | 'google' | 'outlook' = 'apple',
 ): Promise<CalendarConnection[]> => {
-  const incomingCalendarIds = input.calendars.map((c) => c.externalCalendarId);
-
   // 1. Get existing connections for this provider
   const existingConnections = await db
     .select()
@@ -246,12 +258,12 @@ export const syncCalendarsForUser = async (
     .where(
       and(
         eq(calendarConnections.userId, userId),
-        eq(calendarConnections.provider, provider)
-      )
+        eq(calendarConnections.provider, provider),
+      ),
     );
 
   const existingByExternalId = new Map(
-    existingConnections.map((c) => [c.externalCalendarId, c])
+    existingConnections.map((c) => [c.externalCalendarId, c]),
   );
 
   // 2. Upsert each calendar and sync its events
@@ -288,7 +300,9 @@ export const syncCalendarsForUser = async (
         .returning();
 
       if (!newConn) {
-        throw new Error(`Failed to create calendar connection for ${cal.calendarName}`);
+        throw new Error(
+          `Failed to create calendar connection for ${cal.calendarName}`,
+        );
       }
       connectionId = newConn.id;
     }
@@ -303,7 +317,7 @@ export const syncCalendarsForUser = async (
         startTime: new Date(e.startTime),
         endTime: new Date(e.endTime),
         isBusy: e.isBusy,
-      }))
+      })),
     );
   }
 
@@ -319,8 +333,8 @@ export const syncCalendarsForUser = async (
         and(
           eq(calendarConnections.userId, userId),
           eq(calendarConnections.provider, provider),
-          inArray(calendarConnections.id, removedIds)
-        )
+          inArray(calendarConnections.id, removedIds),
+        ),
       );
   }
 
@@ -478,7 +492,7 @@ export const handleProviderOAuthCallback = async (
 
     const existingConnection = existing[0];
     if (existingConnection) {
-      // Update tokens on existing connection
+      // Update tokens and metadata on existing connection
       await db
         .update(calendarConnections)
         .set({
@@ -490,14 +504,15 @@ export const handleProviderOAuthCallback = async (
         })
         .where(eq(calendarConnections.id, existingConnection.id));
     } else {
-      // Create new connection
+      // Create new connection with importEnabled=false
+      // User must explicitly enable calendars via the selection screen
       await db.insert(calendarConnections).values({
         userId,
         provider,
         externalCalendarId: cal.externalCalendarId,
         calendarName: cal.calendarName,
         color: cal.color,
-        importEnabled: cal.isPrimary ?? true,
+        importEnabled: false,
         exportEnabled: false,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
@@ -506,8 +521,23 @@ export const handleProviderOAuthCallback = async (
     }
   }
 
-  // 4. Trigger initial sync for import-enabled connections
-  await syncServerProviderConnections(userId, provider);
+  // 4. Only sync if there are existing import-enabled connections
+  // (This prevents unnecessary sync on first-time OAuth)
+  const hasImportEnabledConnections = await db
+    .select()
+    .from(calendarConnections)
+    .where(
+      and(
+        eq(calendarConnections.userId, userId),
+        eq(calendarConnections.provider, provider),
+        eq(calendarConnections.importEnabled, true),
+      ),
+    )
+    .limit(1);
+
+  if (hasImportEnabledConnections.length > 0) {
+    await syncServerProviderConnections(userId, provider);
+  }
 
   return getCalendarConnections(userId);
 };
@@ -556,7 +586,9 @@ export const selectProviderCalendars = async (
     );
 
   for (const connection of userConnections) {
-    const shouldImport = selectedCalendarIds.includes(connection.externalCalendarId);
+    const shouldImport = selectedCalendarIds.includes(
+      connection.externalCalendarId,
+    );
     if (connection.importEnabled !== shouldImport) {
       await db
         .update(calendarConnections)
