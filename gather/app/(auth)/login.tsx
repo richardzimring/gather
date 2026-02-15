@@ -1,47 +1,46 @@
-import { useState, useEffect } from 'react'
-import { H1, Text, YStack } from 'tamagui'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Platform, useColorScheme } from 'react-native'
-import * as AppleAuthentication from 'expo-apple-authentication'
-import { useRouter } from 'expo-router'
+import { useState, useEffect } from "react";
+import { H1, Text, YStack } from "tamagui";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Platform, useColorScheme } from "react-native";
+import * as AppleAuthentication from "expo-apple-authentication";
+import { useRouter, Link } from "expo-router";
 
-import { useAuth } from '../../lib/hooks/useAuth'
+import { useAuth } from "../../lib/hooks/useAuth";
 
 export default function LoginScreen() {
-  const insets = useSafeAreaInsets()
-  const colorScheme = useColorScheme()
-  const router = useRouter()
-  const { signInWithApple, isLoading } = useAuth()
-  const [error, setError] = useState<string | null>(null)
-  const [isAppleAuthAvailable, setIsAppleAuthAvailable] = useState(false)
+  const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const router = useRouter();
+  const { signInWithApple, isLoading } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [isAppleAuthAvailable, setIsAppleAuthAvailable] = useState(false);
 
   useEffect(() => {
     // Check if Apple Authentication is available on this device
-    AppleAuthentication.isAvailableAsync().then(setIsAppleAuthAvailable)
-  }, [])
+    AppleAuthentication.isAvailableAsync().then(setIsAppleAuthAvailable);
+  }, []);
 
   const handleAppleSignIn = async () => {
-    setError(null)
+    setError(null);
 
     try {
-      const result = await signInWithApple()
-      
-      // Check if this is a new user (created less than 10 seconds ago)
+      const result = await signInWithApple();
+
       // New users should see onboarding, returning users go straight to tabs
       if (result?.isNewUser) {
-        router.replace('/onboarding')
+        router.replace("/onboarding");
       } else {
-        router.replace('/(tabs)')
+        router.replace("/(tabs)");
       }
     } catch (err) {
-      if ((err as { code?: string }).code === 'ERR_REQUEST_CANCELED') {
+      if ((err as { code?: string }).code === "ERR_REQUEST_CANCELED") {
         // User canceled the sign-in flow, don't show error
-        return
+        return;
       }
-      console.error('Apple Sign In error:', err)
-      setError('Failed to sign in with Apple. Please try again.')
+      console.error("Apple Sign In error:", err);
+      setError("Failed to sign in with Apple. Please try again.");
     }
-  }
+  };
 
   return (
     <YStack
@@ -71,11 +70,13 @@ export default function LoginScreen() {
 
       {/* Sign In Section */}
       <YStack gap="$4" alignItems="center">
-        {Platform.OS === 'ios' && isAppleAuthAvailable ? (
+        {Platform.OS === "ios" && isAppleAuthAvailable ? (
           <AppleAuthentication.AppleAuthenticationButton
-            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+            buttonType={
+              AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
+            }
             buttonStyle={
-              colorScheme === 'dark'
+              colorScheme === "dark"
                 ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
                 : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
             }
@@ -123,10 +124,36 @@ export default function LoginScreen() {
 
       {/* Footer */}
       <YStack alignItems="center" gap="$2">
-        <Text color="$colorMuted" fontSize={12} textAlign="center" maxWidth={300}>
-          By continuing, you agree to our Terms of Service and Privacy Policy
+        <Text
+          color="$colorMuted"
+          fontSize={12}
+          textAlign="center"
+          maxWidth={300}
+        >
+          By continuing, you agree to our{" "}
+          <Link href="/legal/terms" asChild>
+            <Text
+              color="$primary"
+              fontSize={12}
+              textDecorationLine="underline"
+              pressStyle={{ opacity: 0.7 }}
+            >
+              Terms of Service
+            </Text>
+          </Link>{" "}
+          and{" "}
+          <Link href="/legal/privacy" asChild>
+            <Text
+              color="$primary"
+              fontSize={12}
+              textDecorationLine="underline"
+              pressStyle={{ opacity: 0.7 }}
+            >
+              Privacy Policy
+            </Text>
+          </Link>
         </Text>
       </YStack>
     </YStack>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import { Bell, Calendar, MessageSquare, UserPlus, Users } from '@tamagui/lucide-icons'
+import { Bell, Calendar, UserPlus, Users } from '@tamagui/lucide-icons'
 import { router } from 'expo-router'
 import { ScrollView, Text, XStack, YStack, Switch, Theme, Spinner } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -168,14 +168,6 @@ export default function NotificationSettingsScreen() {
                   description="Get notified when someone adds you to a group"
                   value={preferences?.groupInvites ?? true}
                   onToggle={handleToggle('groupInvites')}
-                  disabled={isPending}
-                />
-                <NotificationSetting
-                  icon={<MessageSquare size={16} color="$colorMuted" />}
-                  label="Messages"
-                  description="Get notified about new messages and comments"
-                  value={preferences?.messages ?? true}
-                  onToggle={handleToggle('messages')}
                   disabled={isPending}
                 />
               </Card>

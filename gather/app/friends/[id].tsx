@@ -1,6 +1,12 @@
-import { Calendar, MoreHorizontal, UserMinus } from "@tamagui/lucide-icons";
+import {
+  AlertTriangle,
+  Calendar,
+  MoreHorizontal,
+  ShieldBan,
+  UserMinus,
+} from "@tamagui/lucide-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { Alert } from "react-native";
+import { Alert, Linking } from "react-native";
 import {
   Circle,
   H1,
@@ -21,6 +27,7 @@ import { BackHeader } from "../../components/ui/ScreenHeader";
 import {
   useFriends,
   useRemoveFriend,
+  useBlockFriend,
   useFriendsFreeTime,
   useEvents,
 } from "../../lib/hooks";
@@ -71,6 +78,7 @@ export default function FriendProfileScreen() {
   const { data: freeTime } = useFriendsFreeTime(dateRange.start, dateRange.end);
   const { data: events } = useEvents();
   const removeFriend = useRemoveFriend();
+  const blockFriend = useBlockFriend();
 
   // Find the specific friend
   const friend = useMemo(() => {
@@ -122,6 +130,54 @@ export default function FriendProfileScreen() {
   const handleInviteToEvent = () => {
     setShowActionSheet(false);
     router.push("/(tabs)/plan");
+  };
+
+  const handleBlockUser = () => {
+    Alert.alert(
+      "Block User",
+      "Are you sure you want to block this user? They will no longer be able to see your profile or invite you to events.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Block",
+          style: "destructive",
+          onPress: async () => {
+            if (!id) return;
+            setShowActionSheet(false);
+            try {
+              await blockFriend.mutateAsync(id);
+              router.back();
+            } catch (err) {
+              console.error("Failed to block user:", err);
+              Alert.alert("Error", "Failed to block user. Please try again.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleReportUser = () => {
+    setShowActionSheet(false);
+    const displayName = friend?.friend.fullName ?? "this user";
+    Alert.alert(
+      "Report User",
+      `Report ${displayName} for inappropriate behavior? This will send a report to our team for review.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Report",
+          style: "destructive",
+          onPress: () => {
+            const subject = encodeURIComponent(`Report User: ${displayName}`);
+            const body = encodeURIComponent(
+              `I would like to report the user "${displayName}" (ID: ${id}) for the following reason:\n\n[Please describe the issue here]`
+            );
+            Linking.openURL(`mailto:support@gather.app?subject=${subject}&body=${body}`);
+          },
+        },
+      ]
+    );
   };
 
   if (isLoading) {
@@ -312,7 +368,7 @@ export default function FriendProfileScreen() {
       <Sheet
         open={showActionSheet}
         onOpenChange={setShowActionSheet}
-        snapPoints={[35]}
+        snapPoints={[50]}
         dismissOnSnapToBottom
       >
         <Sheet.Overlay />
@@ -340,6 +396,30 @@ export default function FriendProfileScreen() {
               loadingText="Removing..."
             >
               Remove Friend
+            </Button>
+            <Button
+              variant="destructive"
+              fullWidth
+              icon={
+                blockFriend.isPending ? undefined : (
+                  <ShieldBan size={16} color="$destructiveForeground" />
+                )
+              }
+              onPress={handleBlockUser}
+              loading={blockFriend.isPending}
+              loadingText="Blocking..."
+            >
+              Block User
+            </Button>
+            <Button
+              variant="destructive"
+              fullWidth
+              icon={
+                <AlertTriangle size={16} color="$destructiveForeground" />
+              }
+              onPress={handleReportUser}
+            >
+              Report User
             </Button>
             <Button
               variant="ghost"

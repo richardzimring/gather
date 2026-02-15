@@ -9,6 +9,7 @@ import {
   Shield,
   Trash2,
   User,
+  UserX,
 } from "@tamagui/lucide-icons";
 import { router } from "expo-router";
 import { Alert, Share, Platform, RefreshControl } from "react-native";
@@ -37,6 +38,7 @@ import {
   useCalendarConnections,
   useUpdateCalendarConnection,
   useDeleteCalendarConnection,
+  useDeleteAccount,
 } from "../../lib/hooks";
 import type { CalendarConnection } from "../../lib/api/client";
 
@@ -100,7 +102,50 @@ export default function ProfileScreen() {
   const updateCalendarConnection = useUpdateCalendarConnection();
   const deleteCalendarConnection = useDeleteCalendarConnection();
 
+  const deleteAccount = useDeleteAccount();
+
   const inviteCode = inviteCodeData?.inviteCode ?? user?.inviteCode ?? "";
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? This will permanently remove all your data, events, and friendships. This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete Account",
+          style: "destructive",
+          onPress: () => {
+            // Second confirmation for safety
+            Alert.alert(
+              "Are you absolutely sure?",
+              "This will permanently delete your account and all associated data.",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Yes, Delete My Account",
+                  style: "destructive",
+                  onPress: async () => {
+                    try {
+                      await deleteAccount.mutateAsync();
+                      await signOut();
+                      router.replace("/(auth)/login");
+                    } catch (err) {
+                      console.error("Failed to delete account:", err);
+                      Alert.alert(
+                        "Error",
+                        "Failed to delete your account. Please try again later."
+                      );
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  };
 
   const handleToggleImport = async (
     connectionId: string,
@@ -428,8 +473,8 @@ export default function ProfileScreen() {
             />
             <SettingsItem
               icon={<Shield size={16} color="$colorMuted" />}
-              label="Privacy"
-              onPress={() => {}}
+              label="Privacy Policy"
+              onPress={() => router.push("/legal/privacy")}
             />
           </Card>
         </Theme>
@@ -442,6 +487,21 @@ export default function ProfileScreen() {
           onPress={handleSignOut}
         >
           Sign Out
+        </Button>
+
+        {/* Delete Account */}
+        <Button
+          variant="ghost"
+          fullWidth
+          marginTop="$3"
+          icon={<UserX size={16} color="$error" />}
+          onPress={handleDeleteAccount}
+          loading={deleteAccount.isPending}
+          loadingText="Deleting..."
+        >
+          <Text color="$error" fontSize={14} fontWeight="500">
+            Delete Account
+          </Text>
         </Button>
 
         {/* App Version */}

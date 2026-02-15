@@ -8,6 +8,8 @@ import {
   postFriendsByFriendIdAccept,
   postFriendsByFriendIdDecline,
   deleteFriendsByFriendId,
+  postFriendsByFriendIdBlock,
+  deleteUsersMe,
 } from '../api/client'
 
 export const friendsKeys = {
@@ -138,6 +140,42 @@ export function useRemoveFriend() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendsKeys.list() })
+    },
+  })
+}
+
+/**
+ * Hook to block a user.
+ */
+export function useBlockFriend() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (friendId: string) => {
+      const response = await postFriendsByFriendIdBlock({ path: { friendId } })
+      if (!response.data?.success) {
+        throw new Error('Failed to block user')
+      }
+      return response.data.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: friendsKeys.list() })
+    },
+  })
+}
+
+/**
+ * Hook to delete the current user's account.
+ */
+export function useDeleteAccount() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      await deleteUsersMe()
+    },
+    onSuccess: () => {
+      queryClient.clear()
     },
   })
 }
