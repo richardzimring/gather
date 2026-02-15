@@ -355,36 +355,37 @@ export interface FriendFreeTime {
 }
 
 /**
- * Get computed free time for all friends within a date range.
- * Each friend is available 24/7 by default, minus their blocked windows and calendar events.
+ * Get computed free time for all friends (and the current user) within a date range.
+ * Each person is available 24/7 by default, minus their blocked windows and calendar events.
+ * The current user is included so the planning UI can factor in their own availability.
  */
 export const getFriendsFreeTime = async (
   userId: string,
   startDate: string,
   endDate: string,
 ): Promise<FriendFreeTime[]> => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
   // Get accepted friend IDs
   const friendIds = await db
     .select({ friendId: friendships.friendId })
     .from(friendships)
     .where(and(eq(friendships.userId, userId), eq(friendships.status, 'accepted')));
 
-  if (friendIds.length === 0) {
-    return [];
-  }
-
   const friendIdList = friendIds.map((f) => f.friendId);
-  const start = new Date(startDate);
-  const end = new Date(endDate);
 
-  // Get free time for each friend
+  // Include the current user alongside their friends
+  const allUserIds = [userId, ...friendIdList];
+
+  // Get free time for each person (current user + friends)
   const results: FriendFreeTime[] = [];
   
-  for (const friendId of friendIdList) {
-    const freeSlots = await getUserFreeTime(friendId, start, end);
+  for (const id of allUserIds) {
+    const freeSlots = await getUserFreeTime(id, start, end);
     
     results.push({
-      userId: friendId,
+      userId: id,
       freeSlots: freeSlots.map((slot) => ({
         startTime: slot.startTime.toISOString(),
         endTime: slot.endTime.toISOString(),

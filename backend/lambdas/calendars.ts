@@ -9,6 +9,7 @@ import {
   CreateCalendarConnectionSchema,
   UpdateCalendarConnectionSchema,
   BusySlotSchema,
+  SyncCalendarsSchema,
   ErrorResponseSchema,
 } from '../src/types';
 import {
@@ -18,6 +19,7 @@ import {
   updateCalendarConnection,
   deleteCalendarConnection,
   getBusySlotsForUser,
+  syncCalendarsForUser,
 } from '../src/services/calendars';
 
 export const app = createApp();
@@ -63,6 +65,16 @@ const DeleteCalendarResponseSchema = z
     message: z.string().optional(),
   })
   .openapi('DeleteCalendarResponse');
+
+const SyncCalendarsResponseSchema = z
+  .object({
+    success: z.literal(true),
+    data: z.object({
+      connections: z.array(CalendarConnectionSchema),
+    }),
+    message: z.string().optional(),
+  })
+  .openapi('SyncCalendarsResponse');
 
 // ============================================
 // Route Definitions
@@ -178,6 +190,52 @@ const getBusySlotsRoute = createRoute({
       content: {
         'application/json': {
           schema: BusySlotsResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: 'Unauthorized',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Internal server error',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+// POST /calendars/sync - Bulk sync device calendars
+const syncCalendarsRoute = createRoute({
+  method: 'post',
+  path: '/calendars/sync',
+  tags: ['Calendars'],
+  summary: 'Sync device calendars',
+  description: 'Bulk sync calendars and their events from the device. Upserts calendar connections, syncs cached events, and removes deselected calendars.',
+  security: [{ BearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: SyncCalendarsSchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      description: 'Calendars synced successfully',
+      content: {
+        'application/json': {
+          schema: SyncCalendarsResponseSchema,
         },
       },
     },
@@ -414,6 +472,25 @@ app.openapi(getBusySlotsRoute, async (c) => {
     console.error('Error in GET /calendars/busy-slots:', error);
     return c.json(
       { success: false as const, error: 'Internal Server Error', message: 'Failed to fetch busy slots' },
+      500
+    );
+  }
+});
+
+app.openapi(syncCalendarsRoute, async (c) => {
+  const user = c.get('user');
+  const body = c.req.valid('json');
+
+  try {
+    const connections = await syncCalendarsForUser(user.userId, body);
+    return c.json(
+      { success: true as const, data: { connections }, message: 'Calendars synced successfully' },
+      200
+    );
+  } catch (error) {
+    console.error('Error in POST /calendars/sync:', error);
+    return c.json(
+      { success: false as const, error: 'Internal Server Error', message: 'Failed to sync calendars' },
       500
     );
   }

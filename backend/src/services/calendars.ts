@@ -5,6 +5,7 @@ import type {
   CreateCalendarConnection,
   UpdateCalendarConnection,
   BusySlot,
+  SyncCalendars,
 } from '../types';
 
 // ============================================
@@ -218,4 +219,110 @@ export const syncCalendarEvents = async (
     .update(calendarConnections)
     .set({ lastSyncAt: new Date() })
     .where(eq(calendarConnections.id, connectionId));
+};
+
+// ============================================
+// Bulk Sync (device calendars)
+// ============================================
+
+/**
+ * Sync multiple device calendars and their events in a single operation.
+ * - Upserts calendar connections for the given provider
+ * - Syncs cached events for each connection
+ * - Removes any connections for this provider that are no longer selected
+ */
+export const syncCalendarsForUser = async (
+  userId: string,
+  input: SyncCalendars,
+  provider: 'apple' | 'google' | 'outlook' = 'apple'
+): Promise<CalendarConnection[]> => {
+  const incomingCalendarIds = input.calendars.map((c) => c.externalCalendarId);
+
+  // 1. Get existing connections for this provider
+  const existingConnections = await db
+    .select()
+    .from(calendarConnections)
+    .where(
+      and(
+        eq(calendarConnections.userId, userId),
+        eq(calendarConnections.provider, provider)
+      )
+    );
+
+  const existingByExternalId = new Map(
+    existingConnections.map((c) => [c.externalCalendarId, c])
+  );
+
+  // 2. Upsert each calendar and sync its events
+  const connectionIds: string[] = [];
+
+  for (const cal of input.calendars) {
+    let connectionId: string;
+    const existing = existingByExternalId.get(cal.externalCalendarId);
+
+    if (existing) {
+      // Update existing connection
+      await db
+        .update(calendarConnections)
+        .set({
+          calendarName: cal.calendarName,
+          color: cal.color ?? existing.color,
+          importEnabled: true,
+        })
+        .where(eq(calendarConnections.id, existing.id));
+      connectionId = existing.id;
+    } else {
+      // Create new connection
+      const [newConn] = await db
+        .insert(calendarConnections)
+        .values({
+          userId,
+          provider,
+          externalCalendarId: cal.externalCalendarId,
+          calendarName: cal.calendarName,
+          color: cal.color,
+          importEnabled: true,
+          exportEnabled: false,
+        })
+        .returning();
+
+      if (!newConn) {
+        throw new Error(`Failed to create calendar connection for ${cal.calendarName}`);
+      }
+      connectionId = newConn.id;
+    }
+
+    connectionIds.push(connectionId);
+
+    // Sync events for this connection
+    await syncCalendarEvents(
+      connectionId,
+      cal.events.map((e) => ({
+        externalEventId: e.externalEventId,
+        startTime: new Date(e.startTime),
+        endTime: new Date(e.endTime),
+        isBusy: e.isBusy,
+      }))
+    );
+  }
+
+  // 3. Remove connections for this provider that are no longer selected
+  const existingIds = existingConnections.map((c) => c.id);
+  const removedIds = existingIds.filter((id) => !connectionIds.includes(id));
+
+  if (removedIds.length > 0) {
+    // Cached events are cascade-deleted via FK
+    await db
+      .delete(calendarConnections)
+      .where(
+        and(
+          eq(calendarConnections.userId, userId),
+          eq(calendarConnections.provider, provider),
+          inArray(calendarConnections.id, removedIds)
+        )
+      );
+  }
+
+  // 4. Return updated connections
+  return getCalendarConnections(userId);
 };

@@ -230,6 +230,9 @@ functions:
           path: /calendars
           method: POST
       - httpApi:
+          path: /calendars/sync
+          method: POST
+      - httpApi:
           path: /calendars/busy-slots
           method: GET
       - httpApi:

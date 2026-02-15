@@ -862,6 +862,109 @@
           "endTime"
         ]
       },
+      "SyncCalendarsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "connections": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CalendarConnection"
+                }
+              }
+            },
+            "required": [
+              "connections"
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "SyncCalendars": {
+        "type": "object",
+        "properties": {
+          "calendars": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyncCalendarEntry"
+            }
+          }
+        },
+        "required": [
+          "calendars"
+        ]
+      },
+      "SyncCalendarEntry": {
+        "type": "object",
+        "properties": {
+          "externalCalendarId": {
+            "type": "string",
+            "example": "device_cal_123"
+          },
+          "calendarName": {
+            "type": "string",
+            "example": "Personal"
+          },
+          "color": {
+            "type": "string",
+            "example": "#4285F4"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyncCalendarEvent"
+            }
+          }
+        },
+        "required": [
+          "externalCalendarId",
+          "calendarName",
+          "events"
+        ]
+      },
+      "SyncCalendarEvent": {
+        "type": "object",
+        "properties": {
+          "externalEventId": {
+            "type": "string",
+            "example": "event_abc123"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T14:00:00.000Z"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T15:00:00.000Z"
+          },
+          "isBusy": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "externalEventId",
+          "startTime",
+          "endTime",
+          "isBusy"
+        ]
+      },
       "UpdateCalendarConnection": {
         "type": "object",
         "properties": {
@@ -2823,6 +2926,62 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BusySlotsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendars/sync": {
+      "post": {
+        "tags": [
+          "Calendars"
+        ],
+        "summary": "Sync device calendars",
+        "description": "Bulk sync calendars and their events from the device. Upserts calendar connections, syncs cached events, and removes deselected calendars.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncCalendars"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calendars synced successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncCalendarsResponse"
                 }
               }
             }

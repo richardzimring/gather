@@ -447,12 +447,40 @@ export const FreeTimeSlotSchema = z
   })
   .openapi('FreeTimeSlot');
 
+// Sync calendars schema (bulk sync from device)
+export const SyncCalendarEventSchema = z
+  .object({
+    externalEventId: z.string().openapi({ example: 'event_abc123' }),
+    startTime: z.string().datetime().openapi({ example: '2024-01-15T14:00:00.000Z' }),
+    endTime: z.string().datetime().openapi({ example: '2024-01-15T15:00:00.000Z' }),
+    isBusy: z.boolean().openapi({ example: true }),
+  })
+  .openapi('SyncCalendarEvent');
+
+export const SyncCalendarEntrySchema = z
+  .object({
+    externalCalendarId: z.string().openapi({ example: 'device_cal_123' }),
+    calendarName: z.string().openapi({ example: 'Personal' }),
+    color: z.string().optional().openapi({ example: '#4285F4' }),
+    events: z.array(SyncCalendarEventSchema),
+  })
+  .openapi('SyncCalendarEntry');
+
+export const SyncCalendarsSchema = z
+  .object({
+    calendars: z.array(SyncCalendarEntrySchema),
+  })
+  .openapi('SyncCalendars');
+
 export type CalendarProvider = z.infer<typeof CalendarProviderSchema>;
 export type CalendarConnection = z.infer<typeof CalendarConnectionSchema>;
 export type CreateCalendarConnection = z.infer<typeof CreateCalendarConnectionSchema>;
 export type UpdateCalendarConnection = z.infer<typeof UpdateCalendarConnectionSchema>;
 export type BusySlot = z.infer<typeof BusySlotSchema>;
 export type FreeTimeSlot = z.infer<typeof FreeTimeSlotSchema>;
+export type SyncCalendarEvent = z.infer<typeof SyncCalendarEventSchema>;
+export type SyncCalendarEntry = z.infer<typeof SyncCalendarEntrySchema>;
+export type SyncCalendars = z.infer<typeof SyncCalendarsSchema>;
 
 // Location schemas
 export const LocationSchema = z
