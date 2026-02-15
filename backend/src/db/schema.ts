@@ -33,8 +33,7 @@ export const inviteeStatusEnum = pgEnum('invitee_status', [
 
 export const eventStatusEnum = pgEnum('event_status', [
   'draft',
-  'sent',
-  'confirmed',
+  'active',
   'cancelled',
 ]);
 
@@ -65,11 +64,17 @@ export const users = pgTable(
     lastName: varchar('last_name', { length: 50 }).notNull(),
     avatarUrl: text('avatar_url'),
     inviteCode: varchar('invite_code', { length: 8 }),
-    calendarSyncEnabled: boolean('calendar_sync_enabled').notNull().default(false),
+    calendarSyncEnabled: boolean('calendar_sync_enabled')
+      .notNull()
+      .default(false),
     pushToken: text('push_token'),
     notificationPreferences: jsonb('notification_preferences'),
-    timezone: varchar('timezone', { length: 100 }).notNull().default('America/New_York'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    timezone: varchar('timezone', { length: 100 })
+      .notNull()
+      .default('America/New_York'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     uniqueIndex('users_apple_user_id_idx').on(table.appleUserId),
@@ -108,7 +113,9 @@ export const friendships = pgTable(
     initiatedBy: uuid('initiated_by')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
     acceptedAt: timestamp('accepted_at', { withTimezone: true }),
   },
   (table) => [
@@ -149,11 +156,11 @@ export const groups = pgTable(
     name: varchar('name', { length: 50 }).notNull(),
     emoji: varchar('emoji', { length: 10 }),
     isDefault: boolean('is_default').notNull().default(false),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
-  (table) => [
-    index('groups_owner_id_idx').on(table.ownerId),
-  ],
+  (table) => [index('groups_owner_id_idx').on(table.ownerId)],
 );
 
 export const groupsRelations = relations(groups, ({ one, many }) => ({
@@ -177,7 +184,9 @@ export const groupMembers = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
+    addedAt: timestamp('added_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     primaryKey({ columns: [table.groupId, table.userId] }),
@@ -208,7 +217,9 @@ export const activities = pgTable(
     name: varchar('name', { length: 50 }).notNull(),
     emoji: varchar('emoji', { length: 10 }).notNull(),
     isDefault: boolean('is_default').notNull().default(false),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('activities_user_id_idx').on(table.userId),
@@ -242,7 +253,9 @@ export const blockedWindows = pgTable(
     recurringDaysOfWeek: integer('recurring_days_of_week').array(),
     recurringEndDate: timestamp('recurring_end_date', { withTimezone: true }),
     notes: text('notes'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('blocked_windows_user_id_idx').on(table.userId),
@@ -269,7 +282,9 @@ export const events = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     title: varchar('title', { length: 100 }).notNull(),
-    activityId: uuid('activity_id').references(() => activities.id, { onDelete: 'set null' }),
+    activityId: uuid('activity_id').references(() => activities.id, {
+      onDelete: 'set null',
+    }),
     emoji: varchar('emoji', { length: 10 }),
     startTime: timestamp('start_time', { withTimezone: true }).notNull(),
     endTime: timestamp('end_time', { withTimezone: true }).notNull(),
@@ -280,15 +295,21 @@ export const events = pgTable(
     longitude: varchar('longitude', { length: 50 }),
     notes: text('notes'),
     showInviteList: boolean('show_invite_list').notNull().default(true),
-    status: eventStatusEnum('status').notNull().default('sent'),
+    status: eventStatusEnum('status').notNull().default('active'),
     // Recurring event fields
     isRecurring: boolean('is_recurring').notNull().default(false),
     recurringPattern: recurringPatternEnum('event_recurring_pattern'),
     recurringDaysOfWeek: integer('event_recurring_days_of_week').array(),
-    recurringEndDate: timestamp('event_recurring_end_date', { withTimezone: true }),
+    recurringEndDate: timestamp('event_recurring_end_date', {
+      withTimezone: true,
+    }),
     calendarEventId: varchar('calendar_event_id', { length: 255 }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('events_host_id_idx').on(table.hostId),
@@ -325,12 +346,21 @@ export const eventInvitees = pgTable(
     status: inviteeStatusEnum('status').notNull().default('pending'),
     respondedAt: timestamp('responded_at', { withTimezone: true }),
     // Counter proposal fields
-    counterProposalStartTime: timestamp('counter_proposal_start_time', { withTimezone: true }),
-    counterProposalEndTime: timestamp('counter_proposal_end_time', { withTimezone: true }),
-    counterProposalLocation: varchar('counter_proposal_location', { length: 200 }),
-    counterProposalActivityId: uuid('counter_proposal_activity_id').references(() => activities.id, {
-      onDelete: 'set null',
+    counterProposalStartTime: timestamp('counter_proposal_start_time', {
+      withTimezone: true,
     }),
+    counterProposalEndTime: timestamp('counter_proposal_end_time', {
+      withTimezone: true,
+    }),
+    counterProposalLocation: varchar('counter_proposal_location', {
+      length: 200,
+    }),
+    counterProposalActivityId: uuid('counter_proposal_activity_id').references(
+      () => activities.id,
+      {
+        onDelete: 'set null',
+      },
+    ),
     counterProposalMessage: text('counter_proposal_message'),
   },
   (table) => [
@@ -368,11 +398,11 @@ export const locations = pgTable(
     address: text('address'),
     latitude: varchar('latitude', { length: 50 }),
     longitude: varchar('longitude', { length: 50 }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
-  (table) => [
-    uniqueIndex('locations_place_id_idx').on(table.placeId),
-  ],
+  (table) => [uniqueIndex('locations_place_id_idx').on(table.placeId)],
 );
 
 // ============================================
@@ -387,7 +417,9 @@ export const calendarConnections = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     provider: calendarProviderEnum('provider').notNull(),
-    externalCalendarId: varchar('external_calendar_id', { length: 255 }).notNull(),
+    externalCalendarId: varchar('external_calendar_id', {
+      length: 255,
+    }).notNull(),
     calendarName: varchar('calendar_name', { length: 255 }).notNull(),
     color: varchar('color', { length: 20 }),
     importEnabled: boolean('import_enabled').notNull().default(true),
@@ -396,25 +428,30 @@ export const calendarConnections = pgTable(
     refreshToken: text('refresh_token'),
     tokenExpiresAt: timestamp('token_expires_at', { withTimezone: true }),
     lastSyncAt: timestamp('last_sync_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('calendar_connections_user_id_idx').on(table.userId),
     uniqueIndex('calendar_connections_user_provider_calendar_idx').on(
       table.userId,
       table.provider,
-      table.externalCalendarId
+      table.externalCalendarId,
     ),
   ],
 );
 
-export const calendarConnectionsRelations = relations(calendarConnections, ({ one, many }) => ({
-  user: one(users, {
-    fields: [calendarConnections.userId],
-    references: [users.id],
+export const calendarConnectionsRelations = relations(
+  calendarConnections,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [calendarConnections.userId],
+      references: [users.id],
+    }),
+    cachedEvents: many(calendarEventsCache),
   }),
-  cachedEvents: many(calendarEventsCache),
-}));
+);
 
 // ============================================
 // Calendar Events Cache Table
@@ -431,24 +468,29 @@ export const calendarEventsCache = pgTable(
     startTime: timestamp('start_time', { withTimezone: true }).notNull(),
     endTime: timestamp('end_time', { withTimezone: true }).notNull(),
     isBusy: boolean('is_busy').notNull().default(true),
-    lastFetchedAt: timestamp('last_fetched_at', { withTimezone: true }).notNull().defaultNow(),
+    lastFetchedAt: timestamp('last_fetched_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('calendar_events_cache_connection_id_idx').on(table.connectionId),
     index('calendar_events_cache_start_time_idx').on(table.startTime),
     uniqueIndex('calendar_events_cache_connection_event_idx').on(
       table.connectionId,
-      table.externalEventId
+      table.externalEventId,
     ),
   ],
 );
 
-export const calendarEventsCacheRelations = relations(calendarEventsCache, ({ one }) => ({
-  connection: one(calendarConnections, {
-    fields: [calendarEventsCache.connectionId],
-    references: [calendarConnections.id],
+export const calendarEventsCacheRelations = relations(
+  calendarEventsCache,
+  ({ one }) => ({
+    connection: one(calendarConnections, {
+      fields: [calendarEventsCache.connectionId],
+      references: [calendarConnections.id],
+    }),
   }),
-}));
+);
 
 // ============================================
 // Emoji Cache Table
@@ -460,7 +502,9 @@ export const emojiCache = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     text: text('text').notNull(),
     emoji: text('emoji').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [uniqueIndex('emoji_cache_text_idx').on(table.text)],
 );

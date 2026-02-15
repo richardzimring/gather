@@ -26,7 +26,11 @@ import {
   eventInvitees,
   blockedWindows,
 } from '../src/db';
-import { DEFAULT_GROUPS, DEFAULT_ACTIVITIES, INVITE_CODE_LENGTH } from '../src/constants';
+import {
+  DEFAULT_GROUPS,
+  DEFAULT_ACTIVITIES,
+  INVITE_CODE_LENGTH,
+} from '../src/constants';
 import { eq, and, inArray, or } from 'drizzle-orm';
 
 // Your Apple User ID - will be preserved during cleanup
@@ -121,7 +125,11 @@ const SAMPLE_LOCATIONS = {
 // ============================================
 
 async function getMyUserId(): Promise<string | null> {
-  const myUser = await db.select().from(users).where(eq(users.appleUserId, MY_APPLE_USER_ID)).limit(1);
+  const myUser = await db
+    .select()
+    .from(users)
+    .where(eq(users.appleUserId, MY_APPLE_USER_ID))
+    .limit(1);
   return myUser[0]?.id ?? null;
 }
 
@@ -153,21 +161,35 @@ async function cleanupDatabase(myUserId: string | null): Promise<void> {
 
   // Delete group members (except default groups)
   if (myUserId) {
-    const myGroups = await db.select({ id: groups.id }).from(groups).where(eq(groups.ownerId, myUserId));
+    const myGroups = await db
+      .select({ id: groups.id })
+      .from(groups)
+      .where(eq(groups.ownerId, myUserId));
     const myGroupIds = myGroups.map((g) => g.id);
     if (myGroupIds.length > 0) {
-      await db.delete(groupMembers).where(inArray(groupMembers.groupId, myGroupIds));
+      await db
+        .delete(groupMembers)
+        .where(inArray(groupMembers.groupId, myGroupIds));
     }
   }
 
   // Delete non-default groups for my user
   if (myUserId) {
-    await db.delete(groups).where(and(eq(groups.ownerId, myUserId), eq(groups.isDefault, false)));
+    await db
+      .delete(groups)
+      .where(and(eq(groups.ownerId, myUserId), eq(groups.isDefault, false)));
   }
 
   // Delete all friendships involving my user
   if (myUserId) {
-    await db.delete(friendships).where(or(eq(friendships.userId, myUserId), eq(friendships.friendId, myUserId)));
+    await db
+      .delete(friendships)
+      .where(
+        or(
+          eq(friendships.userId, myUserId),
+          eq(friendships.friendId, myUserId),
+        ),
+      );
   }
 
   // Delete mock users (this cascades to their friendships, groups, etc.)
@@ -177,7 +199,11 @@ async function cleanupDatabase(myUserId: string | null): Promise<void> {
 
   // Delete non-default activities for my user (keep defaults)
   if (myUserId) {
-    await db.delete(activities).where(and(eq(activities.userId, myUserId), eq(activities.isDefault, false)));
+    await db
+      .delete(activities)
+      .where(
+        and(eq(activities.userId, myUserId), eq(activities.isDefault, false)),
+      );
   }
 
   // Delete blocked windows for my user
@@ -193,7 +219,11 @@ async function cleanupDatabase(myUserId: string | null): Promise<void> {
 // ============================================
 
 async function ensureDefaultActivities(): Promise<void> {
-  const existing = await db.select().from(activities).where(eq(activities.isDefault, true)).limit(1);
+  const existing = await db
+    .select()
+    .from(activities)
+    .where(eq(activities.isDefault, true))
+    .limit(1);
   if (existing.length > 0) return;
 
   console.log('📝 Creating default activities...');
@@ -246,7 +276,10 @@ async function createMockUsers(): Promise<Map<string, string>> {
   return userMap;
 }
 
-async function createFriendships(myUserId: string, userMap: Map<string, string>): Promise<void> {
+async function createFriendships(
+  myUserId: string,
+  userMap: Map<string, string>,
+): Promise<void> {
   console.log('🤝 Creating friendships...');
 
   const now = new Date();
@@ -300,7 +333,10 @@ async function createFriendships(myUserId: string, userMap: Map<string, string>)
   }
 }
 
-async function createGroups(myUserId: string, userMap: Map<string, string>): Promise<Map<string, string>> {
+async function createGroups(
+  myUserId: string,
+  userMap: Map<string, string>,
+): Promise<Map<string, string>> {
   console.log('👥 Creating groups...');
 
   const groupMap = new Map<string, string>(); // name -> id
@@ -345,7 +381,10 @@ async function createGroups(myUserId: string, userMap: Map<string, string>): Pro
   return groupMap;
 }
 
-async function createEvents(myUserId: string, userMap: Map<string, string>): Promise<void> {
+async function createEvents(
+  myUserId: string,
+  userMap: Map<string, string>,
+): Promise<void> {
   console.log('📅 Creating events...');
 
   // Get user IDs upfront and validate they exist
@@ -360,7 +399,10 @@ async function createEvents(myUserId: string, userMap: Map<string, string>): Pro
   }
 
   // Get default activities to use
-  const defaultActivities = await db.select().from(activities).where(eq(activities.isDefault, true));
+  const defaultActivities = await db
+    .select()
+    .from(activities)
+    .where(eq(activities.isDefault, true));
   const coffeeActivity = defaultActivities.find((a) => a.name === 'Coffee');
   const dinnerActivity = defaultActivities.find((a) => a.name === 'Dinner');
   const drinksActivity = defaultActivities.find((a) => a.name === 'Drinks');
@@ -398,14 +440,24 @@ async function createEvents(myUserId: string, userMap: Map<string, string>): Pro
       longitude: SAMPLE_LOCATIONS.spyhouse.longitude,
       notes: 'Looking forward to catching up!',
       showInviteList: true,
-      status: 'confirmed',
+      status: 'active',
     })
     .returning();
 
   if (event1) {
     await db.insert(eventInvitees).values([
-      { eventId: event1.id, userId: aliceId, status: 'accepted', respondedAt: now },
-      { eventId: event1.id, userId: bobId, status: 'accepted', respondedAt: now },
+      {
+        eventId: event1.id,
+        userId: aliceId,
+        status: 'accepted',
+        respondedAt: now,
+      },
+      {
+        eventId: event1.id,
+        userId: bobId,
+        status: 'accepted',
+        respondedAt: now,
+      },
     ]);
     console.log('  ✅ Coffee Catch-up (all accepted, has location)');
   }
@@ -424,15 +476,25 @@ async function createEvents(myUserId: string, userMap: Map<string, string>): Pro
       location: null, // No location
       notes: "Let's celebrate! Location TBD",
       showInviteList: true,
-      status: 'sent',
+      status: 'active',
     })
     .returning();
 
   if (event2) {
     await db.insert(eventInvitees).values([
-      { eventId: event2.id, userId: aliceId, status: 'accepted', respondedAt: now },
+      {
+        eventId: event2.id,
+        userId: aliceId,
+        status: 'accepted',
+        respondedAt: now,
+      },
       { eventId: event2.id, userId: bobId, status: 'maybe', respondedAt: now },
-      { eventId: event2.id, userId: charlieId, status: 'declined', respondedAt: now },
+      {
+        eventId: event2.id,
+        userId: charlieId,
+        status: 'declined',
+        respondedAt: now,
+      },
       { eventId: event2.id, userId: dianaId, status: 'pending' }, // Hasn't responded
     ]);
     console.log('  ✅ Dinner Party (mixed responses, no location)');
@@ -455,7 +517,7 @@ async function createEvents(myUserId: string, userMap: Map<string, string>): Pro
       latitude: SAMPLE_LOCATIONS.milkweed.latitude,
       longitude: SAMPLE_LOCATIONS.milkweed.longitude,
       showInviteList: true,
-      status: 'sent',
+      status: 'active',
     })
     .returning();
 
@@ -468,8 +530,11 @@ async function createEvents(myUserId: string, userMap: Map<string, string>): Pro
         status: 'maybe',
         respondedAt: now,
         counterProposalStartTime: counterStart,
-        counterProposalEndTime: new Date(counterStart.getTime() + 2 * 60 * 60 * 1000),
-        counterProposalMessage: 'Can we do 5pm instead? I have a meeting until 4:30.',
+        counterProposalEndTime: new Date(
+          counterStart.getTime() + 2 * 60 * 60 * 1000,
+        ),
+        counterProposalMessage:
+          'Can we do 5pm instead? I have a meeting until 4:30.',
       },
     ]);
     console.log('  ✅ Afternoon Drinks (with counter proposal)');
@@ -487,7 +552,7 @@ async function createEvents(myUserId: string, userMap: Map<string, string>): Pro
       endTime: new Date(event4Start.getTime() + 4 * 60 * 60 * 1000),
       notes: 'Bring your favorite board games!',
       showInviteList: true,
-      status: 'sent',
+      status: 'active',
     })
     .returning();
 
@@ -520,14 +585,19 @@ async function createEvents(myUserId: string, userMap: Map<string, string>): Pro
       longitude: SAMPLE_LOCATIONS.lakeCalhoun.longitude,
       notes: "Let's do a 5K around the lake!",
       showInviteList: true,
-      status: 'sent',
+      status: 'active',
     })
     .returning();
 
   if (event5) {
     await db.insert(eventInvitees).values([
       { eventId: event5.id, userId: myUserId, status: 'pending' }, // I haven't responded
-      { eventId: event5.id, userId: bobId, status: 'accepted', respondedAt: now },
+      {
+        eventId: event5.id,
+        userId: bobId,
+        status: 'accepted',
+        respondedAt: now,
+      },
     ]);
     console.log('  ✅ Morning Run (invited, pending my response)');
   }
@@ -545,14 +615,21 @@ async function createEvents(myUserId: string, userMap: Map<string, string>): Pro
       endTime: new Date(event6Start.getTime() + 90 * 60 * 1000),
       notes: 'Quick sync about the project',
       showInviteList: true,
-      status: 'confirmed',
+      status: 'active',
     })
     .returning();
 
   if (event6) {
-    await db.insert(eventInvitees).values([
-      { eventId: event6.id, userId: myUserId, status: 'accepted', respondedAt: now },
-    ]);
+    await db
+      .insert(eventInvitees)
+      .values([
+        {
+          eventId: event6.id,
+          userId: myUserId,
+          status: 'accepted',
+          respondedAt: now,
+        },
+      ]);
     console.log('  ✅ Lunch Meeting (invited, I accepted)');
   }
 
@@ -568,7 +645,7 @@ async function createEvents(myUserId: string, userMap: Map<string, string>): Pro
       endTime: new Date(event7Start.getTime() + 3 * 60 * 60 * 1000),
       notes: "Let's watch the new Marvel movie",
       showInviteList: true,
-      status: 'sent',
+      status: 'active',
     })
     .returning();
 
@@ -581,8 +658,11 @@ async function createEvents(myUserId: string, userMap: Map<string, string>): Pro
         status: 'maybe',
         respondedAt: now,
         counterProposalStartTime: counterStart,
-        counterProposalEndTime: new Date(counterStart.getTime() + 3 * 60 * 60 * 1000),
-        counterProposalMessage: 'Could we start at 7pm? I have an early morning the next day.',
+        counterProposalEndTime: new Date(
+          counterStart.getTime() + 3 * 60 * 60 * 1000,
+        ),
+        counterProposalMessage:
+          'Could we start at 7pm? I have an early morning the next day.',
       },
     ]);
     console.log('  ✅ Movie Night (invited, I said maybe with counter)');
@@ -602,14 +682,21 @@ async function createEvents(myUserId: string, userMap: Map<string, string>): Pro
       location: 'Downtown Fitness Center',
       notes: 'Leg day!',
       showInviteList: true,
-      status: 'sent',
+      status: 'active',
     })
     .returning();
 
   if (event8) {
-    await db.insert(eventInvitees).values([
-      { eventId: event8.id, userId: myUserId, status: 'declined', respondedAt: now },
-    ]);
+    await db
+      .insert(eventInvitees)
+      .values([
+        {
+          eventId: event8.id,
+          userId: myUserId,
+          status: 'declined',
+          respondedAt: now,
+        },
+      ]);
     console.log('  ✅ Early Gym Session (invited, I declined)');
   }
 
@@ -626,14 +713,24 @@ async function createEvents(myUserId: string, userMap: Map<string, string>): Pro
       endTime: new Date(event9Start.getTime() + 2 * 60 * 60 * 1000),
       location: 'The Local Bar',
       showInviteList: true,
-      status: 'confirmed',
+      status: 'active',
     })
     .returning();
 
   if (event9) {
     await db.insert(eventInvitees).values([
-      { eventId: event9.id, userId: myUserId, status: 'accepted', respondedAt: new Date(event9Start.getTime() - 2 * 24 * 60 * 60 * 1000) },
-      { eventId: event9.id, userId: bobId, status: 'accepted', respondedAt: new Date(event9Start.getTime() - 2 * 24 * 60 * 60 * 1000) },
+      {
+        eventId: event9.id,
+        userId: myUserId,
+        status: 'accepted',
+        respondedAt: new Date(event9Start.getTime() - 2 * 24 * 60 * 60 * 1000),
+      },
+      {
+        eventId: event9.id,
+        userId: bobId,
+        status: 'accepted',
+        respondedAt: new Date(event9Start.getTime() - 2 * 24 * 60 * 60 * 1000),
+      },
     ]);
     console.log('  ✅ Happy Hour (past event, attended)');
   }
@@ -669,7 +766,9 @@ async function main() {
   // Get my user ID
   const myUserId = await getMyUserId();
   if (!myUserId) {
-    console.error('❌ Error: Your user not found. Please sign in to the app first.');
+    console.error(
+      '❌ Error: Your user not found. Please sign in to the app first.',
+    );
     process.exit(1);
   }
   console.log(`📍 Found your user ID: ${myUserId}\n`);

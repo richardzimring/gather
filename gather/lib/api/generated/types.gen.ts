@@ -274,7 +274,7 @@ export type CounterProposal = {
     message?: string;
 };
 
-export type EventStatus = 'draft' | 'sent' | 'confirmed' | 'cancelled';
+export type EventStatus = 'draft' | 'active' | 'cancelled';
 
 export type SingleEventResponse = {
     success: true;

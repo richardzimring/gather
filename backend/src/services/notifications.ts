@@ -265,11 +265,17 @@ export const notifyEventResponse = async (
   });
 };
 
-export const notifyEventUpdated = async (inviteeIds: string[], event: Event): Promise<void> => {
+export const notifyEventUpdated = async (
+  inviteeIds: string[],
+  event: Event,
+  requiresReconfirmation = false,
+): Promise<void> => {
   await sendPushNotifications(inviteeIds, {
     type: 'event_updated',
-    title: 'Event Updated',
-    body: `${event.title} has been updated`,
+    title: requiresReconfirmation ? 'Event Details Changed' : 'Event Updated',
+    body: requiresReconfirmation
+      ? `${event.title} has new details — please re-confirm your attendance`
+      : `${event.title} has been updated`,
     data: {
       type: 'event_updated',
       eventId: event.eventId,

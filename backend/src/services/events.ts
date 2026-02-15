@@ -247,7 +247,7 @@ export const createEvent = async (
       longitude,
       notes: input.notes,
       showInviteList: input.showInviteList ?? true,
-      status: 'sent',
+      status: 'active',
     })
     .returning();
 
@@ -349,7 +349,51 @@ export const updateEvent = async (
     updateData.showInviteList = updates.showInviteList;
   }
 
+  // Determine if significant details changed (location, time, date)
+  // These changes require invitees to re-confirm their attendance
+  const hasSignificantChanges = (() => {
+    const timeChanged =
+      (updates.startTime !== undefined &&
+        new Date(updates.startTime).getTime() !==
+          new Date(existing.startTime).getTime()) ||
+      (updates.endTime !== undefined &&
+        new Date(updates.endTime).getTime() !==
+          new Date(existing.endTime).getTime());
+
+    const locationChanged =
+      (updates.locationData !== undefined &&
+        (updates.locationData === null
+          ? existing.location != null
+          : updates.locationData.name !== existing.location ||
+            updates.locationData.placeId !== existing.locationPlaceId ||
+            updates.locationData.address !== existing.locationAddress)) ||
+      (updates.location !== undefined &&
+        updates.locationData === undefined &&
+        (updates.location === null
+          ? existing.location != null
+          : updates.location !== existing.location));
+
+    return timeChanged || locationChanged;
+  })();
+
   await db.update(events).set(updateData).where(eq(events.id, eventId));
+
+  // If significant details changed, reset all invitee approvals to pending
+  if (hasSignificantChanges && existing.invitees.length > 0) {
+    await db
+      .update(eventInvitees)
+      .set({
+        status: 'pending',
+        respondedAt: null,
+        counterProposalStartTime: null,
+        counterProposalEndTime: null,
+        counterProposalLocation: null,
+        counterProposalActivityId: null,
+        counterProposalMessage: null,
+      })
+      .where(eq(eventInvitees.eventId, eventId));
+
+  }
 
   const updatedEvent = await getEvent(eventId);
 
@@ -357,7 +401,11 @@ export const updateEvent = async (
   if (updatedEvent) {
     const inviteeIds = updatedEvent.invitees.map((i) => i.userId);
     if (inviteeIds.length > 0) {
-      await notifyEventUpdated(inviteeIds, updatedEvent);
+      await notifyEventUpdated(
+        inviteeIds,
+        updatedEvent,
+        hasSignificantChanges,
+      );
     }
   }
 
@@ -460,31 +508,6 @@ export const respondToEvent = async (
     // If there's a counter proposal, send additional notification
     if (responseData.counterProposal) {
       await notifyCounterProposal(event.hostId, event, responder.fullName);
-    }
-  }
-
-  // Update event status based on invitee responses
-  const updatedEvent = await getEvent(eventId);
-  if (updatedEvent) {
-    const allResponded = updatedEvent.invitees.every(
-      (i) => i.status !== 'pending',
-    );
-    const allAccepted = updatedEvent.invitees.every(
-      (i) => i.status === 'accepted',
-    );
-
-    if (allResponded && allAccepted && updatedEvent.status === 'sent') {
-      // All invitees accepted - mark event as confirmed
-      await db
-        .update(events)
-        .set({ status: 'confirmed', updatedAt: now })
-        .where(eq(events.id, eventId));
-    } else if (!allAccepted && updatedEvent.status === 'confirmed') {
-      // Someone changed their response - revert to sent
-      await db
-        .update(events)
-        .set({ status: 'sent', updatedAt: now })
-        .where(eq(events.id, eventId));
     }
   }
 

@@ -182,7 +182,7 @@ export const UpdateBlockedWindowSchema = z
 
 // Event schemas
 export const InviteeStatusSchema = z.enum(['pending', 'accepted', 'declined', 'maybe']).openapi('InviteeStatus');
-export const EventStatusSchema = z.enum(['draft', 'sent', 'confirmed', 'cancelled']).openapi('EventStatus');
+export const EventStatusSchema = z.enum(['draft', 'active', 'cancelled']).openapi('EventStatus');
 
 export const LocationDataSchema = z
   .object({
