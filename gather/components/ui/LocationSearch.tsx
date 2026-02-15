@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { MapPin, X, Search } from "@tamagui/lucide-icons";
 import { Input, XStack, YStack, Text, ScrollView, Spinner } from "tamagui";
 import * as Location from "expo-location";
@@ -52,33 +52,33 @@ export function LocationSearch({
   const [showResults, setShowResults] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null);
   const userLocationRef = useRef<UserLocation | null>(null);
+  const locationRequestedRef = useRef(false);
 
-  // Get user's current location on mount to bias search results
-  useEffect(() => {
-    async function getCurrentLocation() {
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          console.log(
-            "Location permission not granted, search results will not be location-biased",
-          );
-          return;
-        }
+  // Request location permission and get current location (called on user interaction)
+  const requestLocationIfNeeded = useCallback(async () => {
+    if (locationRequestedRef.current || userLocationRef.current) return;
+    locationRequestedRef.current = true;
 
-        const location = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
-
-        userLocationRef.current = {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        };
-      } catch (error) {
-        console.log("Could not get user location:", error);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log(
+          "Location permission not granted, search results will not be location-biased",
+        );
+        return;
       }
-    }
 
-    getCurrentLocation();
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      userLocationRef.current = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      };
+    } catch (error) {
+      console.log("Could not get user location:", error);
+    }
   }, []);
 
   // Fetch place details to get coordinates
@@ -214,7 +214,10 @@ export function LocationSearch({
           placeholderTextColor="$colorMuted"
           value={query}
           onChangeText={handleQueryChange}
-          onFocus={() => query.length >= 2 && setShowResults(true)}
+          onFocus={() => {
+            requestLocationIfNeeded();
+            if (query.length >= 2) setShowResults(true);
+          }}
           backgroundColor="transparent"
           borderWidth={0}
           height={48}

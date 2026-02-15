@@ -15,9 +15,7 @@ import {
 } from "tamagui";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import {
-  type AvatarStackPerson,
-} from "../../components/ui/AttendeeAvatarStack";
+import { type AvatarStackPerson } from "../../components/ui/AttendeeAvatarStack";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { EventCard } from "../../components/ui/EventCard";
@@ -133,7 +131,7 @@ function groupEventsBySection(events: EventData[]) {
   Object.keys(sections).forEach((key) => {
     sections[key].sort(
       (a, b) =>
-        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
     );
   });
 
@@ -146,10 +144,10 @@ function groupEventsBySection(events: EventData[]) {
  */
 function getAttendeeSummary(event: EventData): string {
   const acceptedInvitees = event.invitees.filter(
-    (i) => i.status === "accepted"
+    (i) => i.status === "accepted",
   ).length;
   const maybeInvitees = event.invitees.filter(
-    (i) => i.status === "maybe"
+    (i) => i.status === "maybe",
   ).length;
 
   // Host is always counted as going
@@ -243,7 +241,7 @@ export default function HomeScreen() {
         })
         .sort(
           (a, b) =>
-            new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+            new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
         ) ?? []
     );
   }, [events, today]);
@@ -251,7 +249,7 @@ export default function HomeScreen() {
   // Group events by section
   const eventsBySection = useMemo(
     () => groupEventsBySection(upcomingEvents),
-    [upcomingEvents]
+    [upcomingEvents],
   );
 
   // Get pending invitation counts per section
@@ -265,7 +263,7 @@ export default function HomeScreen() {
 
     upcomingEvents.forEach((event) => {
       const userInvitee = event.invitees.find(
-        (i) => i.userId === user?.userId && i.status === "pending"
+        (i) => i.userId === user?.userId && i.status === "pending",
       );
       if (userInvitee && event.hostId !== user?.userId) {
         const date = new Date(event.startTime);
@@ -313,10 +311,7 @@ export default function HomeScreen() {
         </Text>
 
         {/* Header */}
-        <XStack
-          justifyContent="space-between"
-          alignItems="center"
-        >
+        <XStack justifyContent="space-between" alignItems="center">
           <H1 fontSize={28} fontWeight="700">
             Events
           </H1>

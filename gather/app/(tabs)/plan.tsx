@@ -746,15 +746,6 @@ export default function PlanScreen() {
     }, 300);
   };
 
-  const clearSelectedSlot = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setSelectedSlot(null);
-    setTimeSlotsExpanded(true);
-    setTitle("");
-    setLocationData(null);
-    setNotes("");
-  };
-
   const handleLocationSelect = (place: PlaceResult | null) => {
     if (place) {
       setLocationData({
@@ -831,7 +822,7 @@ export default function PlanScreen() {
           />
         }
         contentContainerStyle={{
-          paddingBottom: insets.bottom + 32,
+          paddingBottom: insets.bottom + 100,
           paddingHorizontal: 16,
         }}
       >
@@ -1358,8 +1349,12 @@ export default function PlanScreen() {
                     <XStack alignItems="center" gap="$2">
                       <MapPin size={14} color="$colorMuted" />
                       <Text fontWeight="500" fontSize={14}>
-                        Location{' '}
-                        <Text fontSize={14} color="$colorMuted" fontWeight="400">
+                        Location{" "}
+                        <Text
+                          fontSize={14}
+                          color="$colorMuted"
+                          fontWeight="400"
+                        >
                           (optional)
                         </Text>
                       </Text>
@@ -1385,8 +1380,12 @@ export default function PlanScreen() {
                     <XStack alignItems="center" gap="$2">
                       <FileText size={14} color="$colorMuted" />
                       <Text fontWeight="500" fontSize={14}>
-                        Notes{' '}
-                        <Text fontSize={14} color="$colorMuted" fontWeight="400">
+                        Notes{" "}
+                        <Text
+                          fontSize={14}
+                          color="$colorMuted"
+                          fontWeight="400"
+                        >
                           (optional)
                         </Text>
                       </Text>

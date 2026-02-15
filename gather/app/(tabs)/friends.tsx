@@ -1,7 +1,7 @@
-import { Search, UserPlus, Users as UsersIcon } from '@tamagui/lucide-icons'
-import { router } from 'expo-router'
-import { useMemo, useState } from 'react'
-import { RefreshControl, StyleSheet } from 'react-native'
+import { Search, UserPlus, Users as UsersIcon } from "@tamagui/lucide-icons";
+import { router } from "expo-router";
+import { useMemo, useState } from "react";
+import { RefreshControl, StyleSheet } from "react-native";
 import {
   H1,
   Input,
@@ -12,98 +12,100 @@ import {
   Circle,
   Theme,
   useTheme,
-} from 'tamagui'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+} from "tamagui";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   GlassView,
   isLiquidGlassAvailable,
   isGlassEffectAPIAvailable,
-} from 'expo-glass-effect'
+} from "expo-glass-effect";
 
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
-import { GlassButton } from '../../components/ui/GlassFAB'
-import { EmptyState } from '../../components/common/EmptyState'
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
+import { GlassButton } from "../../components/ui/GlassFAB";
+import { EmptyState } from "../../components/common/EmptyState";
 import {
   useFriends,
   useGroups,
   useAcceptFriendRequest,
   useDeclineFriendRequest,
   useRefresh,
-} from '../../lib/hooks'
+} from "../../lib/hooks";
 
 export default function FriendsScreen() {
-  const insets = useSafeAreaInsets()
-  const theme = useTheme()
-  const [activeTab, setActiveTab] = useState('friends')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [pendingRequestId, setPendingRequestId] = useState<string | null>(null)
-  const [pendingAction, setPendingAction] = useState<'accept' | 'decline' | null>(null)
+  const insets = useSafeAreaInsets();
+  const theme = useTheme();
+  const [activeTab, setActiveTab] = useState("friends");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [pendingRequestId, setPendingRequestId] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<
+    "accept" | "decline" | null
+  >(null);
 
-  const useGlass = isLiquidGlassAvailable() && isGlassEffectAPIAvailable()
+  const useGlass = isLiquidGlassAvailable() && isGlassEffectAPIAvailable();
 
-  const friendsQuery = useFriends()
-  const groupsQuery = useGroups()
-  const { data: friendsData } = friendsQuery
-  const { data: groups } = groupsQuery
-  const acceptRequest = useAcceptFriendRequest()
-  const declineRequest = useDeclineFriendRequest()
-  const { isRefreshing, onRefresh } = useRefresh(friendsQuery, groupsQuery)
+  const friendsQuery = useFriends();
+  const groupsQuery = useGroups();
+  const { data: friendsData } = friendsQuery;
+  const { data: groups } = groupsQuery;
+  const acceptRequest = useAcceptFriendRequest();
+  const declineRequest = useDeclineFriendRequest();
+  const { isRefreshing, onRefresh } = useRefresh(friendsQuery, groupsQuery);
 
-  const friends = useMemo(() => friendsData?.friends ?? [], [friendsData])
-  const pendingReceived = friendsData?.pendingReceived ?? []
+  const friends = useMemo(() => friendsData?.friends ?? [], [friendsData]);
+  const pendingReceived = friendsData?.pendingReceived ?? [];
 
   // Filter friends by search query
   const filteredFriends = useMemo(() => {
-    if (!searchQuery.trim()) return friends
-    const query = searchQuery.toLowerCase()
+    if (!searchQuery.trim()) return friends;
+    const query = searchQuery.toLowerCase();
     return friends.filter((f) => {
-      const name = f.friend.fullName.toLowerCase()
-      return name.includes(query)
-    })
-  }, [friends, searchQuery])
+      const name = f.friend.fullName.toLowerCase();
+      return name.includes(query);
+    });
+  }, [friends, searchQuery]);
 
   // Filter groups by search query
   const filteredGroups = useMemo(() => {
-    if (!groups) return []
-    if (!searchQuery.trim()) return groups
-    const query = searchQuery.toLowerCase()
-    return groups.filter((g) => g.name.toLowerCase().includes(query))
-  }, [groups, searchQuery])
+    if (!groups) return [];
+    if (!searchQuery.trim()) return groups;
+    const query = searchQuery.toLowerCase();
+    return groups.filter((g) => g.name.toLowerCase().includes(query));
+  }, [groups, searchQuery]);
 
   const handleAccept = async (friendId: string) => {
-    setPendingRequestId(friendId)
-    setPendingAction('accept')
+    setPendingRequestId(friendId);
+    setPendingAction("accept");
     try {
-      await acceptRequest.mutateAsync(friendId)
+      await acceptRequest.mutateAsync(friendId);
     } catch (err) {
-      console.error('Failed to accept request:', err)
+      console.error("Failed to accept request:", err);
     } finally {
-      setPendingRequestId(null)
-      setPendingAction(null)
+      setPendingRequestId(null);
+      setPendingAction(null);
     }
-  }
+  };
 
   const handleDecline = async (friendId: string) => {
-    setPendingRequestId(friendId)
-    setPendingAction('decline')
+    setPendingRequestId(friendId);
+    setPendingAction("decline");
     try {
-      await declineRequest.mutateAsync(friendId)
+      await declineRequest.mutateAsync(friendId);
     } catch (err) {
-      console.error('Failed to decline request:', err)
+      console.error("Failed to decline request:", err);
     } finally {
-      setPendingRequestId(null)
-      setPendingAction(null)
+      setPendingRequestId(null);
+      setPendingAction(null);
     }
-  }
+  };
 
   const navigateToFriend = (friendId: string) => {
-    router.push(`/friends/${friendId}` as const)
-  }
+    router.push(`/friends/${friendId}` as const);
+  };
 
   const navigateToGroup = (groupId: string) => {
-    router.push(`/groups/${groupId}` as const)
-  }
+    router.push(`/groups/${groupId}` as const);
+  };
 
   const searchBar = (
     <XStack alignItems="center" paddingHorizontal="$3" height={36}>
@@ -119,7 +121,7 @@ export default function FriendsScreen() {
         onChangeText={setSearchQuery}
       />
     </XStack>
-  )
+  );
 
   return (
     <YStack flex={1} backgroundColor="$background">
@@ -137,15 +139,13 @@ export default function FriendsScreen() {
           </H1>
           <GlassButton
             icon={<UserPlus size={20} color="$color" />}
-            onPress={() => router.push('/friends/add')}
+            onPress={() => router.push("/friends/add")}
           />
         </XStack>
 
         {/* Glass search bar */}
         {useGlass ? (
-          <GlassView style={glassStyles.searchBar}>
-            {searchBar}
-          </GlassView>
+          <GlassView style={glassStyles.searchBar}>{searchBar}</GlassView>
         ) : (
           <XStack
             backgroundColor="$backgroundHover"
@@ -160,16 +160,20 @@ export default function FriendsScreen() {
         <XStack gap="$1">
           <XStack
             flex={1}
-            backgroundColor={activeTab === 'friends' ? '$primary' : 'transparent'}
+            backgroundColor={
+              activeTab === "friends" ? "$primary" : "transparent"
+            }
             borderRadius="$2"
             paddingVertical="$2"
             justifyContent="center"
             alignItems="center"
             pressStyle={{ opacity: 0.8 }}
-            onPress={() => setActiveTab('friends')}
+            onPress={() => setActiveTab("friends")}
           >
             <Text
-              color={activeTab === 'friends' ? '$primaryForeground' : '$colorMuted'}
+              color={
+                activeTab === "friends" ? "$primaryForeground" : "$colorMuted"
+              }
               fontWeight="500"
               fontSize={14}
             >
@@ -178,16 +182,20 @@ export default function FriendsScreen() {
           </XStack>
           <XStack
             flex={1}
-            backgroundColor={activeTab === 'groups' ? '$primary' : 'transparent'}
+            backgroundColor={
+              activeTab === "groups" ? "$primary" : "transparent"
+            }
             borderRadius="$2"
             paddingVertical="$2"
             justifyContent="center"
             alignItems="center"
             pressStyle={{ opacity: 0.8 }}
-            onPress={() => setActiveTab('groups')}
+            onPress={() => setActiveTab("groups")}
           >
             <Text
-              color={activeTab === 'groups' ? '$primaryForeground' : '$colorMuted'}
+              color={
+                activeTab === "groups" ? "$primaryForeground" : "$colorMuted"
+              }
               fontWeight="500"
               fontSize={14}
             >
@@ -196,17 +204,21 @@ export default function FriendsScreen() {
           </XStack>
           <XStack
             flex={1}
-            backgroundColor={activeTab === 'requests' ? '$primary' : 'transparent'}
+            backgroundColor={
+              activeTab === "requests" ? "$primary" : "transparent"
+            }
             borderRadius="$2"
             paddingVertical="$2"
             justifyContent="center"
             alignItems="center"
             pressStyle={{ opacity: 0.8 }}
-            onPress={() => setActiveTab('requests')}
+            onPress={() => setActiveTab("requests")}
             gap="$2"
           >
             <Text
-              color={activeTab === 'requests' ? '$primaryForeground' : '$colorMuted'}
+              color={
+                activeTab === "requests" ? "$primaryForeground" : "$colorMuted"
+              }
               fontWeight="500"
               fontSize={14}
             >
@@ -214,7 +226,11 @@ export default function FriendsScreen() {
             </Text>
             {pendingReceived.length > 0 && (
               <Circle size={16} backgroundColor="$destructive">
-                <Text color="$destructiveForeground" fontSize={10} fontWeight="600">
+                <Text
+                  color="$destructiveForeground"
+                  fontSize={10}
+                  fontWeight="600"
+                >
                   {pendingReceived.length}
                 </Text>
               </Circle>
@@ -239,178 +255,185 @@ export default function FriendsScreen() {
         }}
       >
         {/* Tab Content */}
-        {activeTab === 'friends' && (
-            <YStack gap="$3">
-              {filteredFriends.length === 0 ? (
-                <EmptyState
-                  icon={<Text fontSize={48}>👋</Text>}
-                  title={searchQuery ? 'No friends found' : 'No friends yet'}
-                  description={
-                    searchQuery
-                      ? 'Try a different search term'
-                      : 'Add friends to start planning events together!'
-                  }
-                  action={
-                    !searchQuery && (
-                      <Button
-                        variant="primary"
-                        onPress={() => router.push('/friends/add')}
-                      >
-                        Add Friends
-                      </Button>
-                    )
-                  }
-                />
-              ) : (
-                filteredFriends.map((friendship) => (
-                    <Theme key={friendship.friendId} name="Card">
-                      <Card
-                        pressable
-                        onPress={() => navigateToFriend(friendship.friendId)}
-                      >
-                        <XStack alignItems="center" gap="$3">
-                          <Circle size={48} backgroundColor="$backgroundHover">
-                            <Text fontSize={18} fontWeight="500">
-                              {friendship.friend.initials}
-                            </Text>
-                          </Circle>
-                          <YStack flex={1}>
-                            <Text fontWeight="600">{friendship.friend.fullName}</Text>
-                            <Text color="$colorMuted" fontSize={13}>
-                              Tap to view profile
-                            </Text>
-                          </YStack>
-                        </XStack>
-                      </Card>
-                    </Theme>
+        {activeTab === "friends" && (
+          <YStack gap="$3">
+            {filteredFriends.length === 0 ? (
+              <EmptyState
+                icon={<Text fontSize={48}>👋</Text>}
+                title={searchQuery ? "No friends found" : "No friends yet"}
+                description={
+                  searchQuery
+                    ? "Try a different search term"
+                    : "Add friends to start planning events together!"
+                }
+                action={
+                  !searchQuery && (
+                    <Button
+                      variant="primary"
+                      onPress={() => router.push("/friends/add")}
+                    >
+                      Add Friends
+                    </Button>
                   )
-                )
-              )}
-            </YStack>
-        )}
-
-        {activeTab === 'groups' && (
-            <YStack gap="$3">
-              {filteredGroups.length === 0 ? (
-                <EmptyState
-                  icon={<Text fontSize={48}>👥</Text>}
-                  title={searchQuery ? 'No groups found' : 'No groups yet'}
-                  description={
-                    searchQuery
-                      ? 'Try a different search term'
-                      : 'Create groups to easily invite multiple friends to events.'
-                  }
-                  action={
-                    !searchQuery && (
-                      <Button
-                        variant="primary"
-                        onPress={() => router.push('/groups/create' as const)}
-                      >
-                        Create Group
-                      </Button>
-                    )
-                  }
-                />
-              ) : (
-                <>
-                  {filteredGroups.map((group) => (
-                    <Theme key={group.groupId} name="Card">
-                      <Card
-                        pressable
-                        onPress={() => navigateToGroup(group.groupId)}
-                      >
-                        <XStack alignItems="center" gap="$3">
-                          <Circle size={48} backgroundColor="$backgroundHover">
-                            <Text fontSize={22}>{group.emoji ?? '👥'}</Text>
-                          </Circle>
-                          <YStack flex={1}>
-                            <Text fontWeight="600">{group.name}</Text>
-                            <Text color="$colorMuted" fontSize={13}>
-                              {group.memberIds.length} members
-                            </Text>
-                          </YStack>
-                          <UsersIcon size={20} color="$colorMuted" />
-                        </XStack>
-                      </Card>
-                    </Theme>
-                  ))}
-                  <Button
-                    variant="secondary"
-                    marginTop="$2"
-                    onPress={() => router.push('/groups/create' as const)}
+                }
+              />
+            ) : (
+              filteredFriends.map((friendship) => (
+                <Theme key={friendship.friendId} name="Card">
+                  <Card
+                    pressable
+                    onPress={() => navigateToFriend(friendship.friendId)}
                   >
-                    Create New Group
-                  </Button>
-                </>
-              )}
-            </YStack>
+                    <XStack alignItems="center" gap="$3">
+                      <Circle size={48} backgroundColor="$backgroundHover">
+                        <Text fontSize={18} fontWeight="500">
+                          {friendship.friend.initials}
+                        </Text>
+                      </Circle>
+                      <YStack flex={1}>
+                        <Text fontWeight="600">
+                          {friendship.friend.fullName}
+                        </Text>
+                        <Text color="$colorMuted" fontSize={13}>
+                          Tap to view profile
+                        </Text>
+                      </YStack>
+                    </XStack>
+                  </Card>
+                </Theme>
+              ))
+            )}
+          </YStack>
         )}
 
-        {activeTab === 'requests' && (
-            <YStack gap="$3">
-              {pendingReceived.length === 0 ? (
-                <EmptyState
-                  icon={<Text fontSize={48}>📬</Text>}
-                  title="No pending requests"
-                  description="When someone sends you a friend request, it will appear here."
-                />
-              ) : (
-                pendingReceived.map((request) => (
-                    <Theme key={request.friendId} name="Card">
-                      <Card>
-                        <YStack gap="$3">
-                          <XStack alignItems="center" gap="$3">
-                            <Circle size={48} backgroundColor="$backgroundHover">
-                              <Text fontSize={18} fontWeight="500">
-                                {request.friend.initials}
-                              </Text>
-                            </Circle>
-                            <YStack flex={1}>
-                              <Text fontWeight="600">{request.friend.fullName}</Text>
-                              <Text color="$colorMuted" fontSize={13}>
-                                Wants to be your friend
-                              </Text>
-                            </YStack>
-                          </XStack>
-                          <XStack gap="$2">
-                            <Button
-                              variant="primary"
-                              buttonSize="sm"
-                              flex={1}
-                              onPress={() => handleAccept(request.friendId)}
-                              loading={pendingRequestId === request.friendId && pendingAction === 'accept'}
-                              disabled={pendingRequestId !== null}
-                            >
-                              Accept
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              buttonSize="sm"
-                              flex={1}
-                              onPress={() => handleDecline(request.friendId)}
-                              loading={pendingRequestId === request.friendId && pendingAction === 'decline'}
-                              disabled={pendingRequestId !== null}
-                            >
-                              Decline
-                            </Button>
-                          </XStack>
-                        </YStack>
-                      </Card>
-                    </Theme>
+        {activeTab === "groups" && (
+          <YStack gap="$3">
+            {filteredGroups.length === 0 ? (
+              <EmptyState
+                icon={<Text fontSize={48}>👥</Text>}
+                title={searchQuery ? "No groups found" : "No groups yet"}
+                description={
+                  searchQuery
+                    ? "Try a different search term"
+                    : "Create groups to easily invite multiple friends to events."
+                }
+                action={
+                  !searchQuery && (
+                    <Button
+                      variant="primary"
+                      onPress={() => router.push("/groups/create" as const)}
+                    >
+                      Create Group
+                    </Button>
                   )
-                )
-              )}
-            </YStack>
+                }
+              />
+            ) : (
+              <>
+                {filteredGroups.map((group) => (
+                  <Theme key={group.groupId} name="Card">
+                    <Card
+                      pressable
+                      onPress={() => navigateToGroup(group.groupId)}
+                    >
+                      <XStack alignItems="center" gap="$3">
+                        <Circle size={48} backgroundColor="$backgroundHover">
+                          <Text fontSize={22}>{group.emoji ?? "👥"}</Text>
+                        </Circle>
+                        <YStack flex={1}>
+                          <Text fontWeight="600">{group.name}</Text>
+                          <Text color="$colorMuted" fontSize={13}>
+                            {group.memberIds.length} members
+                          </Text>
+                        </YStack>
+                        <UsersIcon size={20} color="$colorMuted" />
+                      </XStack>
+                    </Card>
+                  </Theme>
+                ))}
+                <Button
+                  variant="secondary"
+                  marginTop="$2"
+                  onPress={() => router.push("/groups/create" as const)}
+                >
+                  Create New Group
+                </Button>
+              </>
+            )}
+          </YStack>
+        )}
+
+        {activeTab === "requests" && (
+          <YStack gap="$3">
+            {pendingReceived.length === 0 ? (
+              <EmptyState
+                icon={<Text fontSize={48}>📬</Text>}
+                title="No pending requests"
+                description="When someone sends you a friend request, it will appear here."
+              />
+            ) : (
+              pendingReceived.map((request) => (
+                <Theme key={request.friendId} name="Card">
+                  <Card>
+                    <YStack gap="$3">
+                      <XStack alignItems="center" gap="$3">
+                        <Circle size={48} backgroundColor="$backgroundHover">
+                          <Text fontSize={18} fontWeight="500">
+                            {request.friend.initials}
+                          </Text>
+                        </Circle>
+                        <YStack flex={1}>
+                          <Text fontWeight="600">
+                            {request.friend.fullName}
+                          </Text>
+                          <Text color="$colorMuted" fontSize={13}>
+                            Wants to be your friend
+                          </Text>
+                        </YStack>
+                      </XStack>
+                      <XStack gap="$2">
+                        <Button
+                          variant="primary"
+                          buttonSize="sm"
+                          flex={1}
+                          onPress={() => handleAccept(request.friendId)}
+                          loading={
+                            pendingRequestId === request.friendId &&
+                            pendingAction === "accept"
+                          }
+                          disabled={pendingRequestId !== null}
+                        >
+                          Accept
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          buttonSize="sm"
+                          flex={1}
+                          onPress={() => handleDecline(request.friendId)}
+                          loading={
+                            pendingRequestId === request.friendId &&
+                            pendingAction === "decline"
+                          }
+                          disabled={pendingRequestId !== null}
+                        >
+                          Decline
+                        </Button>
+                      </XStack>
+                    </YStack>
+                  </Card>
+                </Theme>
+              ))
+            )}
+          </YStack>
         )}
       </ScrollView>
-
     </YStack>
-  )
+  );
 }
 
 const glassStyles = StyleSheet.create({
   searchBar: {
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
-})
+});
