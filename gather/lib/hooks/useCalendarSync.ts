@@ -4,13 +4,17 @@ import { useQueryClient } from '@tanstack/react-query'
 
 import { useCalendarConnections, calendarKeys } from './useCalendars'
 import { resyncConnectedCalendars } from '../services/calendarSync'
+import { postCalendarsGoogleSync } from '../api/client'
 
 /** Minimum interval between automatic re-syncs (15 minutes) */
 const RESYNC_INTERVAL_MS = 15 * 60 * 1000
 
 /**
- * Hook that automatically re-syncs connected Apple calendars when the app
+ * Hook that automatically re-syncs connected calendars when the app
  * comes to the foreground. Debounced to at most once per 15 minutes.
+ *
+ * - Apple calendars: re-reads events from the device and syncs to backend
+ * - Google calendars: triggers a server-side re-sync
  *
  * Place this hook in the tab layout so it runs while the user is authenticated.
  * For manual sync, use `useTriggerCalendarSync` from `useCalendars.ts`.
@@ -28,16 +32,26 @@ export function useCalendarAutoSync() {
     const now = Date.now()
     if (now - lastSyncRef.current < RESYNC_INTERVAL_MS) return
 
-    // Get Apple calendar external IDs from connections
-    const appleCalendarIds = connections
-      .filter((c) => c.provider === 'apple' && c.importEnabled)
-      .map((c) => c.externalCalendarId)
-
-    if (appleCalendarIds.length === 0) return
-
     isSyncingRef.current = true
     try {
-      await resyncConnectedCalendars(appleCalendarIds)
+      // Sync Apple calendars from device
+      const appleCalendarIds = connections
+        .filter((c) => c.provider === 'apple' && c.importEnabled)
+        .map((c) => c.externalCalendarId)
+
+      if (appleCalendarIds.length > 0) {
+        await resyncConnectedCalendars(appleCalendarIds)
+      }
+
+      // Sync Google calendars server-side
+      const hasGoogleConnections = connections.some(
+        (c) => c.provider === 'google' && c.importEnabled,
+      )
+
+      if (hasGoogleConnections) {
+        await postCalendarsGoogleSync()
+      }
+
       lastSyncRef.current = Date.now()
       // Invalidate calendar queries so the UI refreshes
       queryClient.invalidateQueries({ queryKey: calendarKeys.all })

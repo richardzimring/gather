@@ -56,8 +56,8 @@ export interface InlineCalendarProps {
   onSelectRange?: (start: Date, end: Date | null) => void;
   /** Minimum selectable date (dates before this are disabled) */
   minDate?: Date;
-  /** Set of date keys (YYYY-MM-DD) that have availability indicators */
-  availabilityDots?: Set<string>;
+  /** Maximum selectable date (dates after this are disabled) */
+  maxDate?: Date;
   /** Callback when the displayed month changes */
   onMonthChange?: (year: number, month: number) => void;
 }
@@ -79,7 +79,7 @@ export function InlineCalendar({
   rangeEnd,
   onSelectRange,
   minDate,
-  availabilityDots,
+  maxDate,
   onMonthChange,
 }: InlineCalendarProps) {
   const isRangeMode = !!onSelectRange;
@@ -129,6 +129,13 @@ export function InlineCalendar({
     d.setHours(0, 0, 0, 0);
     return d;
   }, [minDate]);
+
+  const maxDateNorm = useMemo(() => {
+    if (!maxDate) return null;
+    const d = new Date(maxDate);
+    d.setHours(23, 59, 59, 999);
+    return d;
+  }, [maxDate]);
 
   const monthLabel = new Date(
     displayMonth.year,
@@ -257,8 +264,11 @@ export function InlineCalendar({
             const isCurrentMonth = day.getMonth() === displayMonth.month;
             const isToday = dateKey === todayKey;
             const isPast = minDateNorm ? day < minDateNorm : false;
-            const isDisabled = !isCurrentMonth || isPast;
-            const hasAvailability = availabilityDots?.has(dateKey) ?? false;
+            const isBeyondMax = maxDateNorm ? day > maxDateNorm : false;
+            // Truly disabled = out of the selectable date range
+            const isDisabled = isPast || isBeyondMax;
+            // Adjacent-month filler days that are still within range — muted but clickable
+            const isAdjacentMonth = !isCurrentMonth && !isDisabled;
 
             // Range mode: determine if this day is start, end, or in-range
             const isRangeStart = isRangeMode && dateKey === rangeStartKey;
@@ -273,7 +283,7 @@ export function InlineCalendar({
               rangeEndTime !== null &&
               dayTime > rangeStartTime &&
               dayTime < rangeEndTime &&
-              isCurrentMonth;
+              !isDisabled;
 
             // For the range highlight band, we need to know position in the row
             const isFirstInRow = colIndex === 0;
@@ -294,13 +304,14 @@ export function InlineCalendar({
                   ? "$backgroundHover"
                   : "transparent";
 
-            // Determine text styling
+            // Determine text styling — disabled days are very obviously faded
             const textColor = isEndpoint || isSelected
               ? "$primaryForeground"
               : isDisabled
                 ? "$colorSubtle"
                 : "$color";
             const textWeight = isEndpoint || isSelected || isToday ? "600" : "400";
+            const textOpacity = isDisabled ? 0.3 : 1;
 
             // Range band styling: extend behind the circle for in-range days
             // For start endpoint: band extends to the right
@@ -369,24 +380,11 @@ export function InlineCalendar({
                       fontSize={14}
                       fontWeight={textWeight as any}
                       color={textColor}
+                      opacity={textOpacity}
                     >
                       {day.getDate()}
                     </Text>
                   </YStack>
-                </YStack>
-
-                {/* Availability dot */}
-                <YStack height={4} justifyContent="center" alignItems="center">
-                  {hasAvailability && !isDisabled && (
-                    <YStack
-                      width={4}
-                      height={4}
-                      borderRadius={2}
-                      backgroundColor={
-                        isEndpoint || isSelected ? "$primaryForeground" : "$success"
-                      }
-                    />
-                  )}
                 </YStack>
               </YStack>
             );

@@ -139,21 +139,6 @@ export type UpdateBlockedWindow = {
     notes?: string | null;
 };
 
-export type FriendsFreeTimeResponse = {
-    success: true;
-    data: {
-        freeTime: Array<{
-            userId: string;
-            freeSlots: Array<FreeTimeSlot>;
-        }>;
-    };
-};
-
-export type FreeTimeSlot = {
-    startTime: string;
-    endTime: string;
-};
-
 export type CalendarListResponse = {
     success: true;
     data: {
@@ -246,6 +231,34 @@ export type UpdateCalendarConnection = {
 export type DeleteCalendarResponse = {
     success: true;
     message?: string;
+};
+
+export type GoogleAuthUrlResponse = {
+    success: true;
+    data: {
+        authUrl: string;
+    };
+};
+
+export type GoogleCalendarListResponse = {
+    success: true;
+    data: {
+        calendars: Array<GoogleCalendar>;
+    };
+};
+
+export type GoogleCalendar = {
+    externalCalendarId: string;
+    calendarName: string;
+    color?: string;
+    isPrimary?: boolean;
+};
+
+export type GoogleSelectCalendars = {
+    /**
+     * External calendar IDs to import. Unselected calendars will have importEnabled set to false.
+     */
+    calendarIds: Array<string>;
 };
 
 export type EventsResponse = {
@@ -354,6 +367,29 @@ export type UpdateEvent = {
 export type EventResponse = {
     status: InviteeStatus;
     counterProposal?: CounterProposal;
+};
+
+export type BusyTimesResponse = {
+    success: true;
+    data: {
+        busyTimes: {
+            [key: string]: Array<BusyTimeInterval>;
+        };
+    };
+};
+
+export type BusyTimeInterval = {
+    startTime: string;
+    endTime: string;
+};
+
+export type BusyTimesQuery = {
+    /**
+     * User IDs to query busy times for (must be the current user or accepted friends)
+     */
+    userIds: Array<string>;
+    startDate: string;
+    endDate: string;
 };
 
 export type FriendsResponse = {
@@ -840,42 +876,6 @@ export type PatchBlockedByWindowIdResponses = {
 
 export type PatchBlockedByWindowIdResponse = PatchBlockedByWindowIdResponses[keyof PatchBlockedByWindowIdResponses];
 
-export type GetBlockedFriendsFreeTimeData = {
-    body?: never;
-    path?: never;
-    query: {
-        startDate: string;
-        endDate: string;
-    };
-    url: '/blocked/friends-free-time';
-};
-
-export type GetBlockedFriendsFreeTimeErrors = {
-    /**
-     * Validation error
-     */
-    400: ErrorResponse;
-    /**
-     * Unauthorized
-     */
-    401: ErrorResponse;
-    /**
-     * Internal server error
-     */
-    500: ErrorResponse;
-};
-
-export type GetBlockedFriendsFreeTimeError = GetBlockedFriendsFreeTimeErrors[keyof GetBlockedFriendsFreeTimeErrors];
-
-export type GetBlockedFriendsFreeTimeResponses = {
-    /**
-     * Friends free time retrieved successfully
-     */
-    200: FriendsFreeTimeResponse;
-};
-
-export type GetBlockedFriendsFreeTimeResponse = GetBlockedFriendsFreeTimeResponses[keyof GetBlockedFriendsFreeTimeResponses];
-
 export type GetCalendarsData = {
     body?: never;
     path?: never;
@@ -1104,6 +1104,126 @@ export type PatchCalendarsByConnectionIdResponses = {
 
 export type PatchCalendarsByConnectionIdResponse = PatchCalendarsByConnectionIdResponses[keyof PatchCalendarsByConnectionIdResponses];
 
+export type GetCalendarsGoogleAuthUrlData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendars/google/auth-url';
+};
+
+export type GetCalendarsGoogleAuthUrlErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type GetCalendarsGoogleAuthUrlError = GetCalendarsGoogleAuthUrlErrors[keyof GetCalendarsGoogleAuthUrlErrors];
+
+export type GetCalendarsGoogleAuthUrlResponses = {
+    /**
+     * OAuth URL generated
+     */
+    200: GoogleAuthUrlResponse;
+};
+
+export type GetCalendarsGoogleAuthUrlResponse = GetCalendarsGoogleAuthUrlResponses[keyof GetCalendarsGoogleAuthUrlResponses];
+
+export type GetCalendarsGoogleCalendarsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendars/google/calendars';
+};
+
+export type GetCalendarsGoogleCalendarsErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * No Google connection found
+     */
+    404: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type GetCalendarsGoogleCalendarsError = GetCalendarsGoogleCalendarsErrors[keyof GetCalendarsGoogleCalendarsErrors];
+
+export type GetCalendarsGoogleCalendarsResponses = {
+    /**
+     * List of Google calendars
+     */
+    200: GoogleCalendarListResponse;
+};
+
+export type GetCalendarsGoogleCalendarsResponse = GetCalendarsGoogleCalendarsResponses[keyof GetCalendarsGoogleCalendarsResponses];
+
+export type PostCalendarsGoogleSelectData = {
+    body: GoogleSelectCalendars;
+    path?: never;
+    query?: never;
+    url: '/calendars/google/select';
+};
+
+export type PostCalendarsGoogleSelectErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostCalendarsGoogleSelectError = PostCalendarsGoogleSelectErrors[keyof PostCalendarsGoogleSelectErrors];
+
+export type PostCalendarsGoogleSelectResponses = {
+    /**
+     * Calendar selection updated
+     */
+    200: CalendarListResponse;
+};
+
+export type PostCalendarsGoogleSelectResponse = PostCalendarsGoogleSelectResponses[keyof PostCalendarsGoogleSelectResponses];
+
+export type PostCalendarsGoogleSyncData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendars/google/sync';
+};
+
+export type PostCalendarsGoogleSyncErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostCalendarsGoogleSyncError = PostCalendarsGoogleSyncErrors[keyof PostCalendarsGoogleSyncErrors];
+
+export type PostCalendarsGoogleSyncResponses = {
+    /**
+     * Google calendars synced
+     */
+    200: SyncCalendarsResponse;
+};
+
+export type PostCalendarsGoogleSyncResponse = PostCalendarsGoogleSyncResponses[keyof PostCalendarsGoogleSyncResponses];
+
 export type GetEventsData = {
     body?: never;
     path?: never;
@@ -1315,6 +1435,39 @@ export type PostEventsByEventIdRespondResponses = {
 };
 
 export type PostEventsByEventIdRespondResponse = PostEventsByEventIdRespondResponses[keyof PostEventsByEventIdRespondResponses];
+
+export type PostBusyTimesData = {
+    body: BusyTimesQuery;
+    path?: never;
+    query?: never;
+    url: '/busy-times';
+};
+
+export type PostBusyTimesErrors = {
+    /**
+     * Validation error or invalid user IDs
+     */
+    400: ErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostBusyTimesError = PostBusyTimesErrors[keyof PostBusyTimesErrors];
+
+export type PostBusyTimesResponses = {
+    /**
+     * Busy times retrieved successfully
+     */
+    200: BusyTimesResponse;
+};
+
+export type PostBusyTimesResponse = PostBusyTimesResponses[keyof PostBusyTimesResponses];
 
 export type GetFriendsData = {
     body?: never;

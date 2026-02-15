@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import {
   getBlocked,
-  getBlockedFriendsFreeTime,
   postBlocked,
   patchBlockedByWindowId,
   deleteBlockedByWindowId,
@@ -13,8 +12,6 @@ import {
 export const blockedKeys = {
   all: ['blocked'] as const,
   list: () => [...blockedKeys.all, 'list'] as const,
-  friendsFreeTime: (startDate: string, endDate: string) =>
-    [...blockedKeys.all, 'friends-free-time', startDate, endDate] as const,
 }
 
 /**
@@ -30,26 +27,6 @@ export function useBlockedWindows() {
       }
       return response.data.data.windows
     },
-  })
-}
-
-/**
- * Hook to fetch friends' computed free time (24/7 minus blocked windows and calendar events).
- * Requires both startDate and endDate.
- */
-export function useFriendsFreeTime(startDate: string, endDate: string) {
-  return useQuery({
-    queryKey: blockedKeys.friendsFreeTime(startDate, endDate),
-    queryFn: async () => {
-      const response = await getBlockedFriendsFreeTime({
-        query: { startDate, endDate },
-      })
-      if (!response.data?.success) {
-        throw new Error('Failed to fetch friends free time')
-      }
-      return response.data.data.freeTime
-    },
-    enabled: !!startDate && !!endDate,
   })
 }
 

@@ -28,7 +28,7 @@ import {
   useFriends,
   useRemoveFriend,
   useBlockFriend,
-  useFriendsFreeTime,
+  useBusyTimes,
   useEvents,
 } from "../../lib/hooks";
 
@@ -61,7 +61,7 @@ export default function FriendProfileScreen() {
   const [showActionSheet, setShowActionSheet] = useState(false);
 
   const { data: friendsData, isLoading } = useFriends();
-  
+
   // Calculate date range for free time query (next 7 days)
   const dateRange = useMemo(() => {
     const start = new Date();
@@ -74,8 +74,15 @@ export default function FriendProfileScreen() {
       end: end.toISOString(),
     };
   }, []);
-  
-  const { data: freeTime } = useFriendsFreeTime(dateRange.start, dateRange.end);
+
+  // Query busy times for this friend, compute 30-min free time slots client-side
+  const friendUserIds = useMemo(() => (id ? [id] : []), [id]);
+  const { data: freeTimeSlots } = useBusyTimes(
+    friendUserIds,
+    dateRange.start,
+    dateRange.end,
+    30,
+  );
   const { data: events } = useEvents();
   const removeFriend = useRemoveFriend();
   const blockFriend = useBlockFriend();
@@ -86,12 +93,8 @@ export default function FriendProfileScreen() {
     return friendsData.friends.find((f) => f.friendId === id) ?? null;
   }, [friendsData, id]);
 
-  // Get this friend's free time slots
-  const friendFreeSlots = useMemo(() => {
-    if (!freeTime || !id) return [];
-    const friendData = freeTime.find((f) => f.userId === id);
-    return friendData?.freeSlots ?? [];
-  }, [freeTime, id]);
+  // Get this friend's free time slots (from the new API, already computed)
+  const friendFreeSlots = freeTimeSlots ?? [];
 
   // Get shared events with this friend
   const sharedEvents = useMemo(() => {

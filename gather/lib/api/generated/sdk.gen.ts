@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteActivitiesByActivityIdData, DeleteActivitiesByActivityIdErrors, DeleteActivitiesByActivityIdResponses, DeleteBlockedByWindowIdData, DeleteBlockedByWindowIdErrors, DeleteBlockedByWindowIdResponses, DeleteCalendarsByConnectionIdData, DeleteCalendarsByConnectionIdErrors, DeleteCalendarsByConnectionIdResponses, DeleteEventsByEventIdData, DeleteEventsByEventIdErrors, DeleteEventsByEventIdResponses, DeleteFriendsByFriendIdData, DeleteFriendsByFriendIdErrors, DeleteFriendsByFriendIdResponses, DeleteGroupsByGroupIdData, DeleteGroupsByGroupIdErrors, DeleteGroupsByGroupIdResponses, DeleteUsersMeData, DeleteUsersMeErrors, DeleteUsersMeResponses, GetActivitiesData, GetActivitiesErrors, GetActivitiesResponses, GetAuthMeData, GetAuthMeErrors, GetAuthMeResponses, GetBlockedData, GetBlockedErrors, GetBlockedFriendsFreeTimeData, GetBlockedFriendsFreeTimeErrors, GetBlockedFriendsFreeTimeResponses, GetBlockedResponses, GetCalendarsBusySlotsData, GetCalendarsBusySlotsErrors, GetCalendarsBusySlotsResponses, GetCalendarsByConnectionIdData, GetCalendarsByConnectionIdErrors, GetCalendarsByConnectionIdResponses, GetCalendarsData, GetCalendarsErrors, GetCalendarsResponses, GetEventsByEventIdData, GetEventsByEventIdErrors, GetEventsByEventIdResponses, GetEventsData, GetEventsErrors, GetEventsResponses, GetFriendsData, GetFriendsErrors, GetFriendsInviteCodeData, GetFriendsInviteCodeErrors, GetFriendsInviteCodeResponses, GetFriendsResponses, GetFriendsSearchData, GetFriendsSearchErrors, GetFriendsSearchResponses, GetGroupsData, GetGroupsErrors, GetGroupsResponses, GetUsersMeData, GetUsersMeErrors, GetUsersMeNotificationPreferencesData, GetUsersMeNotificationPreferencesErrors, GetUsersMeNotificationPreferencesResponses, GetUsersMeResponses, PatchActivitiesByActivityIdData, PatchActivitiesByActivityIdErrors, PatchActivitiesByActivityIdResponses, PatchBlockedByWindowIdData, PatchBlockedByWindowIdErrors, PatchBlockedByWindowIdResponses, PatchCalendarsByConnectionIdData, PatchCalendarsByConnectionIdErrors, PatchCalendarsByConnectionIdResponses, PatchEventsByEventIdData, PatchEventsByEventIdErrors, PatchEventsByEventIdResponses, PatchGroupsByGroupIdData, PatchGroupsByGroupIdErrors, PatchGroupsByGroupIdResponses, PatchUsersMeData, PatchUsersMeErrors, PatchUsersMeResponses, PostActivitiesData, PostActivitiesErrors, PostActivitiesResponses, PostAuthAppleCallbackData, PostAuthAppleCallbackErrors, PostAuthAppleCallbackResponses, PostBlockedData, PostBlockedErrors, PostBlockedResponses, PostCalendarsData, PostCalendarsErrors, PostCalendarsResponses, PostCalendarsSyncData, PostCalendarsSyncErrors, PostCalendarsSyncResponses, PostEventsByEventIdRespondData, PostEventsByEventIdRespondErrors, PostEventsByEventIdRespondResponses, PostEventsData, PostEventsErrors, PostEventsResponses, PostFriendsByFriendIdAcceptData, PostFriendsByFriendIdAcceptErrors, PostFriendsByFriendIdAcceptResponses, PostFriendsByFriendIdBlockData, PostFriendsByFriendIdBlockErrors, PostFriendsByFriendIdBlockResponses, PostFriendsByFriendIdDeclineData, PostFriendsByFriendIdDeclineErrors, PostFriendsByFriendIdDeclineResponses, PostFriendsInviteCodeRegenerateData, PostFriendsInviteCodeRegenerateErrors, PostFriendsInviteCodeRegenerateResponses, PostFriendsRequestData, PostFriendsRequestErrors, PostFriendsRequestResponses, PostGroupsData, PostGroupsErrors, PostGroupsResponses, PostUsersMePushTokenData, PostUsersMePushTokenErrors, PostUsersMePushTokenResponses, PutUsersMeNotificationPreferencesData, PutUsersMeNotificationPreferencesErrors, PutUsersMeNotificationPreferencesResponses } from './types.gen';
+import type { DeleteActivitiesByActivityIdData, DeleteActivitiesByActivityIdErrors, DeleteActivitiesByActivityIdResponses, DeleteBlockedByWindowIdData, DeleteBlockedByWindowIdErrors, DeleteBlockedByWindowIdResponses, DeleteCalendarsByConnectionIdData, DeleteCalendarsByConnectionIdErrors, DeleteCalendarsByConnectionIdResponses, DeleteEventsByEventIdData, DeleteEventsByEventIdErrors, DeleteEventsByEventIdResponses, DeleteFriendsByFriendIdData, DeleteFriendsByFriendIdErrors, DeleteFriendsByFriendIdResponses, DeleteGroupsByGroupIdData, DeleteGroupsByGroupIdErrors, DeleteGroupsByGroupIdResponses, DeleteUsersMeData, DeleteUsersMeErrors, DeleteUsersMeResponses, GetActivitiesData, GetActivitiesErrors, GetActivitiesResponses, GetAuthMeData, GetAuthMeErrors, GetAuthMeResponses, GetBlockedData, GetBlockedErrors, GetBlockedResponses, GetCalendarsBusySlotsData, GetCalendarsBusySlotsErrors, GetCalendarsBusySlotsResponses, GetCalendarsByConnectionIdData, GetCalendarsByConnectionIdErrors, GetCalendarsByConnectionIdResponses, GetCalendarsData, GetCalendarsErrors, GetCalendarsGoogleAuthUrlData, GetCalendarsGoogleAuthUrlErrors, GetCalendarsGoogleAuthUrlResponses, GetCalendarsGoogleCalendarsData, GetCalendarsGoogleCalendarsErrors, GetCalendarsGoogleCalendarsResponses, GetCalendarsResponses, GetEventsByEventIdData, GetEventsByEventIdErrors, GetEventsByEventIdResponses, GetEventsData, GetEventsErrors, GetEventsResponses, GetFriendsData, GetFriendsErrors, GetFriendsInviteCodeData, GetFriendsInviteCodeErrors, GetFriendsInviteCodeResponses, GetFriendsResponses, GetFriendsSearchData, GetFriendsSearchErrors, GetFriendsSearchResponses, GetGroupsData, GetGroupsErrors, GetGroupsResponses, GetUsersMeData, GetUsersMeErrors, GetUsersMeNotificationPreferencesData, GetUsersMeNotificationPreferencesErrors, GetUsersMeNotificationPreferencesResponses, GetUsersMeResponses, PatchActivitiesByActivityIdData, PatchActivitiesByActivityIdErrors, PatchActivitiesByActivityIdResponses, PatchBlockedByWindowIdData, PatchBlockedByWindowIdErrors, PatchBlockedByWindowIdResponses, PatchCalendarsByConnectionIdData, PatchCalendarsByConnectionIdErrors, PatchCalendarsByConnectionIdResponses, PatchEventsByEventIdData, PatchEventsByEventIdErrors, PatchEventsByEventIdResponses, PatchGroupsByGroupIdData, PatchGroupsByGroupIdErrors, PatchGroupsByGroupIdResponses, PatchUsersMeData, PatchUsersMeErrors, PatchUsersMeResponses, PostActivitiesData, PostActivitiesErrors, PostActivitiesResponses, PostAuthAppleCallbackData, PostAuthAppleCallbackErrors, PostAuthAppleCallbackResponses, PostBlockedData, PostBlockedErrors, PostBlockedResponses, PostBusyTimesData, PostBusyTimesErrors, PostBusyTimesResponses, PostCalendarsData, PostCalendarsErrors, PostCalendarsGoogleSelectData, PostCalendarsGoogleSelectErrors, PostCalendarsGoogleSelectResponses, PostCalendarsGoogleSyncData, PostCalendarsGoogleSyncErrors, PostCalendarsGoogleSyncResponses, PostCalendarsResponses, PostCalendarsSyncData, PostCalendarsSyncErrors, PostCalendarsSyncResponses, PostEventsByEventIdRespondData, PostEventsByEventIdRespondErrors, PostEventsByEventIdRespondResponses, PostEventsData, PostEventsErrors, PostEventsResponses, PostFriendsByFriendIdAcceptData, PostFriendsByFriendIdAcceptErrors, PostFriendsByFriendIdAcceptResponses, PostFriendsByFriendIdBlockData, PostFriendsByFriendIdBlockErrors, PostFriendsByFriendIdBlockResponses, PostFriendsByFriendIdDeclineData, PostFriendsByFriendIdDeclineErrors, PostFriendsByFriendIdDeclineResponses, PostFriendsInviteCodeRegenerateData, PostFriendsInviteCodeRegenerateErrors, PostFriendsInviteCodeRegenerateResponses, PostFriendsRequestData, PostFriendsRequestErrors, PostFriendsRequestResponses, PostGroupsData, PostGroupsErrors, PostGroupsResponses, PostUsersMePushTokenData, PostUsersMePushTokenErrors, PostUsersMePushTokenResponses, PutUsersMeNotificationPreferencesData, PutUsersMeNotificationPreferencesErrors, PutUsersMeNotificationPreferencesResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -148,17 +148,6 @@ export const patchBlockedByWindowId = <ThrowOnError extends boolean = false>(opt
 });
 
 /**
- * Get friends free time
- *
- * Get computed free time for friends (24/7 minus their blocked windows and calendar events)
- */
-export const getBlockedFriendsFreeTime = <ThrowOnError extends boolean = false>(options: Options<GetBlockedFriendsFreeTimeData, ThrowOnError>) => (options.client ?? client).get<GetBlockedFriendsFreeTimeResponses, GetBlockedFriendsFreeTimeErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/blocked/friends-free-time',
-    ...options
-});
-
-/**
  * List calendar connections
  *
  * Get all calendar connections for the current user
@@ -248,6 +237,54 @@ export const patchCalendarsByConnectionId = <ThrowOnError extends boolean = fals
 });
 
 /**
+ * Get Google OAuth URL
+ *
+ * Get the Google OAuth consent URL for the current user to authorize calendar access
+ */
+export const getCalendarsGoogleAuthUrl = <ThrowOnError extends boolean = false>(options?: Options<GetCalendarsGoogleAuthUrlData, ThrowOnError>) => (options?.client ?? client).get<GetCalendarsGoogleAuthUrlResponses, GetCalendarsGoogleAuthUrlErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/calendars/google/auth-url',
+    ...options
+});
+
+/**
+ * List Google calendars
+ *
+ * List the user's Google calendars (fetched live from Google API). Requires an existing Google connection.
+ */
+export const getCalendarsGoogleCalendars = <ThrowOnError extends boolean = false>(options?: Options<GetCalendarsGoogleCalendarsData, ThrowOnError>) => (options?.client ?? client).get<GetCalendarsGoogleCalendarsResponses, GetCalendarsGoogleCalendarsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/calendars/google/calendars',
+    ...options
+});
+
+/**
+ * Select Google calendars to import
+ *
+ * Choose which Google calendars to import for availability tracking
+ */
+export const postCalendarsGoogleSelect = <ThrowOnError extends boolean = false>(options: Options<PostCalendarsGoogleSelectData, ThrowOnError>) => (options.client ?? client).post<PostCalendarsGoogleSelectResponses, PostCalendarsGoogleSelectErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/calendars/google/select',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Sync Google calendars
+ *
+ * Trigger a server-side re-sync of all connected Google calendars for the current user
+ */
+export const postCalendarsGoogleSync = <ThrowOnError extends boolean = false>(options?: Options<PostCalendarsGoogleSyncData, ThrowOnError>) => (options?.client ?? client).post<PostCalendarsGoogleSyncResponses, PostCalendarsGoogleSyncErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/calendars/google/sync',
+    ...options
+});
+
+/**
  * Get events
  *
  * Get events for the current user
@@ -318,6 +355,21 @@ export const patchEventsByEventId = <ThrowOnError extends boolean = false>(optio
 export const postEventsByEventIdRespond = <ThrowOnError extends boolean = false>(options: Options<PostEventsByEventIdRespondData, ThrowOnError>) => (options.client ?? client).post<PostEventsByEventIdRespondResponses, PostEventsByEventIdRespondErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/events/{eventId}/respond',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Query busy times for users
+ *
+ * Get busy time intervals for specified users within a date range. Returns a map of userId to sorted, merged busy intervals from all sources (blocked windows, calendar events, and in-app events).
+ */
+export const postBusyTimes = <ThrowOnError extends boolean = false>(options: Options<PostBusyTimesData, ThrowOnError>) => (options.client ?? client).post<PostBusyTimesResponses, PostBusyTimesErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/busy-times',
     ...options,
     headers: {
         'Content-Type': 'application/json',

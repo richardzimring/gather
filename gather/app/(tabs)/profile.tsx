@@ -347,7 +347,9 @@ export default function ProfileScreen() {
               </XStack>
             </XStack>
 
-            {!calendarConnections || calendarConnections.length === 0 ? (
+            {!calendarConnections ||
+            calendarConnections.filter((c) => c.importEnabled).length ===
+              0 ? (
               <YStack alignItems="center" padding="$4" gap="$3">
                 <Calendar size={32} color="$colorMuted" />
                 <Text color="$colorMuted" textAlign="center">
@@ -356,14 +358,16 @@ export default function ProfileScreen() {
                 <Button
                   variant="outline"
                   buttonSize="sm"
-                  onPress={() => router.push("/calendars/select")}
+                  onPress={() => router.push("/calendars/connect")}
                 >
                   Connect Calendars
                 </Button>
               </YStack>
             ) : (
               <YStack gap="$3">
-                {calendarConnections.map((connection: CalendarConnection) => (
+                {calendarConnections
+                  .filter((c) => c.importEnabled)
+                  .map((connection: CalendarConnection) => (
                   <XStack
                     key={connection.connectionId}
                     padding="$3"
@@ -409,7 +413,7 @@ export default function ProfileScreen() {
                   variant="outline"
                   buttonSize="sm"
                   marginTop="$1"
-                  onPress={() => router.push("/calendars/select")}
+                  onPress={() => router.push("/calendars/connect")}
                 >
                   Manage Calendars
                 </Button>

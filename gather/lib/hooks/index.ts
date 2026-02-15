@@ -6,6 +6,7 @@ export * from './useFriends'
 export * from './useGroups'
 export * from './useActivities'
 export * from './useBlocked'
+export * from './useBusyTimes'
 export * from './useEvents'
 
 // Calendar connections (server-side)
@@ -19,6 +20,11 @@ export {
   useDeleteCalendarConnection,
   useSyncCalendars,
   useTriggerCalendarSync,
+  // Google Calendar hooks
+  useGoogleAuthUrl,
+  useGoogleCalendars,
+  useSelectGoogleCalendars,
+  useTriggerGoogleSync,
 } from './useCalendars'
 
 // Notifications

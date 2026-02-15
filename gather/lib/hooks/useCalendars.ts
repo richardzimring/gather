@@ -6,6 +6,10 @@ import {
   postCalendars,
   patchCalendarsByConnectionId,
   deleteCalendarsByConnectionId,
+  getCalendarsGoogleAuthUrl,
+  getCalendarsGoogleCalendars,
+  postCalendarsGoogleSelect,
+  postCalendarsGoogleSync,
 } from '../api/client'
 import { syncSelectedCalendars, resyncConnectedCalendars } from '../services/calendarSync'
 
@@ -188,13 +192,105 @@ export function useTriggerCalendarSync() {
 
   return useMutation({
     mutationFn: async () => {
+      // Sync Apple calendars from device
       const appleCalendarIds = (connections ?? [])
         .filter((c) => c.provider === 'apple' && c.importEnabled)
         .map((c) => c.externalCalendarId)
 
-      if (appleCalendarIds.length === 0) return
+      if (appleCalendarIds.length > 0) {
+        await resyncConnectedCalendars(appleCalendarIds)
+      }
 
-      await resyncConnectedCalendars(appleCalendarIds)
+      // Sync Google calendars server-side
+      const hasGoogleConnections = (connections ?? []).some(
+        (c) => c.provider === 'google' && c.importEnabled
+      )
+
+      if (hasGoogleConnections) {
+        await postCalendarsGoogleSync()
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: calendarKeys.all })
+    },
+  })
+}
+
+// ============================================
+// Google Calendar Hooks
+// ============================================
+
+/**
+ * Hook to fetch the Google OAuth URL.
+ * Returns the URL that should be opened in a browser for the user to authorize.
+ */
+export function useGoogleAuthUrl() {
+  return useQuery({
+    queryKey: [...calendarKeys.all, 'google', 'auth-url'] as const,
+    queryFn: async () => {
+      const response = await getCalendarsGoogleAuthUrl()
+      if (!response.data?.success) {
+        throw new Error('Failed to get Google auth URL')
+      }
+      return response.data.data?.authUrl ?? ''
+    },
+    enabled: false, // Only fetch on demand
+  })
+}
+
+/**
+ * Hook to fetch the user's Google calendars (live from Google API).
+ * Only enabled after the user has connected their Google account.
+ */
+export function useGoogleCalendars(enabled = true) {
+  return useQuery({
+    queryKey: [...calendarKeys.all, 'google', 'calendars'] as const,
+    queryFn: async () => {
+      const response = await getCalendarsGoogleCalendars()
+      if (!response.data?.success) {
+        throw new Error('Failed to fetch Google calendars')
+      }
+      return response.data.data?.calendars ?? []
+    },
+    enabled,
+  })
+}
+
+/**
+ * Hook to select which Google calendars to import.
+ */
+export function useSelectGoogleCalendars() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (calendarIds: string[]) => {
+      const response = await postCalendarsGoogleSelect({
+        body: { calendarIds },
+      })
+      if (!response.data?.success) {
+        throw new Error('Failed to update Google calendar selection')
+      }
+      return response.data.data?.connections ?? []
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: calendarKeys.all })
+    },
+  })
+}
+
+/**
+ * Hook to trigger a server-side sync of Google calendars.
+ */
+export function useTriggerGoogleSync() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await postCalendarsGoogleSync()
+      if (!response.data?.success) {
+        throw new Error('Failed to sync Google calendars')
+      }
+      return response.data.data?.connections ?? []
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: calendarKeys.all })
