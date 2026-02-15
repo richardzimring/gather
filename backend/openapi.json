@@ -1044,6 +1044,45 @@
           "calendarIds"
         ]
       },
+      "GenerateEmojiResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "emoji": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "emoji"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "GenerateEmojiRequest": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
       "EventsResponse": {
         "type": "object",
         "properties": {
@@ -3442,6 +3481,71 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SyncCalendarsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/emoji/generate": {
+      "post": {
+        "tags": [
+          "Emoji"
+        ],
+        "summary": "Generate an emoji for given text",
+        "description": "Generate a single emoji that represents the provided text using AI, with caching",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateEmojiRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Emoji generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateEmojiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }

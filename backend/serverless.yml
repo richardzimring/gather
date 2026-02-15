@@ -165,6 +165,19 @@ functions:
           method: DELETE
 
   # ============================================
+  # Emoji Function
+  # ============================================
+  Emoji:
+    handler: lambdas/emoji.handler
+    name: ${self:provider.stage}-${self:service}-emoji
+    memorySize: 128
+    timeout: 10
+    events:
+      - httpApi:
+          path: /emoji/generate
+          method: POST
+
+  # ============================================
   # Blocked Windows Function
   # ============================================
   Blocked:
