@@ -5,7 +5,7 @@ alwaysApply: false
 
 # Frontend Stack
 
-- React Native + Expo (SDK 55)
+- React Native + Expo (SDK 54)
 - **iOS only** — no Android or web support. Do not add platform conditionals for Android/web.
 - Tanstack Query
 - Hey API for integration with OpenAPI docs from backend
@@ -35,30 +35,35 @@ alwaysApply: false
 **Principle:** Liquid Glass belongs on the **navigation/controls layer**, not the content layer. Standard system components (tab bars, toolbars, sheets) get glass automatically. Avoid overusing custom glass -- limit to the most important functional elements.
 
 **Tab bar** (already configured in `app/(tabs)/_layout.tsx`):
+
 - Uses `NativeTabs` from `expo-router/unstable-native-tabs` with Liquid Glass
 - SDK 55 compound component API: `NativeTabs.Trigger.Icon`, `NativeTabs.Trigger.Label`, `NativeTabs.Trigger.Badge`
 - `minimizeBehavior="onScrollDown"` makes the tab bar recede on scroll (iOS 26+)
 - Wrapped in `ThemeProvider` from `@react-navigation/native` to prevent white flash on tab switch
 
 **`expo-glass-effect`** (`GlassView`, `GlassContainer`):
+
 - Falls back to regular `View` on platforms below iOS 26
 - Use `isLiquidGlassAvailable()` to check availability at runtime
 - Reserve for floating navigation elements, floating toolbars, mini players, or prominent custom controls
 - Combine multiple glass views in a `GlassContainer` for performance
 
 **Do NOT apply glass to:**
+
 - Cards, list items, or content containers
 - Standard buttons (unless it's a prominent floating action)
 - Inline headers within scroll content
 - Empty/loading/error states
 
 **`Stack.Toolbar`** (new in SDK 55):
+
 - Native `UIToolbar` API for iOS -- provides bottom toolbar with native styling
 - Useful alternative to custom bottom action bars; gets Liquid Glass automatically
 
 # Design System (shadcn Mira / Stone)
 
 **Color tokens** - NEVER hardcode colors. Use semantic tokens from `tamagui.config.ts`:
+
 - `$background`, `$backgroundHover` - screen/component backgrounds
 - `$color`, `$colorMuted`, `$colorSubtle` - text colors
 - `$borderColor` - borders
@@ -66,6 +71,7 @@ alwaysApply: false
 - `$success`, `$warning`, `$error` - semantic states
 
 **Spacing tokens** - Use Tamagui's `$1`-`$6` scale for Tamagui components:
+
 - `$2` (8px): small gaps, compact sections
 - `$3` (12px): default component gaps, card padding
 - `$4` (16px): section spacing, margins
@@ -73,11 +79,13 @@ alwaysApply: false
 - Note: Use raw numbers (e.g., `16`) for `contentContainerStyle` since it's not a Tamagui prop
 
 **Border radius** - Compact Mira style (small radii):
+
 - `$2` (6px): buttons, cards, inputs
 - `$3` (8px): larger containers
 - `$radiusFull` (9999): pills, avatars
 
 **Screen structure pattern** (see `app/(tabs)/index.tsx`, `app/events/[id].tsx`):
+
 ```tsx
 <YStack flex={1} backgroundColor="$background">
   <ScrollView
@@ -96,6 +104,7 @@ alwaysApply: false
 ```
 
 **Header usage** (from `components/ui/ScreenHeader.tsx`):
+
 - Tab screens: custom inline headers (H1, XStack with actions)
 - `BackHeader` - detail screens with back navigation
 - `CancelHeader` - create/modal screens with cancel action

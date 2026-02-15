@@ -11,6 +11,7 @@
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "bundleIdentifier": "com.gather.app",
+      "buildNumber": "1",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "We need your location to help you find nearby places for events."
       }
@@ -45,7 +46,9 @@
       "expo-secure-store",
       "@react-native-community/datetimepicker",
       "expo-apple-authentication",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
