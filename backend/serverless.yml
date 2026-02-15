@@ -26,6 +26,9 @@ provider:
     APPLE_BUNDLE_ID: ${self:custom.appBundleIdentifier.${self:provider.stage}}
     PG_CONNECTION_STRING: ${self:custom.pgConnectionString.${self:provider.stage}}
     GEMINI_API_KEY: ${env:GEMINI_API_KEY}
+    GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID}
+    GOOGLE_CLIENT_SECRET: ${env:GOOGLE_CLIENT_SECRET}
+    GOOGLE_REDIRECT_URI: ${env:GOOGLE_REDIRECT_URI}
   httpApi:
     cors:
       allowedOrigins:
@@ -182,9 +185,19 @@ functions:
       - httpApi:
           path: /blocked/{windowId}
           method: DELETE
+
+  # ============================================
+  # Busy Times Function
+  # ============================================
+  BusyTimes:
+    handler: lambdas/busy-times.handler
+    name: ${self:provider.stage}-${self:service}-busy-times
+    memorySize: 256
+    timeout: 15
+    events:
       - httpApi:
-          path: /blocked/friends-free-time
-          method: GET
+          path: /busy-times
+          method: POST
 
   # ============================================
   # Events Function
@@ -213,6 +226,19 @@ functions:
       - httpApi:
           path: /events/{eventId}/respond
           method: POST
+
+  # ============================================
+  # Calendar Sync (Scheduled)
+  # ============================================
+  CalendarSync:
+    handler: lambdas/calendar-sync.handler
+    name: ${self:provider.stage}-${self:service}-calendar-sync
+    memorySize: 256
+    timeout: 120
+    events:
+      - schedule:
+          rate: rate(15 minutes)
+          enabled: true
 
   # ============================================
   # Calendars Function
@@ -244,3 +270,19 @@ functions:
       - httpApi:
           path: /calendars/{connectionId}
           method: DELETE
+      # Google Calendar OAuth + sync routes
+      - httpApi:
+          path: /calendars/google/auth-url
+          method: GET
+      - httpApi:
+          path: /calendars/google/callback
+          method: GET
+      - httpApi:
+          path: /calendars/google/calendars
+          method: GET
+      - httpApi:
+          path: /calendars/google/select
+          method: POST
+      - httpApi:
+          path: /calendars/google/sync
+          method: POST

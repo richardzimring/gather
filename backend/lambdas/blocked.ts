@@ -8,7 +8,6 @@ import {
   BlockedWindowSchema,
   CreateBlockedWindowSchema,
   UpdateBlockedWindowSchema,
-  FreeTimeSlotSchema,
   ErrorResponseSchema,
 } from '../src/types';
 import * as blockedService from '../src/services/blocked';
@@ -40,26 +39,6 @@ const BlockedWindowResponseSchema = z
     message: z.string().optional(),
   })
   .openapi('BlockedWindowResponse');
-
-const FriendFreeTimeSchema = z.object({
-  userId: z.string().uuid(),
-  freeSlots: z.array(FreeTimeSlotSchema),
-});
-
-const FriendsFreeTimeResponseSchema = z
-  .object({
-    success: z.literal(true),
-    data: z.object({
-      freeTime: z.array(FriendFreeTimeSchema),
-    }),
-  })
-  .openapi('FriendsFreeTimeResponse');
-
-// Query schema for friends free time (required dates)
-const FriendsFreeTimeQuerySchema = z.object({
-  startDate: z.string().datetime().openapi({ example: '2024-01-15T00:00:00.000Z' }),
-  endDate: z.string().datetime().openapi({ example: '2024-01-22T23:59:59.000Z' }),
-});
 
 // ============================================
 // Route Definitions
@@ -252,52 +231,6 @@ const deleteBlockedRoute = createRoute({
   },
 });
 
-const getFriendsFreeTimeRoute = createRoute({
-  method: 'get',
-  path: '/blocked/friends-free-time',
-  tags: ['Blocked'],
-  summary: 'Get friends free time',
-  description: 'Get computed free time for friends (24/7 minus their blocked windows and calendar events)',
-  security: [{ BearerAuth: [] }],
-  request: {
-    query: FriendsFreeTimeQuerySchema,
-  },
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: FriendsFreeTimeResponseSchema,
-        },
-      },
-      description: 'Friends free time retrieved successfully',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Validation error',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
-  },
-});
-
 // ============================================
 // Route Handlers
 // ============================================
@@ -456,37 +389,6 @@ app.openapi(deleteBlockedRoute, async (c) => {
         success: false as const,
         error: 'Internal Server Error',
         message: 'Failed to delete blocked window',
-      },
-      500,
-    );
-  }
-});
-
-app.openapi(getFriendsFreeTimeRoute, async (c) => {
-  const user = c.get('user');
-  const { startDate, endDate } = c.req.valid('query');
-
-  try {
-    const freeTime = await blockedService.getFriendsFreeTime(
-      user.userId,
-      startDate,
-      endDate,
-    );
-
-    return c.json(
-      {
-        success: true as const,
-        data: { freeTime },
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in GET /blocked/friends-free-time:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to fetch friends free time',
       },
       500,
     );

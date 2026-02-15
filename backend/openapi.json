@@ -574,70 +574,6 @@
           }
         }
       },
-      "FriendsFreeTimeResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "freeTime": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "userId": {
-                      "type": "string",
-                      "format": "uuid"
-                    },
-                    "freeSlots": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/FreeTimeSlot"
-                      }
-                    }
-                  },
-                  "required": [
-                    "userId",
-                    "freeSlots"
-                  ]
-                }
-              }
-            },
-            "required": [
-              "freeTime"
-            ]
-          }
-        },
-        "required": [
-          "success",
-          "data"
-        ]
-      },
-      "FreeTimeSlot": {
-        "type": "object",
-        "properties": {
-          "startTime": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2024-01-15T14:00:00.000Z"
-          },
-          "endTime": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2024-01-15T18:00:00.000Z"
-          }
-        },
-        "required": [
-          "startTime",
-          "endTime"
-        ]
-      },
       "CalendarListResponse": {
         "type": "object",
         "properties": {
@@ -1006,6 +942,106 @@
         },
         "required": [
           "success"
+        ]
+      },
+      "GoogleAuthUrlResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "authUrl": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "authUrl"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "GoogleCalendarListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "calendars": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GoogleCalendar"
+                }
+              }
+            },
+            "required": [
+              "calendars"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "GoogleCalendar": {
+        "type": "object",
+        "properties": {
+          "externalCalendarId": {
+            "type": "string",
+            "example": "primary"
+          },
+          "calendarName": {
+            "type": "string",
+            "example": "My Calendar"
+          },
+          "color": {
+            "type": "string",
+            "example": "#4285F4"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "externalCalendarId",
+          "calendarName"
+        ]
+      },
+      "GoogleSelectCalendars": {
+        "type": "object",
+        "properties": {
+          "calendarIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 0,
+            "example": [
+              "primary",
+              "work@group.calendar.google.com"
+            ],
+            "description": "External calendar IDs to import. Unselected calendars will have importEnabled set to false."
+          }
+        },
+        "required": [
+          "calendarIds"
         ]
       },
       "EventsResponse": {
@@ -1478,6 +1514,90 @@
         },
         "required": [
           "status"
+        ]
+      },
+      "BusyTimesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "busyTimes": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BusyTimeInterval"
+                  }
+                }
+              }
+            },
+            "required": [
+              "busyTimes"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "BusyTimeInterval": {
+        "type": "object",
+        "properties": {
+          "startTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T14:00:00.000Z"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T15:00:00.000Z"
+          }
+        },
+        "required": [
+          "startTime",
+          "endTime"
+        ]
+      },
+      "BusyTimesQuery": {
+        "type": "object",
+        "properties": {
+          "userIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "minItems": 1,
+            "example": [
+              "550e8400-e29b-41d4-a716-446655440000",
+              "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+            ],
+            "description": "User IDs to query busy times for (must be the current user or accepted friends)"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T00:00:00.000Z"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-22T23:59:59.000Z"
+          }
+        },
+        "required": [
+          "userIds",
+          "startDate",
+          "endDate"
         ]
       },
       "FriendsResponse": {
@@ -2697,84 +2817,6 @@
         }
       }
     },
-    "/blocked/friends-free-time": {
-      "get": {
-        "tags": [
-          "Blocked"
-        ],
-        "summary": "Get friends free time",
-        "description": "Get computed free time for friends (24/7 minus their blocked windows and calendar events)",
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "date-time",
-              "example": "2024-01-15T00:00:00.000Z"
-            },
-            "required": true,
-            "name": "startDate",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "format": "date-time",
-              "example": "2024-01-22T23:59:59.000Z"
-            },
-            "required": true,
-            "name": "endDate",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Friends free time retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FriendsFreeTimeResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/calendars": {
       "get": {
         "tags": [
@@ -3219,6 +3261,214 @@
         }
       }
     },
+    "/calendars/google/auth-url": {
+      "get": {
+        "tags": [
+          "Calendars",
+          "Google"
+        ],
+        "summary": "Get Google OAuth URL",
+        "description": "Get the Google OAuth consent URL for the current user to authorize calendar access",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OAuth URL generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoogleAuthUrlResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendars/google/calendars": {
+      "get": {
+        "tags": [
+          "Calendars",
+          "Google"
+        ],
+        "summary": "List Google calendars",
+        "description": "List the user's Google calendars (fetched live from Google API). Requires an existing Google connection.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of Google calendars",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoogleCalendarListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No Google connection found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendars/google/select": {
+      "post": {
+        "tags": [
+          "Calendars",
+          "Google"
+        ],
+        "summary": "Select Google calendars to import",
+        "description": "Choose which Google calendars to import for availability tracking",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleSelectCalendars"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calendar selection updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendars/google/sync": {
+      "post": {
+        "tags": [
+          "Calendars",
+          "Google"
+        ],
+        "summary": "Sync Google calendars",
+        "description": "Trigger a server-side re-sync of all connected Google calendars for the current user",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Google calendars synced",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncCalendarsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/events": {
       "get": {
         "tags": [
@@ -3615,6 +3865,72 @@
           },
           "400": {
             "description": "Response failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/busy-times": {
+      "post": {
+        "tags": [
+          "BusyTimes"
+        ],
+        "summary": "Query busy times for users",
+        "description": "Get busy time intervals for specified users within a date range. Returns a map of userId to sorted, merged busy intervals from all sources (blocked windows, calendar events, and in-app events).",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusyTimesQuery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Busy times retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusyTimesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid user IDs",
             "content": {
               "application/json": {
                 "schema": {

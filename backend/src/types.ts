@@ -440,13 +440,6 @@ export const BusySlotSchema = z
   })
   .openapi('BusySlot');
 
-export const FreeTimeSlotSchema = z
-  .object({
-    startTime: z.string().datetime().openapi({ example: '2024-01-15T14:00:00.000Z' }),
-    endTime: z.string().datetime().openapi({ example: '2024-01-15T18:00:00.000Z' }),
-  })
-  .openapi('FreeTimeSlot');
-
 // Sync calendars schema (bulk sync from device)
 export const SyncCalendarEventSchema = z
   .object({
@@ -477,10 +470,71 @@ export type CalendarConnection = z.infer<typeof CalendarConnectionSchema>;
 export type CreateCalendarConnection = z.infer<typeof CreateCalendarConnectionSchema>;
 export type UpdateCalendarConnection = z.infer<typeof UpdateCalendarConnectionSchema>;
 export type BusySlot = z.infer<typeof BusySlotSchema>;
-export type FreeTimeSlot = z.infer<typeof FreeTimeSlotSchema>;
 export type SyncCalendarEvent = z.infer<typeof SyncCalendarEventSchema>;
 export type SyncCalendarEntry = z.infer<typeof SyncCalendarEntrySchema>;
 export type SyncCalendars = z.infer<typeof SyncCalendarsSchema>;
+
+// Google Calendar OAuth schemas
+export const GoogleAuthUrlResponseSchema = z
+  .object({
+    authUrl: z.string().url().openapi({ example: 'https://accounts.google.com/o/oauth2/v2/auth?...' }),
+  })
+  .openapi('GoogleAuthUrlResponse');
+
+export const GoogleCallbackSchema = z
+  .object({
+    code: z.string().min(1).openapi({ example: '4/0AXxxxx' }),
+    state: z.string().uuid().optional().openapi({
+      example: '550e8400-e29b-41d4-a716-446655440000',
+      description: 'The userId passed as state during auth URL generation',
+    }),
+  })
+  .openapi('GoogleCallback');
+
+export const GoogleCalendarSchema = z
+  .object({
+    externalCalendarId: z.string().openapi({ example: 'primary' }),
+    calendarName: z.string().openapi({ example: 'My Calendar' }),
+    color: z.string().optional().openapi({ example: '#4285F4' }),
+    isPrimary: z.boolean().optional().openapi({ example: true }),
+  })
+  .openapi('GoogleCalendar');
+
+export const GoogleSelectCalendarsSchema = z
+  .object({
+    calendarIds: z.array(z.string()).min(0).openapi({
+      example: ['primary', 'work@group.calendar.google.com'],
+      description: 'External calendar IDs to import. Unselected calendars will have importEnabled set to false.',
+    }),
+  })
+  .openapi('GoogleSelectCalendars');
+
+export type GoogleAuthUrlResponse = z.infer<typeof GoogleAuthUrlResponseSchema>;
+export type GoogleCallback = z.infer<typeof GoogleCallbackSchema>;
+export type GoogleCalendar = z.infer<typeof GoogleCalendarSchema>;
+export type GoogleSelectCalendars = z.infer<typeof GoogleSelectCalendarsSchema>;
+
+// Busy times query schemas
+export const BusyTimesQuerySchema = z
+  .object({
+    userIds: z.array(z.string().uuid()).min(1).openapi({
+      example: [EXAMPLE_UUID, EXAMPLE_UUID_2],
+      description: 'User IDs to query busy times for (must be the current user or accepted friends)',
+    }),
+    startDate: z.string().datetime().openapi({ example: '2024-01-15T00:00:00.000Z' }),
+    endDate: z.string().datetime().openapi({ example: '2024-01-22T23:59:59.000Z' }),
+  })
+  .openapi('BusyTimesQuery');
+
+export const BusyTimeIntervalSchema = z
+  .object({
+    startTime: z.string().datetime().openapi({ example: '2024-01-15T14:00:00.000Z' }),
+    endTime: z.string().datetime().openapi({ example: '2024-01-15T15:00:00.000Z' }),
+  })
+  .openapi('BusyTimeInterval');
+
+export type BusyTimesQuery = z.infer<typeof BusyTimesQuerySchema>;
+export type BusyTimeInterval = z.infer<typeof BusyTimeIntervalSchema>;
 
 // Location schemas
 export const LocationSchema = z

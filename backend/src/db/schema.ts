@@ -260,6 +260,8 @@ export const blockedWindows = pgTable(
   (table) => [
     index('blocked_windows_user_id_idx').on(table.userId),
     index('blocked_windows_start_time_idx').on(table.startTime),
+    // Composite index for busy-times availability query: WHERE user_id IN (...) AND start_time < ... AND end_time > ...
+    index('blocked_windows_user_time_idx').on(table.userId, table.startTime, table.endTime),
   ],
 );
 
@@ -367,6 +369,8 @@ export const eventInvitees = pgTable(
     primaryKey({ columns: [table.eventId, table.userId] }),
     index('event_invitees_user_id_idx').on(table.userId),
     index('event_invitees_status_idx').on(table.status),
+    // Composite index for busy-times availability query: WHERE user_id IN (...) AND status = 'accepted'
+    index('event_invitees_user_status_idx').on(table.userId, table.status),
   ],
 );
 
