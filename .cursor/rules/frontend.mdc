@@ -110,6 +110,56 @@ alwaysApply: false
 - `CancelHeader` - create/modal screens with cancel action
 - `SimpleHeader` - available but not currently used
 
+# Skeleton Loading Pattern
+
+**Principle:** Use content-shaped skeleton loaders for initial data fetching to prevent jarring spinners and layout shifts.
+
+**Shared primitives** (from `components/ui/Skeleton.tsx`):
+
+- `SkeletonBar` - pulsing bar with configurable `width`, `height`, `borderRadius`
+- `SkeletonCircle` - pulsing circle with configurable `size`
+- Both use native-driver opacity animation (0.3 → 0.7, 800ms pulse)
+
+**Pattern for pages:**
+
+```tsx
+import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
+
+function MyScreen() {
+  const { data, isLoading } = useMyData();
+
+  if (isLoading) {
+    return (
+      <YStack gap="$3">
+        <SkeletonCircle size={44} />
+        <SkeletonBar width={160} height={16} />
+        <SkeletonBar width={120} height={14} />
+      </YStack>
+    );
+  }
+
+  return <ActualContent data={data} />;
+}
+```
+
+**Composed skeleton components:**
+
+- For shared components (like `EventCard`), co-locate the skeleton (e.g., `EventCardSkeleton`) in the same file
+- For page-specific layouts, define skeleton components locally in the page file
+- Keep `BackHeader` or navigation elements visible during loading so users can navigate away
+
+**Examples:**
+
+- `EventCardSkeleton` in `components/ui/EventCard.tsx` - used on home page
+- `EventDetailSkeleton` in `app/events/[id].tsx` - local to detail page
+- `TimeSlotSkeleton` in `app/(tabs)/plan.tsx` - page-specific time slot skeleton
+
+**When to use skeletons vs. spinners:**
+
+- ✅ Skeletons: Initial page load, data fetching with known layout
+- ❌ Spinners: Action feedback (button loading), indeterminate progress
+- ❌ Don't use skeletons for pull-to-refresh (that has its own indicator)
+
 # Common Pitfalls
 
 - When removing/renaming a component, grep the entire codebase for imports AND re-exports in `index.ts` barrel files
