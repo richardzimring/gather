@@ -10,6 +10,10 @@ import {
   getCalendarsGoogleCalendars,
   postCalendarsGoogleSelect,
   postCalendarsGoogleSync,
+  getCalendarsOutlookAuthUrl,
+  getCalendarsOutlookCalendars,
+  postCalendarsOutlookSelect,
+  postCalendarsOutlookSync,
 } from '../api/client'
 import { syncSelectedCalendars, resyncConnectedCalendars } from '../services/calendarSync'
 
@@ -209,6 +213,15 @@ export function useTriggerCalendarSync() {
       if (hasGoogleConnections) {
         await postCalendarsGoogleSync()
       }
+
+      // Sync Outlook calendars server-side
+      const hasOutlookConnections = (connections ?? []).some(
+        (c) => c.provider === 'outlook' && c.importEnabled
+      )
+
+      if (hasOutlookConnections) {
+        await postCalendarsOutlookSync()
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: calendarKeys.all })
@@ -289,6 +302,88 @@ export function useTriggerGoogleSync() {
       const response = await postCalendarsGoogleSync()
       if (!response.data?.success) {
         throw new Error('Failed to sync Google calendars')
+      }
+      return response.data.data?.connections ?? []
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: calendarKeys.all })
+    },
+  })
+}
+
+// ============================================
+// Outlook Calendar Hooks
+// ============================================
+
+/**
+ * Hook to fetch the Outlook OAuth URL.
+ * Returns the URL that should be opened in a browser for the user to authorize.
+ */
+export function useOutlookAuthUrl() {
+  return useQuery({
+    queryKey: [...calendarKeys.all, 'outlook', 'auth-url'] as const,
+    queryFn: async () => {
+      const response = await getCalendarsOutlookAuthUrl()
+      if (!response.data?.success) {
+        throw new Error('Failed to get Outlook auth URL')
+      }
+      return response.data.data?.authUrl ?? ''
+    },
+    enabled: false, // Only fetch on demand
+  })
+}
+
+/**
+ * Hook to fetch the user's Outlook calendars (live from Microsoft Graph API).
+ * Only enabled after the user has connected their Outlook account.
+ */
+export function useOutlookCalendars(enabled = true) {
+  return useQuery({
+    queryKey: [...calendarKeys.all, 'outlook', 'calendars'] as const,
+    queryFn: async () => {
+      const response = await getCalendarsOutlookCalendars()
+      if (!response.data?.success) {
+        throw new Error('Failed to fetch Outlook calendars')
+      }
+      return response.data.data?.calendars ?? []
+    },
+    enabled,
+  })
+}
+
+/**
+ * Hook to select which Outlook calendars to import.
+ */
+export function useSelectOutlookCalendars() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (calendarIds: string[]) => {
+      const response = await postCalendarsOutlookSelect({
+        body: { calendarIds },
+      })
+      if (!response.data?.success) {
+        throw new Error('Failed to update Outlook calendar selection')
+      }
+      return response.data.data?.connections ?? []
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: calendarKeys.all })
+    },
+  })
+}
+
+/**
+ * Hook to trigger a server-side sync of Outlook calendars.
+ */
+export function useTriggerOutlookSync() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await postCalendarsOutlookSync()
+      if (!response.data?.success) {
+        throw new Error('Failed to sync Outlook calendars')
       }
       return response.data.data?.connections ?? []
     },

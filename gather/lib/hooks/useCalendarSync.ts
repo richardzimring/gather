@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 
 import { useCalendarConnections, calendarKeys } from './useCalendars'
 import { resyncConnectedCalendars } from '../services/calendarSync'
-import { postCalendarsGoogleSync } from '../api/client'
+import { postCalendarsGoogleSync, postCalendarsOutlookSync } from '../api/client'
 
 /** Minimum interval between automatic re-syncs (15 minutes) */
 const RESYNC_INTERVAL_MS = 15 * 60 * 1000
@@ -50,6 +50,15 @@ export function useCalendarAutoSync() {
 
       if (hasGoogleConnections) {
         await postCalendarsGoogleSync()
+      }
+
+      // Sync Outlook calendars server-side
+      const hasOutlookConnections = connections.some(
+        (c) => c.provider === 'outlook' && c.importEnabled,
+      )
+
+      if (hasOutlookConnections) {
+        await postCalendarsOutlookSync()
       }
 
       lastSyncRef.current = Date.now()

@@ -47,12 +47,14 @@ export default function GoogleCalendarSelectScreen() {
   useEffect(() => {
     if (googleCalendars && !initialized) {
       if (connectedIds.size > 0) {
+        // Re-visiting: pre-select already connected calendars
         setSelectedIds(new Set(connectedIds))
       } else {
-        // First time — select all calendars by default
-        setSelectedIds(
-          new Set(googleCalendars.map((c) => c.externalCalendarId)),
-        )
+        // First time: pre-select only the primary calendar
+        const primaryCalendar = googleCalendars.find((c) => c.isPrimary)
+        if (primaryCalendar) {
+          setSelectedIds(new Set([primaryCalendar.externalCalendarId]))
+        }
       }
       setInitialized(true)
     }

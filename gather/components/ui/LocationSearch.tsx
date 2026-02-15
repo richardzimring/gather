@@ -293,21 +293,6 @@ export function LocationSearch({
             </XStack>
           </YStack>
         )}
-
-      {selectedPlace && (
-        <XStack
-          backgroundColor="$accentSubtle"
-          padding="$2"
-          borderRadius="$2"
-          alignItems="center"
-          gap="$2"
-        >
-          <MapPin size={14} color="$accent" />
-          <Text color="$accent" fontSize={12} flex={1} numberOfLines={1}>
-            {selectedPlace.address}
-          </Text>
-        </XStack>
-      )}
     </YStack>
   );
 }

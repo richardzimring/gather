@@ -24,6 +24,11 @@ export {
   useGoogleCalendars,
   useSelectGoogleCalendars,
   useTriggerGoogleSync,
+  // Outlook Calendar hooks
+  useOutlookAuthUrl,
+  useOutlookCalendars,
+  useSelectOutlookCalendars,
+  useTriggerOutlookSync,
 } from './useCalendars'
 
 // Notifications
