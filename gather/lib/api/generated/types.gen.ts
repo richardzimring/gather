@@ -261,6 +261,17 @@ export type GoogleSelectCalendars = {
     calendarIds: Array<string>;
 };
 
+export type GenerateEmojiResponse = {
+    success: true;
+    data: {
+        emoji: string;
+    };
+};
+
+export type GenerateEmojiRequest = {
+    text: string;
+};
+
 export type EventsResponse = {
     success: true;
     data: {
@@ -1223,6 +1234,39 @@ export type PostCalendarsGoogleSyncResponses = {
 };
 
 export type PostCalendarsGoogleSyncResponse = PostCalendarsGoogleSyncResponses[keyof PostCalendarsGoogleSyncResponses];
+
+export type PostEmojiGenerateData = {
+    body?: GenerateEmojiRequest;
+    path?: never;
+    query?: never;
+    url: '/emoji/generate';
+};
+
+export type PostEmojiGenerateErrors = {
+    /**
+     * Invalid request
+     */
+    400: ErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostEmojiGenerateError = PostEmojiGenerateErrors[keyof PostEmojiGenerateErrors];
+
+export type PostEmojiGenerateResponses = {
+    /**
+     * Emoji generated successfully
+     */
+    200: GenerateEmojiResponse;
+};
+
+export type PostEmojiGenerateResponse = PostEmojiGenerateResponses[keyof PostEmojiGenerateResponses];
 
 export type GetEventsData = {
     body?: never;

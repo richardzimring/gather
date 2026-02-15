@@ -58,6 +58,7 @@ import {
   useGroups,
   useRefresh,
 } from "../../lib/hooks";
+import { useGenerateEmoji } from "../../lib/hooks/useEmoji";
 import { useAuth } from "../../lib/hooks/useAuth";
 import type { LocationData } from "../../lib/api/generated/types.gen";
 import type { CommonFreeTimeSlot } from "../../lib/utils/availability";
@@ -299,6 +300,9 @@ export default function PlanScreen() {
   const [title, setTitle] = useState("");
   const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [notes, setNotes] = useState("");
+
+  // Generate emoji for the title with debouncing
+  const { emoji: previewEmoji } = useGenerateEmoji(title);
 
   const scrollViewRef = useRef<any>(null);
 
@@ -629,6 +633,7 @@ export default function PlanScreen() {
     try {
       await createEvent.mutateAsync({
         title: title.trim(),
+        emoji: previewEmoji ?? undefined,
         startTime: selectedSlot.startTime.toISOString(),
         endTime: selectedSlot.endTime.toISOString(),
         locationData: locationData ?? undefined,
@@ -1200,7 +1205,7 @@ export default function PlanScreen() {
             <YStack marginBottom="$4">
               <EventCard
                 title={title}
-                emoji={null}
+                emoji={previewEmoji}
                 timeLabel={`${formatDate(selectedSlot.date)}, ${formatTime(selectedSlot.startTime)} – ${formatTime(selectedSlot.endTime)}`}
                 location={locationData?.name}
                 isHost={true}

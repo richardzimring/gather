@@ -67,11 +67,7 @@ export function EventCard({
 
   return (
     <Theme name="Card">
-      <Card
-        pressable={!!onPress}
-        onPress={onPress}
-        outlined={isPending}
-      >
+      <Card pressable={!!onPress} onPress={onPress} outlined={isPending}>
         <YStack gap="$3">
           {/* Event header row */}
           <XStack alignItems="center" gap="$3">
@@ -95,11 +91,7 @@ export function EventCard({
                 </Text>
               )}
               {!!location && (
-                <Text
-                  color="$colorMuted"
-                  fontSize={13}
-                  numberOfLines={1}
-                >
+                <Text color="$colorMuted" fontSize={13} numberOfLines={1}>
                   {location}
                 </Text>
               )}
