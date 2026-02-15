@@ -11,8 +11,10 @@ import {
   FileText,
 } from "@tamagui/lucide-icons";
 import { router } from "expo-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Animated,
+  Easing,
   LayoutAnimation,
   RefreshControl,
   UIManager,
@@ -208,6 +210,69 @@ function Checkbox({ checked }: { checked: boolean }) {
   );
 }
 
+/** Pulsing skeleton bar used as a loading placeholder. */
+function SkeletonBar({
+  width,
+  height = 14,
+  borderRadius = 6,
+}: {
+  width: number;
+  height?: number;
+  borderRadius?: number;
+}) {
+  const opacity = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 0.7,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.3,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [opacity]);
+
+  return (
+    <Animated.View
+      style={{
+        width,
+        height,
+        borderRadius,
+        backgroundColor: "#888",
+        opacity,
+      }}
+    />
+  );
+}
+
+/** Skeleton placeholder card mimicking a time-slot row. */
+function TimeSlotSkeleton() {
+  return (
+    <Theme name="Card">
+      <Card>
+        <XStack alignItems="center" justifyContent="space-between">
+          <YStack flex={1} gap="$2">
+            <SkeletonBar width={140} height={16} />
+            <SkeletonBar width={100} height={12} />
+          </YStack>
+          <SkeletonBar width={16} height={16} borderRadius={8} />
+        </XStack>
+      </Card>
+    </Theme>
+  );
+}
+
 // ============================================
 // Main Screen
 // ============================================
@@ -306,6 +371,7 @@ export default function PlanScreen() {
     duration,
     rangeStart !== null, // only enable when user has selected a date
   );
+  const isBusyTimesLoading = busyTimesQuery.isLoading || busyTimesQuery.isFetching;
   const { isRefreshing, onRefresh } = useRefresh(busyTimesQuery);
 
   // --- Computed slots ---
@@ -329,9 +395,7 @@ export default function PlanScreen() {
     for (const day of daysInRange) {
       const key = toDateKey(day);
       const daySlots = slotsByDay.get(key) ?? [];
-      const hasAnyFree = daySlots.some(
-        (slot) => slot.friendIds.length > 0,
-      );
+      const hasAnyFree = daySlots.some((slot) => slot.friendIds.length > 0);
       if (!hasAnyFree) {
         disabled.add(key);
       }
@@ -396,9 +460,7 @@ export default function PlanScreen() {
     });
 
     // Ensure strict chronological order so period headers never repeat
-    filtered.sort(
-      (a, b) => a.startTime.getTime() - b.startTime.getTime(),
-    );
+    filtered.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
     return filtered;
   }, [activeDaySlots, filterUngodlyHours, preferredStartTime]);
@@ -764,7 +826,7 @@ export default function PlanScreen() {
               </XStack>
 
               {/* Calendar with range selection */}
-              <YStack marginBottom="$5">
+              <YStack marginBottom="$3">
                 <InlineCalendar
                   rangeStart={rangeStart}
                   rangeEnd={rangeEnd}
@@ -897,15 +959,18 @@ export default function PlanScreen() {
                     marginTop={2}
                   >
                     {formatDate(activeDay)}
-                    {filteredSlots.length > 0 &&
-                      (() => {
-                        const freeCount = filteredSlots.filter(
-                          (s) => s.friendIds.length > 0,
-                        ).length;
-                        return freeCount > 0
-                          ? ` \u00B7 ${freeCount} available`
-                          : "";
-                      })()}
+                    {isBusyTimesLoading
+                      ? " \u00B7 Loading\u2026"
+                      : filteredSlots.length > 0
+                        ? (() => {
+                            const freeCount = filteredSlots.filter(
+                              (s) => s.friendIds.length > 0,
+                            ).length;
+                            return freeCount > 0
+                              ? ` \u00B7 ${freeCount} available`
+                              : "";
+                          })()
+                        : ""}
                   </Text>
                 )}
               </YStack>
@@ -938,8 +1003,18 @@ export default function PlanScreen() {
                   </YStack>
                 )}
 
-                {/* Empty state — only when filters exclude all slots */}
-                {filteredSlots.length === 0 && (
+                {/* Loading skeleton */}
+                {isBusyTimesLoading && filteredSlots.length === 0 && (
+                  <YStack gap="$2">
+                    <SkeletonBar width={60} height={12} />
+                    <TimeSlotSkeleton />
+                    <TimeSlotSkeleton />
+                    <TimeSlotSkeleton />
+                  </YStack>
+                )}
+
+                {/* Empty state — only when filters exclude all slots and not loading */}
+                {!isBusyTimesLoading && filteredSlots.length === 0 && (
                   <Theme name="Card">
                     <Card>
                       <YStack alignItems="center" padding="$2" gap="$2">
@@ -1018,8 +1093,7 @@ export default function PlanScreen() {
                       } else if (isEveryoneAvailable) {
                         subtitle = "Everyone\u2019s available";
                       } else if (!isCurrentUserFree && allFriendsFree) {
-                        subtitle =
-                          "All friends free, but you have a conflict";
+                        subtitle = "All friends free, but you have a conflict";
                       } else if (!isCurrentUserFree) {
                         subtitle = `${friendNames} free, you have a conflict`;
                       } else {
@@ -1052,9 +1126,7 @@ export default function PlanScreen() {
                               pressable
                               onPress={() => selectSlot(slot)}
                               borderWidth={isSelected ? 2 : undefined}
-                              borderColor={
-                                isSelected ? "$primary" : undefined
-                              }
+                              borderColor={isSelected ? "$primary" : undefined}
                               opacity={isEveryoneBusy ? 0.5 : 1}
                             >
                               <XStack

@@ -4,7 +4,6 @@ export { useAuth, useAuthReady, AuthProvider } from './useAuth'
 // Data hooks
 export * from './useFriends'
 export * from './useGroups'
-export * from './useActivities'
 export * from './useBlocked'
 export * from './useBusyTimes'
 export * from './useEvents'
