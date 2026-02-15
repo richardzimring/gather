@@ -3,8 +3,6 @@ import {
   Button as TamaguiButton,
   GetProps,
   Spinner,
-  XStack,
-  Text,
 } from "tamagui";
 import * as Haptics from "expo-haptics";
 import { Platform } from "react-native";
@@ -127,6 +125,7 @@ export function Button({
   disabled,
   children,
   variant,
+  icon,
   ...props
 }: ButtonProps) {
   const handlePress = (event: Parameters<NonNullable<typeof onPress>>[0]) => {
@@ -151,16 +150,10 @@ export function Button({
       disabled={isDisabled}
       variant={variant}
       opacity={isDisabled && !loading ? 0.5 : 1}
+      icon={loading ? <Spinner size="small" color={spinnerColor} /> : icon}
       {...props}
     >
-      {loading ? (
-        <XStack alignItems="center" justifyContent="center" gap="$2">
-          <Spinner size="small" color={spinnerColor} />
-          {loadingText && <Text>{loadingText}</Text>}
-        </XStack>
-      ) : (
-        children
-      )}
+      {loading ? (loadingText ?? children) : children}
     </StyledButton>
   );
 }

@@ -387,9 +387,7 @@ export default function FriendProfileScreen() {
               variant="destructive"
               fullWidth
               icon={
-                removeFriend.isPending ? undefined : (
-                  <UserMinus size={16} color="$destructiveForeground" />
-                )
+                <UserMinus size={16} color="$destructiveForeground" />
               }
               onPress={handleRemoveFriend}
               loading={removeFriend.isPending}
@@ -401,9 +399,7 @@ export default function FriendProfileScreen() {
               variant="destructive"
               fullWidth
               icon={
-                blockFriend.isPending ? undefined : (
-                  <ShieldBan size={16} color="$destructiveForeground" />
-                )
+                <ShieldBan size={16} color="$destructiveForeground" />
               }
               onPress={handleBlockUser}
               loading={blockFriend.isPending}

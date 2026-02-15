@@ -191,12 +191,19 @@ function findCommonFreeTime(
   selectedFriendIds: string[],
   dateRange: { start: Date; end: Date },
   durationMinutes: number,
+  currentUserId?: string,
 ): Map<string, TimeSlot[]> {
   const result = new Map<string, TimeSlot[]>();
   if (selectedFriendIds.length === 0) return result;
 
+  // Include selected friends + the current user (so their calendar events block times too)
+  const relevantIds = new Set(selectedFriendIds);
+  if (currentUserId) {
+    relevantIds.add(currentUserId);
+  }
+
   const selectedFriendsData = friendsFreeTime.filter((f) =>
-    selectedFriendIds.includes(f.userId),
+    relevantIds.has(f.userId),
   );
   if (selectedFriendsData.length === 0) return result;
 
@@ -366,12 +373,15 @@ function findCommonFreeTime(
     }
   }
 
-  // Sort slots within each day: everyone-free first, then by time
-  const totalSelected = selectedFriendIds.length;
+  // Sort slots within each day: everyone-free first, then by time.
+  // totalRelevant = selected friends + current user (if present).
+  const totalRelevant = currentUserId
+    ? selectedFriendIds.length + 1
+    : selectedFriendIds.length;
   result.forEach((slots, key) => {
     slots.sort((a, b) => {
-      const aAll = a.friendIds.length === totalSelected ? 0 : 1;
-      const bAll = b.friendIds.length === totalSelected ? 0 : 1;
+      const aAll = a.friendIds.length === totalRelevant ? 0 : 1;
+      const bAll = b.friendIds.length === totalRelevant ? 0 : 1;
       if (aAll !== bAll) return aAll - bAll;
       return a.startTime.getTime() - b.startTime.getTime();
     });
@@ -506,6 +516,7 @@ export default function PlanScreen() {
       selectedFriends,
       { start: computedRangeStart, end: computedRangeEnd },
       duration,
+      user?.userId,
     );
   }, [
     friendsFreeTime,
@@ -514,6 +525,7 @@ export default function PlanScreen() {
     computedRangeEnd,
     duration,
     rangeStart,
+    user?.userId,
   ]);
 
   // Days in the range for the day tab bar
@@ -544,9 +556,17 @@ export default function PlanScreen() {
       selectedFriends,
       { start: queryStart, end: queryEnd },
       duration,
+      user?.userId,
     );
     return new Set(allSlots.keys());
-  }, [friendsFreeTime, selectedFriends, queryStart, queryEnd, duration]);
+  }, [
+    friendsFreeTime,
+    selectedFriends,
+    queryStart,
+    queryEnd,
+    duration,
+    user?.userId,
+  ]);
 
   // Active day for viewing slots (auto-select first day with availability)
   const activeDay = useMemo(() => {
@@ -1168,11 +1188,20 @@ export default function PlanScreen() {
                 {filteredSlots.length > 0 && (
                   <YStack gap="$2">
                     {filteredSlots.map((slot, index) => {
-                      const friendNames = slot.friendIds
+                      // Separate the current user from friends in this slot's availability
+                      const isCurrentUserFree = user
+                        ? slot.friendIds.includes(user.userId)
+                        : true;
+                      const freeFriendIds = user
+                        ? slot.friendIds.filter((id) => id !== user.userId)
+                        : slot.friendIds;
+                      const friendNames = freeFriendIds
                         .map((id) => friendNameMap.get(id) ?? "Friend")
                         .join(", ");
+                      const allFriendsFree =
+                        freeFriendIds.length === selectedFriends.length;
                       const isEveryoneAvailable =
-                        slot.friendIds.length === selectedFriends.length;
+                        allFriendsFree && isCurrentUserFree;
 
                       // Show period headers (Morning/Afternoon/Evening)
                       const period = getTimePeriod(slot.startTime);
@@ -1237,7 +1266,7 @@ export default function PlanScreen() {
                                       {formatTime(slot.startTime)} –{" "}
                                       {formatTime(slot.endTime)}
                                     </Text>
-                                    {isEveryoneAvailable && (
+                                    {isEveryoneAvailable ? (
                                       <XStack
                                         backgroundColor="$successSubtle"
                                         paddingHorizontal="$2"
@@ -1252,12 +1281,31 @@ export default function PlanScreen() {
                                           All free
                                         </Text>
                                       </XStack>
-                                    )}
+                                    ) : !isCurrentUserFree ? (
+                                      <XStack
+                                        backgroundColor="$backgroundHover"
+                                        paddingHorizontal="$2"
+                                        paddingVertical={2}
+                                        borderRadius="$2"
+                                      >
+                                        <Text
+                                          fontSize={11}
+                                          color="$colorMuted"
+                                          fontWeight="600"
+                                        >
+                                          You&apos;re busy
+                                        </Text>
+                                      </XStack>
+                                    ) : null}
                                   </XStack>
                                   <Text color="$colorMuted" fontSize={13}>
                                     {isEveryoneAvailable
-                                      ? "All selected friends"
-                                      : friendNames}
+                                      ? "Everyone's available"
+                                      : !isCurrentUserFree && allFriendsFree
+                                        ? "All friends free, but you have a conflict"
+                                        : !isCurrentUserFree
+                                          ? `${friendNames} free, you have a conflict`
+                                          : friendNames}
                                   </Text>
                                 </YStack>
                                 {selectedSlot?.startTime.getTime() ===
