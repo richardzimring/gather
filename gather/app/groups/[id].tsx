@@ -27,6 +27,7 @@ import { useMemo, useState } from "react";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { BackHeader } from "../../components/ui/ScreenHeader";
+import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
 import {
   useGroups,
   useFriends,
@@ -175,13 +176,63 @@ export default function GroupDetailScreen() {
 
   if (isLoading) {
     return (
-      <YStack
-        flex={1}
-        backgroundColor="$background"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <Spinner size="large" color="$color" />
+      <YStack flex={1} backgroundColor="$background">
+        <ScrollView
+          contentContainerStyle={{
+            paddingTop: insets.top + 16,
+            paddingBottom: insets.bottom + 100,
+            paddingHorizontal: 16,
+          }}
+        >
+          {/* Header */}
+          <BackHeader title="" marginBottom="$1" />
+
+          {/* Group Header Skeleton */}
+          <YStack alignItems="center" marginBottom="$4">
+            <SkeletonCircle size={80} style={{ marginBottom: 12 }} />
+            <YStack gap="$1" alignItems="center">
+              <SkeletonBar width={140} height={20} />
+              <SkeletonBar width={80} height={13} />
+            </YStack>
+          </YStack>
+
+          {/* Quick Actions Skeleton */}
+          <XStack gap="$2" marginBottom="$4">
+            <SkeletonBar width={175} height={44} borderRadius={8} />
+            <SkeletonBar width={175} height={44} borderRadius={8} />
+          </XStack>
+
+          {/* Members Section Skeleton */}
+          <Theme name="Card">
+            <Card>
+              <XStack
+                justifyContent="space-between"
+                alignItems="center"
+                marginBottom="$3"
+              >
+                <SkeletonBar width={80} height={16} />
+                <SkeletonBar width={60} height={13} />
+              </XStack>
+
+              <YStack>
+                {[1, 2, 3, 4].map((i, index) => (
+                  <YStack key={i}>
+                    <XStack alignItems="center" gap="$3" paddingVertical="$2">
+                      <SkeletonCircle size={44} />
+                      <YStack flex={1}>
+                        <SkeletonBar width={130} height={14} />
+                      </YStack>
+                      <SkeletonCircle size={32} />
+                    </XStack>
+                    {index < 3 && (
+                      <Separator marginVertical="$1" />
+                    )}
+                  </YStack>
+                ))}
+              </YStack>
+            </Card>
+          </Theme>
+        </ScrollView>
       </YStack>
     );
   }

@@ -31,6 +31,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../../components/ui/Button";
 import { CalendarProviderIcon } from "../../components/ui/CalendarProviderIcon";
 import { Card } from "../../components/ui/Card";
+import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
 import { useAuth } from "../../lib/hooks/useAuth";
 import {
   useInviteCode,
@@ -114,7 +115,7 @@ export default function ProfileScreen() {
   const { isRefreshing, onRefresh } = useRefresh(inviteCodeQuery);
 
   // Calendar connections
-  const { data: calendarConnections } = useCalendarConnections();
+  const { data: calendarConnections, isLoading: isLoadingCalendars } = useCalendarConnections();
   const deleteCalendarConnection = useDeleteCalendarConnection();
   const triggerSync = useTriggerCalendarSync();
 
@@ -347,9 +348,29 @@ export default function ProfileScreen() {
               </XStack>
             </XStack>
 
-            {!calendarConnections ||
-            calendarConnections.filter((c) => c.importEnabled).length ===
-              0 ? (
+{isLoadingCalendars ? (
+              // Skeleton loading
+              <YStack gap="$3">
+                {[1, 2].map((i) => (
+                  <XStack
+                    key={i}
+                    padding="$3"
+                    backgroundColor="$backgroundHover"
+                    borderRadius="$3"
+                    alignItems="center"
+                    gap="$2"
+                  >
+                    <SkeletonCircle size={10} />
+                    <YStack flex={1} gap="$1">
+                      <SkeletonBar width={150} height={14} />
+                      <SkeletonBar width={80} height={11} />
+                    </YStack>
+                    <SkeletonCircle size={32} />
+                  </XStack>
+                ))}
+              </YStack>
+            ) : !calendarConnections ||
+              calendarConnections.filter((c) => c.importEnabled).length === 0 ? (
               <YStack alignItems="center" padding="$4" gap="$3">
                 <Calendar size={32} color="$colorMuted" />
                 <Text color="$colorMuted" textAlign="center">
@@ -368,47 +389,51 @@ export default function ProfileScreen() {
                 {calendarConnections
                   .filter((c) => c.importEnabled)
                   .map((connection: CalendarConnection) => (
-                  <XStack
-                    key={connection.connectionId}
-                    padding="$3"
-                    backgroundColor="$backgroundHover"
-                    borderRadius="$3"
-                    alignItems="center"
-                    gap="$2"
-                  >
-                    {connection.color && (
-                      <Circle size={10} backgroundColor={connection.color} />
-                    )}
-                    <YStack flex={1}>
-                      <XStack alignItems="center" gap="$1.5">
-                        <Text fontWeight="600" numberOfLines={1} flexShrink={1}>
-                          {connection.calendarName}
-                        </Text>
-                        <CalendarProviderIcon
-                          provider={connection.provider}
-                          size={14}
-                        />
-                      </XStack>
-                      {connection.lastSyncAt && (
-                        <Text color="$colorMuted" fontSize={11}>
-                          Synced {formatLastSync(connection.lastSyncAt)}
-                        </Text>
+                    <XStack
+                      key={connection.connectionId}
+                      padding="$3"
+                      backgroundColor="$backgroundHover"
+                      borderRadius="$3"
+                      alignItems="center"
+                      gap="$2"
+                    >
+                      {connection.color && (
+                        <Circle size={10} backgroundColor={connection.color} />
                       )}
-                    </YStack>
-                    <Button
-                      variant="ghost"
-                      buttonSize="sm"
-                      circular
-                      icon={<Trash2 size={16} color="$error" />}
-                      onPress={() =>
-                        handleDeleteCalendar(
-                          connection.connectionId,
-                          connection.calendarName,
-                        )
-                      }
-                    />
-                  </XStack>
-                ))}
+                      <YStack flex={1}>
+                        <XStack alignItems="center" gap="$1.5">
+                          <Text
+                            fontWeight="600"
+                            numberOfLines={1}
+                            flexShrink={1}
+                          >
+                            {connection.calendarName}
+                          </Text>
+                          <CalendarProviderIcon
+                            provider={connection.provider}
+                            size={14}
+                          />
+                        </XStack>
+                        {connection.lastSyncAt && (
+                          <Text color="$colorMuted" fontSize={11}>
+                            Synced {formatLastSync(connection.lastSyncAt)}
+                          </Text>
+                        )}
+                      </YStack>
+                      <Button
+                        variant="ghost"
+                        buttonSize="sm"
+                        circular
+                        icon={<Trash2 size={16} color="$error" />}
+                        onPress={() =>
+                          handleDeleteCalendar(
+                            connection.connectionId,
+                            connection.calendarName,
+                          )
+                        }
+                      />
+                    </XStack>
+                  ))}
                 <Button
                   variant="outline"
                   buttonSize="sm"

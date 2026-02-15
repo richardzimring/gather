@@ -1,4 +1,10 @@
-import { Calendar, MapPin, Pencil, FileText } from "@tamagui/lucide-icons";
+import {
+  Calendar,
+  MapPin,
+  Pencil,
+  FileText,
+  Trash2,
+} from "@tamagui/lucide-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { Alert } from "react-native";
 import {
@@ -8,7 +14,6 @@ import {
   Theme,
   XStack,
   YStack,
-  Spinner,
   Separator,
   Input,
   TextArea,
@@ -19,12 +24,14 @@ import { useMemo, useState } from "react";
 import { BadgeLabel } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { EventCard } from "../../components/ui/EventCard";
 import { GlassBottomBar } from "../../components/ui/GlassBottomBar";
 import { GlassButton } from "../../components/ui/GlassFAB";
 import { InlineCalendar } from "../../components/ui/InlineCalendar";
 import { LocationSearch } from "../../components/ui/LocationSearch";
 import { BackHeader } from "../../components/ui/ScreenHeader";
 import { MapPreview } from "../../components/ui/MapPreview";
+import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
 import {
   TimeChipPicker,
   START_TIME_OPTIONS,
@@ -36,11 +43,13 @@ import {
   useCancelEvent,
   useUpdateEvent,
 } from "../../lib/hooks";
+import { useGenerateEmoji } from "../../lib/hooks/useEmoji";
 import type {
   EventInvitee,
   InviteeStatus,
   LocationData,
 } from "../../lib/api/generated/types.gen";
+import type { AvatarStackPerson } from "../../components/ui/AttendeeAvatarStack";
 
 // ============================================
 // Helpers
@@ -80,6 +89,39 @@ function formatEventDate(
 }
 
 /**
+ * Format time for display
+ */
+function formatTime(date: Date): string {
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+/**
+ * Format date for event card display
+ */
+function formatDate(date: Date): string {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  today.setHours(0, 0, 0, 0);
+  tomorrow.setHours(0, 0, 0, 0);
+  const compareDate = new Date(date);
+  compareDate.setHours(0, 0, 0, 0);
+
+  if (compareDate.getTime() === today.getTime()) return "Today";
+  if (compareDate.getTime() === tomorrow.getTime()) return "Tomorrow";
+
+  const DAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return `${DAYS_SHORT[date.getDay()]}, ${date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  })}`;
+}
+
+/**
  * Get status badge color
  */
 function getStatusColor(status: InviteeStatus) {
@@ -105,6 +147,64 @@ function snapToHalfHour(minutes: number): number {
 // ============================================
 // Sub-components
 // ============================================
+
+/**
+ * EventDetailSkeleton — Loading placeholder for event detail page.
+ */
+function EventDetailSkeleton() {
+  return (
+    <YStack gap="$4">
+      {/* Title, Emoji, Subtitle skeleton */}
+      <YStack gap="$2" alignItems="center">
+        <SkeletonCircle size={52} />
+        <YStack gap="$1" alignItems="center">
+          <SkeletonBar width={200} height={24} />
+          <SkeletonBar width={150} height={14} />
+        </YStack>
+      </YStack>
+
+      {/* Date & Time card skeleton */}
+      <Theme name="Card">
+        <Card>
+          <YStack gap="$4">
+            <XStack alignItems="flex-start" gap="$3">
+              <SkeletonCircle size={36} />
+              <YStack flex={1} gap="$2">
+                <SkeletonBar width={180} height={14} />
+                <SkeletonBar width={140} height={13} />
+              </YStack>
+            </XStack>
+          </YStack>
+        </Card>
+      </Theme>
+
+      {/* Invitees card skeleton */}
+      <Theme name="Card">
+        <Card>
+          <YStack gap="$3">
+            <SkeletonBar width={100} height={16} />
+            <YStack gap="$2">
+              <XStack alignItems="center" gap="$3">
+                <SkeletonCircle size={40} />
+                <YStack flex={1} gap="$2">
+                  <SkeletonBar width={120} height={14} />
+                  <SkeletonBar width={80} height={13} />
+                </YStack>
+              </XStack>
+              <XStack alignItems="center" gap="$3">
+                <SkeletonCircle size={40} />
+                <YStack flex={1} gap="$2">
+                  <SkeletonBar width={140} height={14} />
+                  <SkeletonBar width={70} height={13} />
+                </YStack>
+              </XStack>
+            </YStack>
+          </YStack>
+        </Card>
+      </Theme>
+    </YStack>
+  );
+}
 
 /**
  * Invitee item component
@@ -188,6 +288,10 @@ export default function EventDetailScreen() {
   const [editStartMinutes, setEditStartMinutes] = useState<number | null>(null);
   const [editEndMinutes, setEditEndMinutes] = useState<number | null>(null);
 
+  // Generate emoji for the edit title with debouncing
+  const { emoji: previewEmoji, isLoading: isEmojiLoading } =
+    useGenerateEmoji(editTitle);
+
   // ---- Derived values ----
   const isHost = event?.hostId === user?.userId;
   const userInvitee = event?.invitees.find((i) => i.userId === user?.userId);
@@ -206,6 +310,32 @@ export default function EventDetailScreen() {
       (option) => option.value > editStartMinutes,
     );
   }, [editStartMinutes]);
+
+  // Build people array for preview card in edit mode
+  const previewPeople = useMemo(() => {
+    if (!event || !isEditing) return [];
+    const people: AvatarStackPerson[] = [];
+
+    // Add host first
+    people.push({
+      id: event.hostId,
+      initials: event.hostInitials,
+      status: "host",
+      avatarUrl: event.hostAvatarUrl,
+    });
+
+    // Add invitees
+    event.invitees.forEach((invitee) => {
+      people.push({
+        id: invitee.userId,
+        initials: invitee.initials,
+        status: invitee.status as AvatarStackPerson["status"],
+        avatarUrl: invitee.avatarUrl,
+      });
+    });
+
+    return people;
+  }, [event, isEditing]);
 
   // ---- Edit mode handlers ----
 
@@ -270,6 +400,10 @@ export default function EventDetailScreen() {
 
     if (editTitle.trim() !== event.title) {
       data.title = editTitle.trim();
+      // Update emoji if title changed and we have a new emoji
+      if (previewEmoji) {
+        data.emoji = previewEmoji;
+      }
     }
     if (newStart.toISOString() !== new Date(event.startTime).toISOString()) {
       data.startTime = newStart.toISOString();
@@ -373,13 +507,20 @@ export default function EventDetailScreen() {
 
   if (isLoading) {
     return (
-      <YStack
-        flex={1}
-        backgroundColor="$background"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <Spinner size="large" color="$color" />
+      <YStack flex={1} backgroundColor="$background">
+        <ScrollView
+          contentContainerStyle={{
+            paddingTop: insets.top + 16,
+            paddingBottom: insets.bottom + 32,
+            paddingHorizontal: 16,
+          }}
+        >
+          {/* Header */}
+          <BackHeader title="" subtitle={undefined} marginBottom="$4" />
+
+          {/* Skeleton content */}
+          <EventDetailSkeleton />
+        </ScrollView>
       </YStack>
     );
   }
@@ -435,21 +576,17 @@ export default function EventDetailScreen() {
       >
         {/* Header */}
         <BackHeader
-          title={isEditing ? "Edit Event" : event.title}
-          subtitle={
-            isEditing
-              ? undefined
-              : `Hosted by ${isHost ? "you" : event.hostName}${
-                  event.status === "cancelled" ? " · Cancelled" : ""
-                }`
-          }
-          marginBottom="$4"
+          title={isEditing ? "Edit Event" : ""}
+          subtitle={undefined}
+          marginBottom={isEditing ? "$4" : "$2"}
           onBack={isEditing ? cancelEdit : undefined}
           rightAction={
             isEditing ? (
-              <Button variant="ghost" buttonSize="sm" onPress={cancelEdit}>
-                Cancel
-              </Button>
+              <GlassButton
+                icon={<Trash2 size={18} color="$error" />}
+                onPress={handleDelete}
+                size={36}
+              />
             ) : isHost && event.status !== "cancelled" ? (
               <GlassButton
                 icon={<Pencil size={18} color="$color" />}
@@ -459,6 +596,64 @@ export default function EventDetailScreen() {
             ) : undefined
           }
         />
+
+        {/* Title, Emoji, Subtitle in read view */}
+        {!isEditing && (
+          <YStack gap="$2" marginBottom="$4" alignItems="center">
+            <Circle size={52} backgroundColor="$backgroundHover">
+              <Text fontSize={32}>{event.emoji ?? "📅"}</Text>
+            </Circle>
+            <YStack gap="$1" alignItems="center">
+              <Text fontWeight="600" fontSize={24} textAlign="center">
+                {event.title}
+              </Text>
+              <Text fontSize={14} color="$colorMuted" textAlign="center">
+                Hosted by {isHost ? "you" : event.hostName}
+                {event.status === "cancelled" ? " · Cancelled" : ""}
+              </Text>
+            </YStack>
+          </YStack>
+        )}
+
+        {/* Live preview card in edit mode */}
+        {isEditing &&
+          editDate &&
+          editStartMinutes !== null &&
+          editEndMinutes !== null && (
+            <YStack marginBottom="$4">
+              <EventCard
+                title={editTitle}
+                emoji={previewEmoji ?? event.emoji}
+                timeLabel={(() => {
+                  const start = new Date(editDate);
+                  start.setHours(
+                    Math.floor(editStartMinutes / 60),
+                    editStartMinutes % 60,
+                    0,
+                    0,
+                  );
+                  const end = new Date(editDate);
+                  end.setHours(
+                    Math.floor(editEndMinutes / 60),
+                    editEndMinutes % 60,
+                    0,
+                    0,
+                  );
+                  return `${formatDate(editDate)}, ${formatTime(start)} – ${formatTime(end)}`;
+                })()}
+                location={editLocationData?.name}
+                isHost={true}
+                people={previewPeople}
+                attendeeSummary={
+                  previewPeople.length > 1
+                    ? `${previewPeople.length} people`
+                    : "Just you"
+                }
+                showAvatarStatus={false}
+                isPreview={true}
+              />
+            </YStack>
+          )}
 
         {/* ==================== Title (edit mode) ==================== */}
         {isEditing && (
@@ -612,7 +807,7 @@ export default function EventDetailScreen() {
                 <XStack alignItems="center" gap="$2">
                   <MapPin size={14} color="$colorMuted" />
                   <Text fontWeight="500" fontSize={14}>
-                    Location{' '}
+                    Location{" "}
                     <Text fontSize={14} color="$colorMuted" fontWeight="400">
                       (optional)
                     </Text>
@@ -645,7 +840,7 @@ export default function EventDetailScreen() {
                 <XStack alignItems="center" gap="$2">
                   <FileText size={14} color="$colorMuted" />
                   <Text fontWeight="500" fontSize={14}>
-                    Notes{' '}
+                    Notes{" "}
                     <Text fontSize={14} color="$colorMuted" fontWeight="400">
                       (optional)
                     </Text>
@@ -745,28 +940,20 @@ export default function EventDetailScreen() {
       {/* ==================== Bottom Bar: Edit Mode ==================== */}
       {showEditBar && (
         <GlassBottomBar>
-          <YStack gap="$3">
-            <Button
-              variant="primary"
-              buttonSize="lg"
-              fullWidth
-              onPress={handleSave}
-              disabled={!canSave || updateEvent.isPending}
-              loading={updateEvent.isPending}
-            >
-              {updateEvent.isPending ? "Saving..." : "Save Changes"}
-            </Button>
-            <Button
-              variant="ghost"
-              buttonSize="sm"
-              onPress={handleDelete}
-              disabled={cancelEvent.isPending}
-            >
-              <Text color="$error" fontWeight="500" fontSize={14}>
-                {cancelEvent.isPending ? "Deleting..." : "Delete Event"}
-              </Text>
-            </Button>
-          </YStack>
+          <Button
+            variant="primary"
+            buttonSize="lg"
+            fullWidth
+            onPress={handleSave}
+            disabled={!canSave || updateEvent.isPending || isEmojiLoading}
+            loading={updateEvent.isPending || isEmojiLoading}
+          >
+            {updateEvent.isPending
+              ? "Saving..."
+              : isEmojiLoading
+                ? "Generating emoji..."
+                : "Save Changes"}
+          </Button>
         </GlassBottomBar>
       )}
 

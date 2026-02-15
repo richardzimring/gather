@@ -11,10 +11,8 @@ import {
   FileText,
 } from "@tamagui/lucide-icons";
 import { router } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
-  Animated,
-  Easing,
   LayoutAnimation,
   RefreshControl,
   UIManager,
@@ -46,6 +44,7 @@ import {
   type PlaceResult,
 } from "../../components/ui/LocationSearch";
 import { MapPreview } from "../../components/ui/MapPreview";
+import { SkeletonBar } from "../../components/ui/Skeleton";
 import {
   TimeChipPicker,
   DURATION_OPTIONS,
@@ -88,11 +87,7 @@ interface TimeSlot {
 
 const DAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-// DURATION_OPTIONS imported from TimeChipPicker
-
 const MAX_VISIBLE_FRIENDS = 8;
-
-// START_TIME_OPTIONS imported from TimeChipPicker
 
 /** Ungodly hours boundary: before 8 AM or at/after 10 PM */
 const UNGODLY_EARLY = 480; // 8:00 AM in minutes
@@ -211,52 +206,6 @@ function Checkbox({ checked }: { checked: boolean }) {
   );
 }
 
-/** Pulsing skeleton bar used as a loading placeholder. */
-function SkeletonBar({
-  width,
-  height = 14,
-  borderRadius = 6,
-}: {
-  width: number;
-  height?: number;
-  borderRadius?: number;
-}) {
-  const opacity = useRef(new Animated.Value(0.3)).current;
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.7,
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0.3,
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    animation.start();
-    return () => animation.stop();
-  }, [opacity]);
-
-  return (
-    <Animated.View
-      style={{
-        width,
-        height,
-        borderRadius,
-        backgroundColor: "#888",
-        opacity,
-      }}
-    />
-  );
-}
-
 /** Skeleton placeholder card mimicking a time-slot row. */
 function TimeSlotSkeleton() {
   return (
@@ -302,7 +251,8 @@ export default function PlanScreen() {
   const [notes, setNotes] = useState("");
 
   // Generate emoji for the title with debouncing
-  const { emoji: previewEmoji } = useGenerateEmoji(title);
+  const { emoji: previewEmoji, isLoading: isEmojiLoading } =
+    useGenerateEmoji(title);
 
   const scrollViewRef = useRef<any>(null);
 
@@ -375,7 +325,8 @@ export default function PlanScreen() {
     duration,
     rangeStart !== null, // only enable when user has selected a date
   );
-  const isBusyTimesLoading = busyTimesQuery.isLoading || busyTimesQuery.isFetching;
+  const isBusyTimesLoading =
+    busyTimesQuery.isLoading || busyTimesQuery.isFetching;
   const { isRefreshing, onRefresh } = useRefresh(busyTimesQuery);
 
   // --- Computed slots ---
@@ -1282,13 +1233,33 @@ export default function PlanScreen() {
                       placeholder="Search for a place..."
                     />
                     {locationData?.latitude && locationData?.longitude && (
-                      <MapPreview
-                        latitude={parseFloat(locationData.latitude)}
-                        longitude={parseFloat(locationData.longitude)}
-                        name={locationData.name}
-                        address={locationData.address}
-                        height={120}
-                      />
+                      <YStack gap="$2">
+                        <MapPreview
+                          latitude={parseFloat(locationData.latitude)}
+                          longitude={parseFloat(locationData.longitude)}
+                          name={locationData.name}
+                          address={locationData.address}
+                          height={120}
+                        />
+                        <XStack
+                          backgroundColor="$accentSubtle"
+                          padding="$2"
+                          borderRadius="$2"
+                          alignItems="center"
+                          justifyContent="center"
+                          gap="$2"
+                        >
+                          <MapPin size={14} color="$accent" />
+                          <Text
+                            color="$accent"
+                            fontSize={12}
+                            numberOfLines={1}
+                            textAlign="center"
+                          >
+                            {locationData.address}
+                          </Text>
+                        </XStack>
+                      </YStack>
                     )}
                   </YStack>
 
@@ -1333,9 +1304,14 @@ export default function PlanScreen() {
                   buttonSize="lg"
                   fullWidth
                   onPress={handleCreateEvent}
-                  disabled={createEvent.isPending}
+                  disabled={createEvent.isPending || isEmojiLoading}
+                  loading={createEvent.isPending || isEmojiLoading}
                 >
-                  {createEvent.isPending ? "Creating..." : "Create Event"}
+                  {createEvent.isPending
+                    ? "Creating..."
+                    : isEmojiLoading
+                      ? "Generating emoji..."
+                      : "Create Event"}
                 </Button>
               </YStack>
             )}

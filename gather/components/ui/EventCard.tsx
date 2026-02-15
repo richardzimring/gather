@@ -6,6 +6,7 @@ import {
 } from "./AttendeeAvatarStack";
 import { BadgeLabel } from "./Badge";
 import { Card } from "./Card";
+import { SkeletonBar, SkeletonCircle } from "./Skeleton";
 
 // ============================================
 // Types
@@ -129,6 +130,36 @@ export function EventCard({
               )}
             </XStack>
           )}
+        </YStack>
+      </Card>
+    </Theme>
+  );
+}
+
+/**
+ * EventCardSkeleton — Loading placeholder that mimics EventCard structure.
+ */
+export function EventCardSkeleton() {
+  return (
+    <Theme name="Card">
+      <Card>
+        <YStack gap="$3">
+          {/* Event header row skeleton */}
+          <XStack alignItems="center" gap="$3">
+            <SkeletonCircle size={44} />
+            <YStack flex={1} gap="$2">
+              <SkeletonBar width={160} height={16} />
+              <SkeletonBar width={120} height={14} />
+            </YStack>
+          </XStack>
+
+          {/* Attendees row skeleton */}
+          <XStack alignItems="center">
+            <SkeletonCircle size={25} />
+            <SkeletonCircle size={25} />
+            <SkeletonCircle size={25} />
+            <SkeletonBar width={80} height={12} style={{ marginLeft: 8 }} />
+          </XStack>
         </YStack>
       </Card>
     </Theme>

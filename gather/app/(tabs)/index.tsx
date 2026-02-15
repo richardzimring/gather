@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { type AvatarStackPerson } from "../../components/ui/AttendeeAvatarStack";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
-import { EventCard } from "../../components/ui/EventCard";
+import { EventCard, EventCardSkeleton } from "../../components/ui/EventCard";
 import { GlassButton } from "../../components/ui/GlassFAB";
 import { useAuth } from "../../lib/hooks/useAuth";
 import { useEvents, useRefresh } from "../../lib/hooks";
@@ -221,7 +221,7 @@ export default function HomeScreen() {
   const theme = useTheme();
   const { user } = useAuth();
   const eventsQuery = useEvents();
-  const { data: events } = eventsQuery;
+  const { data: events, isLoading } = eventsQuery;
   const { isRefreshing, onRefresh } = useRefresh(eventsQuery);
 
   // Get today's date at midnight (memoized to prevent re-renders)
@@ -338,86 +338,102 @@ export default function HomeScreen() {
       >
         {/* Events Timeline */}
         <YStack gap="$5">
-          {sectionOrder.map((section) => {
-            const sectionEvents = eventsBySection[section];
-
-            // Skip empty sections except Today
-            if (sectionEvents.length === 0 && section !== "Today") {
-              return null;
-            }
-
-            return (
-              <YStack key={section} gap="$3">
-                <XStack justifyContent="space-between" alignItems="center">
-                  <H2 fontSize={18} fontWeight="600">
-                    {section}
-                  </H2>
-                  {pendingCountBySection[section] > 0 && (
-                    <Circle size={22} backgroundColor="$primary">
-                      <Text
-                        color="$primaryForeground"
-                        fontSize={11}
-                        fontWeight="600"
-                      >
-                        {pendingCountBySection[section]}
-                      </Text>
-                    </Circle>
-                  )}
-                </XStack>
-
-                {sectionEvents.length === 0 ? (
-                  <YStack gap="$3">
-                    <Theme name="Card">
-                      <Card>
-                        <YStack alignItems="center" padding="$2">
-                          <Text color="$colorMuted" textAlign="center">
-                            Nothing planned
-                          </Text>
-                        </YStack>
-                      </Card>
-                    </Theme>
-                    {section === "Today" && (
-                      <Button
-                        variant="primary"
-                        buttonSize="lg"
-                        fullWidth
-                        onPress={navigateToPlan}
-                        icon={<CalendarPlus size={18} />}
-                      >
-                        Plan something
-                      </Button>
-                    )}
-                  </YStack>
-                ) : (
-                  <YStack gap="$3">
-                    {sectionEvents.map((event) => {
-                      const isPending = isPendingForUser(event);
-                      const isHost = event.hostId === user?.userId;
-                      const avatarPeople = buildAvatarStackPeople(event);
-
-                      return (
-                        <EventCard
-                          key={event.eventId}
-                          title={event.title}
-                          emoji={event.emoji}
-                          timeLabel={formatRelativeDate(event.startTime)}
-                          location={event.location}
-                          isHost={isHost}
-                          isPending={isPending}
-                          people={avatarPeople}
-                          attendeeSummary={getAttendeeSummary(event)}
-                          showAvatarStatus={true}
-                          onPress={() => navigateToEvent(event.eventId)}
-                          showRespondButton={isPending}
-                          onRespondPress={() => navigateToEvent(event.eventId)}
-                        />
-                      );
-                    })}
-                  </YStack>
-                )}
+          {/* Show skeleton loading for first load */}
+          {isLoading ? (
+            <YStack gap="$3">
+              <H2 fontSize={18} fontWeight="600">
+                Today
+              </H2>
+              <YStack gap="$3">
+                <EventCardSkeleton />
+                <EventCardSkeleton />
+                <EventCardSkeleton />
               </YStack>
-            );
-          })}
+            </YStack>
+          ) : (
+            sectionOrder.map((section) => {
+              const sectionEvents = eventsBySection[section];
+
+              // Skip empty sections except Today
+              if (sectionEvents.length === 0 && section !== "Today") {
+                return null;
+              }
+
+              return (
+                <YStack key={section} gap="$3">
+                  <XStack justifyContent="space-between" alignItems="center">
+                    <H2 fontSize={18} fontWeight="600">
+                      {section}
+                    </H2>
+                    {pendingCountBySection[section] > 0 && (
+                      <Circle size={22} backgroundColor="$primary">
+                        <Text
+                          color="$primaryForeground"
+                          fontSize={11}
+                          fontWeight="600"
+                        >
+                          {pendingCountBySection[section]}
+                        </Text>
+                      </Circle>
+                    )}
+                  </XStack>
+
+                  {sectionEvents.length === 0 ? (
+                    <YStack gap="$3">
+                      <Theme name="Card">
+                        <Card>
+                          <YStack alignItems="center" padding="$2">
+                            <Text color="$colorMuted" textAlign="center">
+                              Nothing planned
+                            </Text>
+                          </YStack>
+                        </Card>
+                      </Theme>
+                      {section === "Today" && (
+                        <Button
+                          variant="primary"
+                          buttonSize="lg"
+                          fullWidth
+                          onPress={navigateToPlan}
+                          icon={<CalendarPlus size={18} />}
+                        >
+                          Plan something
+                        </Button>
+                      )}
+                    </YStack>
+                  ) : (
+                    <YStack gap="$3">
+                      {sectionEvents.map((event) => {
+                        const isPending = isPendingForUser(event);
+                        const isHost = event.hostId === user?.userId;
+                        const avatarPeople = buildAvatarStackPeople(event);
+
+                        return (
+                          <EventCard
+                            key={event.eventId}
+                            title={event.title}
+                            emoji={event.emoji}
+                            timeLabel={formatRelativeDate(event.startTime)}
+                            location={event.location}
+                            isHost={isHost}
+                            isPending={isPending}
+                            people={avatarPeople}
+                            attendeeSummary={getAttendeeSummary(event)}
+                            showAvatarStatus={true}
+                            onPress={() => navigateToEvent(event.eventId)}
+                            showRespondButton={isPending}
+                            onRespondPress={() =>
+                              navigateToEvent(event.eventId)
+                            }
+                          />
+                        );
+                      })}
+                    </YStack>
+                  )}
+                </YStack>
+              );
+            })
+          )}
         </YStack>
       </ScrollView>
     </YStack>

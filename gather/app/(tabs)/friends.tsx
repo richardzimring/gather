@@ -24,6 +24,7 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { GlassButton } from "../../components/ui/GlassFAB";
 import { EmptyState } from "../../components/common/EmptyState";
+import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
 import {
   useFriends,
   useGroups,
@@ -46,8 +47,8 @@ export default function FriendsScreen() {
 
   const friendsQuery = useFriends();
   const groupsQuery = useGroups();
-  const { data: friendsData } = friendsQuery;
-  const { data: groups } = groupsQuery;
+  const { data: friendsData, isLoading: isFriendsLoading } = friendsQuery;
+  const { data: groups, isLoading: isGroupsLoading } = groupsQuery;
   const acceptRequest = useAcceptFriendRequest();
   const declineRequest = useDeclineFriendRequest();
   const { isRefreshing, onRefresh } = useRefresh(friendsQuery, groupsQuery);
@@ -257,7 +258,24 @@ export default function FriendsScreen() {
         {/* Tab Content */}
         {activeTab === "friends" && (
           <YStack gap="$3">
-            {filteredFriends.length === 0 ? (
+            {isFriendsLoading ? (
+              // Skeleton loading
+              <>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Theme key={i} name="Card">
+                    <Card>
+                      <XStack alignItems="center" gap="$3">
+                        <SkeletonCircle size={48} />
+                        <YStack flex={1} gap="$2">
+                          <SkeletonBar width={120} height={14} />
+                          <SkeletonBar width={80} height={13} />
+                        </YStack>
+                      </XStack>
+                    </Card>
+                  </Theme>
+                ))}
+              </>
+            ) : filteredFriends.length === 0 ? (
               <EmptyState
                 icon={<Text fontSize={48}>👋</Text>}
                 title={searchQuery ? "No friends found" : "No friends yet"}
@@ -308,7 +326,25 @@ export default function FriendsScreen() {
 
         {activeTab === "groups" && (
           <YStack gap="$3">
-            {filteredGroups.length === 0 ? (
+            {isGroupsLoading ? (
+              // Skeleton loading
+              <>
+                {[1, 2, 3, 4].map((i) => (
+                  <Theme key={i} name="Card">
+                    <Card>
+                      <XStack alignItems="center" gap="$3">
+                        <SkeletonCircle size={48} />
+                        <YStack flex={1} gap="$2">
+                          <SkeletonBar width={140} height={14} />
+                          <SkeletonBar width={70} height={13} />
+                        </YStack>
+                        <SkeletonBar width={20} height={20} borderRadius={4} />
+                      </XStack>
+                    </Card>
+                  </Theme>
+                ))}
+              </>
+            ) : filteredGroups.length === 0 ? (
               <EmptyState
                 icon={<Text fontSize={48}>👥</Text>}
                 title={searchQuery ? "No groups found" : "No groups yet"}
@@ -365,7 +401,30 @@ export default function FriendsScreen() {
 
         {activeTab === "requests" && (
           <YStack gap="$3">
-            {pendingReceived.length === 0 ? (
+            {isFriendsLoading ? (
+              // Skeleton loading
+              <>
+                {[1, 2, 3].map((i) => (
+                  <Theme key={i} name="Card">
+                    <Card>
+                      <YStack gap="$3">
+                        <XStack alignItems="center" gap="$3">
+                          <SkeletonCircle size={48} />
+                          <YStack flex={1} gap="$2">
+                            <SkeletonBar width={130} height={14} />
+                            <SkeletonBar width={110} height={13} />
+                          </YStack>
+                        </XStack>
+                        <XStack gap="$2">
+                          <SkeletonBar width={150} height={36} borderRadius={8} />
+                          <SkeletonBar width={150} height={36} borderRadius={8} />
+                        </XStack>
+                      </YStack>
+                    </Card>
+                  </Theme>
+                ))}
+              </>
+            ) : pendingReceived.length === 0 ? (
               <EmptyState
                 icon={<Text fontSize={48}>📬</Text>}
                 title="No pending requests"
