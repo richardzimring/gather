@@ -429,6 +429,13 @@ export default function PlanScreen() {
 
   // --- Apply start time and ungodly hours filters, then sort by time ---
   const filteredSlots = useMemo(() => {
+    const now = new Date();
+    const isToday =
+      activeDay &&
+      activeDay.getFullYear() === now.getFullYear() &&
+      activeDay.getMonth() === now.getMonth() &&
+      activeDay.getDate() === now.getDate();
+
     const filtered = activeDaySlots.filter((slot) => {
       const startHour = slot.startTime.getHours();
       const startMin = slot.startTime.getMinutes();
@@ -437,6 +444,11 @@ export default function PlanScreen() {
       const endHour = slot.endTime.getHours();
       const endMin = slot.endTime.getMinutes();
       const endTotalMinutes = endHour * 60 + endMin;
+
+      // Filter out slots that have already started or passed (for today only)
+      if (isToday && slot.startTime <= now) {
+        return false;
+      }
 
       if (filterUngodlyHours) {
         // Filter out slots whose start time is in ungodly hours
@@ -467,7 +479,7 @@ export default function PlanScreen() {
     filtered.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
     return filtered;
-  }, [activeDaySlots, filterUngodlyHours, preferredStartTime]);
+  }, [activeDaySlots, filterUngodlyHours, preferredStartTime, activeDay]);
 
   // Visible start time chips (filter based on ungodly toggle)
   const visibleStartTimeOptions = useMemo(() => {
