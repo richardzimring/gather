@@ -17,11 +17,16 @@ import { useQueryClient } from '@tanstack/react-query'
 import { CalendarProviderIcon } from '../../components/ui/CalendarProviderIcon'
 import { Card } from '../../components/ui/Card'
 import { BackHeader } from '../../components/ui/ScreenHeader'
+import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton'
 import { useCalendarConnections, calendarConnectionKeys } from '../../lib/hooks'
 import {
   connectGoogleCalendar,
   GoogleAuthCancelledError,
 } from '../../lib/services/googleAuth'
+import {
+  connectOutlookCalendar,
+  OutlookAuthCancelledError,
+} from '../../lib/services/outlookAuth'
 
 interface ProviderOption {
   id: 'apple' | 'google' | 'outlook'
@@ -44,18 +49,19 @@ const PROVIDERS: ProviderOption[] = [
   {
     id: 'outlook',
     name: 'Outlook',
-    available: false,
-    comingSoon: true,
+    available: true,
   },
 ]
 
 export default function CalendarConnectScreen() {
   const insets = useSafeAreaInsets()
   const queryClient = useQueryClient()
-  const { data: connections } = useCalendarConnections()
+  const { data: connections, isLoading: isLoadingConnections } = useCalendarConnections()
   const [isConnectingGoogle, setIsConnectingGoogle] = useState(false)
+  const [isConnectingOutlook, setIsConnectingOutlook] = useState(false)
 
   const hasGoogleConnection = connections?.some((c) => c.provider === 'google')
+  const hasOutlookConnection = connections?.some((c) => c.provider === 'outlook')
 
   const handleProviderPress = async (provider: ProviderOption) => {
     if (!provider.available) return
@@ -90,6 +96,32 @@ export default function CalendarConnectScreen() {
           }
         }
         break
+
+      case 'outlook':
+        if (hasOutlookConnection) {
+          router.push('/calendars/outlook-select')
+        } else {
+          setIsConnectingOutlook(true)
+          try {
+            await connectOutlookCalendar()
+            // Backend already exchanged the code and stored tokens;
+            // invalidate so the outlook-select screen fetches fresh data
+            await queryClient.invalidateQueries({ queryKey: calendarConnectionKeys.connections() })
+            router.push('/calendars/outlook-select')
+          } catch (error) {
+            if (error instanceof OutlookAuthCancelledError) {
+              return
+            }
+            console.error('Outlook Calendar connection failed:', error)
+            Alert.alert(
+              'Connection Failed',
+              'Failed to connect Outlook Calendar. Please try again.',
+            )
+          } finally {
+            setIsConnectingOutlook(false)
+          }
+        }
+        break
     }
   }
 
@@ -117,74 +149,103 @@ export default function CalendarConnectScreen() {
 
         <Theme name="Card">
           <Card>
-            {PROVIDERS.map((provider, index) => {
-              const count = getConnectionCount(provider.id)
-              const isLoading =
-                provider.id === 'google' && isConnectingGoogle
+            {isLoadingConnections ? (
+              // Skeleton loading
+              <>
+                {[1, 2, 3].map((i, index) => (
+                  <YStack key={i}>
+                    {index > 0 && <Separator />}
+                    <XStack alignItems="center" paddingVertical="$3">
+                      <YStack
+                        width={36}
+                        height={36}
+                        borderRadius={8}
+                        backgroundColor="$backgroundHover"
+                        alignItems="center"
+                        justifyContent="center"
+                        marginRight="$3"
+                      >
+                        <SkeletonCircle size={20} />
+                      </YStack>
+                      <YStack flex={1}>
+                        <SkeletonBar width={130} height={14} />
+                      </YStack>
+                      <SkeletonBar width={20} height={20} borderRadius={4} />
+                    </XStack>
+                  </YStack>
+                ))}
+              </>
+            ) : (
+              PROVIDERS.map((provider, index) => {
+                const count = getConnectionCount(provider.id)
+                const isLoading =
+                  (provider.id === 'google' && isConnectingGoogle) ||
+                  (provider.id === 'outlook' && isConnectingOutlook)
 
-              return (
-                <YStack key={provider.id}>
-                  {index > 0 && <Separator />}
-                  <XStack
-                    alignItems="center"
-                    paddingVertical="$3"
-                    opacity={!provider.available || isLoading ? 0.5 : 1}
-                    pressStyle={
-                      provider.available && !isLoading
-                        ? { opacity: 0.7 }
-                        : undefined
-                    }
-                    onPress={() => handleProviderPress(provider)}
-                    disabled={!provider.available || isLoading}
-                  >
-                    <YStack
-                      width={36}
-                      height={36}
-                      borderRadius={8}
-                      backgroundColor="$backgroundHover"
+                return (
+                  <YStack key={provider.id}>
+                    {index > 0 && <Separator />}
+                    <XStack
                       alignItems="center"
-                      justifyContent="center"
-                      marginRight="$3"
+                      paddingVertical="$3"
+                      opacity={!provider.available || isLoading ? 0.5 : 1}
+                      pressStyle={
+                        provider.available && !isLoading
+                          ? { opacity: 0.7 }
+                          : undefined
+                      }
+                      onPress={() => handleProviderPress(provider)}
+                      disabled={!provider.available || isLoading}
                     >
-                      {isLoading ? (
-                        <Spinner size="small" color="$color" />
-                      ) : (
-                        <CalendarProviderIcon
-                          provider={provider.id}
-                          size={20}
-                        />
+                      <YStack
+                        width={36}
+                        height={36}
+                        borderRadius={8}
+                        backgroundColor="$backgroundHover"
+                        alignItems="center"
+                        justifyContent="center"
+                        marginRight="$3"
+                      >
+                        {isLoading ? (
+                          <Spinner size="small" color="$color" />
+                        ) : (
+                          <CalendarProviderIcon
+                            provider={provider.id}
+                            size={20}
+                          />
+                        )}
+                      </YStack>
+                      <Text flex={1} fontWeight="500" color="$color">
+                        {isLoading ? 'Connecting...' : provider.name}
+                      </Text>
+                      {count > 0 && (
+                        <Text
+                          fontSize={12}
+                          color="$colorMuted"
+                          fontWeight="500"
+                          marginRight="$2"
+                        >
+                          {count} connected
+                        </Text>
                       )}
-                    </YStack>
-                    <Text flex={1} fontWeight="500" color="$color">
-                      {isLoading ? 'Connecting...' : provider.name}
-                    </Text>
-                    {count > 0 && (
-                      <Text
-                        fontSize={12}
-                        color="$colorMuted"
-                        fontWeight="500"
-                        marginRight="$2"
-                      >
-                        {count} connected
-                      </Text>
-                    )}
-                    {provider.comingSoon && (
-                      <Text
-                        fontSize={12}
-                        color="$colorMuted"
-                        fontWeight="500"
-                        marginRight="$2"
-                      >
-                        Coming soon
-                      </Text>
-                    )}
-                    {provider.available && !isLoading && (
-                      <ChevronRight size={20} color="$colorMuted" />
-                    )}
-                  </XStack>
-                </YStack>
-              )
-            })}
+                      {provider.comingSoon && (
+                        <Text
+                          fontSize={12}
+                          color="$colorMuted"
+                          fontWeight="500"
+                          marginRight="$2"
+                        >
+                          Coming soon
+                        </Text>
+                      )}
+                      {provider.available && !isLoading && (
+                        <ChevronRight size={20} color="$colorMuted" />
+                      )}
+                    </XStack>
+                  </YStack>
+                )
+              })
+            )}
           </Card>
         </Theme>
       </ScrollView>

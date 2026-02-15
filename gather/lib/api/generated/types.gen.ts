@@ -1235,6 +1235,126 @@ export type PostCalendarsGoogleSyncResponses = {
 
 export type PostCalendarsGoogleSyncResponse = PostCalendarsGoogleSyncResponses[keyof PostCalendarsGoogleSyncResponses];
 
+export type GetCalendarsOutlookAuthUrlData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendars/outlook/auth-url';
+};
+
+export type GetCalendarsOutlookAuthUrlErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type GetCalendarsOutlookAuthUrlError = GetCalendarsOutlookAuthUrlErrors[keyof GetCalendarsOutlookAuthUrlErrors];
+
+export type GetCalendarsOutlookAuthUrlResponses = {
+    /**
+     * OAuth URL generated
+     */
+    200: GoogleAuthUrlResponse;
+};
+
+export type GetCalendarsOutlookAuthUrlResponse = GetCalendarsOutlookAuthUrlResponses[keyof GetCalendarsOutlookAuthUrlResponses];
+
+export type GetCalendarsOutlookCalendarsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendars/outlook/calendars';
+};
+
+export type GetCalendarsOutlookCalendarsErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * No Outlook connection found
+     */
+    404: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type GetCalendarsOutlookCalendarsError = GetCalendarsOutlookCalendarsErrors[keyof GetCalendarsOutlookCalendarsErrors];
+
+export type GetCalendarsOutlookCalendarsResponses = {
+    /**
+     * List of Outlook calendars
+     */
+    200: GoogleCalendarListResponse;
+};
+
+export type GetCalendarsOutlookCalendarsResponse = GetCalendarsOutlookCalendarsResponses[keyof GetCalendarsOutlookCalendarsResponses];
+
+export type PostCalendarsOutlookSelectData = {
+    body: GoogleSelectCalendars;
+    path?: never;
+    query?: never;
+    url: '/calendars/outlook/select';
+};
+
+export type PostCalendarsOutlookSelectErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostCalendarsOutlookSelectError = PostCalendarsOutlookSelectErrors[keyof PostCalendarsOutlookSelectErrors];
+
+export type PostCalendarsOutlookSelectResponses = {
+    /**
+     * Calendar selection updated
+     */
+    200: CalendarListResponse;
+};
+
+export type PostCalendarsOutlookSelectResponse = PostCalendarsOutlookSelectResponses[keyof PostCalendarsOutlookSelectResponses];
+
+export type PostCalendarsOutlookSyncData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendars/outlook/sync';
+};
+
+export type PostCalendarsOutlookSyncErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostCalendarsOutlookSyncError = PostCalendarsOutlookSyncErrors[keyof PostCalendarsOutlookSyncErrors];
+
+export type PostCalendarsOutlookSyncResponses = {
+    /**
+     * Outlook calendars synced
+     */
+    200: SyncCalendarsResponse;
+};
+
+export type PostCalendarsOutlookSyncResponse = PostCalendarsOutlookSyncResponses[keyof PostCalendarsOutlookSyncResponses];
+
 export type PostEmojiGenerateData = {
     body?: GenerateEmojiRequest;
     path?: never;
