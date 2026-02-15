@@ -390,26 +390,6 @@ export const eventInviteesRelations = relations(eventInvitees, ({ one }) => ({
 }));
 
 // ============================================
-// Locations Table (for saved places)
-// ============================================
-
-export const locations = pgTable(
-  'locations',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    placeId: varchar('place_id', { length: 255 }).notNull(),
-    name: varchar('name', { length: 255 }).notNull(),
-    address: text('address'),
-    latitude: varchar('latitude', { length: 50 }),
-    longitude: varchar('longitude', { length: 50 }),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [uniqueIndex('locations_place_id_idx').on(table.placeId)],
-);
-
-// ============================================
 // Calendar Connections Table
 // ============================================
 
@@ -546,9 +526,6 @@ export type NewCalendarConnection = typeof calendarConnections.$inferInsert;
 
 export type CalendarEventCache = typeof calendarEventsCache.$inferSelect;
 export type NewCalendarEventCache = typeof calendarEventsCache.$inferInsert;
-
-export type Location = typeof locations.$inferSelect;
-export type NewLocation = typeof locations.$inferInsert;
 
 export type EmojiCache = typeof emojiCache.$inferSelect;
 export type NewEmojiCache = typeof emojiCache.$inferInsert;

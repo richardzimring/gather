@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { db, groups, groupMembers } from '../db';
 import type { Group, CreateGroup, UpdateGroup } from '../types';
 import { generateEmoji } from './emoji';
@@ -197,53 +197,3 @@ export const deleteGroup = async (
   return { success: true };
 };
 
-export const addMemberToGroup = async (
-  groupId: string,
-  userId: string,
-  memberId: string,
-): Promise<{ success: boolean; message?: string }> => {
-  const group = await getGroup(groupId);
-
-  if (!group) {
-    return { success: false, message: 'Group not found' };
-  }
-
-  if (group.ownerId !== userId) {
-    return { success: false, message: 'Not authorized to modify this group' };
-  }
-
-  if (group.memberIds.includes(memberId)) {
-    return { success: false, message: 'Member already in group' };
-  }
-
-  await db.insert(groupMembers).values({
-    groupId,
-    userId: memberId,
-  });
-
-  return { success: true };
-};
-
-export const removeMemberFromGroup = async (
-  groupId: string,
-  userId: string,
-  memberId: string,
-): Promise<{ success: boolean; message?: string }> => {
-  const group = await getGroup(groupId);
-
-  if (!group) {
-    return { success: false, message: 'Group not found' };
-  }
-
-  if (group.ownerId !== userId) {
-    return { success: false, message: 'Not authorized to modify this group' };
-  }
-
-  await db
-    .delete(groupMembers)
-    .where(
-      and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, memberId)),
-    );
-
-  return { success: true };
-};

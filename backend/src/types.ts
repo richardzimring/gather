@@ -536,29 +536,6 @@ export const BusyTimeIntervalSchema = z
 export type BusyTimesQuery = z.infer<typeof BusyTimesQuerySchema>;
 export type BusyTimeInterval = z.infer<typeof BusyTimeIntervalSchema>;
 
-// Location schemas
-export const LocationSchema = z
-  .object({
-    locationId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
-    placeId: z.string().openapi({ example: 'ChIJN1t_tDeuEmsRUsoyG83frY4' }),
-    name: z.string().openapi({ example: 'Spyhouse Coffee' }),
-    address: z.string().optional().openapi({ example: '945 Broadway St NE, Minneapolis, MN 55413' }),
-    latitude: z.string().optional().openapi({ example: '45.0012' }),
-    longitude: z.string().optional().openapi({ example: '-93.2342' }),
-  })
-  .openapi('Location');
-
-export const PlaceSearchResultSchema = z
-  .object({
-    placeId: z.string().openapi({ example: 'ChIJN1t_tDeuEmsRUsoyG83frY4' }),
-    name: z.string().openapi({ example: 'Spyhouse Coffee' }),
-    address: z.string().openapi({ example: '945 Broadway St NE, Minneapolis, MN 55413' }),
-  })
-  .openapi('PlaceSearchResult');
-
-export type Location = z.infer<typeof LocationSchema>;
-export type PlaceSearchResult = z.infer<typeof PlaceSearchResultSchema>;
-
 // ============================================
 // API Response Types
 // ============================================

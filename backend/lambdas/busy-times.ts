@@ -1,15 +1,11 @@
 import { createRoute, z } from '@hono/zod-openapi';
-import {
-  createApp,
-  handle,
-  authMiddleware,
-} from '../src/middleware/hono';
+import { createApp, handle, authMiddleware } from '../src/middleware/hono';
 import {
   BusyTimesQuerySchema,
   BusyTimeIntervalSchema,
   ErrorResponseSchema,
 } from '../src/types';
-import * as freeTimeService from '../src/services/free-time';
+import * as busyTimeService from '../src/services/busy-times';
 
 const app = createApp();
 
@@ -109,9 +105,9 @@ app.openapi(postBusyTimesRoute, async (c) => {
 
   try {
     // Validate that all userIds are the current user or accepted friends
-    await freeTimeService.validateUserIds(user.userId, userIds);
+    await busyTimeService.validateUserIds(user.userId, userIds);
 
-    const busyTimes = await freeTimeService.getBusyTimesForUsers(
+    const busyTimes = await busyTimeService.getBusyTimesForUsers(
       userIds,
       new Date(startDate),
       new Date(endDate),
@@ -125,7 +121,10 @@ app.openapi(postBusyTimesRoute, async (c) => {
       200,
     );
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith('Invalid user IDs')) {
+    if (
+      error instanceof Error &&
+      error.message.startsWith('Invalid user IDs')
+    ) {
       return c.json(
         {
           success: false as const,
