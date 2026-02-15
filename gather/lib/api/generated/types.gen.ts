@@ -209,6 +209,32 @@ export type BusySlot = {
     calendarName?: string;
 };
 
+export type SyncCalendarsResponse = {
+    success: true;
+    data: {
+        connections: Array<CalendarConnection>;
+    };
+    message?: string;
+};
+
+export type SyncCalendars = {
+    calendars: Array<SyncCalendarEntry>;
+};
+
+export type SyncCalendarEntry = {
+    externalCalendarId: string;
+    calendarName: string;
+    color?: string;
+    events: Array<SyncCalendarEvent>;
+};
+
+export type SyncCalendarEvent = {
+    externalEventId: string;
+    startTime: string;
+    endTime: string;
+    isBusy: boolean;
+};
+
 export type UpdateCalendarConnection = {
     importEnabled?: boolean;
     exportEnabled?: boolean;
@@ -943,6 +969,35 @@ export type GetCalendarsBusySlotsResponses = {
 };
 
 export type GetCalendarsBusySlotsResponse = GetCalendarsBusySlotsResponses[keyof GetCalendarsBusySlotsResponses];
+
+export type PostCalendarsSyncData = {
+    body: SyncCalendars;
+    path?: never;
+    query?: never;
+    url: '/calendars/sync';
+};
+
+export type PostCalendarsSyncErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostCalendarsSyncError = PostCalendarsSyncErrors[keyof PostCalendarsSyncErrors];
+
+export type PostCalendarsSyncResponses = {
+    /**
+     * Calendars synced successfully
+     */
+    200: SyncCalendarsResponse;
+};
+
+export type PostCalendarsSyncResponse = PostCalendarsSyncResponses[keyof PostCalendarsSyncResponses];
 
 export type DeleteCalendarsByConnectionIdData = {
     body?: never;

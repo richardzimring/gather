@@ -17,6 +17,8 @@ export {
   useCreateCalendarConnection,
   useUpdateCalendarConnection,
   useDeleteCalendarConnection,
+  useSyncCalendars,
+  useTriggerCalendarSync,
 } from './useCalendars'
 
 // Notifications
@@ -27,6 +29,9 @@ export {
   useUpdateNotificationPreferences,
   notificationPreferencesKeys,
 } from './useNotifications'
+
+// Calendar auto-sync
+export { useCalendarAutoSync } from './useCalendarSync'
 
 // Utilities
 export * from './useRefresh'

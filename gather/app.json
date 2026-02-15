@@ -13,7 +13,8 @@
       "bundleIdentifier": "com.gather.app",
       "buildNumber": "1",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "We need your location to help you find nearby places for events."
+        "NSLocationWhenInUseUsageDescription": "We need your location to help you find nearby places for events.",
+        "NSCalendarsUsageDescription": "Gather reads your calendar to find times when you and your friends are all free."
       }
     },
     "android": {
@@ -47,6 +48,7 @@
       "@react-native-community/datetimepicker",
       "expo-apple-authentication",
       "expo-notifications",
+      "expo-calendar",
       "expo-font",
       "expo-web-browser"
     ],

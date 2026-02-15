@@ -7,6 +7,7 @@ import {
   patchCalendarsByConnectionId,
   deleteCalendarsByConnectionId,
 } from '../api/client'
+import { syncSelectedCalendars, resyncConnectedCalendars } from '../services/calendarSync'
 
 // Query keys
 export const calendarKeys = {
@@ -155,6 +156,48 @@ export function useDeleteCalendarConnection() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: calendarKeys.connections() })
+    },
+  })
+}
+
+/**
+ * Hook to bulk-sync device calendars to the backend.
+ * Accepts an array of device calendar IDs to sync.
+ */
+export function useSyncCalendars() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (selectedCalendarIds: string[]) => {
+      await syncSelectedCalendars(selectedCalendarIds)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: calendarKeys.all })
+    },
+  })
+}
+
+/**
+ * Hook to manually trigger a re-sync of already-connected calendars.
+ * Re-reads events from the device for all connected Apple calendars
+ * and pushes updated busy slots to the backend.
+ */
+export function useTriggerCalendarSync() {
+  const queryClient = useQueryClient()
+  const { data: connections } = useCalendarConnections()
+
+  return useMutation({
+    mutationFn: async () => {
+      const appleCalendarIds = (connections ?? [])
+        .filter((c) => c.provider === 'apple' && c.importEnabled)
+        .map((c) => c.externalCalendarId)
+
+      if (appleCalendarIds.length === 0) return
+
+      await resyncConnectedCalendars(appleCalendarIds)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: calendarKeys.all })
     },
   })
 }
