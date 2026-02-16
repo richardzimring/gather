@@ -29,7 +29,6 @@ import {
   useFriends,
   useRemoveFriend,
   useBlockFriend,
-  useBusyTimes,
   useEvents,
 } from "../../lib/hooks";
 
@@ -62,28 +61,6 @@ export default function FriendProfileScreen() {
   const [showActionSheet, setShowActionSheet] = useState(false);
 
   const { data: friendsData, isLoading } = useFriends();
-
-  // Calculate date range for free time query (next 7 days)
-  const dateRange = useMemo(() => {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 7);
-    end.setHours(23, 59, 59, 999);
-    return {
-      start: start.toISOString(),
-      end: end.toISOString(),
-    };
-  }, []);
-
-  // Query busy times for this friend, compute 30-min free time slots client-side
-  const friendUserIds = useMemo(() => (id ? [id] : []), [id]);
-  const { data: freeTimeSlots } = useBusyTimes(
-    friendUserIds,
-    dateRange.start,
-    dateRange.end,
-    30,
-  );
   const { data: events } = useEvents();
   const removeFriend = useRemoveFriend();
   const blockFriend = useBlockFriend();
@@ -93,9 +70,6 @@ export default function FriendProfileScreen() {
     if (!friendsData?.friends || !id) return null;
     return friendsData.friends.find((f) => f.friendId === id) ?? null;
   }, [friendsData, id]);
-
-  // Get this friend's free time slots (from the new API, already computed)
-  const friendFreeSlots = freeTimeSlots ?? [];
 
   // Get shared events with this friend
   const sharedEvents = useMemo(() => {
@@ -133,7 +107,10 @@ export default function FriendProfileScreen() {
 
   const handleInviteToEvent = () => {
     setShowActionSheet(false);
-    router.push("/(tabs)/plan");
+    router.push({
+      pathname: "/(tabs)/plan",
+      params: { selectedFriendIds: id },
+    });
   };
 
   const handleBlockUser = () => {
@@ -210,26 +187,6 @@ export default function FriendProfileScreen() {
           <XStack gap="$2" marginBottom="$4">
             <SkeletonBar width={180} height={44} borderRadius={8} />
           </XStack>
-
-          {/* Free Time Section Skeleton */}
-          <YStack marginBottom="$4">
-            <SkeletonBar width={130} height={14} style={{ marginBottom: 12 }} />
-            <YStack gap="$2">
-              {[1, 2, 3].map((i) => (
-                <Theme key={i} name="Card">
-                  <Card>
-                    <XStack alignItems="center" gap="$3">
-                      <SkeletonBar width={3} height={36} borderRadius={2} />
-                      <YStack flex={1} gap="$1">
-                        <SkeletonBar width={60} height={14} />
-                        <SkeletonBar width={180} height={12} />
-                      </YStack>
-                    </XStack>
-                  </Card>
-                </Theme>
-              ))}
-            </YStack>
-          </YStack>
 
           {/* Shared Events Section Skeleton */}
           <YStack>
@@ -337,51 +294,6 @@ export default function FriendProfileScreen() {
             Invite to Event
           </Button>
         </XStack>
-
-        {/* Free Time Section */}
-        <YStack marginBottom="$4">
-          <Text fontWeight="500" fontSize={14} marginBottom="$3">
-            Available This Week
-          </Text>
-          {friendFreeSlots.length === 0 ? (
-            <Theme name="Card">
-              <Card>
-                <YStack alignItems="center" padding="$2">
-                  <Text color="$colorMuted" fontSize={13} textAlign="center">
-                    No availability this week
-                  </Text>
-                </YStack>
-              </Card>
-            </Theme>
-          ) : (
-            <YStack gap="$2">
-              {friendFreeSlots.slice(0, 5).map((slot, index) => (
-                <Theme key={`${slot.startTime}-${index}`} name="Card">
-                  <Card>
-                    <XStack alignItems="center" gap="$3">
-                      <YStack
-                        width={3}
-                        height={36}
-                        borderRadius={2}
-                        backgroundColor="$success"
-                      />
-                      <YStack flex={1}>
-                        <Text fontWeight="500" fontSize={14}>
-                          Free
-                        </Text>
-                        <Text color="$colorMuted" fontSize={12}>
-                          {formatDate(slot.startTime)} •{" "}
-                          {formatTime(slot.startTime)} -{" "}
-                          {formatTime(slot.endTime)}
-                        </Text>
-                      </YStack>
-                    </XStack>
-                  </Card>
-                </Theme>
-              ))}
-            </YStack>
-          )}
-        </YStack>
 
         {/* Shared Events Section */}
         <YStack>

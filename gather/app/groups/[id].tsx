@@ -171,7 +171,14 @@ export default function GroupDetailScreen() {
 
   const handleInviteGroupToEvent = () => {
     setShowActionSheet(false);
-    router.push("/(tabs)/plan");
+    if (group && group.memberIds.length > 0) {
+      router.push({
+        pathname: "/(tabs)/plan",
+        params: { selectedFriendIds: group.memberIds.join(",") },
+      });
+    } else {
+      router.push("/(tabs)/plan");
+    }
   };
 
   if (isLoading) {

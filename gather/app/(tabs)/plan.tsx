@@ -10,8 +10,8 @@ import {
   MapPin,
   FileText,
 } from "@tamagui/lucide-icons";
-import { router } from "expo-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   LayoutAnimation,
   RefreshControl,
@@ -231,6 +231,9 @@ export default function PlanScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { user } = useAuth();
+  const { selectedFriendIds } = useLocalSearchParams<{
+    selectedFriendIds?: string;
+  }>();
 
   // --- State ---
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
@@ -274,13 +277,25 @@ export default function PlanScreen() {
     [groups],
   );
 
+  // --- Pre-select friends if passed via navigation params ---
+  useEffect(() => {
+    if (selectedFriendIds) {
+      const friendIdsArray = selectedFriendIds.split(",").filter(Boolean);
+      const validFriendIds = friendIdsArray.filter((id) =>
+        friends.some((f) => f.friendId === id),
+      );
+      if (validFriendIds.length > 0) {
+        setSelectedFriends(validFriendIds);
+      }
+    }
+  }, [selectedFriendIds, friends]);
+
   // --- Computed date range for slot queries ---
   const isSingleDate = rangeStart !== null && rangeEnd === null;
   const isDateRange = rangeStart !== null && rangeEnd !== null;
 
   const { start: computedRangeStart, end: computedRangeEnd } = useMemo(() => {
     if (!rangeStart) {
-      // Fallback — shouldn't show results anyway when no date is selected
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const end = new Date(today);
