@@ -115,7 +115,8 @@ export default function ProfileScreen() {
   const { isRefreshing, onRefresh } = useRefresh(inviteCodeQuery);
 
   // Calendar connections
-  const { data: calendarConnections, isLoading: isLoadingCalendars } = useCalendarConnections();
+  const { data: calendarConnections, isLoading: isLoadingCalendars } =
+    useCalendarConnections();
   const deleteCalendarConnection = useDeleteCalendarConnection();
   const triggerSync = useTriggerCalendarSync();
 
@@ -348,7 +349,7 @@ export default function ProfileScreen() {
               </XStack>
             </XStack>
 
-{isLoadingCalendars ? (
+            {isLoadingCalendars ? (
               // Skeleton loading
               <YStack gap="$3">
                 {[1, 2].map((i) => (
@@ -370,7 +371,8 @@ export default function ProfileScreen() {
                 ))}
               </YStack>
             ) : !calendarConnections ||
-              calendarConnections.filter((c) => c.importEnabled).length === 0 ? (
+              calendarConnections.filter((c) => c.importEnabled).length ===
+                0 ? (
               <YStack alignItems="center" padding="$4" gap="$3">
                 <Calendar size={32} color="$colorMuted" />
                 <Text color="$colorMuted" textAlign="center">

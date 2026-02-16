@@ -3,6 +3,7 @@ import {
   Button as TamaguiButton,
   GetProps,
   Spinner,
+  useTheme,
 } from "tamagui";
 import * as Haptics from "expo-haptics";
 import { Platform } from "react-native";
@@ -128,6 +129,8 @@ export function Button({
   icon,
   ...props
 }: ButtonProps) {
+  const theme = useTheme();
+
   const handlePress = (event: Parameters<NonNullable<typeof onPress>>[0]) => {
     if (loading) return;
     if (haptic && Platform.OS === "ios") {
@@ -139,8 +142,8 @@ export function Button({
   // Determine spinner color based on variant
   const spinnerColor =
     variant === "primary" || variant === "destructive"
-      ? "$primaryForeground"
-      : "$color";
+      ? theme.primaryForeground.val
+      : theme.color.val;
 
   const isDisabled = (disabled || loading) ?? false;
 

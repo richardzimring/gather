@@ -416,8 +416,16 @@ export default function FriendsScreen() {
                           </YStack>
                         </XStack>
                         <XStack gap="$2">
-                          <SkeletonBar width={150} height={36} borderRadius={8} />
-                          <SkeletonBar width={150} height={36} borderRadius={8} />
+                          <SkeletonBar
+                            width={150}
+                            height={36}
+                            borderRadius={8}
+                          />
+                          <SkeletonBar
+                            width={150}
+                            height={36}
+                            borderRadius={8}
+                          />
                         </XStack>
                       </YStack>
                     </Card>
