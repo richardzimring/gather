@@ -60,6 +60,82 @@ alwaysApply: false
 - Native `UIToolbar` API for iOS -- provides bottom toolbar with native styling
 - Useful alternative to custom bottom action bars; gets Liquid Glass automatically
 
+# Haptic Feedback (Apple HIG)
+
+**Principle:** Use haptics judiciously to enhance interactions without overwhelming. Follow Apple's semantic meanings for haptic types so blind users can understand app state through consistent feedback.
+
+**Centralized utility** (`lib/haptics.ts`):
+
+Import the `haptic` utility for all haptic feedback:
+
+```typescript
+import { haptic } from "../../lib/haptics";
+```
+
+**Impact Feedback** - For physical interactions and UI element presses:
+
+- `haptic.light()` - Cards, navigation items, secondary buttons, calendar navigation
+- `haptic.medium()` - Primary buttons, RSVP actions, important interactions
+- `haptic.heavy()` - Destructive buttons, significant state changes
+
+**Notification Feedback** - For task outcomes and system events:
+
+- `haptic.success()` - Event created, RSVP accepted, friend added, invite code copied
+- `haptic.warning()` - Destructive action confirmations (before Alert)
+- `haptic.error()` - Failed mutations, network errors, validation failures
+
+**Selection Feedback** - For discrete value changes:
+
+- `haptic.selection()` - Time pickers, calendar dates, switches, segmented controls, tab switches
+
+**Usage patterns:**
+
+```tsx
+// Button presses (automatic via Button component variant)
+<Button variant="primary" onPress={handleCreate}>Create</Button> // Medium impact
+
+// Cards and pressable elements
+<Card pressable onPress={() => {
+  haptic.light();
+  router.push('/event/123');
+}}>
+
+// Pickers and selections
+<Switch onCheckedChange={(checked) => {
+  haptic.selection();
+  setEnabled(checked);
+}} />
+
+// Success actions
+try {
+  await createEvent.mutateAsync(data);
+  haptic.success();
+} catch (err) {
+  haptic.error();
+}
+
+// Warning confirmations
+const handleDelete = () => {
+  haptic.warning();
+  Alert.alert("Delete", "Are you sure?", [...]);
+};
+```
+
+**Component integration:**
+
+- `Button` component automatically provides haptics based on variant
+- Custom pressable elements should call `haptic.light()` for navigation taps
+- Always add error haptics to catch blocks in mutations
+- Add success haptics after successful async operations
+- Tab/segmented control switches should use `haptic.selection()`
+
+**Don't overuse:**
+
+- ❌ No haptics for back navigation (follows iOS system behavior)
+- ❌ No haptics for screen transitions (implicit in navigation)
+- ❌ No haptics for pull-to-refresh (native control provides feedback)
+- ❌ No haptics for text input focus (follows iOS keyboard behavior)
+
 # Design System (shadcn Mira / Stone)
 
 **Color tokens** - NEVER hardcode colors. Use semantic tokens from `tamagui.config.ts`:

@@ -6,7 +6,8 @@
     "start": "expo start",
     "ios": "expo run:ios --device",
     "lint": "expo lint && tsc --noEmit",
-    "generate:api": "openapi-ts -i ../backend/openapi.json -o ./lib/api/generated -c @hey-api/client-fetch"
+    "generate:api": "openapi-ts -i ../backend/openapi.json -o ./lib/api/generated -c @hey-api/client-fetch",
+    "android": "expo run:android"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
