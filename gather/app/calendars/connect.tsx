@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { Alert } from 'react-native'
-import { router } from 'expo-router'
+import { useState } from "react";
+import { Alert } from "react-native";
+import { router } from "expo-router";
 import {
   ScrollView,
   Separator,
@@ -9,128 +9,146 @@ import {
   XStack,
   YStack,
   Theme,
-} from 'tamagui'
-import { ChevronRight } from '@tamagui/lucide-icons'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useQueryClient } from '@tanstack/react-query'
+} from "tamagui";
+import { ChevronRight } from "@tamagui/lucide-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQueryClient } from "@tanstack/react-query";
 
-import { CalendarProviderIcon } from '../../components/ui/CalendarProviderIcon'
-import { Card } from '../../components/ui/Card'
-import { BackHeader } from '../../components/ui/ScreenHeader'
-import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton'
-import { useCalendarConnections, calendarConnectionKeys } from '../../lib/hooks'
+import { CalendarProviderIcon } from "../../components/ui/CalendarProviderIcon";
+import { Card } from "../../components/ui/Card";
+import { BackHeader } from "../../components/ui/ScreenHeader";
+import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
+import {
+  useCalendarConnections,
+  calendarConnectionKeys,
+} from "../../lib/hooks";
 import {
   connectGoogleCalendar,
   GoogleAuthCancelledError,
-} from '../../lib/services/googleAuth'
+} from "../../lib/services/googleAuth";
 import {
   connectOutlookCalendar,
   OutlookAuthCancelledError,
-} from '../../lib/services/outlookAuth'
+} from "../../lib/services/outlookAuth";
 
 interface ProviderOption {
-  id: 'apple' | 'google' | 'outlook'
-  name: string
-  available: boolean
-  comingSoon?: boolean
+  id: "apple" | "google" | "outlook";
+  name: string;
 }
 
 const PROVIDERS: ProviderOption[] = [
   {
-    id: 'apple',
-    name: 'Apple Calendar',
-    available: true,
+    id: "apple",
+    name: "Apple Calendar",
   },
   {
-    id: 'google',
-    name: 'Google Calendar',
-    available: true,
+    id: "google",
+    name: "Google Calendar",
   },
   {
-    id: 'outlook',
-    name: 'Outlook',
-    available: true,
+    id: "outlook",
+    name: "Outlook",
   },
-]
+];
 
 export default function CalendarConnectScreen() {
-  const insets = useSafeAreaInsets()
-  const queryClient = useQueryClient()
-  const { data: connections, isLoading: isLoadingConnections } = useCalendarConnections()
-  const [isConnectingGoogle, setIsConnectingGoogle] = useState(false)
-  const [isConnectingOutlook, setIsConnectingOutlook] = useState(false)
+  const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+  const { data: connections, isLoading: isLoadingConnections } =
+    useCalendarConnections();
+  const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
+  const [isConnectingOutlook, setIsConnectingOutlook] = useState(false);
 
-  const hasGoogleConnection = connections?.some((c) => c.provider === 'google')
-  const hasOutlookConnection = connections?.some((c) => c.provider === 'outlook')
+  const hasGoogleConnection = connections?.some((c) => c.provider === "google");
+  const hasOutlookConnection = connections?.some(
+    (c) => c.provider === "outlook",
+  );
 
   const handleProviderPress = async (provider: ProviderOption) => {
-    if (!provider.available) return
-
     switch (provider.id) {
-      case 'apple':
-        router.push('/calendars/select')
-        break
+      case "apple":
+        router.push({
+          pathname: "/calendars/[provider]-select",
+          params: { provider: "apple" },
+        });
+        break;
 
-      case 'google':
+      case "google":
         if (hasGoogleConnection) {
-          router.push('/calendars/google-select')
+          router.push({
+            pathname: "/calendars/[provider]-select",
+            params: { provider: "google" },
+          });
         } else {
-          setIsConnectingGoogle(true)
+          setIsConnectingGoogle(true);
           try {
-            await connectGoogleCalendar()
+            await connectGoogleCalendar();
             // Backend already exchanged the code and stored tokens;
             // invalidate so the google-select screen fetches fresh data
-            await queryClient.invalidateQueries({ queryKey: calendarConnectionKeys.connections() })
-            router.push('/calendars/google-select')
+            await queryClient.invalidateQueries({
+              queryKey: calendarConnectionKeys.connections(),
+            });
+            router.push({
+              pathname: "/calendars/[provider]-select",
+              params: { provider: "google" },
+            });
           } catch (error) {
             if (error instanceof GoogleAuthCancelledError) {
-              return
+              return;
             }
-            console.error('Google Calendar connection failed:', error)
+            console.error("Google Calendar connection failed:", error);
             Alert.alert(
-              'Connection Failed',
-              'Failed to connect Google Calendar. Please try again.',
-            )
+              "Connection Failed",
+              "Failed to connect Google Calendar. Please try again.",
+            );
           } finally {
-            setIsConnectingGoogle(false)
+            setIsConnectingGoogle(false);
           }
         }
-        break
+        break;
 
-      case 'outlook':
+      case "outlook":
         if (hasOutlookConnection) {
-          router.push('/calendars/outlook-select')
+          router.push({
+            pathname: "/calendars/[provider]-select",
+            params: { provider: "outlook" },
+          });
         } else {
-          setIsConnectingOutlook(true)
+          setIsConnectingOutlook(true);
           try {
-            await connectOutlookCalendar()
+            await connectOutlookCalendar();
             // Backend already exchanged the code and stored tokens;
             // invalidate so the outlook-select screen fetches fresh data
-            await queryClient.invalidateQueries({ queryKey: calendarConnectionKeys.connections() })
-            router.push('/calendars/outlook-select')
+            await queryClient.invalidateQueries({
+              queryKey: calendarConnectionKeys.connections(),
+            });
+            router.push({
+              pathname: "/calendars/[provider]-select",
+              params: { provider: "outlook" },
+            });
           } catch (error) {
             if (error instanceof OutlookAuthCancelledError) {
-              return
+              return;
             }
-            console.error('Outlook Calendar connection failed:', error)
+            console.error("Outlook Calendar connection failed:", error);
             Alert.alert(
-              'Connection Failed',
-              'Failed to connect Outlook Calendar. Please try again.',
-            )
+              "Connection Failed",
+              "Failed to connect Outlook Calendar. Please try again.",
+            );
           } finally {
-            setIsConnectingOutlook(false)
+            setIsConnectingOutlook(false);
           }
         }
-        break
+        break;
     }
-  }
+  };
 
   const getConnectionCount = (providerId: string): number => {
-    if (!connections) return 0
+    if (!connections) return 0;
     return connections.filter(
       (c) => c.provider === providerId && c.importEnabled,
-    ).length
-  }
+    ).length;
+  };
 
   return (
     <YStack flex={1} backgroundColor="$background">
@@ -177,10 +195,10 @@ export default function CalendarConnectScreen() {
               </>
             ) : (
               PROVIDERS.map((provider, index) => {
-                const count = getConnectionCount(provider.id)
+                const count = getConnectionCount(provider.id);
                 const isLoading =
-                  (provider.id === 'google' && isConnectingGoogle) ||
-                  (provider.id === 'outlook' && isConnectingOutlook)
+                  (provider.id === "google" && isConnectingGoogle) ||
+                  (provider.id === "outlook" && isConnectingOutlook);
 
                 return (
                   <YStack key={provider.id}>
@@ -188,14 +206,10 @@ export default function CalendarConnectScreen() {
                     <XStack
                       alignItems="center"
                       paddingVertical="$3"
-                      opacity={!provider.available || isLoading ? 0.5 : 1}
-                      pressStyle={
-                        provider.available && !isLoading
-                          ? { opacity: 0.7 }
-                          : undefined
-                      }
+                      opacity={isLoading ? 0.5 : 1}
+                      pressStyle={!isLoading ? { opacity: 0.7 } : undefined}
                       onPress={() => handleProviderPress(provider)}
-                      disabled={!provider.available || isLoading}
+                      disabled={isLoading}
                     >
                       <YStack
                         width={36}
@@ -216,7 +230,7 @@ export default function CalendarConnectScreen() {
                         )}
                       </YStack>
                       <Text flex={1} fontWeight="500" color="$color">
-                        {isLoading ? 'Connecting...' : provider.name}
+                        {isLoading ? "Connecting..." : provider.name}
                       </Text>
                       {count > 0 && (
                         <Text
@@ -228,27 +242,17 @@ export default function CalendarConnectScreen() {
                           {count} connected
                         </Text>
                       )}
-                      {provider.comingSoon && (
-                        <Text
-                          fontSize={12}
-                          color="$colorMuted"
-                          fontWeight="500"
-                          marginRight="$2"
-                        >
-                          Coming soon
-                        </Text>
-                      )}
-                      {provider.available && !isLoading && (
+                      {!isLoading && (
                         <ChevronRight size={20} color="$colorMuted" />
                       )}
                     </XStack>
                   </YStack>
-                )
+                );
               })
             )}
           </Card>
         </Theme>
       </ScrollView>
     </YStack>
-  )
+  );
 }
