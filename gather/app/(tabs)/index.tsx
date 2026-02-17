@@ -299,29 +299,6 @@ export default function HomeScreen() {
 
   return (
     <YStack flex={1} backgroundColor="$background">
-      {/* Fixed header area */}
-      <YStack
-        paddingTop={insets.top + greetingPadding}
-        paddingHorizontal={16}
-        paddingBottom="$3"
-      >
-        {/* Greeting */}
-        <Text fontSize={14} color="$colorMuted" marginBottom={-greetingPadding}>
-          {getGreeting()}, {user?.firstName ?? "there"}
-        </Text>
-
-        {/* Header */}
-        <XStack justifyContent="space-between" alignItems="center">
-          <H1 fontSize={28} fontWeight="700">
-            Events
-          </H1>
-          <GlassButton
-            icon={<Plus size={20} color="$color" />}
-            onPress={navigateToCreate}
-          />
-        </XStack>
-      </YStack>
-
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -332,10 +309,29 @@ export default function HomeScreen() {
           />
         }
         contentContainerStyle={{
+          paddingTop: insets.top + greetingPadding,
           paddingBottom: insets.bottom + 100,
           paddingHorizontal: 16,
         }}
       >
+        {/* Header */}
+        <YStack paddingBottom="$3">
+          {/* Greeting */}
+          <Text fontSize={14} color="$colorMuted" marginBottom={-greetingPadding}>
+            {getGreeting()}, {user?.firstName ?? "there"}
+          </Text>
+
+          {/* Header */}
+          <XStack justifyContent="space-between" alignItems="center">
+            <H1 fontSize={28} fontWeight="700">
+              Events
+            </H1>
+            <GlassButton
+              icon={<Plus size={20} color="$color" />}
+              onPress={navigateToCreate}
+            />
+          </XStack>
+        </YStack>
         {/* Events Timeline */}
         <YStack gap="$5">
           {/* Show skeleton loading for first load */}

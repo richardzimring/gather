@@ -449,10 +449,10 @@ export default function EventDetailScreen() {
 
   const handleResponse = async (status: InviteeStatus) => {
     if (!id) return;
-    
+
     // Trigger haptic feedback
     haptic.medium();
-    
+
     setPendingResponse(status);
     try {
       await respondToEvent.mutateAsync({
@@ -460,7 +460,7 @@ export default function EventDetailScreen() {
         response: { status },
       });
       setIsEditingResponse(false);
-      
+
       // Success haptic for accepted invitations
       if (status === "accepted") {
         haptic.success();

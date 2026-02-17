@@ -50,7 +50,6 @@ export function LocationSearch({
   const [results, setResults] = useState<PlaceResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null);
   const userLocationRef = useRef<UserLocation | null>(null);
   const locationRequestedRef = useRef(false);
 
@@ -167,7 +166,6 @@ export function LocationSearch({
   const handleQueryChange = (text: string) => {
     setQuery(text);
     setShowResults(true);
-    setSelectedPlace(null);
     searchPlaces(text);
   };
 
@@ -185,14 +183,12 @@ export function LocationSearch({
       longitude: coords?.longitude,
     };
 
-    setSelectedPlace(placeWithCoords);
     setIsSearching(false);
     onSelect(placeWithCoords);
   };
 
   const handleClear = () => {
     setQuery("");
-    setSelectedPlace(null);
     setResults([]);
     setShowResults(false);
     onSelect(null);

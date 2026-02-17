@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { router } from 'expo-router'
+import { useState, useEffect, useRef, useCallback } from "react";
+import { router } from "expo-router";
 import {
   Animated,
   LayoutAnimation,
@@ -7,9 +7,9 @@ import {
   Share,
   UIManager,
   KeyboardAvoidingView,
-} from 'react-native'
-import * as Notifications from 'expo-notifications'
-import * as Clipboard from 'expo-clipboard'
+} from "react-native";
+import * as Notifications from "expo-notifications";
+import * as Clipboard from "expo-clipboard";
 import {
   Bell,
   Calendar,
@@ -18,8 +18,7 @@ import {
   Sparkles,
   UserPlus,
   Check,
-  MapPin,
-} from '@tamagui/lucide-icons'
+} from "@tamagui/lucide-icons";
 import {
   Circle,
   H1,
@@ -29,26 +28,17 @@ import {
   Theme,
   XStack,
   YStack,
-} from 'tamagui'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+} from "tamagui";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
-import { useAuth } from '../../lib/hooks/useAuth'
-import { useInviteCode, useSendFriendRequest } from '../../lib/hooks'
-import { registerPushTokenAsync } from '../../lib/hooks/useNotifications'
-import { haptic } from '../../lib/haptics'
-import { patchUsersMe } from '../../lib/api/client'
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
+import { useAuth } from "../../lib/hooks/useAuth";
+import { useInviteCode, useSendFriendRequest } from "../../lib/hooks";
+import { registerPushTokenAsync } from "../../lib/hooks/useNotifications";
+import { haptic } from "../../lib/haptics";
 
-// Enable LayoutAnimation on Android
-if (
-  Platform.OS === 'android' &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true)
-}
-
-const TOTAL_STEPS = 5
+const TOTAL_STEPS = 4;
 
 // ============================================
 // Progress Indicator
@@ -61,13 +51,13 @@ function ProgressDots({ current, total }: { current: number; total: number }) {
         <Circle
           key={i}
           size={i === current ? 8 : 6}
-          backgroundColor={i === current ? '$primary' : '$colorMuted'}
+          backgroundColor={i === current ? "$primary" : "$colorMuted"}
           opacity={i === current ? 1 : i < current ? 0.5 : 0.2}
           animation="quick"
         />
       ))}
     </XStack>
-  )
+  );
 }
 
 // ============================================
@@ -75,10 +65,10 @@ function ProgressDots({ current, total }: { current: number; total: number }) {
 // ============================================
 
 function WelcomeStep({ onNext }: { onNext: () => void }) {
-  const { user } = useAuth()
-  const fadeAnim = useRef(new Animated.Value(0)).current
-  const scaleAnim = useRef(new Animated.Value(0.8)).current
-  const slideAnim = useRef(new Animated.Value(30)).current
+  const { user } = useAuth();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -98,18 +88,24 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
         duration: 500,
         useNativeDriver: true,
       }),
-    ]).start()
-  }, [])
+    ]).start();
+  }, [fadeAnim, scaleAnim, slideAnim]);
 
-  const firstName = user?.firstName || 'there'
+  const firstName = user?.firstName || "there";
 
   return (
-    <YStack flex={1} alignItems="center" justifyContent="center" gap="$5" paddingHorizontal="$6">
+    <YStack
+      flex={1}
+      alignItems="center"
+      justifyContent="center"
+      gap="$5"
+      paddingHorizontal="$6"
+    >
       <Animated.View
         style={{
           opacity: fadeAnim,
           transform: [{ scale: scaleAnim }],
-          alignItems: 'center',
+          alignItems: "center",
         }}
       >
         <Text fontSize={72} marginBottom="$3">
@@ -121,7 +117,7 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
         style={{
           opacity: fadeAnim,
           transform: [{ translateY: slideAnim }],
-          alignItems: 'center',
+          alignItems: "center",
         }}
       >
         <H1 fontSize={32} fontWeight="700" textAlign="center" marginBottom="$2">
@@ -134,154 +130,93 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
           lineHeight={26}
           maxWidth={300}
         >
-          Let's get you set up in under a minute.
+          Let&apos;s get you set up in under a minute.
         </Text>
       </Animated.View>
 
-      <Animated.View style={{ opacity: fadeAnim, width: '100%', paddingHorizontal: 8 }}>
-        <Button variant="primary" buttonSize="lg" fullWidth onPress={onNext}>
-          Let's go
-        </Button>
-      </Animated.View>
-    </YStack>
-  )
-}
-
-// ============================================
-// Step 2: Profile Setup
-// ============================================
-
-function ProfileStep({ onNext }: { onNext: () => void }) {
-  const { user } = useAuth()
-  const [detectedTimezone, setDetectedTimezone] = useState('')
-  const [timezoneUpdated, setTimezoneUpdated] = useState(false)
-
-  useEffect(() => {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-    setDetectedTimezone(tz)
-
-    // If the user's timezone differs from the detected one, update it
-    if (tz && user?.timezone !== tz) {
-      patchUsersMe({ body: { timezone: tz } })
-        .then(() => setTimezoneUpdated(true))
-        .catch(console.error)
-    }
-  }, [user?.timezone])
-
-  const initials = user?.initials || '?'
-  const fullName = user?.fullName || 'New User'
-
-  // Format timezone for display (e.g. "America/New_York" -> "New York")
-  const displayTimezone = detectedTimezone
-    .split('/')
-    .pop()
-    ?.replace(/_/g, ' ') || detectedTimezone
-
-  return (
-    <YStack flex={1} alignItems="center" justifyContent="center" gap="$5" paddingHorizontal="$6">
-      {/* Avatar */}
-      <Circle size={100} backgroundColor="$primary">
-        <Text fontSize={36} fontWeight="600" color="$primaryForeground">
-          {initials}
-        </Text>
-      </Circle>
-
-      {/* Name */}
-      <YStack alignItems="center" gap="$2">
-        <H1 fontSize={28} fontWeight="700" textAlign="center">
-          {fullName}
-        </H1>
-        <XStack alignItems="center" gap="$2">
-          <MapPin size={14} color="$colorMuted" />
-          <Text color="$colorMuted" fontSize={15}>
-            {displayTimezone}
-            {timezoneUpdated && ' (updated)'}
-          </Text>
-        </XStack>
-      </YStack>
-
-      {/* Info text */}
-      <Text
-        color="$colorMuted"
-        fontSize={15}
-        textAlign="center"
-        lineHeight={24}
-        maxWidth={280}
+      <Animated.View
+        style={{ opacity: fadeAnim, width: "100%", paddingHorizontal: 8 }}
       >
-        This is how your friends will see you in Gather. You can update your profile anytime.
-      </Text>
-
-      <YStack width="100%" paddingHorizontal={8}>
-        <Button variant="primary" buttonSize="lg" fullWidth onPress={onNext}>
-          Looks good
+        <Button
+          variant="primary"
+          buttonSize="lg"
+          fullWidth
+          onPress={() => {
+            haptic.light();
+            onNext();
+          }}
+        >
+          Let&apos;s go
         </Button>
-      </YStack>
+      </Animated.View>
     </YStack>
-  )
+  );
 }
 
 // ============================================
-// Step 3: Invite Friends
+// Step 2: Invite Friends
 // ============================================
 
 function InviteFriendsStep({ onNext }: { onNext: () => void }) {
-  const { data: inviteCodeData, isLoading: isLoadingCode } = useInviteCode()
-  const sendFriendRequest = useSendFriendRequest()
-  const [friendCode, setFriendCode] = useState('')
-  const [copied, setCopied] = useState(false)
-  const [showCodeInput, setShowCodeInput] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [requestSent, setRequestSent] = useState(false)
+  const { data: inviteCodeData, isLoading: isLoadingCode } = useInviteCode();
+  const sendFriendRequest = useSendFriendRequest();
+  const [friendCode, setFriendCode] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [showCodeInput, setShowCodeInput] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [requestSent, setRequestSent] = useState(false);
 
-  const myInviteCode = inviteCodeData?.inviteCode ?? ''
+  const myInviteCode = inviteCodeData?.inviteCode ?? "";
 
   const handleCopyCode = async () => {
-    if (!myInviteCode) return
-    await Clipboard.setStringAsync(myInviteCode)
-    haptic.success()
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    if (!myInviteCode) return;
+    await Clipboard.setStringAsync(myInviteCode);
+    haptic.success();
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleShare = async () => {
     try {
       await Share.share({
         message: `Hey, add me on Gather! My invite code is: ${myInviteCode}`,
-      })
+      });
+      haptic.light();
     } catch (err) {
-      console.error('Failed to share:', err)
+      console.error("Failed to share:", err);
     }
-  }
+  };
 
   const handleSendRequest = async () => {
-    const cleanCode = friendCode.trim().toUpperCase()
+    const cleanCode = friendCode.trim().toUpperCase();
     if (!cleanCode || cleanCode.length < 6) {
-      setError('Please enter a valid invite code')
-      return
+      setError("Please enter a valid invite code");
+      return;
     }
-    setError(null)
+    setError(null);
     try {
-      await sendFriendRequest.mutateAsync({ inviteCode: cleanCode })
-      haptic.success()
-      setRequestSent(true)
-      setFriendCode('')
-      setShowCodeInput(false)
+      await sendFriendRequest.mutateAsync({ inviteCode: cleanCode });
+      haptic.success();
+      setRequestSent(true);
+      setFriendCode("");
+      setShowCodeInput(false);
     } catch {
-      haptic.error()
-      setError('Could not find that code. Check it and try again.')
+      haptic.error();
+      setError("Could not find that code. Check it and try again.");
     }
-  }
+  };
 
   const toggleCodeInput = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
-    setShowCodeInput(!showCodeInput)
-    setError(null)
-  }
+    haptic.light();
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowCodeInput(!showCodeInput);
+    setError(null);
+  };
 
   return (
     <YStack flex={1} paddingHorizontal="$5">
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -319,10 +254,12 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
                   alignItems="center"
                 >
                   {isLoadingCode ? (
-                    <Text color="$colorMuted" fontSize={15}>Loading...</Text>
+                    <Text color="$colorMuted" fontSize={15}>
+                      Loading...
+                    </Text>
                   ) : (
                     <Text fontSize={28} fontWeight="700" letterSpacing={4}>
-                      {myInviteCode || '------'}
+                      {myInviteCode || "------"}
                     </Text>
                   )}
                 </YStack>
@@ -335,7 +272,7 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
                     onPress={handleCopyCode}
                     disabled={!myInviteCode}
                   >
-                    {copied ? 'Copied!' : 'Copy'}
+                    {copied ? "Copied!" : "Copy"}
                   </Button>
                   <Button
                     variant="primary"
@@ -358,27 +295,27 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
               icon={<UserPlus size={16} />}
               onPress={toggleCodeInput}
             >
-              I have a friend's code
+              I have a friend&apos;s code
             </Button>
           ) : (
             <Theme name="Card">
               <Card width="100%">
                 <YStack gap="$3">
                   <Text fontWeight="600" fontSize={15}>
-                    Enter your friend's code
+                    Enter your friend&apos;s code
                   </Text>
                   <Input
                     placeholder="e.g., ABC123"
                     placeholderTextColor="$colorMuted"
                     value={friendCode}
                     onChangeText={(text) => {
-                      setFriendCode(text.toUpperCase())
-                      setError(null)
+                      setFriendCode(text.toUpperCase());
+                      setError(null);
                     }}
                     autoCapitalize="characters"
                     autoCorrect={false}
                     backgroundColor="$backgroundHover"
-                    borderColor={error ? '$destructive' : '$borderColor'}
+                    borderColor={error ? "$destructive" : "$borderColor"}
                     borderWidth={1}
                     borderRadius="$2"
                     paddingHorizontal="$3"
@@ -438,47 +375,60 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
 
       {/* Bottom action */}
       <YStack paddingVertical="$3" alignItems="center">
-        <Button variant="ghost" buttonSize="sm" onPress={onNext}>
-          {requestSent ? 'Continue' : 'Skip for now'}
+        <Button
+          variant="ghost"
+          buttonSize="sm"
+          onPress={() => {
+            haptic.light();
+            onNext();
+          }}
+        >
+          {requestSent ? "Continue" : "Skip for now"}
         </Button>
       </YStack>
     </YStack>
-  )
+  );
 }
 
 // ============================================
-// Step 4: Notifications
+// Step 3: Notifications
 // ============================================
 
 function NotificationsStep({ onNext }: { onNext: () => void }) {
-  const [permissionStatus, setPermissionStatus] = useState<'undetermined' | 'granted' | 'denied'>(
-    'undetermined'
-  )
+  const [permissionStatus, setPermissionStatus] = useState<
+    "undetermined" | "granted" | "denied"
+  >("undetermined");
 
   useEffect(() => {
     // Check current permission status — if already granted, auto-advance
     Notifications.getPermissionsAsync().then(({ status }) => {
-      if (status === 'granted') {
-        setPermissionStatus('granted')
+      if (status === "granted") {
+        setPermissionStatus("granted");
         // Already enabled from a previous install, skip ahead after a brief moment
-        setTimeout(onNext, 800)
+        setTimeout(onNext, 800);
       }
-    })
-  }, [onNext])
+    });
+  }, [onNext]);
 
   const handleEnableNotifications = async () => {
-    const { status } = await Notifications.requestPermissionsAsync()
-    setPermissionStatus(status === 'granted' ? 'granted' : 'denied')
-    if (status === 'granted') {
-      registerPushTokenAsync().catch(console.error)
-      haptic.success()
+    const { status } = await Notifications.requestPermissionsAsync();
+    setPermissionStatus(status === "granted" ? "granted" : "denied");
+    if (status === "granted") {
+      registerPushTokenAsync().catch(console.error);
+      haptic.success();
       // Auto-advance after a brief moment
-      setTimeout(onNext, 600)
+      setTimeout(onNext, 600);
     }
-  }
+  };
 
   return (
-    <YStack flex={1} alignItems="center" justifyContent="center" gap="$5" paddingHorizontal="$6">
+    <YStack
+      flex={1}
+      alignItems="center"
+      justifyContent="center"
+      gap="$5"
+      paddingHorizontal="$6"
+    >
       {/* Header */}
       <YStack alignItems="center" gap="$2">
         <Text fontSize={48}>🔔</Text>
@@ -535,8 +485,13 @@ function NotificationsStep({ onNext }: { onNext: () => void }) {
 
       {/* Action */}
       <YStack width="100%" gap="$3" paddingHorizontal={8}>
-        {permissionStatus === 'granted' ? (
-          <XStack alignItems="center" justifyContent="center" gap="$2" paddingVertical="$3">
+        {permissionStatus === "granted" ? (
+          <XStack
+            alignItems="center"
+            justifyContent="center"
+            gap="$2"
+            paddingVertical="$3"
+          >
             <Circle size={24} backgroundColor="$success">
               <Check size={14} color="white" />
             </Circle>
@@ -550,27 +505,37 @@ function NotificationsStep({ onNext }: { onNext: () => void }) {
             buttonSize="lg"
             fullWidth
             icon={<Bell size={18} color="$primaryForeground" />}
-            onPress={handleEnableNotifications}
+            onPress={() => {
+              haptic.light();
+              handleEnableNotifications();
+            }}
           >
             Enable Notifications
           </Button>
         )}
       </YStack>
 
-      <Button variant="ghost" buttonSize="sm" onPress={onNext}>
-        {permissionStatus === 'granted' ? 'Continue' : 'Maybe later'}
+      <Button
+        variant="ghost"
+        buttonSize="sm"
+        onPress={() => {
+          haptic.light();
+          onNext();
+        }}
+      >
+        {permissionStatus === "granted" ? "Continue" : "Maybe later"}
       </Button>
     </YStack>
-  )
+  );
 }
 
 // ============================================
-// Step 5: Ready
+// Step 4: Ready
 // ============================================
 
 function ReadyStep({ onComplete }: { onComplete: () => void }) {
-  const fadeAnim = useRef(new Animated.Value(0)).current
-  const slideAnim = useRef(new Animated.Value(20)).current
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -584,29 +549,44 @@ function ReadyStep({ onComplete }: { onComplete: () => void }) {
         duration: 400,
         useNativeDriver: true,
       }),
-    ]).start()
-  }, [])
+    ]).start();
+  }, [fadeAnim, slideAnim]);
 
   const features = [
-    { icon: <Calendar size={20} color="$primary" />, label: 'See when friends are free' },
-    { icon: <Sparkles size={20} color="$primary" />, label: 'Plan events in seconds' },
-    { icon: <Bell size={20} color="$primary" />, label: 'Never miss an invite' },
-  ]
+    {
+      icon: <Calendar size={20} color="$primary" />,
+      label: "See when friends are free",
+    },
+    {
+      icon: <Sparkles size={20} color="$primary" />,
+      label: "Plan events in seconds",
+    },
+    {
+      icon: <Bell size={20} color="$primary" />,
+      label: "Never miss an invite",
+    },
+  ];
 
   return (
-    <YStack flex={1} alignItems="center" justifyContent="center" gap="$6" paddingHorizontal="$6">
+    <YStack
+      flex={1}
+      alignItems="center"
+      justifyContent="center"
+      gap="$6"
+      paddingHorizontal="$6"
+    >
       <Animated.View
         style={{
           opacity: fadeAnim,
           transform: [{ translateY: slideAnim }],
-          alignItems: 'center',
+          alignItems: "center",
         }}
       >
         <Text fontSize={64} marginBottom="$3">
           ✨
         </Text>
         <H1 fontSize={32} fontWeight="700" textAlign="center" marginBottom="$2">
-          You're all set!
+          You&apos;re all set!
         </H1>
         <Text
           color="$colorMuted"
@@ -615,12 +595,12 @@ function ReadyStep({ onComplete }: { onComplete: () => void }) {
           lineHeight={24}
           maxWidth={280}
         >
-          Here's what you can do with Gather.
+          Here&apos;s what you can do with Gather.
         </Text>
       </Animated.View>
 
       {/* Feature pills */}
-      <Animated.View style={{ opacity: fadeAnim, width: '100%' }}>
+      <Animated.View style={{ opacity: fadeAnim, width: "100%" }}>
         <YStack gap="$3" width="100%">
           {features.map((feature, i) => (
             <Theme key={i} name="Card">
@@ -639,13 +619,23 @@ function ReadyStep({ onComplete }: { onComplete: () => void }) {
         </YStack>
       </Animated.View>
 
-      <Animated.View style={{ opacity: fadeAnim, width: '100%', paddingHorizontal: 8 }}>
-        <Button variant="primary" buttonSize="lg" fullWidth onPress={onComplete}>
+      <Animated.View
+        style={{ opacity: fadeAnim, width: "100%", paddingHorizontal: 8 }}
+      >
+        <Button
+          variant="primary"
+          buttonSize="lg"
+          fullWidth
+          onPress={() => {
+            haptic.light();
+            onComplete();
+          }}
+        >
           Start Exploring
         </Button>
       </Animated.View>
     </YStack>
-  )
+  );
 }
 
 // ============================================
@@ -653,9 +643,9 @@ function ReadyStep({ onComplete }: { onComplete: () => void }) {
 // ============================================
 
 export default function OnboardingScreen() {
-  const insets = useSafeAreaInsets()
-  const [currentStep, setCurrentStep] = useState(0)
-  const fadeAnim = useRef(new Animated.Value(1)).current
+  const insets = useSafeAreaInsets();
+  const [currentStep, setCurrentStep] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const animateTransition = useCallback(
     (nextStep: number) => {
@@ -665,49 +655,47 @@ export default function OnboardingScreen() {
         duration: 150,
         useNativeDriver: true,
       }).start(() => {
-        setCurrentStep(nextStep)
+        setCurrentStep(nextStep);
         // Fade in
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 250,
           useNativeDriver: true,
-        }).start()
-      })
+        }).start();
+      });
     },
-    [fadeAnim]
-  )
+    [fadeAnim],
+  );
 
   const goToNext = useCallback(() => {
     if (currentStep < TOTAL_STEPS - 1) {
-      animateTransition(currentStep + 1)
+      animateTransition(currentStep + 1);
     }
-  }, [currentStep, animateTransition])
+  }, [currentStep, animateTransition]);
 
   const handleComplete = useCallback(() => {
-    router.replace('/(tabs)')
-  }, [])
+    router.replace("/(tabs)");
+  }, []);
 
   const renderStep = () => {
     switch (currentStep) {
       case 0:
-        return <WelcomeStep onNext={goToNext} />
+        return <WelcomeStep onNext={goToNext} />;
       case 1:
-        return <ProfileStep onNext={goToNext} />
+        return <InviteFriendsStep onNext={goToNext} />;
       case 2:
-        return <InviteFriendsStep onNext={goToNext} />
+        return <NotificationsStep onNext={goToNext} />;
       case 3:
-        return <NotificationsStep onNext={goToNext} />
-      case 4:
-        return <ReadyStep onComplete={handleComplete} />
+        return <ReadyStep onComplete={handleComplete} />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <YStack
         flex={1}
@@ -724,5 +712,5 @@ export default function OnboardingScreen() {
         </Animated.View>
       </YStack>
     </KeyboardAvoidingView>
-  )
+  );
 }

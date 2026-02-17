@@ -11,7 +11,6 @@ import {
   Circle,
   H1,
   ScrollView,
-  Spinner,
   Text,
   Theme,
   XStack,

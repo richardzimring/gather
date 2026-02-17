@@ -32,6 +32,7 @@ import {
   useDeclineFriendRequest,
   useRefresh,
 } from "../../lib/hooks";
+import { haptic } from "../../lib/haptics";
 
 export default function FriendsScreen() {
   const insets = useSafeAreaInsets();
@@ -79,7 +80,9 @@ export default function FriendsScreen() {
     setPendingAction("accept");
     try {
       await acceptRequest.mutateAsync(friendId);
+      haptic.success();
     } catch (err) {
+      haptic.error();
       console.error("Failed to accept request:", err);
     } finally {
       setPendingRequestId(null);
@@ -93,6 +96,7 @@ export default function FriendsScreen() {
     try {
       await declineRequest.mutateAsync(friendId);
     } catch (err) {
+      haptic.error();
       console.error("Failed to decline request:", err);
     } finally {
       setPendingRequestId(null);
@@ -113,7 +117,7 @@ export default function FriendsScreen() {
       <Search size={16} color="$colorMuted" />
       <Input
         flex={1}
-        placeholder="Search friends..."
+        placeholder={`Search ${activeTab}...`}
         placeholderTextColor="$colorMuted"
         backgroundColor="transparent"
         borderWidth={0}
@@ -126,121 +130,7 @@ export default function FriendsScreen() {
 
   return (
     <YStack flex={1} backgroundColor="$background">
-      {/* Fixed header area */}
-      <YStack
-        paddingTop={insets.top + 16}
-        paddingHorizontal={16}
-        gap="$3"
-        paddingBottom="$3"
-      >
-        {/* Header */}
-        <XStack justifyContent="space-between" alignItems="center">
-          <H1 fontSize={28} fontWeight="700">
-            Friends
-          </H1>
-          <GlassButton
-            icon={<UserPlus size={20} color="$color" />}
-            onPress={() => router.push("/friends/add")}
-          />
-        </XStack>
-
-        {/* Glass search bar */}
-        {useGlass ? (
-          <GlassView style={glassStyles.searchBar}>{searchBar}</GlassView>
-        ) : (
-          <XStack
-            backgroundColor="$backgroundHover"
-            borderRadius="$2"
-            overflow="hidden"
-          >
-            {searchBar}
-          </XStack>
-        )}
-
-        {/* Tab Bar */}
-        <XStack gap="$1">
-          <XStack
-            flex={1}
-            backgroundColor={
-              activeTab === "friends" ? "$primary" : "transparent"
-            }
-            borderRadius="$2"
-            paddingVertical="$2"
-            justifyContent="center"
-            alignItems="center"
-            pressStyle={{ opacity: 0.8 }}
-            onPress={() => setActiveTab("friends")}
-          >
-            <Text
-              color={
-                activeTab === "friends" ? "$primaryForeground" : "$colorMuted"
-              }
-              fontWeight="500"
-              fontSize={14}
-            >
-              All Friends
-            </Text>
-          </XStack>
-          <XStack
-            flex={1}
-            backgroundColor={
-              activeTab === "groups" ? "$primary" : "transparent"
-            }
-            borderRadius="$2"
-            paddingVertical="$2"
-            justifyContent="center"
-            alignItems="center"
-            pressStyle={{ opacity: 0.8 }}
-            onPress={() => setActiveTab("groups")}
-          >
-            <Text
-              color={
-                activeTab === "groups" ? "$primaryForeground" : "$colorMuted"
-              }
-              fontWeight="500"
-              fontSize={14}
-            >
-              Groups
-            </Text>
-          </XStack>
-          <XStack
-            flex={1}
-            backgroundColor={
-              activeTab === "requests" ? "$primary" : "transparent"
-            }
-            borderRadius="$2"
-            paddingVertical="$2"
-            justifyContent="center"
-            alignItems="center"
-            pressStyle={{ opacity: 0.8 }}
-            onPress={() => setActiveTab("requests")}
-            gap="$2"
-          >
-            <Text
-              color={
-                activeTab === "requests" ? "$primaryForeground" : "$colorMuted"
-              }
-              fontWeight="500"
-              fontSize={14}
-            >
-              Requests
-            </Text>
-            {pendingReceived.length > 0 && (
-              <Circle size={16} backgroundColor="$destructive">
-                <Text
-                  color="$destructiveForeground"
-                  fontSize={10}
-                  fontWeight="600"
-                >
-                  {pendingReceived.length}
-                </Text>
-              </Circle>
-            )}
-          </XStack>
-        </XStack>
-      </YStack>
-
-      {/* Scrollable tab content */}
+      {/* Scrollable content with header */}
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -251,10 +141,127 @@ export default function FriendsScreen() {
           />
         }
         contentContainerStyle={{
+          paddingTop: insets.top + 16,
           paddingBottom: insets.bottom + 100,
           paddingHorizontal: 16,
         }}
       >
+        {/* Header */}
+        <YStack gap="$3" paddingBottom="$3">
+          <XStack justifyContent="space-between" alignItems="center">
+            <H1 fontSize={28} fontWeight="700">
+              Friends
+            </H1>
+            <GlassButton
+              icon={<UserPlus size={20} color="$color" />}
+              onPress={() => router.push("/friends/add")}
+            />
+          </XStack>
+
+          {/* Glass search bar */}
+          {useGlass ? (
+            <GlassView style={glassStyles.searchBar}>{searchBar}</GlassView>
+          ) : (
+            <XStack
+              backgroundColor="$backgroundHover"
+              borderRadius="$2"
+              overflow="hidden"
+            >
+              {searchBar}
+            </XStack>
+          )}
+
+          {/* Tab Bar */}
+          <XStack gap="$1">
+            <XStack
+              flex={1}
+              backgroundColor={
+                activeTab === "friends" ? "$primary" : "transparent"
+              }
+              borderRadius="$2"
+              paddingVertical="$2"
+              justifyContent="center"
+              alignItems="center"
+              pressStyle={{ opacity: 0.8 }}
+              onPress={() => {
+                haptic.selection();
+                setActiveTab("friends");
+              }}
+            >
+              <Text
+                color={
+                  activeTab === "friends" ? "$primaryForeground" : "$colorMuted"
+                }
+                fontWeight="500"
+                fontSize={14}
+              >
+                All Friends
+              </Text>
+            </XStack>
+            <XStack
+              flex={1}
+              backgroundColor={
+                activeTab === "groups" ? "$primary" : "transparent"
+              }
+              borderRadius="$2"
+              paddingVertical="$2"
+              justifyContent="center"
+              alignItems="center"
+              pressStyle={{ opacity: 0.8 }}
+              onPress={() => {
+                haptic.selection();
+                setActiveTab("groups");
+              }}
+            >
+              <Text
+                color={
+                  activeTab === "groups" ? "$primaryForeground" : "$colorMuted"
+                }
+                fontWeight="500"
+                fontSize={14}
+              >
+                Groups
+              </Text>
+            </XStack>
+            <XStack
+              flex={1}
+              backgroundColor={
+                activeTab === "requests" ? "$primary" : "transparent"
+              }
+              borderRadius="$2"
+              paddingVertical="$2"
+              justifyContent="center"
+              alignItems="center"
+              pressStyle={{ opacity: 0.8 }}
+              onPress={() => {
+                haptic.selection();
+                setActiveTab("requests");
+              }}
+              gap="$2"
+            >
+              <Text
+                color={
+                  activeTab === "requests" ? "$primaryForeground" : "$colorMuted"
+                }
+                fontWeight="500"
+                fontSize={14}
+              >
+                Requests
+              </Text>
+              {pendingReceived.length > 0 && (
+                <Circle size={16} backgroundColor="$destructive">
+                  <Text
+                    color="$destructiveForeground"
+                    fontSize={10}
+                    fontWeight="600"
+                  >
+                    {pendingReceived.length}
+                  </Text>
+                </Circle>
+              )}
+            </XStack>
+          </XStack>
+        </YStack>
         {/* Tab Content */}
         {activeTab === "friends" && (
           <YStack gap="$3">

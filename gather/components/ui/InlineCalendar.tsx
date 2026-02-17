@@ -270,14 +270,11 @@ export function InlineCalendar({
         <XStack key={rowIndex}>
           {row.map((day, colIndex) => {
             const dateKey = toDateKey(day);
-            const isCurrentMonth = day.getMonth() === displayMonth.month;
             const isToday = dateKey === todayKey;
             const isPast = minDateNorm ? day < minDateNorm : false;
             const isBeyondMax = maxDateNorm ? day > maxDateNorm : false;
             // Truly disabled = out of the selectable date range
             const isDisabled = isPast || isBeyondMax;
-            // Adjacent-month filler days that are still within range — muted but clickable
-            const isAdjacentMonth = !isCurrentMonth && !isDisabled;
 
             // Range mode: determine if this day is start, end, or in-range
             const isRangeStart = isRangeMode && dateKey === rangeStartKey;

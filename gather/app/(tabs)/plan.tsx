@@ -452,9 +452,9 @@ export default function PlanScreen() {
   const visibleStartTimeOptions = useMemo(() => {
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    
+
     // Check if only the current date is selected
-    const isOnlyToday = 
+    const isOnlyToday =
       rangeStart !== null &&
       rangeEnd === null &&
       rangeStart.getFullYear() === now.getFullYear() &&
@@ -639,9 +639,9 @@ export default function PlanScreen() {
         notes: notes.trim() || undefined,
         inviteeIds: selectedFriends,
       });
-      
+
       haptic.success();
-      
+
       // Navigate to home screen first, then reset all plan state
       // after a brief delay so the LayoutAnimation from state resets
       // doesn't interfere with navigation
@@ -669,19 +669,6 @@ export default function PlanScreen() {
   // --- Render ---
   return (
     <YStack flex={1} backgroundColor="$background">
-      {/* Fixed header area */}
-      <YStack
-        paddingTop={insets.top + 16}
-        paddingHorizontal={16}
-        paddingBottom="$3"
-      >
-        <XStack justifyContent="space-between" alignItems="center">
-          <H1 fontSize={28} fontWeight="700">
-            Plan
-          </H1>
-        </XStack>
-      </YStack>
-
       <ScrollView
         ref={scrollViewRef}
         refreshControl={
@@ -693,10 +680,19 @@ export default function PlanScreen() {
           />
         }
         contentContainerStyle={{
+          paddingTop: insets.top + 16,
           paddingBottom: insets.bottom + 100,
           paddingHorizontal: 16,
         }}
       >
+        {/* Header */}
+        <YStack paddingBottom="$3">
+          <XStack justifyContent="space-between" alignItems="center">
+            <H1 fontSize={28} fontWeight="700">
+              Plan
+            </H1>
+          </XStack>
+        </YStack>
         {/* ==================== Step 1: Friend Selection ==================== */}
         <Theme name="Card">
           <Card marginBottom="$4">
@@ -861,13 +857,37 @@ export default function PlanScreen() {
                 </XStack>
 
                 {/* Start around */}
-                <TimeChipPicker
-                  label="Start around"
-                  options={visibleStartTimeOptions}
-                  selectedValue={preferredStartTime}
-                  onSelect={handleStartTimeToggle}
-                  allowDeselect
-                />
+                {visibleStartTimeOptions.length > 0 ? (
+                  <TimeChipPicker
+                    label="Start around"
+                    options={visibleStartTimeOptions}
+                    selectedValue={preferredStartTime}
+                    onSelect={handleStartTimeToggle}
+                    allowDeselect
+                  />
+                ) : (
+                  <YStack gap="$2">
+                    <Text fontSize={13} color="$colorMuted" fontWeight="500">
+                      Start around
+                    </Text>
+                    <YStack
+                      backgroundColor="$backgroundHover"
+                      padding="$3"
+                      borderRadius="$2"
+                    >
+                      <Text
+                        fontSize={13}
+                        color="$colorMuted"
+                        textAlign="center"
+                      >
+                        No times available for today.{" "}
+                        {filterUngodlyHours
+                          ? "Try selecting a different day or turning off the late nights filter."
+                          : "Try selecting a different day."}
+                      </Text>
+                    </YStack>
+                  </YStack>
+                )}
 
                 {/* Duration selection */}
                 <Separator marginVertical="$3" />
@@ -1274,33 +1294,13 @@ export default function PlanScreen() {
                       placeholder="Search for a place..."
                     />
                     {locationData?.latitude && locationData?.longitude && (
-                      <YStack gap="$2">
-                        <MapPreview
-                          latitude={parseFloat(locationData.latitude)}
-                          longitude={parseFloat(locationData.longitude)}
-                          name={locationData.name}
-                          address={locationData.address}
-                          height={120}
-                        />
-                        <XStack
-                          backgroundColor="$accentSubtle"
-                          padding="$2"
-                          borderRadius="$2"
-                          alignItems="center"
-                          justifyContent="center"
-                          gap="$2"
-                        >
-                          <MapPin size={14} color="$accent" />
-                          <Text
-                            color="$accent"
-                            fontSize={12}
-                            numberOfLines={1}
-                            textAlign="center"
-                          >
-                            {locationData.address}
-                          </Text>
-                        </XStack>
-                      </YStack>
+                      <MapPreview
+                        latitude={parseFloat(locationData.latitude)}
+                        longitude={parseFloat(locationData.longitude)}
+                        name={locationData.name}
+                        address={locationData.address}
+                        height={120}
+                      />
                     )}
                   </YStack>
 

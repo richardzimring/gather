@@ -1,10 +1,11 @@
 import { Bell, Calendar, UserPlus, Users } from '@tamagui/lucide-icons'
 import { router } from 'expo-router'
-import { ScrollView, Text, XStack, YStack, Switch, Theme, Spinner } from 'tamagui'
+import { ScrollView, Text, XStack, YStack, Switch, Theme } from 'tamagui'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Card } from '../../components/ui/Card'
 import { BackHeader } from '../../components/ui/ScreenHeader'
+import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton'
 import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
@@ -70,6 +71,19 @@ function NotificationSetting({
   )
 }
 
+function NotificationSettingSkeleton() {
+  return (
+    <XStack alignItems="center" paddingVertical="$3" gap="$3">
+      <SkeletonCircle size={36} />
+      <YStack flex={1} gap="$2">
+        <SkeletonBar width={140} height={14} />
+        <SkeletonBar width={200} height={13} />
+      </YStack>
+      <SkeletonBar width={50} height={30} borderRadius={15} />
+    </XStack>
+  )
+}
+
 export default function NotificationSettingsScreen() {
   const insets = useSafeAreaInsets()
 
@@ -120,9 +134,29 @@ export default function NotificationSettingsScreen() {
         </Theme>
 
         {isLoading ? (
-          <YStack alignItems="center" paddingVertical="$6">
-            <Spinner size="large" />
-          </YStack>
+          <>
+            {/* Events Skeleton */}
+            <Theme name="Card">
+              <Card marginBottom="$4">
+                <Text color="$colorMuted" fontSize={12} fontWeight="600" marginBottom="$2">
+                  EVENTS
+                </Text>
+                <NotificationSettingSkeleton />
+                <NotificationSettingSkeleton />
+              </Card>
+            </Theme>
+
+            {/* Social Skeleton */}
+            <Theme name="Card">
+              <Card marginBottom="$4">
+                <Text color="$colorMuted" fontSize={12} fontWeight="600" marginBottom="$2">
+                  SOCIAL
+                </Text>
+                <NotificationSettingSkeleton />
+                <NotificationSettingSkeleton />
+              </Card>
+            </Theme>
+          </>
         ) : (
           <>
             {/* Events */}

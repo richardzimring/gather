@@ -1,11 +1,4 @@
-import {
-  Calendar,
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-  UserMinus,
-  UserPlus,
-} from "@tamagui/lucide-icons";
+import { Calendar, Trash2, UserMinus, UserPlus } from "@tamagui/lucide-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { Alert } from "react-native";
 import {
@@ -13,19 +6,18 @@ import {
   H1,
   ScrollView,
   Separator,
-  Spinner,
   Text,
   Theme,
   XStack,
   YStack,
   Sheet,
-  Input,
 } from "tamagui";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMemo, useState } from "react";
 
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { GlassButton } from "../../components/ui/GlassFAB";
 import { BackHeader } from "../../components/ui/ScreenHeader";
 import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
 import {
@@ -41,11 +33,7 @@ type Friendship = FriendWithUser;
 export default function GroupDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [showActionSheet, setShowActionSheet] = useState(false);
-  const [showEditSheet, setShowEditSheet] = useState(false);
   const [showAddMemberSheet, setShowAddMemberSheet] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [editEmoji, setEditEmoji] = useState("");
   const [pendingMemberId, setPendingMemberId] = useState<string | null>(null);
 
   const { data: groups, isLoading } = useGroups();
@@ -75,31 +63,9 @@ export default function GroupDetailScreen() {
     return friends.filter((f) => !group.memberIds.includes(f.friendId));
   }, [group, friends]);
 
-  const handleEditGroup = () => {
-    if (!group) return;
-    setEditName(group.name);
-    setEditEmoji(group.emoji ?? "");
-    setShowActionSheet(false);
-    setShowEditSheet(true);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!id || !editName.trim()) return;
-    try {
-      await updateGroup.mutateAsync({
-        groupId: id,
-        data: {
-          name: editName.trim(),
-          emoji: editEmoji || undefined,
-        },
-      });
-      setShowEditSheet(false);
-    } catch (err) {
-      console.error("Failed to update group:", err);
-    }
-  };
-
   const handleDeleteGroup = () => {
+    if (!id || !group) return;
+
     Alert.alert(
       "Delete Group",
       "Are you sure you want to delete this group? This action cannot be undone.",
@@ -109,7 +75,6 @@ export default function GroupDetailScreen() {
           text: "Delete",
           style: "destructive",
           onPress: async () => {
-            if (!id) return;
             try {
               await deleteGroup.mutateAsync(id);
               router.back();
@@ -118,7 +83,7 @@ export default function GroupDetailScreen() {
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -165,12 +130,11 @@ export default function GroupDetailScreen() {
             }
           },
         },
-      ]
+      ],
     );
   };
 
   const handleInviteGroupToEvent = () => {
-    setShowActionSheet(false);
     if (group && group.memberIds.length > 0) {
       router.push({
         pathname: "/(tabs)/plan",
@@ -231,9 +195,7 @@ export default function GroupDetailScreen() {
                       </YStack>
                       <SkeletonCircle size={32} />
                     </XStack>
-                    {index < 3 && (
-                      <Separator marginVertical="$1" />
-                    )}
+                    {index < 3 && <Separator marginVertical="$1" />}
                   </YStack>
                 ))}
               </YStack>
@@ -287,12 +249,16 @@ export default function GroupDetailScreen() {
           title=""
           marginBottom="$1"
           rightAction={
-            <Button
-              variant="ghost"
-              buttonSize="sm"
-              circular
-              icon={<MoreHorizontal size={20} />}
-              onPress={() => setShowActionSheet(true)}
+            <GlassButton
+              icon={
+                <Trash2
+                  size={18}
+                  color={group.isDefault ? "$colorMuted" : "$error"}
+                />
+              }
+              onPress={handleDeleteGroup}
+              size={36}
+              disabled={group.isDefault}
             />
           }
         />
@@ -334,6 +300,7 @@ export default function GroupDetailScreen() {
             flex={1}
             icon={<UserPlus size={16} />}
             onPress={() => setShowAddMemberSheet(true)}
+            disabled={group.isDefault}
           >
             Add Member
           </Button>
@@ -384,7 +351,7 @@ export default function GroupDetailScreen() {
                           }
                           onPress={() => handleRemoveMember(member.friendId)}
                           loading={pendingMemberId === member.friendId}
-                          disabled={pendingMemberId !== null}
+                          disabled={pendingMemberId !== null || group.isDefault}
                         />
                       </XStack>
                       {index < members.length - 1 && (
@@ -398,164 +365,6 @@ export default function GroupDetailScreen() {
           </Card>
         </Theme>
       </ScrollView>
-
-      {/* Action Sheet */}
-      <Sheet
-        open={showActionSheet}
-        onOpenChange={setShowActionSheet}
-        snapPoints={[45]}
-        dismissOnSnapToBottom
-      >
-        <Sheet.Overlay />
-        <Sheet.Frame padding="$4" backgroundColor="$background">
-          <Sheet.Handle />
-          <YStack gap="$3" marginTop="$4">
-            <Button
-              variant="secondary"
-              fullWidth
-              icon={<Calendar size={18} />}
-              onPress={handleInviteGroupToEvent}
-            >
-              Invite Group to Event
-            </Button>
-            <Button
-              variant="secondary"
-              fullWidth
-              icon={<UserPlus size={18} />}
-              onPress={() => {
-                setShowActionSheet(false);
-                setShowAddMemberSheet(true);
-              }}
-            >
-              Add Members
-            </Button>
-            {!group.isDefault && (
-              <>
-                <Button
-                  variant="secondary"
-                  fullWidth
-                  icon={<Pencil size={18} />}
-                  onPress={handleEditGroup}
-                >
-                  Edit Group
-                </Button>
-                <Button
-                  variant="destructive"
-                  fullWidth
-                  icon={
-                    deleteGroup.isPending ? undefined : (
-                      <Trash2 size={16} color="$destructiveForeground" />
-                    )
-                  }
-                  onPress={() => {
-                    setShowActionSheet(false);
-                    handleDeleteGroup();
-                  }}
-                  loading={deleteGroup.isPending}
-                >
-                  Delete Group
-                </Button>
-              </>
-            )}
-            <Button
-              variant="ghost"
-              fullWidth
-              onPress={() => setShowActionSheet(false)}
-            >
-              Cancel
-            </Button>
-          </YStack>
-        </Sheet.Frame>
-      </Sheet>
-
-      {/* Edit Sheet */}
-      <Sheet
-        open={showEditSheet}
-        onOpenChange={setShowEditSheet}
-        snapPoints={[50]}
-        dismissOnSnapToBottom
-      >
-        <Sheet.Overlay />
-        <Sheet.Frame padding="$4" backgroundColor="$background">
-          <Sheet.Handle />
-          <YStack gap="$4" marginTop="$4">
-            <Text fontSize={20} fontWeight="600">
-              Edit Group
-            </Text>
-
-            <YStack gap="$2">
-              <Text fontWeight="500" fontSize={14}>
-                Emoji
-              </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <XStack gap="$2">
-                  {[
-                    "👥",
-                    "💜",
-                    "🏠",
-                    "💼",
-                    "🎾",
-                    "🎮",
-                    "🍕",
-                    "☕",
-                    "🎬",
-                    "🎵",
-                  ].map((emoji) => (
-                    <Circle
-                      key={emoji}
-                      size={40}
-                      backgroundColor={
-                        editEmoji === emoji ? "$primary" : "$backgroundHover"
-                      }
-                      pressStyle={{ scale: 0.98 }}
-                      onPress={() => setEditEmoji(emoji)}
-                    >
-                      <Text fontSize={20}>{emoji}</Text>
-                    </Circle>
-                  ))}
-                </XStack>
-              </ScrollView>
-            </YStack>
-
-            <YStack gap="$2">
-              <Text fontWeight="500" fontSize={14}>
-                Group Name
-              </Text>
-              <Input
-                placeholder="Group name"
-                placeholderTextColor="$colorMuted"
-                value={editName}
-                onChangeText={setEditName}
-                backgroundColor="$backgroundHover"
-                borderColor="$borderColor"
-                borderWidth={1}
-                borderRadius="$2"
-                paddingHorizontal="$3"
-                height={36}
-                fontSize={14}
-              />
-            </YStack>
-
-            <XStack gap="$3">
-              <Button
-                variant="secondary"
-                flex={1}
-                onPress={() => setShowEditSheet(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                flex={1}
-                onPress={handleSaveEdit}
-                disabled={!editName.trim() || updateGroup.isPending}
-              >
-                {updateGroup.isPending ? "Saving..." : "Save"}
-              </Button>
-            </XStack>
-          </YStack>
-        </Sheet.Frame>
-      </Sheet>
 
       {/* Add Member Sheet */}
       <Sheet

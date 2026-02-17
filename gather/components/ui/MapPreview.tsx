@@ -1,6 +1,7 @@
 import { Linking, Platform } from "react-native";
 import MapView, { Marker, PROVIDER_DEFAULT } from "react-native-maps";
-import { YStack } from "tamagui";
+import { YStack, XStack, Text } from "tamagui";
+import { MapPin } from "@tamagui/lucide-icons";
 
 export interface MapPreviewProps {
   latitude: number;
@@ -39,33 +40,55 @@ export function MapPreview({
   };
 
   return (
-    <YStack
-      borderRadius="$3"
-      overflow="hidden"
-      borderWidth={1}
-      borderColor="$borderColor"
-    >
-      <MapView
-        provider={PROVIDER_DEFAULT}
-        style={{ width: "100%", height }}
-        initialRegion={{
-          latitude,
-          longitude,
-          latitudeDelta: 0.005,
-          longitudeDelta: 0.005,
-        }}
-        scrollEnabled={interactive}
-        zoomEnabled={interactive}
-        rotateEnabled={false}
-        pitchEnabled={false}
-        onPress={!interactive ? handlePress : undefined}
+    <YStack gap="$2">
+      <YStack
+        borderRadius="$3"
+        overflow="hidden"
+        borderWidth={1}
+        borderColor="$borderColor"
       >
-        <Marker
-          coordinate={{ latitude, longitude }}
-          title={name}
-          description={address}
-        />
-      </MapView>
+        <MapView
+          provider={PROVIDER_DEFAULT}
+          style={{ width: "100%", height }}
+          initialRegion={{
+            latitude,
+            longitude,
+            latitudeDelta: 0.005,
+            longitudeDelta: 0.005,
+          }}
+          scrollEnabled={interactive}
+          zoomEnabled={interactive}
+          rotateEnabled={false}
+          pitchEnabled={false}
+          onPress={!interactive ? handlePress : undefined}
+        >
+          <Marker
+            coordinate={{ latitude, longitude }}
+            title={name}
+            description={address}
+          />
+        </MapView>
+      </YStack>
+      {address && (
+        <XStack
+          backgroundColor="$accentSubtle"
+          padding="$2"
+          borderRadius="$2"
+          alignItems="center"
+          justifyContent="center"
+          gap="$2"
+        >
+          <MapPin size={14} color="$accent" />
+          <Text
+            color="$accent"
+            fontSize={12}
+            numberOfLines={1}
+            textAlign="center"
+          >
+            {address}
+          </Text>
+        </XStack>
+      )}
     </YStack>
   );
 }

@@ -227,17 +227,6 @@ export default function ProfileScreen() {
 
   return (
     <YStack flex={1} backgroundColor="$background">
-      {/* Fixed header area */}
-      <YStack
-        paddingTop={insets.top + 16}
-        paddingHorizontal={16}
-        paddingBottom="$3"
-      >
-        <H1 fontSize={28} fontWeight="700">
-          Profile
-        </H1>
-      </YStack>
-
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -248,16 +237,23 @@ export default function ProfileScreen() {
           />
         }
         contentContainerStyle={{
+          paddingTop: insets.top + 16,
           paddingBottom: insets.bottom + 100,
           paddingHorizontal: 16,
         }}
       >
+        {/* Header */}
+        <YStack paddingBottom="$3">
+          <H1 fontSize={28} fontWeight="700">
+            Profile
+          </H1>
+        </YStack>
         {/* Profile Card */}
         <Theme name="Card">
           <Card marginBottom="$4">
             <XStack alignItems="center" gap="$4">
               <Circle size={72} backgroundColor="$backgroundHover">
-                <Text fontSize={32} color="$white">
+                <Text fontSize={32}>
                   {user?.firstName?.[0]?.toUpperCase() ?? "?"}
                   {user?.lastName?.[0]?.toUpperCase() ?? ""}
                 </Text>
