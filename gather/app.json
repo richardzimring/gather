@@ -4,7 +4,7 @@
     "slug": "gather",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon-dark.png",
     "scheme": "gather",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -16,6 +16,10 @@
         "NSLocationWhenInUseUsageDescription": "We need your location to help you find nearby places for events.",
         "NSCalendarsUsageDescription": "Gather reads your calendar to find times when you and your friends are all free.",
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "icon": {
+        "light": "./assets/images/icon-light.png",
+        "dark": "./assets/images/icon-dark.png"
       }
     },
     "android": {
@@ -40,11 +44,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/splash-icon-dark.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {
+            "image": "./assets/images/splash-icon-light.png",
             "backgroundColor": "#000000"
           }
         }
