@@ -1,8 +1,14 @@
 import * as crypto from 'crypto';
 import { eq, ilike, or, and, ne } from 'drizzle-orm';
-import { db, users, groups, activities } from '../db';
-import type { User, CreateUser, UpdateUser, NotificationPreferences, UpdateNotificationPreferences } from '../types';
-import { DEFAULT_GROUPS, DEFAULT_ACTIVITIES, INVITE_CODE_LENGTH } from '../constants';
+import { db, users, groups } from '../db';
+import type {
+  User,
+  CreateUser,
+  UpdateUser,
+  NotificationPreferences,
+  UpdateNotificationPreferences,
+} from '../types';
+import { DEFAULT_GROUPS, INVITE_CODE_LENGTH } from '../constants';
 
 // ============================================
 // Invite Code Generation
@@ -112,9 +118,8 @@ export const createUser = async (input: CreateUser): Promise<User> => {
     throw new Error('Failed to create user');
   }
 
-  // Create default groups and seed default activities for this user
+  // Create default groups for this user
   await createDefaultGroups(newUser.id);
-  await ensureDefaultActivities();
 
   return dbUserToUser(newUser);
 };
@@ -153,7 +158,9 @@ const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   messages: true,
 };
 
-export const getNotificationPreferences = async (userId: string): Promise<NotificationPreferences> => {
+export const getNotificationPreferences = async (
+  userId: string,
+): Promise<NotificationPreferences> => {
   const result = await db
     .select({ notificationPreferences: users.notificationPreferences })
     .from(users)
@@ -179,10 +186,7 @@ export const updateNotificationPreferences = async (
   const current = await getNotificationPreferences(userId);
   const merged = { ...current, ...updates };
 
-  await db
-    .update(users)
-    .set({ notificationPreferences: merged })
-    .where(eq(users.id, userId));
+  await db.update(users).set({ notificationPreferences: merged }).where(eq(users.id, userId));
 
   return merged;
 };
@@ -216,20 +220,4 @@ const createDefaultGroups = async (userId: string): Promise<void> => {
   }));
 
   await db.insert(groups).values(groupValues);
-};
-
-const ensureDefaultActivities = async (): Promise<void> => {
-  // Check if default activities already exist
-  const existing = await db.select().from(activities).where(eq(activities.isDefault, true)).limit(1);
-
-  if (existing.length > 0) return;
-
-  const activityValues = DEFAULT_ACTIVITIES.map((activity) => ({
-    userId: null,
-    name: activity.name,
-    emoji: activity.emoji,
-    isDefault: true,
-  }));
-
-  await db.insert(activities).values(activityValues);
 };

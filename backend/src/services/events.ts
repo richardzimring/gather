@@ -31,13 +31,11 @@ const dbInviteeToEventInvitee = (dbInvitee: InviteeWithUser): EventInvitee => {
     dbInvitee.counterProposalStartTime ||
     dbInvitee.counterProposalEndTime ||
     dbInvitee.counterProposalLocation ||
-    dbInvitee.counterProposalActivityId ||
     dbInvitee.counterProposalMessage
       ? {
           startTime: dbInvitee.counterProposalStartTime?.toISOString(),
           endTime: dbInvitee.counterProposalEndTime?.toISOString(),
           location: dbInvitee.counterProposalLocation ?? undefined,
-          activityId: dbInvitee.counterProposalActivityId ?? undefined,
           message: dbInvitee.counterProposalMessage ?? undefined,
         }
       : undefined;
@@ -77,7 +75,6 @@ const dbEventToEvent = (
     hostInitials: host.hostInitials,
     hostAvatarUrl: host.hostAvatarUrl,
     title: dbEvent.title,
-    activityId: dbEvent.activityId ?? undefined,
     emoji: dbEvent.emoji ?? undefined,
     startTime: dbEvent.startTime.toISOString(),
     endTime: dbEvent.endTime.toISOString(),
@@ -102,8 +99,7 @@ const getHostInfo = (hostUser: typeof users.$inferSelect | null): HostInfo => {
   }
   return {
     hostName: `${hostUser.firstName} ${hostUser.lastName}`,
-    hostInitials:
-      `${hostUser.firstName.charAt(0)}${hostUser.lastName.charAt(0)}`.toUpperCase(),
+    hostInitials: `${hostUser.firstName.charAt(0)}${hostUser.lastName.charAt(0)}`.toUpperCase(),
     hostAvatarUrl: hostUser.avatarUrl ?? undefined,
   };
 };
@@ -137,7 +133,6 @@ export const getEvent = async (eventId: string): Promise<Event | null> => {
       counterProposalStartTime: eventInvitees.counterProposalStartTime,
       counterProposalEndTime: eventInvitees.counterProposalEndTime,
       counterProposalLocation: eventInvitees.counterProposalLocation,
-      counterProposalActivityId: eventInvitees.counterProposalActivityId,
       counterProposalMessage: eventInvitees.counterProposalMessage,
       user: users,
     })
@@ -191,7 +186,6 @@ export const getEventsForUser = async (userId: string): Promise<Event[]> => {
       counterProposalStartTime: eventInvitees.counterProposalStartTime,
       counterProposalEndTime: eventInvitees.counterProposalEndTime,
       counterProposalLocation: eventInvitees.counterProposalLocation,
-      counterProposalActivityId: eventInvitees.counterProposalActivityId,
       counterProposalMessage: eventInvitees.counterProposalMessage,
       user: users,
     })
@@ -209,18 +203,11 @@ export const getEventsForUser = async (userId: string): Promise<Event[]> => {
 
   return eventResults.map((r) => {
     const hostInfo = getHostInfo(r.host);
-    return dbEventToEvent(
-      r.event,
-      inviteesByEvent.get(r.event.id) ?? [],
-      hostInfo,
-    );
+    return dbEventToEvent(r.event, inviteesByEvent.get(r.event.id) ?? [], hostInfo);
   });
 };
 
-export const createEvent = async (
-  hostId: string,
-  input: CreateEvent,
-): Promise<Event> => {
+export const createEvent = async (hostId: string, input: CreateEvent): Promise<Event> => {
   // Handle location data - if locationData is provided, use it; otherwise fall back to location string
   const locationName = input.locationData?.name ?? input.location;
   const locationPlaceId = input.locationData?.placeId;
@@ -236,7 +223,6 @@ export const createEvent = async (
     .values({
       hostId,
       title: input.title,
-      activityId: input.activityId,
       emoji,
       startTime: new Date(input.startTime),
       endTime: new Date(input.endTime),
@@ -309,10 +295,6 @@ export const updateEvent = async (
   if (updates.title !== undefined) {
     updateData.title = updates.title;
   }
-  if (updates.activityId !== undefined) {
-    updateData.activityId =
-      updates.activityId === null ? null : updates.activityId;
-  }
   if (updates.emoji !== undefined) {
     updateData.emoji = updates.emoji === null ? null : updates.emoji;
   }
@@ -354,11 +336,9 @@ export const updateEvent = async (
   const hasSignificantChanges = (() => {
     const timeChanged =
       (updates.startTime !== undefined &&
-        new Date(updates.startTime).getTime() !==
-          new Date(existing.startTime).getTime()) ||
+        new Date(updates.startTime).getTime() !== new Date(existing.startTime).getTime()) ||
       (updates.endTime !== undefined &&
-        new Date(updates.endTime).getTime() !==
-          new Date(existing.endTime).getTime());
+        new Date(updates.endTime).getTime() !== new Date(existing.endTime).getTime());
 
     const locationChanged =
       (updates.locationData !== undefined &&
@@ -388,11 +368,9 @@ export const updateEvent = async (
         counterProposalStartTime: null,
         counterProposalEndTime: null,
         counterProposalLocation: null,
-        counterProposalActivityId: null,
         counterProposalMessage: null,
       })
       .where(eq(eventInvitees.eventId, eventId));
-
   }
 
   const updatedEvent = await getEvent(eventId);
@@ -401,11 +379,7 @@ export const updateEvent = async (
   if (updatedEvent) {
     const inviteeIds = updatedEvent.invitees.map((i) => i.userId);
     if (inviteeIds.length > 0) {
-      await notifyEventUpdated(
-        inviteeIds,
-        updatedEvent,
-        hasSignificantChanges,
-      );
+      await notifyEventUpdated(inviteeIds, updatedEvent, hasSignificantChanges);
     }
   }
 
@@ -480,30 +454,19 @@ export const respondToEvent = async (
     updateData.counterProposalEndTime = responseData.counterProposal.endTime
       ? new Date(responseData.counterProposal.endTime)
       : null;
-    updateData.counterProposalLocation =
-      responseData.counterProposal.location ?? null;
-    updateData.counterProposalActivityId =
-      responseData.counterProposal.activityId ?? null;
-    updateData.counterProposalMessage =
-      responseData.counterProposal.message ?? null;
+    updateData.counterProposalLocation = responseData.counterProposal.location ?? null;
+    updateData.counterProposalMessage = responseData.counterProposal.message ?? null;
   }
 
   await db
     .update(eventInvitees)
     .set(updateData)
-    .where(
-      and(eq(eventInvitees.eventId, eventId), eq(eventInvitees.userId, userId)),
-    );
+    .where(and(eq(eventInvitees.eventId, eventId), eq(eventInvitees.userId, userId)));
 
   // Notify the host of the response
   const responder = await getUserById(userId);
   if (responder) {
-    await notifyEventResponse(
-      event.hostId,
-      event,
-      responder.fullName,
-      responseData.status,
-    );
+    await notifyEventResponse(event.hostId, event, responder.fullName, responseData.status);
 
     // If there's a counter proposal, send additional notification
     if (responseData.counterProposal) {

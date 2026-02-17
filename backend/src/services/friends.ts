@@ -1,5 +1,5 @@
 import { eq, and, or } from 'drizzle-orm';
-import { db, users, friendships } from '../db';
+import { db, users, friendships, groups, groupMembers } from '../db';
 import type { Friendship, User } from '../types';
 import { getUserById, getUserByInviteCode } from './users';
 import { notifyFriendRequest, notifyFriendAccepted } from './notifications';
@@ -43,6 +43,21 @@ const dbFriendshipToFriendship = (dbFriendship: typeof friendships.$inferSelect)
   };
 };
 
+/**
+ * Get the "All Friends" default group for a user
+ */
+const getAllFriendsGroup = async (userId: string): Promise<string | null> => {
+  const result = await db
+    .select({ id: groups.id })
+    .from(groups)
+    .where(
+      and(eq(groups.ownerId, userId), eq(groups.isDefault, true), eq(groups.name, 'All Friends')),
+    )
+    .limit(1);
+
+  return result[0]?.id ?? null;
+};
+
 // ============================================
 // Friendship Operations
 // ============================================
@@ -68,7 +83,10 @@ export const getFriendships = async (userId: string): Promise<FriendWithUser[]> 
   }));
 };
 
-export const getFriendship = async (userId: string, friendId: string): Promise<Friendship | null> => {
+export const getFriendship = async (
+  userId: string,
+  friendId: string,
+): Promise<Friendship | null> => {
   const result = await db
     .select()
     .from(friendships)
@@ -208,6 +226,30 @@ export const acceptFriendRequest = async (
       ),
     );
 
+  // Add each user to the other's "All Friends" group
+  const userAllFriendsGroup = await getAllFriendsGroup(userId);
+  const friendAllFriendsGroup = await getAllFriendsGroup(friendId);
+
+  if (userAllFriendsGroup) {
+    await db
+      .insert(groupMembers)
+      .values({
+        groupId: userAllFriendsGroup,
+        userId: friendId,
+      })
+      .onConflictDoNothing();
+  }
+
+  if (friendAllFriendsGroup) {
+    await db
+      .insert(groupMembers)
+      .values({
+        groupId: friendAllFriendsGroup,
+        userId: userId,
+      })
+      .onConflictDoNothing();
+  }
+
   const updatedFriendship = await getFriendship(userId, friendId);
 
   // Send push notification to the original requester
@@ -238,12 +280,14 @@ export const declineFriendRequest = async (
   }
 
   // Delete both records
-  await db.delete(friendships).where(
-    or(
-      and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)),
-      and(eq(friendships.userId, friendId), eq(friendships.friendId, userId)),
-    ),
-  );
+  await db
+    .delete(friendships)
+    .where(
+      or(
+        and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)),
+        and(eq(friendships.userId, friendId), eq(friendships.friendId, userId)),
+      ),
+    );
 
   return { success: true, message: 'Friend request declined' };
 };
@@ -258,13 +302,31 @@ export const removeFriend = async (
     return { success: false, message: 'Friendship not found' };
   }
 
-  // Delete both records
-  await db.delete(friendships).where(
-    or(
-      and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)),
-      and(eq(friendships.userId, friendId), eq(friendships.friendId, userId)),
-    ),
-  );
+  // Remove each user from the other's "All Friends" group
+  const userAllFriendsGroup = await getAllFriendsGroup(userId);
+  const friendAllFriendsGroup = await getAllFriendsGroup(friendId);
+
+  if (userAllFriendsGroup) {
+    await db
+      .delete(groupMembers)
+      .where(and(eq(groupMembers.groupId, userAllFriendsGroup), eq(groupMembers.userId, friendId)));
+  }
+
+  if (friendAllFriendsGroup) {
+    await db
+      .delete(groupMembers)
+      .where(and(eq(groupMembers.groupId, friendAllFriendsGroup), eq(groupMembers.userId, userId)));
+  }
+
+  // Delete both friendship records
+  await db
+    .delete(friendships)
+    .where(
+      or(
+        and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)),
+        and(eq(friendships.userId, friendId), eq(friendships.friendId, userId)),
+      ),
+    );
 
   return { success: true, message: 'Friend removed' };
 };
