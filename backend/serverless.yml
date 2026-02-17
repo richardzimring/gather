@@ -143,28 +143,6 @@ functions:
           method: DELETE
 
   # ============================================
-  # Activities Function
-  # ============================================
-  Activities:
-    handler: lambdas/activities.handler
-    name: ${self:provider.stage}-${self:service}-activities
-    memorySize: 128
-    timeout: 10
-    events:
-      - httpApi:
-          path: /activities
-          method: GET
-      - httpApi:
-          path: /activities
-          method: POST
-      - httpApi:
-          path: /activities/{activityId}
-          method: PATCH
-      - httpApi:
-          path: /activities/{activityId}
-          method: DELETE
-
-  # ============================================
   # Emoji Function
   # ============================================
   Emoji:

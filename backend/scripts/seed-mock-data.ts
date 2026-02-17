@@ -7,7 +7,7 @@
  *   npm run script:seed
  *
  * This script:
- * 1. Clears all data except your user and default activities
+ * 1. Clears all data except your user
  * 2. Creates mock users
  * 3. Creates friendships (accepted + pending requests to you)
  * 4. Creates groups with members
@@ -21,17 +21,15 @@ import {
   friendships,
   groups,
   groupMembers,
-  activities,
   events,
   eventInvitees,
   blockedWindows,
 } from '../src/db';
-import {
-  DEFAULT_GROUPS,
-  DEFAULT_ACTIVITIES,
-  INVITE_CODE_LENGTH,
-} from '../src/constants';
+import { DEFAULT_GROUPS, INVITE_CODE_LENGTH } from '../src/constants';
 import { eq, and, inArray, or } from 'drizzle-orm';
+import { sendFriendRequest, acceptFriendRequest } from '../src/services/friends';
+import { createGroup } from '../src/services/groups';
+import { createEvent, respondToEvent } from '../src/services/events';
 
 // Your Apple User ID - will be preserved during cleanup
 const MY_APPLE_USER_ID = process.env.MY_APPLE_USER_ID as string;
@@ -167,43 +165,25 @@ async function cleanupDatabase(myUserId: string | null): Promise<void> {
       .where(eq(groups.ownerId, myUserId));
     const myGroupIds = myGroups.map((g) => g.id);
     if (myGroupIds.length > 0) {
-      await db
-        .delete(groupMembers)
-        .where(inArray(groupMembers.groupId, myGroupIds));
+      await db.delete(groupMembers).where(inArray(groupMembers.groupId, myGroupIds));
     }
   }
 
   // Delete non-default groups for my user
   if (myUserId) {
-    await db
-      .delete(groups)
-      .where(and(eq(groups.ownerId, myUserId), eq(groups.isDefault, false)));
+    await db.delete(groups).where(and(eq(groups.ownerId, myUserId), eq(groups.isDefault, false)));
   }
 
   // Delete all friendships involving my user
   if (myUserId) {
     await db
       .delete(friendships)
-      .where(
-        or(
-          eq(friendships.userId, myUserId),
-          eq(friendships.friendId, myUserId),
-        ),
-      );
+      .where(or(eq(friendships.userId, myUserId), eq(friendships.friendId, myUserId)));
   }
 
   // Delete mock users (this cascades to their friendships, groups, etc.)
   if (mockUserIds.length > 0) {
     await db.delete(users).where(inArray(users.id, mockUserIds));
-  }
-
-  // Delete non-default activities for my user (keep defaults)
-  if (myUserId) {
-    await db
-      .delete(activities)
-      .where(
-        and(eq(activities.userId, myUserId), eq(activities.isDefault, false)),
-      );
   }
 
   // Delete blocked windows for my user
@@ -217,26 +197,6 @@ async function cleanupDatabase(myUserId: string | null): Promise<void> {
 // ============================================
 // Seed Functions
 // ============================================
-
-async function ensureDefaultActivities(): Promise<void> {
-  const existing = await db
-    .select()
-    .from(activities)
-    .where(eq(activities.isDefault, true))
-    .limit(1);
-  if (existing.length > 0) return;
-
-  console.log('📝 Creating default activities...');
-  await db.insert(activities).values(
-    DEFAULT_ACTIVITIES.map((a) => ({
-      userId: null,
-      name: a.name,
-      emoji: a.emoji,
-      isDefault: true,
-    })),
-  );
-  console.log(`✅ Created ${DEFAULT_ACTIVITIES.length} default activities`);
-}
 
 async function createMockUsers(): Promise<Map<string, string>> {
   console.log('👥 Creating mock users...');
@@ -276,59 +236,32 @@ async function createMockUsers(): Promise<Map<string, string>> {
   return userMap;
 }
 
-async function createFriendships(
-  myUserId: string,
-  userMap: Map<string, string>,
-): Promise<void> {
+async function createFriendships(myUserId: string, userMap: Map<string, string>): Promise<void> {
   console.log('🤝 Creating friendships...');
 
-  const now = new Date();
-
   // Friends I have accepted (mutual friendship)
+  // Simulate: I send request, they accept (so notifications are sent)
   const acceptedFriends = ['Alice', 'Bob', 'Charlie', 'Diana'];
   for (const name of acceptedFriends) {
     const friendId = userMap.get(name);
     if (!friendId) continue;
 
-    await db.insert(friendships).values([
-      {
-        userId: myUserId,
-        friendId: friendId,
-        status: 'accepted',
-        initiatedBy: myUserId,
-        acceptedAt: now,
-      },
-      {
-        userId: friendId,
-        friendId: myUserId,
-        status: 'accepted',
-        initiatedBy: myUserId,
-        acceptedAt: now,
-      },
-    ]);
+    // I send the friend request
+    await sendFriendRequest(myUserId, friendId);
+    // They accept it (this will send me a notification)
+    await acceptFriendRequest(friendId, myUserId);
     console.log(`  ✅ Accepted friendship with ${name}`);
   }
 
   // Pending friend requests TO me (they initiated, I haven't responded)
+  // This will send me notifications
   const pendingFromOthers = ['Ethan', 'Fiona'];
   for (const name of pendingFromOthers) {
     const friendId = userMap.get(name);
     if (!friendId) continue;
 
-    await db.insert(friendships).values([
-      {
-        userId: friendId,
-        friendId: myUserId,
-        status: 'pending',
-        initiatedBy: friendId,
-      },
-      {
-        userId: myUserId,
-        friendId: friendId,
-        status: 'pending',
-        initiatedBy: friendId,
-      },
-    ]);
+    // They send me a friend request (I'll get a notification)
+    await sendFriendRequest(friendId, myUserId);
     console.log(`  ⏳ Pending request from ${name}`);
   }
 }
@@ -348,43 +281,27 @@ async function createGroups(
   ];
 
   for (const groupData of groupsData) {
-    const [newGroup] = await db
-      .insert(groups)
-      .values({
-        ownerId: myUserId,
-        name: groupData.name,
-        emoji: groupData.emoji,
-        isDefault: false,
-      })
-      .returning();
+    // Convert member names to IDs
+    const memberIds = groupData.members
+      .map((name) => userMap.get(name))
+      .filter((id): id is string => !!id);
 
-    if (newGroup) {
-      groupMap.set(groupData.name, newGroup.id);
-      console.log(`  ✅ Created group: ${groupData.emoji} ${groupData.name}`);
+    // Use the service function to create the group
+    const newGroup = await createGroup(myUserId, {
+      name: groupData.name,
+      emoji: groupData.emoji,
+      memberIds,
+    });
 
-      // Add members to the group
-      const memberInserts = groupData.members
-        .map((name) => userMap.get(name))
-        .filter((id): id is string => !!id)
-        .map((userId) => ({
-          groupId: newGroup.id,
-          userId,
-        }));
-
-      if (memberInserts.length > 0) {
-        await db.insert(groupMembers).values(memberInserts);
-        console.log(`    Added ${memberInserts.length} members`);
-      }
-    }
+    groupMap.set(groupData.name, newGroup.groupId);
+    console.log(`  ✅ Created group: ${groupData.emoji} ${groupData.name}`);
+    console.log(`    Added ${memberIds.length} members`);
   }
 
   return groupMap;
 }
 
-async function createEvents(
-  myUserId: string,
-  userMap: Map<string, string>,
-): Promise<void> {
+async function createEvents(myUserId: string, userMap: Map<string, string>): Promise<void> {
   console.log('📅 Creating events...');
 
   // Get user IDs upfront and validate they exist
@@ -397,16 +314,6 @@ async function createEvents(
     console.error('  ❌ Missing required user IDs');
     return;
   }
-
-  // Get default activities to use
-  const defaultActivities = await db
-    .select()
-    .from(activities)
-    .where(eq(activities.isDefault, true));
-  const coffeeActivity = defaultActivities.find((a) => a.name === 'Coffee');
-  const dinnerActivity = defaultActivities.find((a) => a.name === 'Dinner');
-  const drinksActivity = defaultActivities.find((a) => a.name === 'Drinks');
-  const gymActivity = defaultActivities.find((a) => a.name === 'Gym');
 
   const now = new Date();
 
@@ -424,290 +331,189 @@ async function createEvents(
 
   // Event 1: All invitees accepted (with location)
   const event1Start = addDays(2, 10);
-  const [event1] = await db
-    .insert(events)
-    .values({
-      hostId: myUserId,
-      title: 'Coffee Catch-up',
-      activityId: coffeeActivity?.id,
-      emoji: '☕',
-      startTime: event1Start,
-      endTime: new Date(event1Start.getTime() + 60 * 60 * 1000),
-      location: SAMPLE_LOCATIONS.spyhouse.name,
-      locationPlaceId: SAMPLE_LOCATIONS.spyhouse.placeId,
-      locationAddress: SAMPLE_LOCATIONS.spyhouse.address,
+  const event1 = await createEvent(myUserId, {
+    title: 'Coffee Catch-up',
+    emoji: '☕',
+    startTime: event1Start.toISOString(),
+    endTime: new Date(event1Start.getTime() + 60 * 60 * 1000).toISOString(),
+    location: SAMPLE_LOCATIONS.spyhouse.name,
+    locationData: {
+      name: SAMPLE_LOCATIONS.spyhouse.name,
+      placeId: SAMPLE_LOCATIONS.spyhouse.placeId,
+      address: SAMPLE_LOCATIONS.spyhouse.address,
       latitude: SAMPLE_LOCATIONS.spyhouse.latitude,
       longitude: SAMPLE_LOCATIONS.spyhouse.longitude,
-      notes: 'Looking forward to catching up!',
-      showInviteList: true,
-      status: 'active',
-    })
-    .returning();
+    },
+    notes: 'Looking forward to catching up!',
+    inviteeIds: [aliceId, bobId],
+    showInviteList: true,
+  });
 
-  if (event1) {
-    await db.insert(eventInvitees).values([
-      {
-        eventId: event1.id,
-        userId: aliceId,
-        status: 'accepted',
-        respondedAt: now,
-      },
-      {
-        eventId: event1.id,
-        userId: bobId,
-        status: 'accepted',
-        respondedAt: now,
-      },
-    ]);
-    console.log('  ✅ Coffee Catch-up (all accepted, has location)');
-  }
+  // Simulate responses (they will send notifications to me as the host)
+  await respondToEvent(event1.eventId, aliceId, { status: 'accepted' });
+  await respondToEvent(event1.eventId, bobId, { status: 'accepted' });
+  console.log('  ✅ Coffee Catch-up (all accepted, has location)');
 
   // Event 2: Mixed responses (some accepted, some maybe, some declined)
   const event2Start = addDays(5, 18);
-  const [event2] = await db
-    .insert(events)
-    .values({
-      hostId: myUserId,
-      title: 'Dinner Party',
-      activityId: dinnerActivity?.id,
-      emoji: '🍽️',
-      startTime: event2Start,
-      endTime: new Date(event2Start.getTime() + 3 * 60 * 60 * 1000),
-      location: null, // No location
-      notes: "Let's celebrate! Location TBD",
-      showInviteList: true,
-      status: 'active',
-    })
-    .returning();
+  const event2 = await createEvent(myUserId, {
+    title: 'Dinner Party',
+    emoji: '🍽️',
+    startTime: event2Start.toISOString(),
+    endTime: new Date(event2Start.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+    notes: "Let's celebrate! Location TBD",
+    inviteeIds: [aliceId, bobId, charlieId, dianaId],
+    showInviteList: true,
+  });
 
-  if (event2) {
-    await db.insert(eventInvitees).values([
-      {
-        eventId: event2.id,
-        userId: aliceId,
-        status: 'accepted',
-        respondedAt: now,
-      },
-      { eventId: event2.id, userId: bobId, status: 'maybe', respondedAt: now },
-      {
-        eventId: event2.id,
-        userId: charlieId,
-        status: 'declined',
-        respondedAt: now,
-      },
-      { eventId: event2.id, userId: dianaId, status: 'pending' }, // Hasn't responded
-    ]);
-    console.log('  ✅ Dinner Party (mixed responses, no location)');
-  }
+  // Mixed responses (will send me notifications)
+  await respondToEvent(event2.eventId, aliceId, { status: 'accepted' });
+  await respondToEvent(event2.eventId, bobId, { status: 'maybe' });
+  await respondToEvent(event2.eventId, charlieId, { status: 'declined' });
+  // Diana hasn't responded (stays pending)
+  console.log('  ✅ Dinner Party (mixed responses, no location)');
 
   // Event 3: Counter proposal received
   const event3Start = addDays(7, 15);
-  const [event3] = await db
-    .insert(events)
-    .values({
-      hostId: myUserId,
-      title: 'Afternoon Drinks',
-      activityId: drinksActivity?.id,
-      emoji: '🍻',
-      startTime: event3Start,
-      endTime: new Date(event3Start.getTime() + 2 * 60 * 60 * 1000),
-      location: SAMPLE_LOCATIONS.milkweed.name,
-      locationPlaceId: SAMPLE_LOCATIONS.milkweed.placeId,
-      locationAddress: SAMPLE_LOCATIONS.milkweed.address,
+  const event3 = await createEvent(myUserId, {
+    title: 'Afternoon Drinks',
+    emoji: '🍻',
+    startTime: event3Start.toISOString(),
+    endTime: new Date(event3Start.getTime() + 2 * 60 * 60 * 1000).toISOString(),
+    location: SAMPLE_LOCATIONS.milkweed.name,
+    locationData: {
+      name: SAMPLE_LOCATIONS.milkweed.name,
+      placeId: SAMPLE_LOCATIONS.milkweed.placeId,
+      address: SAMPLE_LOCATIONS.milkweed.address,
       latitude: SAMPLE_LOCATIONS.milkweed.latitude,
       longitude: SAMPLE_LOCATIONS.milkweed.longitude,
-      showInviteList: true,
-      status: 'active',
-    })
-    .returning();
+    },
+    inviteeIds: [charlieId],
+    showInviteList: true,
+  });
 
-  if (event3) {
-    const counterStart = addDays(7, 17); // Suggesting 5pm instead of 3pm
-    await db.insert(eventInvitees).values([
-      {
-        eventId: event3.id,
-        userId: charlieId,
-        status: 'maybe',
-        respondedAt: now,
-        counterProposalStartTime: counterStart,
-        counterProposalEndTime: new Date(
-          counterStart.getTime() + 2 * 60 * 60 * 1000,
-        ),
-        counterProposalMessage:
-          'Can we do 5pm instead? I have a meeting until 4:30.',
-      },
-    ]);
-    console.log('  ✅ Afternoon Drinks (with counter proposal)');
-  }
+  // Charlie responds with counter proposal (will send me notification)
+  const counterStart = addDays(7, 17); // Suggesting 5pm instead of 3pm
+  await respondToEvent(event3.eventId, charlieId, {
+    status: 'maybe',
+    counterProposal: {
+      startTime: counterStart.toISOString(),
+      endTime: new Date(counterStart.getTime() + 2 * 60 * 60 * 1000).toISOString(),
+      message: 'Can we do 5pm instead? I have a meeting until 4:30.',
+    },
+  });
+  console.log('  ✅ Afternoon Drinks (with counter proposal)');
 
   // Event 4: All pending (just sent)
   const event4Start = addDays(10, 19);
-  const [event4] = await db
-    .insert(events)
-    .values({
-      hostId: myUserId,
-      title: 'Game Night',
-      emoji: '🎮',
-      startTime: event4Start,
-      endTime: new Date(event4Start.getTime() + 4 * 60 * 60 * 1000),
-      notes: 'Bring your favorite board games!',
-      showInviteList: true,
-      status: 'active',
-    })
-    .returning();
-
-  if (event4) {
-    await db.insert(eventInvitees).values([
-      { eventId: event4.id, userId: aliceId, status: 'pending' },
-      { eventId: event4.id, userId: charlieId, status: 'pending' },
-    ]);
-    console.log('  ✅ Game Night (all pending)');
-  }
+  await createEvent(myUserId, {
+    title: 'Game Night',
+    emoji: '🎮',
+    startTime: event4Start.toISOString(),
+    endTime: new Date(event4Start.getTime() + 4 * 60 * 60 * 1000).toISOString(),
+    notes: 'Bring your favorite board games!',
+    inviteeIds: [aliceId, charlieId],
+    showInviteList: true,
+  });
+  console.log('  ✅ Game Night (all pending)');
 
   // ============================================
   // EVENTS I AM INVITED TO
   // ============================================
 
   // Event 5: Invited by Alice, I haven't responded yet (with location)
+  // This will send me a notification
   const event5Start = addDays(3, 9);
-  const [event5] = await db
-    .insert(events)
-    .values({
-      hostId: aliceId,
-      title: 'Morning Run at the Lake',
-      emoji: '🏃',
-      startTime: event5Start,
-      endTime: new Date(event5Start.getTime() + 60 * 60 * 1000),
-      location: SAMPLE_LOCATIONS.lakeCalhoun.name,
-      locationPlaceId: SAMPLE_LOCATIONS.lakeCalhoun.placeId,
-      locationAddress: SAMPLE_LOCATIONS.lakeCalhoun.address,
+  const event5 = await createEvent(aliceId, {
+    title: 'Morning Run at the Lake',
+    emoji: '🏃',
+    startTime: event5Start.toISOString(),
+    endTime: new Date(event5Start.getTime() + 60 * 60 * 1000).toISOString(),
+    location: SAMPLE_LOCATIONS.lakeCalhoun.name,
+    locationData: {
+      name: SAMPLE_LOCATIONS.lakeCalhoun.name,
+      placeId: SAMPLE_LOCATIONS.lakeCalhoun.placeId,
+      address: SAMPLE_LOCATIONS.lakeCalhoun.address,
       latitude: SAMPLE_LOCATIONS.lakeCalhoun.latitude,
       longitude: SAMPLE_LOCATIONS.lakeCalhoun.longitude,
-      notes: "Let's do a 5K around the lake!",
-      showInviteList: true,
-      status: 'active',
-    })
-    .returning();
+    },
+    notes: "Let's do a 5K around the lake!",
+    inviteeIds: [myUserId, bobId],
+    showInviteList: true,
+  });
 
-  if (event5) {
-    await db.insert(eventInvitees).values([
-      { eventId: event5.id, userId: myUserId, status: 'pending' }, // I haven't responded
-      {
-        eventId: event5.id,
-        userId: bobId,
-        status: 'accepted',
-        respondedAt: now,
-      },
-    ]);
-    console.log('  ✅ Morning Run (invited, pending my response)');
-  }
+  // Bob accepts, I stay pending
+  await respondToEvent(event5.eventId, bobId, { status: 'accepted' });
+  console.log('  ✅ Morning Run (invited, pending my response)');
 
   // Event 6: Invited by Bob, I accepted (no location)
+  // This will send me a notification
   const event6Start = addDays(4, 12);
-  const [event6] = await db
-    .insert(events)
-    .values({
-      hostId: bobId,
-      title: 'Lunch Meeting',
-      activityId: dinnerActivity?.id,
-      emoji: '🥗',
-      startTime: event6Start,
-      endTime: new Date(event6Start.getTime() + 90 * 60 * 1000),
-      notes: 'Quick sync about the project',
-      showInviteList: true,
-      status: 'active',
-    })
-    .returning();
+  const event6 = await createEvent(bobId, {
+    title: 'Lunch Meeting',
+    emoji: '🥗',
+    startTime: event6Start.toISOString(),
+    endTime: new Date(event6Start.getTime() + 90 * 60 * 1000).toISOString(),
+    notes: 'Quick sync about the project',
+    inviteeIds: [myUserId],
+    showInviteList: true,
+  });
 
-  if (event6) {
-    await db
-      .insert(eventInvitees)
-      .values([
-        {
-          eventId: event6.id,
-          userId: myUserId,
-          status: 'accepted',
-          respondedAt: now,
-        },
-      ]);
-    console.log('  ✅ Lunch Meeting (invited, I accepted)');
-  }
+  // I accept (sends Bob a notification)
+  await respondToEvent(event6.eventId, myUserId, { status: 'accepted' });
+  console.log('  ✅ Lunch Meeting (invited, I accepted)');
 
   // Event 7: Invited by Charlie, I said maybe with counter proposal
+  // This will send me a notification
   const event7Start = addDays(6, 20);
-  const [event7] = await db
-    .insert(events)
-    .values({
-      hostId: charlieId,
-      title: 'Movie Night',
-      emoji: '🎬',
-      startTime: event7Start,
-      endTime: new Date(event7Start.getTime() + 3 * 60 * 60 * 1000),
-      notes: "Let's watch the new Marvel movie",
-      showInviteList: true,
-      status: 'active',
-    })
-    .returning();
+  const event7 = await createEvent(charlieId, {
+    title: 'Movie Night',
+    emoji: '🎬',
+    startTime: event7Start.toISOString(),
+    endTime: new Date(event7Start.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+    notes: "Let's watch the new Marvel movie",
+    inviteeIds: [myUserId],
+    showInviteList: true,
+  });
 
-  if (event7) {
-    const counterStart = addDays(6, 19); // Suggesting 7pm instead of 8pm
-    await db.insert(eventInvitees).values([
-      {
-        eventId: event7.id,
-        userId: myUserId,
-        status: 'maybe',
-        respondedAt: now,
-        counterProposalStartTime: counterStart,
-        counterProposalEndTime: new Date(
-          counterStart.getTime() + 3 * 60 * 60 * 1000,
-        ),
-        counterProposalMessage:
-          'Could we start at 7pm? I have an early morning the next day.',
-      },
-    ]);
-    console.log('  ✅ Movie Night (invited, I said maybe with counter)');
-  }
+  // I respond with counter proposal (sends Charlie a notification)
+  const counterStart7 = addDays(6, 19); // Suggesting 7pm instead of 8pm
+  await respondToEvent(event7.eventId, myUserId, {
+    status: 'maybe',
+    counterProposal: {
+      startTime: counterStart7.toISOString(),
+      endTime: new Date(counterStart7.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+      message: 'Could we start at 7pm? I have an early morning the next day.',
+    },
+  });
+  console.log('  ✅ Movie Night (invited, I said maybe with counter)');
 
   // Event 8: Invited by Diana, I declined
+  // This will send me a notification
   const event8Start = addDays(8, 7);
-  const [event8] = await db
-    .insert(events)
-    .values({
-      hostId: dianaId,
-      title: 'Early Gym Session',
-      activityId: gymActivity?.id,
-      emoji: '🏋️',
-      startTime: event8Start,
-      endTime: new Date(event8Start.getTime() + 90 * 60 * 1000),
-      location: 'Downtown Fitness Center',
-      notes: 'Leg day!',
-      showInviteList: true,
-      status: 'active',
-    })
-    .returning();
+  const event8 = await createEvent(dianaId, {
+    title: 'Early Gym Session',
+    emoji: '🏋️',
+    startTime: event8Start.toISOString(),
+    endTime: new Date(event8Start.getTime() + 90 * 60 * 1000).toISOString(),
+    location: 'Downtown Fitness Center',
+    notes: 'Leg day!',
+    inviteeIds: [myUserId],
+    showInviteList: true,
+  });
 
-  if (event8) {
-    await db
-      .insert(eventInvitees)
-      .values([
-        {
-          eventId: event8.id,
-          userId: myUserId,
-          status: 'declined',
-          respondedAt: now,
-        },
-      ]);
-    console.log('  ✅ Early Gym Session (invited, I declined)');
-  }
+  // I decline (sends Diana a notification)
+  await respondToEvent(event8.eventId, myUserId, { status: 'declined' });
+  console.log('  ✅ Early Gym Session (invited, I declined)');
 
   // Event 9: Past event - Invited by Alice, I attended (confirmed)
+  // For past events, we need to manually set timestamps to avoid notifications
   const event9Start = addDays(-3, 18);
-  const [event9] = await db
+  const [event9Db] = await db
     .insert(events)
     .values({
       hostId: aliceId,
       title: 'Happy Hour',
-      activityId: drinksActivity?.id,
       emoji: '🍸',
       startTime: event9Start,
       endTime: new Date(event9Start.getTime() + 2 * 60 * 60 * 1000),
@@ -717,16 +523,16 @@ async function createEvents(
     })
     .returning();
 
-  if (event9) {
+  if (event9Db) {
     await db.insert(eventInvitees).values([
       {
-        eventId: event9.id,
+        eventId: event9Db.id,
         userId: myUserId,
         status: 'accepted',
         respondedAt: new Date(event9Start.getTime() - 2 * 24 * 60 * 60 * 1000),
       },
       {
-        eventId: event9.id,
+        eventId: event9Db.id,
         userId: bobId,
         status: 'accepted',
         respondedAt: new Date(event9Start.getTime() - 2 * 24 * 60 * 60 * 1000),
@@ -735,9 +541,9 @@ async function createEvents(
     console.log('  ✅ Happy Hour (past event, attended)');
   }
 
-  // Event 10: Draft event I'm creating
+  // Event 10: Draft event I'm creating (use direct DB since status is 'draft')
   const event10Start = addDays(14, 11);
-  const [event10] = await db
+  const [event10Db] = await db
     .insert(events)
     .values({
       hostId: myUserId,
@@ -751,7 +557,7 @@ async function createEvents(
     })
     .returning();
 
-  if (event10) {
+  if (event10Db) {
     console.log('  ✅ Weekend Brunch (draft, no invitees yet)');
   }
 }
@@ -766,19 +572,13 @@ async function main() {
   // Get my user ID
   const myUserId = await getMyUserId();
   if (!myUserId) {
-    console.error(
-      '❌ Error: Your user not found. Please sign in to the app first.',
-    );
+    console.error('❌ Error: Your user not found. Please sign in to the app first.');
     process.exit(1);
   }
   console.log(`📍 Found your user ID: ${myUserId}\n`);
 
   // Clean up existing mock data
   await cleanupDatabase(myUserId);
-  console.log('');
-
-  // Ensure default activities exist
-  await ensureDefaultActivities();
   console.log('');
 
   // Create mock users
@@ -800,13 +600,22 @@ async function main() {
   console.log('🎉 Seed complete!\n');
   console.log('Summary:');
   console.log(`  - ${MOCK_USERS.length} mock users created`);
-  console.log('  - 4 accepted friendships');
-  console.log('  - 2 pending friend requests');
+  console.log('  - 4 accepted friendships (with notifications)');
+  console.log('  - 2 pending friend requests (with notifications)');
   console.log('  - 3 custom groups with members');
   console.log('  - 10 events in various states');
   console.log('    • 4 events you are hosting');
-  console.log('    • 5 events you are invited to');
+  console.log('    • 5 events you are invited to (with notifications)');
   console.log('    • 1 draft event');
+  console.log('    • 1 past event (no notifications)');
+  console.log('');
+  console.log('📱 Push Notifications:');
+  console.log('  If you have push notifications enabled, you should receive:');
+  console.log('  - 2 friend request notifications (from Ethan and Fiona)');
+  console.log('  - 4 friend accepted notifications (from Alice, Bob, Charlie, Diana)');
+  console.log('  - 5 event invitation notifications (from Alice, Bob, Charlie, Diana)');
+  console.log('  - 9 event response notifications (as host of your events)');
+  console.log('  - 1 counter proposal notification (from Charlie)');
 }
 
 main()

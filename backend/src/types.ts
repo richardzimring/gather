@@ -113,32 +113,6 @@ export const UpdateGroupSchema = z
   })
   .openapi('UpdateGroup');
 
-// Activity schemas
-export const ActivitySchema = z
-  .object({
-    activityId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
-    userId: z.string().uuid().nullable().openapi({ example: EXAMPLE_UUID }),
-    name: z.string().min(1).max(50).openapi({ example: 'Coffee' }),
-    emoji: z.string().min(1).max(4).openapi({ example: '☕' }),
-    isDefault: z.boolean().default(false).openapi({ example: false }),
-    createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
-  })
-  .openapi('Activity');
-
-export const CreateActivitySchema = z
-  .object({
-    name: z.string().min(1).max(50).openapi({ example: 'Board Games' }),
-    emoji: z.string().min(1).max(4).optional().openapi({ example: '🎲' }),
-  })
-  .openapi('CreateActivity');
-
-export const UpdateActivitySchema = z
-  .object({
-    name: z.string().min(1).max(50).optional().openapi({ example: 'Updated Activity' }),
-    emoji: z.string().min(1).max(4).optional().openapi({ example: '🎯' }),
-  })
-  .openapi('UpdateActivity');
-
 // Blocked window schemas (times when user is NOT available)
 export const RecurringPatternSchema = z.enum(['daily', 'weekly', 'biweekly', 'monthly']).openapi('RecurringPattern');
 
@@ -199,7 +173,6 @@ export const CounterProposalSchema = z
     startTime: z.string().datetime().optional().openapi({ example: '2024-01-15T15:00:00.000Z' }),
     endTime: z.string().datetime().optional().openapi({ example: '2024-01-15T17:00:00.000Z' }),
     location: z.string().max(200).optional().openapi({ example: 'Central Park' }),
-    activityId: z.string().uuid().optional().openapi({ example: EXAMPLE_UUID }),
     message: z.string().max(500).optional().openapi({ example: 'Can we do an hour later?' }),
   })
   .openapi('CounterProposal');
@@ -224,7 +197,6 @@ export const EventSchema = z
     hostInitials: z.string().openapi({ example: 'JD' }),
     hostAvatarUrl: z.string().url().optional().openapi({ example: 'https://example.com/avatar.jpg' }),
     title: z.string().min(1).max(100).openapi({ example: 'Coffee Catch-up' }),
-    activityId: z.string().uuid().optional().openapi({ example: EXAMPLE_UUID }),
     emoji: z.string().optional().openapi({ example: '☕' }),
     startTime: z.string().datetime().openapi({ example: '2024-01-15T14:00:00.000Z' }),
     endTime: z.string().datetime().openapi({ example: '2024-01-15T15:00:00.000Z' }),
@@ -255,7 +227,6 @@ export const EventRecurringSchema = z
 export const CreateEventSchema = z
   .object({
     title: z.string().min(1).max(100).openapi({ example: 'Coffee Catch-up' }),
-    activityId: z.string().uuid().optional().openapi({ example: EXAMPLE_UUID }),
     emoji: z.string().optional().openapi({ example: '☕' }),
     startTime: z.string().datetime().openapi({ example: '2024-01-15T14:00:00.000Z' }),
     endTime: z.string().datetime().openapi({ example: '2024-01-15T15:00:00.000Z' }),
@@ -271,7 +242,6 @@ export const CreateEventSchema = z
 export const UpdateEventSchema = z
   .object({
     title: z.string().min(1).max(100).optional().openapi({ example: 'Updated Event Title' }),
-    activityId: z.string().uuid().nullable().optional().openapi({ example: EXAMPLE_UUID }),
     emoji: z.string().nullable().optional().openapi({ example: '🎉' }),
     startTime: z.string().datetime().optional().openapi({ example: '2024-01-15T14:00:00.000Z' }),
     endTime: z.string().datetime().optional().openapi({ example: '2024-01-15T15:00:00.000Z' }),
@@ -362,10 +332,6 @@ export type FriendRequest = z.infer<typeof FriendRequestSchema>;
 export type Group = z.infer<typeof GroupSchema>;
 export type CreateGroup = z.infer<typeof CreateGroupSchema>;
 export type UpdateGroup = z.infer<typeof UpdateGroupSchema>;
-
-export type Activity = z.infer<typeof ActivitySchema>;
-export type CreateActivity = z.infer<typeof CreateActivitySchema>;
-export type UpdateActivity = z.infer<typeof UpdateActivitySchema>;
 
 export type RecurringPattern = z.infer<typeof RecurringPatternSchema>;
 export type Recurring = z.infer<typeof RecurringSchema>;
