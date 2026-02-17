@@ -68,7 +68,7 @@ export default function CalendarConnectScreen() {
     switch (provider.id) {
       case "apple":
         router.push({
-          pathname: "/calendars/[provider]-select",
+          pathname: "/calendars/[provider]",
           params: { provider: "apple" },
         });
         break;
@@ -76,7 +76,7 @@ export default function CalendarConnectScreen() {
       case "google":
         if (hasGoogleConnection) {
           router.push({
-            pathname: "/calendars/[provider]-select",
+            pathname: "/calendars/[provider]",
             params: { provider: "google" },
           });
         } else {
@@ -89,7 +89,7 @@ export default function CalendarConnectScreen() {
               queryKey: calendarConnectionKeys.connections(),
             });
             router.push({
-              pathname: "/calendars/[provider]-select",
+              pathname: "/calendars/[provider]",
               params: { provider: "google" },
             });
           } catch (error) {
@@ -110,7 +110,7 @@ export default function CalendarConnectScreen() {
       case "outlook":
         if (hasOutlookConnection) {
           router.push({
-            pathname: "/calendars/[provider]-select",
+            pathname: "/calendars/[provider]",
             params: { provider: "outlook" },
           });
         } else {
@@ -123,7 +123,7 @@ export default function CalendarConnectScreen() {
               queryKey: calendarConnectionKeys.connections(),
             });
             router.push({
-              pathname: "/calendars/[provider]-select",
+              pathname: "/calendars/[provider]",
               params: { provider: "outlook" },
             });
           } catch (error) {
