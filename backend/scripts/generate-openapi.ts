@@ -11,7 +11,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Import all lambda apps
-import { app as activitiesApp } from '../lambdas/activities';
 import { app as authApp } from '../lambdas/auth';
 import { app as blockedApp } from '../lambdas/blocked';
 import { app as calendarsApp } from '../lambdas/calendars';
@@ -36,7 +35,6 @@ mainApp.openAPIRegistry.registerComponent('securitySchemes', 'BearerAuth', {
 // Mount all sub-apps with their base paths
 // Note: The routes are already defined with their full paths in each lambda,
 // so we mount them at the root
-mainApp.route('/', activitiesApp);
 mainApp.route('/', authApp);
 mainApp.route('/', blockedApp);
 mainApp.route('/', calendarsApp);

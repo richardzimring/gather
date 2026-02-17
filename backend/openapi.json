@@ -25,170 +25,6 @@
       }
     },
     "schemas": {
-      "ActivitiesResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "activities": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Activity"
-                }
-              }
-            },
-            "required": [
-              "activities"
-            ]
-          }
-        },
-        "required": [
-          "success",
-          "data"
-        ]
-      },
-      "Activity": {
-        "type": "object",
-        "properties": {
-          "activityId": {
-            "type": "string",
-            "format": "uuid",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "userId": {
-            "type": "string",
-            "nullable": true,
-            "format": "uuid",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 50,
-            "example": "Coffee"
-          },
-          "emoji": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 4,
-            "example": "☕"
-          },
-          "isDefault": {
-            "type": "boolean",
-            "default": false,
-            "example": false
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2024-01-15T10:30:00.000Z"
-          }
-        },
-        "required": [
-          "activityId",
-          "userId",
-          "name",
-          "emoji",
-          "createdAt"
-        ]
-      },
-      "ErrorResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "enum": [
-              false
-            ]
-          },
-          "error": {
-            "type": "string",
-            "example": "Validation Error"
-          },
-          "message": {
-            "type": "string",
-            "example": "Invalid input provided"
-          }
-        },
-        "required": [
-          "success",
-          "error",
-          "message"
-        ]
-      },
-      "ActivityResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "activity": {
-                "$ref": "#/components/schemas/Activity"
-              }
-            },
-            "required": [
-              "activity"
-            ]
-          },
-          "message": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "success",
-          "data"
-        ]
-      },
-      "CreateActivity": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 50,
-            "example": "Board Games"
-          },
-          "emoji": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 4,
-            "example": "🎲"
-          }
-        },
-        "required": [
-          "name"
-        ]
-      },
-      "UpdateActivity": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 50,
-            "example": "Updated Activity"
-          },
-          "emoji": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 4,
-            "example": "🎯"
-          }
-        }
-      },
       "AuthResponse": {
         "type": "object",
         "properties": {
@@ -302,6 +138,30 @@
           "fullName",
           "initials",
           "createdAt"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "error": {
+            "type": "string",
+            "example": "Validation Error"
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid input provided"
+          }
+        },
+        "required": [
+          "success",
+          "error",
+          "message"
         ]
       },
       "AppleCallback": {
@@ -1144,11 +1004,6 @@
             "maxLength": 100,
             "example": "Coffee Catch-up"
           },
-          "activityId": {
-            "type": "string",
-            "format": "uuid",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
           "emoji": {
             "type": "string",
             "example": "☕"
@@ -1299,11 +1154,6 @@
             "maxLength": 200,
             "example": "Central Park"
           },
-          "activityId": {
-            "type": "string",
-            "format": "uuid",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
-          },
           "message": {
             "type": "string",
             "maxLength": 500,
@@ -1356,11 +1206,6 @@
             "minLength": 1,
             "maxLength": 100,
             "example": "Coffee Catch-up"
-          },
-          "activityId": {
-            "type": "string",
-            "format": "uuid",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
           },
           "emoji": {
             "type": "string",
@@ -1491,12 +1336,6 @@
             "minLength": 1,
             "maxLength": 100,
             "example": "Updated Event Title"
-          },
-          "activityId": {
-            "type": "string",
-            "nullable": true,
-            "format": "uuid",
-            "example": "550e8400-e29b-41d4-a716-446655440000"
           },
           "emoji": {
             "type": "string",
@@ -2245,253 +2084,6 @@
     "parameters": {}
   },
   "paths": {
-    "/activities": {
-      "get": {
-        "tags": [
-          "Activities"
-        ],
-        "summary": "Get all activities",
-        "description": "Get all activities (default + user-created)",
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Activities retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ActivitiesResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Activities"
-        ],
-        "summary": "Create activity",
-        "description": "Create a new custom activity",
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateActivity"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Activity created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ActivityResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/activities/{activityId}": {
-      "patch": {
-        "tags": [
-          "Activities"
-        ],
-        "summary": "Update activity",
-        "description": "Update a custom activity",
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "example": "550e8400-e29b-41d4-a716-446655440000"
-            },
-            "required": true,
-            "name": "activityId",
-            "in": "path"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateActivity"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Activity updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ActivityResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error or update failed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Activities"
-        ],
-        "summary": "Delete activity",
-        "description": "Delete a custom activity",
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "example": "550e8400-e29b-41d4-a716-446655440000"
-            },
-            "required": true,
-            "name": "activityId",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Activity deleted successfully"
-          },
-          "400": {
-            "description": "Delete failed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/auth/apple/callback": {
       "post": {
         "tags": [

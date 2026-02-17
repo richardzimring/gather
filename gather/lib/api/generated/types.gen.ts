@@ -4,46 +4,6 @@ export type ClientOptions = {
     baseUrl: 'https://api.gather.example.com' | 'http://localhost:3000' | (string & {});
 };
 
-export type ActivitiesResponse = {
-    success: true;
-    data: {
-        activities: Array<Activity>;
-    };
-};
-
-export type Activity = {
-    activityId: string;
-    userId: string | null;
-    name: string;
-    emoji: string;
-    isDefault?: boolean;
-    createdAt: string;
-};
-
-export type ErrorResponse = {
-    success: false;
-    error: string;
-    message: string;
-};
-
-export type ActivityResponse = {
-    success: true;
-    data: {
-        activity: Activity;
-    };
-    message?: string;
-};
-
-export type CreateActivity = {
-    name: string;
-    emoji?: string;
-};
-
-export type UpdateActivity = {
-    name?: string;
-    emoji?: string;
-};
-
 export type AuthResponse = {
     success: true;
     data: {
@@ -68,6 +28,12 @@ export type User = {
     pushToken?: string;
     timezone?: string;
     inviteCode?: string;
+};
+
+export type ErrorResponse = {
+    success: false;
+    error: string;
+    message: string;
 };
 
 export type AppleCallback = {
@@ -286,7 +252,6 @@ export type Event = {
     hostInitials: string;
     hostAvatarUrl?: string;
     title: string;
-    activityId?: string;
     emoji?: string;
     startTime: string;
     endTime: string;
@@ -320,7 +285,6 @@ export type CounterProposal = {
     startTime?: string;
     endTime?: string;
     location?: string;
-    activityId?: string;
     message?: string;
 };
 
@@ -336,7 +300,6 @@ export type SingleEventResponse = {
 
 export type CreateEvent = {
     title: string;
-    activityId?: string;
     emoji?: string;
     startTime: string;
     endTime: string;
@@ -365,7 +328,6 @@ export type EventRecurring = {
 
 export type UpdateEvent = {
     title?: string;
-    activityId?: string | null;
     emoji?: string | null;
     startTime?: string;
     endTime?: string;
@@ -556,138 +518,6 @@ export type UpdateNotificationPreferences = {
     groupInvites?: boolean;
     messages?: boolean;
 };
-
-export type GetActivitiesData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/activities';
-};
-
-export type GetActivitiesErrors = {
-    /**
-     * Unauthorized
-     */
-    401: ErrorResponse;
-    /**
-     * Internal server error
-     */
-    500: ErrorResponse;
-};
-
-export type GetActivitiesError = GetActivitiesErrors[keyof GetActivitiesErrors];
-
-export type GetActivitiesResponses = {
-    /**
-     * Activities retrieved successfully
-     */
-    200: ActivitiesResponse;
-};
-
-export type GetActivitiesResponse = GetActivitiesResponses[keyof GetActivitiesResponses];
-
-export type PostActivitiesData = {
-    body: CreateActivity;
-    path?: never;
-    query?: never;
-    url: '/activities';
-};
-
-export type PostActivitiesErrors = {
-    /**
-     * Validation error
-     */
-    400: ErrorResponse;
-    /**
-     * Unauthorized
-     */
-    401: ErrorResponse;
-    /**
-     * Internal server error
-     */
-    500: ErrorResponse;
-};
-
-export type PostActivitiesError = PostActivitiesErrors[keyof PostActivitiesErrors];
-
-export type PostActivitiesResponses = {
-    /**
-     * Activity created successfully
-     */
-    201: ActivityResponse;
-};
-
-export type PostActivitiesResponse = PostActivitiesResponses[keyof PostActivitiesResponses];
-
-export type DeleteActivitiesByActivityIdData = {
-    body?: never;
-    path: {
-        activityId: string;
-    };
-    query?: never;
-    url: '/activities/{activityId}';
-};
-
-export type DeleteActivitiesByActivityIdErrors = {
-    /**
-     * Delete failed
-     */
-    400: ErrorResponse;
-    /**
-     * Unauthorized
-     */
-    401: ErrorResponse;
-    /**
-     * Internal server error
-     */
-    500: ErrorResponse;
-};
-
-export type DeleteActivitiesByActivityIdError = DeleteActivitiesByActivityIdErrors[keyof DeleteActivitiesByActivityIdErrors];
-
-export type DeleteActivitiesByActivityIdResponses = {
-    /**
-     * Activity deleted successfully
-     */
-    204: void;
-};
-
-export type DeleteActivitiesByActivityIdResponse = DeleteActivitiesByActivityIdResponses[keyof DeleteActivitiesByActivityIdResponses];
-
-export type PatchActivitiesByActivityIdData = {
-    body: UpdateActivity;
-    path: {
-        activityId: string;
-    };
-    query?: never;
-    url: '/activities/{activityId}';
-};
-
-export type PatchActivitiesByActivityIdErrors = {
-    /**
-     * Validation error or update failed
-     */
-    400: ErrorResponse;
-    /**
-     * Unauthorized
-     */
-    401: ErrorResponse;
-    /**
-     * Internal server error
-     */
-    500: ErrorResponse;
-};
-
-export type PatchActivitiesByActivityIdError = PatchActivitiesByActivityIdErrors[keyof PatchActivitiesByActivityIdErrors];
-
-export type PatchActivitiesByActivityIdResponses = {
-    /**
-     * Activity updated successfully
-     */
-    200: ActivityResponse;
-};
-
-export type PatchActivitiesByActivityIdResponse = PatchActivitiesByActivityIdResponses[keyof PatchActivitiesByActivityIdResponses];
 
 export type PostAuthAppleCallbackData = {
     body: AppleCallback;
