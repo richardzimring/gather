@@ -1,14 +1,27 @@
 import { NativeTabs, Icon, Label, Badge } from 'expo-router/unstable-native-tabs'
 import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native'
-import { useMemo } from 'react'
+import { useMemo, useRef, useEffect } from 'react'
 import { DynamicColorIOS, useColorScheme } from 'react-native'
+import { usePathname } from 'expo-router'
 
 import { useAuth } from '../../lib/hooks/useAuth'
 import { useEvents, useFriends, useNotifications, useCalendarAutoSync } from '../../lib/hooks'
+import { haptic } from '../../lib/haptics'
 
 export default function TabLayout() {
   const colorScheme = useColorScheme()
   const { user } = useAuth()
+  const pathname = usePathname()
+  const previousTab = useRef<string | null>(null)
+
+  // Trigger haptic feedback on tab change
+  useEffect(() => {
+    const currentTab = pathname.split('/')[1] || 'index'
+    if (previousTab.current !== null && previousTab.current !== currentTab) {
+      haptic.selection()
+    }
+    previousTab.current = currentTab
+  }, [pathname])
 
   // Register push token and set up notification listeners
   useNotifications()

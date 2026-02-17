@@ -12,9 +12,8 @@ import {
   UserX,
 } from "@tamagui/lucide-icons";
 import { router } from "expo-router";
-import { Alert, Share, Platform, RefreshControl } from "react-native";
+import { Alert, Share, RefreshControl } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import * as Haptics from "expo-haptics";
 import { useState } from "react";
 import {
   H1,
@@ -42,6 +41,7 @@ import {
   useDeleteAccount,
 } from "../../lib/hooks";
 import type { CalendarConnection } from "../../lib/api/client";
+import { haptic } from "../../lib/haptics";
 
 interface SettingsItemProps {
   icon: React.ReactNode;
@@ -125,6 +125,7 @@ export default function ProfileScreen() {
   const inviteCode = inviteCodeData?.inviteCode ?? user?.inviteCode ?? "";
 
   const handleDeleteAccount = () => {
+    haptic.warning();
     Alert.alert(
       "Delete Account",
       "Are you sure you want to delete your account? This will permanently remove all your data, events, and friendships. This action cannot be undone.",
@@ -135,6 +136,7 @@ export default function ProfileScreen() {
           style: "destructive",
           onPress: () => {
             // Second confirmation for safety
+            haptic.warning();
             Alert.alert(
               "Are you absolutely sure?",
               "This will permanently delete your account and all associated data.",
@@ -149,6 +151,7 @@ export default function ProfileScreen() {
                       await signOut();
                       router.replace("/(auth)/login");
                     } catch (err) {
+                      haptic.error();
                       console.error("Failed to delete account:", err);
                       Alert.alert(
                         "Error",
@@ -166,6 +169,7 @@ export default function ProfileScreen() {
   };
 
   const handleDeleteCalendar = (connectionId: string, calendarName: string) => {
+    haptic.warning();
     Alert.alert(
       "Remove Calendar",
       `Are you sure you want to remove "${calendarName}"?`,
@@ -175,7 +179,12 @@ export default function ProfileScreen() {
           text: "Remove",
           style: "destructive",
           onPress: async () => {
-            await deleteCalendarConnection.mutateAsync(connectionId);
+            try {
+              await deleteCalendarConnection.mutateAsync(connectionId);
+            } catch (err) {
+              haptic.error();
+              console.error("Failed to remove calendar:", err);
+            }
           },
         },
       ],
@@ -183,6 +192,7 @@ export default function ProfileScreen() {
   };
 
   const handleSignOut = async () => {
+    haptic.warning();
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
       { text: "Cancel", style: "cancel" },
       {
@@ -200,9 +210,7 @@ export default function ProfileScreen() {
     if (!inviteCode) return;
 
     await Clipboard.setStringAsync(inviteCode);
-    if (Platform.OS === "ios") {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
+    haptic.success();
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

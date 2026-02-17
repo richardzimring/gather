@@ -50,6 +50,7 @@ import {
   DURATION_OPTIONS,
   START_TIME_OPTIONS,
 } from "../../components/ui/TimeChipPicker";
+import { haptic } from "../../lib/haptics";
 import {
   useCreateEvent,
   useFriends,
@@ -447,15 +448,35 @@ export default function PlanScreen() {
     return filtered;
   }, [activeDaySlots, filterUngodlyHours, preferredStartTime, activeDay]);
 
-  // Visible start time chips (filter based on ungodly toggle)
+  // Visible start time chips (filter based on ungodly toggle and past times for today)
   const visibleStartTimeOptions = useMemo(() => {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    
+    // Check if only the current date is selected
+    const isOnlyToday = 
+      rangeStart !== null &&
+      rangeEnd === null &&
+      rangeStart.getFullYear() === now.getFullYear() &&
+      rangeStart.getMonth() === now.getMonth() &&
+      rangeStart.getDate() === now.getDate();
+
+    let options = START_TIME_OPTIONS;
+
+    // Filter out ungodly hours if enabled
     if (filterUngodlyHours) {
-      return START_TIME_OPTIONS.filter(
+      options = options.filter(
         (opt) => opt.value >= UNGODLY_EARLY && opt.value < UNGODLY_LATE,
       );
     }
-    return START_TIME_OPTIONS;
-  }, [filterUngodlyHours]);
+
+    // Filter out past times if only today is selected
+    if (isOnlyToday) {
+      options = options.filter((opt) => opt.value > currentMinutes);
+    }
+
+    return options;
+  }, [filterUngodlyHours, rangeStart, rangeEnd]);
 
   // Friend name map
   const friendNameMap = useMemo(() => {
@@ -618,6 +639,9 @@ export default function PlanScreen() {
         notes: notes.trim() || undefined,
         inviteeIds: selectedFriends,
       });
+      
+      haptic.success();
+      
       // Navigate to home screen first, then reset all plan state
       // after a brief delay so the LayoutAnimation from state resets
       // doesn't interfere with navigation
@@ -637,6 +661,7 @@ export default function PlanScreen() {
         setNotes("");
       }, 300);
     } catch (err) {
+      haptic.error();
       console.error("Failed to create event:", err);
     }
   };
@@ -868,6 +893,7 @@ export default function PlanScreen() {
                     size="$2"
                     checked={filterUngodlyHours}
                     onCheckedChange={(checked) => {
+                      haptic.selection();
                       setFilterUngodlyHours(checked);
                       // If turning on and preferred time is in ungodly range, clear it
                       if (
@@ -1322,11 +1348,7 @@ export default function PlanScreen() {
                   disabled={createEvent.isPending || isEmojiLoading}
                   loading={createEvent.isPending || isEmojiLoading}
                 >
-                  {createEvent.isPending
-                    ? "Creating..."
-                    : isEmojiLoading
-                      ? "Generating emoji..."
-                      : "Create Event"}
+                  {createEvent.isPending ? "Creating..." : "Create Event"}
                 </Button>
               </YStack>
             )}

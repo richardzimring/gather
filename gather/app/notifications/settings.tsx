@@ -9,6 +9,7 @@ import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
 } from '../../lib/hooks'
+import { haptic } from '../../lib/haptics'
 
 interface NotificationSettingProps {
   icon: React.ReactNode
@@ -76,6 +77,7 @@ export default function NotificationSettingsScreen() {
   const { mutate: updatePreferences, isPending } = useUpdateNotificationPreferences()
 
   const handleToggle = (key: string) => (value: boolean) => {
+    haptic.selection();
     updatePreferences({ [key]: value })
   }
 

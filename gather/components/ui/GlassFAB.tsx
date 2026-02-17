@@ -1,11 +1,11 @@
-import { Pressable, StyleSheet, Platform, useColorScheme } from 'react-native'
+import { Pressable, StyleSheet, useColorScheme } from 'react-native'
 import {
   GlassView,
   isLiquidGlassAvailable,
   isGlassEffectAPIAvailable,
 } from 'expo-glass-effect'
 import { YStack } from 'tamagui'
-import * as Haptics from 'expo-haptics'
+import { haptic } from '../../lib/haptics'
 
 interface GlassButtonProps {
   /** Icon element to display inside the button */
@@ -26,9 +26,7 @@ export function GlassButton({ icon, onPress, size = 40 }: GlassButtonProps) {
   const useGlass = isLiquidGlassAvailable() && isGlassEffectAPIAvailable()
 
   const handlePress = () => {
-    if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    }
+    haptic.light()
     onPress()
   }
 

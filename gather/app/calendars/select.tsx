@@ -24,6 +24,7 @@ import {
   getDeviceCalendars,
   type DeviceCalendar,
 } from '../../lib/services/calendarSync'
+import { haptic } from '../../lib/haptics'
 
 interface CalendarsBySource {
   source: string
@@ -108,6 +109,7 @@ export default function CalendarSelectScreen() {
   }, [deviceCalendars])
 
   const toggleCalendar = useCallback((calendarId: string) => {
+    haptic.selection();
     setSelectedIds((prev) => {
       const next = new Set(prev)
       if (next.has(calendarId)) {

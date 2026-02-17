@@ -50,6 +50,7 @@ import type {
   LocationData,
 } from "../../lib/api/generated/types.gen";
 import type { AvatarStackPerson } from "../../components/ui/AttendeeAvatarStack";
+import { haptic } from "../../lib/haptics";
 
 // ============================================
 // Helpers
@@ -288,9 +289,11 @@ export default function EventDetailScreen() {
   const [editStartMinutes, setEditStartMinutes] = useState<number | null>(null);
   const [editEndMinutes, setEditEndMinutes] = useState<number | null>(null);
 
-  // Generate emoji for the edit title with debouncing
-  const { emoji: previewEmoji, isLoading: isEmojiLoading } =
-    useGenerateEmoji(editTitle);
+  // Generate emoji only if the title has changed from the original
+  const titleHasChanged = event?.title !== editTitle;
+  const { emoji: previewEmoji, isLoading: isEmojiLoading } = useGenerateEmoji(
+    titleHasChanged ? editTitle : "",
+  );
 
   // ---- Derived values ----
   const isHost = event?.hostId === user?.userId;
@@ -431,7 +434,9 @@ export default function EventDetailScreen() {
     if (Object.keys(data).length > 0) {
       try {
         await updateEvent.mutateAsync({ eventId: id, data: data as any });
+        haptic.success();
       } catch (err) {
+        haptic.error();
         console.error("Failed to update event:", err);
         return; // Stay in edit mode on failure
       }
@@ -444,6 +449,10 @@ export default function EventDetailScreen() {
 
   const handleResponse = async (status: InviteeStatus) => {
     if (!id) return;
+    
+    // Trigger haptic feedback
+    haptic.medium();
+    
     setPendingResponse(status);
     try {
       await respondToEvent.mutateAsync({
@@ -451,7 +460,13 @@ export default function EventDetailScreen() {
         response: { status },
       });
       setIsEditingResponse(false);
+      
+      // Success haptic for accepted invitations
+      if (status === "accepted") {
+        haptic.success();
+      }
     } catch (err) {
+      haptic.error();
       console.error("Failed to respond to event:", err);
     } finally {
       setPendingResponse(null);
@@ -459,6 +474,7 @@ export default function EventDetailScreen() {
   };
 
   const handleDelete = () => {
+    haptic.warning();
     Alert.alert(
       "Cancel Event",
       "Are you sure you want to cancel this event? This action cannot be undone.",
@@ -473,6 +489,7 @@ export default function EventDetailScreen() {
               await cancelEvent.mutateAsync(id);
               router.back();
             } catch (err) {
+              haptic.error();
               console.error("Failed to cancel event:", err);
             }
           },
@@ -922,7 +939,10 @@ export default function EventDetailScreen() {
                         isCurrentUser={isCurrentUser}
                         canChange={canChange && !isEditing}
                         isEditing={isCurrentUser && isEditingResponse}
-                        onChangePress={() => setIsEditingResponse(true)}
+                        onChangePress={() => {
+                          haptic.selection();
+                          setIsEditingResponse(true);
+                        }}
                         onCancelPress={() => setIsEditingResponse(false)}
                       />
                       {index < event.invitees.length - 1 && (
@@ -948,11 +968,7 @@ export default function EventDetailScreen() {
             disabled={!canSave || updateEvent.isPending || isEmojiLoading}
             loading={updateEvent.isPending || isEmojiLoading}
           >
-            {updateEvent.isPending
-              ? "Saving..."
-              : isEmojiLoading
-                ? "Generating emoji..."
-                : "Save Changes"}
+            {updateEvent.isPending ? "Saving..." : "Save Changes"}
           </Button>
         </GlassBottomBar>
       )}

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ScrollView as RNScrollView } from "react-native";
 import { ScrollView, Text, YStack } from "tamagui";
+import { haptic } from "../../lib/haptics";
 
 const DAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -82,7 +83,10 @@ export function DayTabBar({
             backgroundColor={isSelected ? "$primary" : "$backgroundHover"}
             opacity={isDisabled && !isSelected ? 0.4 : 1}
             pressStyle={{ scale: 0.95, opacity: 0.8 }}
-            onPress={() => onSelectDay(day)}
+            onPress={() => {
+              haptic.selection();
+              onSelectDay(day);
+            }}
             gap={2}
           >
             <Text

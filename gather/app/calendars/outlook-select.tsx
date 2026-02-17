@@ -23,6 +23,7 @@ import {
   useOutlookCalendars,
   useSelectOutlookCalendars,
 } from '../../lib/hooks'
+import { haptic } from '../../lib/haptics'
 
 export default function OutlookCalendarSelectScreen() {
   const insets = useSafeAreaInsets()
@@ -61,6 +62,7 @@ export default function OutlookCalendarSelectScreen() {
   }, [outlookCalendars, connectedIds, initialized])
 
   const toggleCalendar = useCallback((calendarId: string) => {
+    haptic.selection();
     setSelectedIds((prev) => {
       const next = new Set(prev)
       if (next.has(calendarId)) {

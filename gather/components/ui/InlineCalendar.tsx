@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from "@tamagui/lucide-icons";
 import { useMemo, useState } from "react";
 import { Text, XStack, YStack } from "tamagui";
+import { haptic } from "../../lib/haptics";
 
 const DAYS_OF_WEEK = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
@@ -169,6 +170,8 @@ export function InlineCalendar({
   };
 
   const handleDayPress = (day: Date) => {
+    haptic.selection();
+    
     const selected = new Date(
       day.getFullYear(),
       day.getMonth(),
@@ -223,7 +226,10 @@ export function InlineCalendar({
           justifyContent="center"
           pressStyle={{ scale: 0.9, opacity: 0.7 }}
           opacity={canGoPrev ? 1 : 0.3}
-          onPress={canGoPrev ? () => navigateMonth(-1) : undefined}
+          onPress={canGoPrev ? () => {
+            haptic.light();
+            navigateMonth(-1);
+          } : undefined}
         >
           <ChevronLeft size={18} color="$color" />
         </YStack>
@@ -239,7 +245,10 @@ export function InlineCalendar({
           alignItems="center"
           justifyContent="center"
           pressStyle={{ scale: 0.9, opacity: 0.7 }}
-          onPress={() => navigateMonth(1)}
+          onPress={() => {
+            haptic.light();
+            navigateMonth(1);
+          }}
         >
           <ChevronRight size={18} color="$color" />
         </YStack>

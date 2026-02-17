@@ -23,6 +23,7 @@ import {
   useGoogleCalendars,
   useSelectGoogleCalendars,
 } from '../../lib/hooks'
+import { haptic } from '../../lib/haptics'
 
 export default function GoogleCalendarSelectScreen() {
   const insets = useSafeAreaInsets()
@@ -61,6 +62,7 @@ export default function GoogleCalendarSelectScreen() {
   }, [googleCalendars, connectedIds, initialized])
 
   const toggleCalendar = useCallback((calendarId: string) => {
+    haptic.selection();
     setSelectedIds((prev) => {
       const next = new Set(prev)
       if (next.has(calendarId)) {

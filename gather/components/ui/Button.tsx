@@ -5,8 +5,7 @@ import {
   Spinner,
   useTheme,
 } from "tamagui";
-import * as Haptics from "expo-haptics";
-import { Platform } from "react-native";
+import { haptic } from "../../lib/haptics";
 
 /**
  * Base styled button with theme integration.
@@ -109,6 +108,8 @@ const StyledButton = styled(TamaguiButton, {
 export type ButtonProps = GetProps<typeof StyledButton> & {
   /** Whether to trigger haptic feedback on press */
   haptic?: boolean;
+  /** Override haptic intensity (defaults based on variant: primary=medium, destructive=heavy, others=light) */
+  hapticStyle?: "light" | "medium" | "heavy";
   /** Whether the button is in a loading state */
   loading?: boolean;
   /** Text to show while loading (optional, will show spinner if not provided) */
@@ -119,7 +120,8 @@ export type ButtonProps = GetProps<typeof StyledButton> & {
  * Button component with haptic feedback and loading state support.
  */
 export function Button({
-  haptic = true,
+  haptic: enableHaptic = true,
+  hapticStyle,
   loading = false,
   loadingText,
   onPress,
@@ -133,9 +135,18 @@ export function Button({
 
   const handlePress = (event: Parameters<NonNullable<typeof onPress>>[0]) => {
     if (loading) return;
-    if (haptic && Platform.OS === "ios") {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    if (enableHaptic) {
+      // Determine haptic intensity based on variant
+      const intensity = hapticStyle || 
+        (variant === "destructive" ? "heavy" : 
+         variant === "primary" ? "medium" : "light");
+      
+      if (intensity === "heavy") haptic.heavy();
+      else if (intensity === "medium") haptic.medium();
+      else haptic.light();
     }
+    
     onPress?.(event);
   };
 
@@ -153,7 +164,9 @@ export function Button({
       disabled={isDisabled}
       variant={variant}
       opacity={isDisabled && !loading ? 0.5 : 1}
-      icon={loading ? <Spinner size="small" color={spinnerColor} /> : icon}
+      icon={
+        icon && loading ? <Spinner size="small" color={spinnerColor} /> : icon
+      }
       {...props}
     >
       {loading ? (loadingText ?? children) : children}

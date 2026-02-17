@@ -7,6 +7,7 @@ import {
 import { BadgeLabel } from "./Badge";
 import { Card } from "./Card";
 import { SkeletonBar, SkeletonCircle } from "./Skeleton";
+import { haptic } from "../../lib/haptics";
 
 // ============================================
 // Types
@@ -68,7 +69,16 @@ export function EventCard({
 
   return (
     <Theme name="Card">
-      <Card pressable={!!onPress} onPress={onPress} outlined={isPending}>
+      <Card 
+        pressable={!!onPress} 
+        onPress={() => {
+          if (onPress) {
+            haptic.light();
+            onPress();
+          }
+        }} 
+        outlined={isPending}
+      >
         <YStack gap="$3">
           {/* Event header row */}
           <XStack alignItems="center" gap="$3">
@@ -117,7 +127,11 @@ export function EventCard({
                   paddingVertical="$2"
                   borderRadius="$2"
                   pressStyle={{ scale: 0.97, opacity: 0.8 }}
-                  onPress={onRespondPress}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    haptic.medium();
+                    onRespondPress();
+                  }}
                 >
                   <Text
                     color="$primaryForeground"

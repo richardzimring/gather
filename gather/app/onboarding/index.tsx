@@ -10,7 +10,6 @@ import {
 } from 'react-native'
 import * as Notifications from 'expo-notifications'
 import * as Clipboard from 'expo-clipboard'
-import * as Haptics from 'expo-haptics'
 import {
   Bell,
   Calendar,
@@ -38,6 +37,7 @@ import { Card } from '../../components/ui/Card'
 import { useAuth } from '../../lib/hooks/useAuth'
 import { useInviteCode, useSendFriendRequest } from '../../lib/hooks'
 import { registerPushTokenAsync } from '../../lib/hooks/useNotifications'
+import { haptic } from '../../lib/haptics'
 import { patchUsersMe } from '../../lib/api/client'
 
 // Enable LayoutAnimation on Android
@@ -238,9 +238,7 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
   const handleCopyCode = async () => {
     if (!myInviteCode) return
     await Clipboard.setStringAsync(myInviteCode)
-    if (Platform.OS === 'ios') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    }
+    haptic.success()
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -264,13 +262,12 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
     setError(null)
     try {
       await sendFriendRequest.mutateAsync({ inviteCode: cleanCode })
-      if (Platform.OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      }
+      haptic.success()
       setRequestSent(true)
       setFriendCode('')
       setShowCodeInput(false)
     } catch {
+      haptic.error()
       setError('Could not find that code. Check it and try again.')
     }
   }
@@ -474,9 +471,7 @@ function NotificationsStep({ onNext }: { onNext: () => void }) {
     setPermissionStatus(status === 'granted' ? 'granted' : 'denied')
     if (status === 'granted') {
       registerPushTokenAsync().catch(console.error)
-      if (Platform.OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      }
+      haptic.success()
       // Auto-advance after a brief moment
       setTimeout(onNext, 600)
     }

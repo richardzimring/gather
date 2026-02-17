@@ -1,9 +1,8 @@
 import { Copy, Share2, UserPlus } from '@tamagui/lucide-icons'
 import { router } from 'expo-router'
 import { useState } from 'react'
-import { Alert, Share, Platform } from 'react-native'
+import { Alert, Share } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
-import * as Haptics from 'expo-haptics'
 import {
   Circle,
   Input,
@@ -20,6 +19,7 @@ import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { BackHeader } from '../../components/ui/ScreenHeader'
 import { useInviteCode, useSendFriendRequest } from '../../lib/hooks'
+import { haptic } from '../../lib/haptics'
 
 export default function AddFriendScreen() {
   const insets = useSafeAreaInsets()
@@ -36,9 +36,7 @@ export default function AddFriendScreen() {
     if (!myInviteCode) return
     
     await Clipboard.setStringAsync(myInviteCode)
-    if (Platform.OS === 'ios') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    }
+    haptic.success()
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -70,15 +68,14 @@ export default function AddFriendScreen() {
 
     try {
       await sendFriendRequest.mutateAsync({ inviteCode: cleanCode })
-      if (Platform.OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      }
+      haptic.success()
       Alert.alert(
         'Friend Request Sent',
         'Your friend request has been sent. They will see it in their requests.',
         [{ text: 'OK', onPress: () => router.back() }]
       )
     } catch {
+      haptic.error()
       setError('Failed to send friend request. Please check the code and try again.')
     }
   }

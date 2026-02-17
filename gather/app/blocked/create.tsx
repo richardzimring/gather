@@ -17,6 +17,7 @@ import { Card } from '../../components/ui/Card'
 import { CancelHeader } from '../../components/ui/ScreenHeader'
 import { useCreateBlockedWindow } from '../../lib/hooks'
 import type { RecurringPattern } from '../../lib/api/client'
+import { haptic } from '../../lib/haptics'
 
 export default function CreateBlockedScreen() {
   const insets = useSafeAreaInsets()
@@ -98,7 +99,10 @@ export default function CreateBlockedScreen() {
               <Switch
                 size="$3"
                 checked={isRecurring}
-                onCheckedChange={setIsRecurring}
+                onCheckedChange={(checked) => {
+                  haptic.selection();
+                  setIsRecurring(checked);
+                }}
                 backgroundColor={isRecurring ? '$primary' : '$backgroundHover'}
               >
                 <Switch.Thumb

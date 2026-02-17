@@ -1,6 +1,7 @@
 import { useCallback, useRef } from "react";
 import { ScrollView as RNScrollView, type LayoutChangeEvent } from "react-native";
 import { ScrollView, Text, XStack, YStack } from "tamagui";
+import { haptic } from "../../lib/haptics";
 
 // ============================================
 // Types
@@ -175,6 +176,7 @@ export function TimeChipPicker({
                 backgroundColor={isActive ? "$primary" : "$backgroundHover"}
                 pressStyle={{ scale: 0.96, opacity: 0.8 }}
                 onPress={() => {
+                  haptic.selection();
                   if (isActive && allowDeselect) {
                     onSelect(-1);
                   } else {
