@@ -18,6 +18,8 @@ export interface EventCardProps {
   title: string;
   /** Emoji for the event (shows placeholder if not provided) */
   emoji?: string | null;
+  /** Whether the emoji is currently being generated (shows skeleton while loading) */
+  isEmojiLoading?: boolean;
   /** Formatted time string (e.g. "Today, 3:00 PM") */
   timeLabel: string;
   /** Location name */
@@ -51,6 +53,7 @@ export interface EventCardProps {
 export function EventCard({
   title,
   emoji,
+  isEmojiLoading = false,
   timeLabel,
   location,
   isHost = false,
@@ -82,9 +85,13 @@ export function EventCard({
         <YStack gap="$3">
           {/* Event header row */}
           <XStack alignItems="center" gap="$3">
-            <Circle size={44} backgroundColor="$backgroundHover">
-              <Text fontSize={24}>{displayEmoji}</Text>
-            </Circle>
+            {isEmojiLoading ? (
+              <SkeletonCircle size={44} />
+            ) : (
+              <Circle size={44} backgroundColor="$backgroundHover">
+                <Text fontSize={24}>{displayEmoji}</Text>
+              </Circle>
+            )}
             <YStack flex={1} gap="$1">
               <XStack alignItems="center" gap="$2">
                 <Text

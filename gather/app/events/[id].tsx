@@ -641,6 +641,7 @@ export default function EventDetailScreen() {
               <EventCard
                 title={editTitle}
                 emoji={previewEmoji ?? event.emoji}
+                isEmojiLoading={isEmojiLoading}
                 timeLabel={(() => {
                   const start = new Date(editDate);
                   start.setHours(

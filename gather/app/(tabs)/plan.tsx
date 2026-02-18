@@ -1230,6 +1230,7 @@ export default function PlanScreen() {
               <EventCard
                 title={title}
                 emoji={previewEmoji}
+                isEmojiLoading={isEmojiLoading}
                 timeLabel={`${formatDate(selectedSlot.date)}, ${formatTime(selectedSlot.startTime)} – ${formatTime(selectedSlot.endTime)}`}
                 location={locationData?.name}
                 isHost={true}
