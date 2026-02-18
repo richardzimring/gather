@@ -1,9 +1,5 @@
 import { createRoute, z } from '@hono/zod-openapi';
-import { handle } from 'hono/aws-lambda';
-import {
-  createApp,
-  authMiddleware,
-} from '../src/middleware/hono';
+import { createApp, authMiddleware } from '../middleware/hono';
 import {
   CalendarConnectionSchema,
   CreateCalendarConnectionSchema,
@@ -13,7 +9,7 @@ import {
   GoogleCalendarSchema,
   GoogleSelectCalendarsSchema,
   ErrorResponseSchema,
-} from '../src/types';
+} from '../types';
 import {
   getCalendarConnections,
   getCalendarConnection,
@@ -26,8 +22,8 @@ import {
   syncServerProviderConnections,
   getValidProviderAccessToken,
   selectProviderCalendars,
-} from '../src/services/calendars';
-import { getCalendarProvider } from '../src/services/calendar-providers';
+} from '../services/calendars';
+import { getCalendarProvider } from '../services/calendar-providers';
 
 export const app = createApp();
 
@@ -46,9 +42,7 @@ app.get('/calendars/google/callback', async (c) => {
   if (error || !code || !state) {
     const reason = error ?? 'missing_code_or_state';
     console.error('Google OAuth callback error:', reason);
-    return c.redirect(
-      `${APP_SCHEME_CALLBACK}?error=${encodeURIComponent(reason)}`,
-    );
+    return c.redirect(`${APP_SCHEME_CALLBACK}?error=${encodeURIComponent(reason)}`);
   }
 
   try {
@@ -77,9 +71,7 @@ app.get('/calendars/outlook/callback', async (c) => {
   if (error || !code || !state) {
     const reason = error ?? 'missing_code_or_state';
     console.error('Outlook OAuth callback error:', reason);
-    return c.redirect(
-      `${OUTLOOK_APP_SCHEME_CALLBACK}?error=${encodeURIComponent(reason)}`,
-    );
+    return c.redirect(`${OUTLOOK_APP_SCHEME_CALLBACK}?error=${encodeURIComponent(reason)}`);
   }
 
   try {
@@ -287,7 +279,8 @@ const syncCalendarsRoute = createRoute({
   path: '/calendars/sync',
   tags: ['Calendars'],
   summary: 'Sync device calendars',
-  description: 'Bulk sync calendars and their events from the device. Upserts calendar connections, syncs cached events, and removes deselected calendars.',
+  description:
+    'Bulk sync calendars and their events from the device. Upserts calendar connections, syncs cached events, and removes deselected calendars.',
   security: [{ BearerAuth: [] }],
   request: {
     body: {
@@ -488,18 +481,19 @@ const deleteCalendarRoute = createRoute({
 
 app.openapi(listCalendarsRoute, async (c) => {
   const user = c.get('user');
-  
+
   try {
     const connections = await getCalendarConnections(user.userId);
-    return c.json(
-      { success: true as const, data: { connections } },
-      200
-    );
+    return c.json({ success: true as const, data: { connections } }, 200);
   } catch (error) {
     console.error('Error in GET /calendars:', error);
     return c.json(
-      { success: false as const, error: 'Internal Server Error', message: 'Failed to fetch calendar connections' },
-      500
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to fetch calendar connections',
+      },
+      500,
     );
   }
 });
@@ -507,18 +501,19 @@ app.openapi(listCalendarsRoute, async (c) => {
 app.openapi(createCalendarRoute, async (c) => {
   const user = c.get('user');
   const body = c.req.valid('json');
-  
+
   try {
     const connection = await createCalendarConnection(user.userId, body);
-    return c.json(
-      { success: true as const, data: { connection } },
-      201
-    );
+    return c.json({ success: true as const, data: { connection } }, 201);
   } catch (error) {
     console.error('Error in POST /calendars:', error);
     return c.json(
-      { success: false as const, error: 'Failed to create calendar connection', message: String(error) },
-      500
+      {
+        success: false as const,
+        error: 'Failed to create calendar connection',
+        message: String(error),
+      },
+      500,
     );
   }
 });
@@ -526,22 +521,23 @@ app.openapi(createCalendarRoute, async (c) => {
 app.openapi(getBusySlotsRoute, async (c) => {
   const user = c.get('user');
   const { startDate, endDate } = c.req.valid('query');
-  
+
   try {
     // Default to next 30 days if not specified
     const start = startDate ? new Date(startDate) : new Date();
     const end = endDate ? new Date(endDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    
+
     const busySlots = await getBusySlotsForUser(user.userId, start, end);
-    return c.json(
-      { success: true as const, data: { busySlots } },
-      200
-    );
+    return c.json({ success: true as const, data: { busySlots } }, 200);
   } catch (error) {
     console.error('Error in GET /calendars/busy-slots:', error);
     return c.json(
-      { success: false as const, error: 'Internal Server Error', message: 'Failed to fetch busy slots' },
-      500
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to fetch busy slots',
+      },
+      500,
     );
   }
 });
@@ -554,13 +550,17 @@ app.openapi(syncCalendarsRoute, async (c) => {
     const connections = await syncCalendarsForUser(user.userId, body);
     return c.json(
       { success: true as const, data: { connections }, message: 'Calendars synced successfully' },
-      200
+      200,
     );
   } catch (error) {
     console.error('Error in POST /calendars/sync:', error);
     return c.json(
-      { success: false as const, error: 'Internal Server Error', message: 'Failed to sync calendars' },
-      500
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to sync calendars',
+      },
+      500,
     );
   }
 });
@@ -568,25 +568,26 @@ app.openapi(syncCalendarsRoute, async (c) => {
 app.openapi(getCalendarRoute, async (c) => {
   const user = c.get('user');
   const { connectionId } = c.req.valid('param');
-  
+
   try {
     const connection = await getCalendarConnection(connectionId, user.userId);
     if (!connection) {
       return c.json(
         { success: false as const, error: 'Not Found', message: 'Calendar connection not found' },
-        404
+        404,
       );
     }
-    
-    return c.json(
-      { success: true as const, data: { connection } },
-      200
-    );
+
+    return c.json({ success: true as const, data: { connection } }, 200);
   } catch (error) {
     console.error('Error in GET /calendars/:id:', error);
     return c.json(
-      { success: false as const, error: 'Internal Server Error', message: 'Failed to fetch calendar connection' },
-      500
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to fetch calendar connection',
+      },
+      500,
     );
   }
 });
@@ -595,25 +596,30 @@ app.openapi(updateCalendarRoute, async (c) => {
   const user = c.get('user');
   const { connectionId } = c.req.valid('param');
   const body = c.req.valid('json');
-  
+
   try {
     const result = await updateCalendarConnection(connectionId, user.userId, body);
     if (!result.success || !result.connection) {
       return c.json(
-        { success: false as const, error: 'Not Found', message: result.message ?? 'Calendar connection not found' },
-        404
+        {
+          success: false as const,
+          error: 'Not Found',
+          message: result.message ?? 'Calendar connection not found',
+        },
+        404,
       );
     }
-    
-    return c.json(
-      { success: true as const, data: { connection: result.connection } },
-      200
-    );
+
+    return c.json({ success: true as const, data: { connection: result.connection } }, 200);
   } catch (error) {
     console.error('Error in PATCH /calendars/:id:', error);
     return c.json(
-      { success: false as const, error: 'Internal Server Error', message: 'Failed to update calendar connection' },
-      500
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to update calendar connection',
+      },
+      500,
     );
   }
 });
@@ -621,25 +627,30 @@ app.openapi(updateCalendarRoute, async (c) => {
 app.openapi(deleteCalendarRoute, async (c) => {
   const user = c.get('user');
   const { connectionId } = c.req.valid('param');
-  
+
   try {
     const result = await deleteCalendarConnection(connectionId, user.userId);
     if (!result.success) {
       return c.json(
-        { success: false as const, error: 'Not Found', message: result.message ?? 'Calendar connection not found' },
-        404
+        {
+          success: false as const,
+          error: 'Not Found',
+          message: result.message ?? 'Calendar connection not found',
+        },
+        404,
       );
     }
-    
-    return c.json(
-      { success: true as const, message: 'Calendar connection deleted' },
-      200
-    );
+
+    return c.json({ success: true as const, message: 'Calendar connection deleted' }, 200);
   } catch (error) {
     console.error('Error in DELETE /calendars/:id:', error);
     return c.json(
-      { success: false as const, error: 'Internal Server Error', message: 'Failed to delete calendar connection' },
-      500
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to delete calendar connection',
+      },
+      500,
     );
   }
 });
@@ -775,7 +786,8 @@ const googleSyncRoute = createRoute({
   path: '/calendars/google/sync',
   tags: ['Calendars', 'Google'],
   summary: 'Sync Google calendars',
-  description: 'Trigger a server-side re-sync of all connected Google calendars for the current user',
+  description:
+    'Trigger a server-side re-sync of all connected Google calendars for the current user',
   security: [{ BearerAuth: [] }],
   responses: {
     200: {
@@ -923,7 +935,8 @@ const outlookAuthUrlRoute = createRoute({
   path: '/calendars/outlook/auth-url',
   tags: ['Calendars', 'Outlook'],
   summary: 'Get Outlook OAuth URL',
-  description: 'Get the Outlook OAuth consent URL for the current user to authorize calendar access',
+  description:
+    'Get the Outlook OAuth consent URL for the current user to authorize calendar access',
   security: [{ BearerAuth: [] }],
   responses: {
     200: {
@@ -1022,7 +1035,8 @@ const outlookSyncRoute = createRoute({
   path: '/calendars/outlook/sync',
   tags: ['Calendars', 'Outlook'],
   summary: 'Sync Outlook calendars',
-  description: 'Trigger a server-side re-sync of all connected Outlook calendars for the current user',
+  description:
+    'Trigger a server-side re-sync of all connected Outlook calendars for the current user',
   security: [{ BearerAuth: [] }],
   responses: {
     200: {
@@ -1159,5 +1173,3 @@ app.openapi(outlookSyncRoute, async (c) => {
     );
   }
 });
-
-export const handler = handle(app);

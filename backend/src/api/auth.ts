@@ -1,9 +1,9 @@
 import { createRoute, z } from '@hono/zod-openapi';
-import { createApp, handle, verifyAppleToken, authMiddleware } from '../src/middleware/hono';
-import { UserSchema, ErrorResponseSchema } from '../src/types';
-import * as userService from '../src/services/users';
+import { createApp, verifyAppleToken, authMiddleware } from '../middleware/hono';
+import { UserSchema, ErrorResponseSchema } from '../types';
+import * as userService from '../services/users';
 
-const app = createApp();
+export const app = createApp();
 
 // Apply auth middleware only to /auth/me (not /auth/apple/callback which is public)
 app.use('/auth/me', authMiddleware);
@@ -14,23 +14,30 @@ app.use('/auth/me', authMiddleware);
 
 const AppleCallbackSchema = z
   .object({
-    identityToken: z.string().min(1, 'Identity token is required').openapi({ example: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...' }),
+    identityToken: z
+      .string()
+      .min(1, 'Identity token is required')
+      .openapi({ example: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...' }),
     /**
-      * The user object (IMPORTANT: only present on register/first login).
-      */ 
-    user: z.object({
-      name: z.object({
-        firstName: z.string().optional(),
-        lastName: z.string().optional(),
-        middleName: z.string().optional(),
-        namePrefix: z.string().optional(),
-        nameSuffix: z.string().optional(),
-        nickname: z.string().optional(),
-      }).optional(),
-      email: z.string().email().optional(),
-    }).optional()
+     * The user object (IMPORTANT: only present on register/first login).
+     */
+    user: z
+      .object({
+        name: z
+          .object({
+            firstName: z.string().optional(),
+            lastName: z.string().optional(),
+            middleName: z.string().optional(),
+            namePrefix: z.string().optional(),
+            nameSuffix: z.string().optional(),
+            nickname: z.string().optional(),
+          })
+          .optional(),
+        email: z.string().email().optional(),
       })
-      .openapi('AppleCallback');
+      .optional(),
+  })
+  .openapi('AppleCallback');
 
 const AuthResponseSchema = z
   .object({
@@ -162,7 +169,7 @@ app.openapi(appleCallbackRoute, async (c) => {
   try {
     // Verify the Apple identity token
     const payload = await verifyAppleToken(identityToken);
-    
+
     if (!payload) {
       return c.json(
         {
@@ -176,9 +183,9 @@ app.openapi(appleCallbackRoute, async (c) => {
 
     const appleUserId = payload.sub;
     const userEmail = payload.email;
-    
+
     console.log('Apple token verified:', { appleUserId, userEmail });
-    
+
     if (!userEmail) {
       return c.json(
         {
@@ -197,7 +204,7 @@ app.openapi(appleCallbackRoute, async (c) => {
     if (!user) {
       const firstName = firstTimeUser?.name?.firstName ?? userEmail.split('@')[0] ?? 'User';
       const lastName = firstTimeUser?.name?.lastName ?? '';
-      
+
       console.log('Creating new user...');
       user = await userService.createUser({
         appleUserId,
@@ -221,9 +228,7 @@ app.openapi(appleCallbackRoute, async (c) => {
           token: identityToken,
           isNewUser,
         },
-        message: isNewUser
-          ? 'User created successfully'
-          : 'User retrieved successfully',
+        message: isNewUser ? 'User created successfully' : 'User retrieved successfully',
       },
       200,
     );
@@ -252,7 +257,3 @@ app.openapi(getMeRoute, async (c) => {
     200,
   );
 });
-
-// Export the app for OpenAPI generation
-export { app };
-export const handler = handle(app);

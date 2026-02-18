@@ -1,18 +1,14 @@
 import { createRoute, z } from '@hono/zod-openapi';
+import { createApp, authMiddleware } from '../middleware/hono';
 import {
-  createApp,
-  handle,
-  authMiddleware,
-} from '../src/middleware/hono';
-import {
-  GroupSchema,
-  CreateGroupSchema,
-  UpdateGroupSchema,
+  BlockedWindowSchema,
+  CreateBlockedWindowSchema,
+  UpdateBlockedWindowSchema,
   ErrorResponseSchema,
-} from '../src/types';
-import * as groupsService from '../src/services/groups';
+} from '../types';
+import * as blockedService from '../services/blocked';
 
-const app = createApp();
+export const app = createApp();
 
 // All routes require authentication
 app.use('*', authMiddleware);
@@ -21,44 +17,44 @@ app.use('*', authMiddleware);
 // Response Schemas
 // ============================================
 
-const GroupsResponseSchema = z
+const BlockedWindowsResponseSchema = z
   .object({
     success: z.literal(true),
     data: z.object({
-      groups: z.array(GroupSchema),
+      windows: z.array(BlockedWindowSchema),
     }),
   })
-  .openapi('GroupsResponse');
+  .openapi('BlockedWindowsResponse');
 
-const GroupResponseSchema = z
+const BlockedWindowResponseSchema = z
   .object({
     success: z.literal(true),
     data: z.object({
-      group: GroupSchema,
+      window: BlockedWindowSchema,
     }),
     message: z.string().optional(),
   })
-  .openapi('GroupResponse');
+  .openapi('BlockedWindowResponse');
 
 // ============================================
 // Route Definitions
 // ============================================
 
-const getGroupsRoute = createRoute({
+const getBlockedRoute = createRoute({
   method: 'get',
-  path: '/groups',
-  tags: ['Groups'],
-  summary: 'Get all groups',
-  description: 'Get all groups owned by the current user',
+  path: '/blocked',
+  tags: ['Blocked'],
+  summary: 'Get blocked windows',
+  description: 'Get blocked time windows for the current user (times when NOT available)',
   security: [{ BearerAuth: [] }],
   responses: {
     200: {
       content: {
         'application/json': {
-          schema: GroupsResponseSchema,
+          schema: BlockedWindowsResponseSchema,
         },
       },
-      description: 'Groups retrieved successfully',
+      description: 'Blocked windows retrieved successfully',
     },
     401: {
       content: {
@@ -79,18 +75,18 @@ const getGroupsRoute = createRoute({
   },
 });
 
-const createGroupRoute = createRoute({
+const createBlockedRoute = createRoute({
   method: 'post',
-  path: '/groups',
-  tags: ['Groups'],
-  summary: 'Create group',
-  description: 'Create a new group',
+  path: '/blocked',
+  tags: ['Blocked'],
+  summary: 'Create blocked window',
+  description: 'Create a new blocked time window (mark time as unavailable)',
   security: [{ BearerAuth: [] }],
   request: {
     body: {
       content: {
         'application/json': {
-          schema: CreateGroupSchema,
+          schema: CreateBlockedWindowSchema,
         },
       },
       required: true,
@@ -100,10 +96,10 @@ const createGroupRoute = createRoute({
     201: {
       content: {
         'application/json': {
-          schema: GroupResponseSchema,
+          schema: BlockedWindowResponseSchema,
         },
       },
-      description: 'Group created successfully',
+      description: 'Blocked window created successfully',
     },
     400: {
       content: {
@@ -132,21 +128,21 @@ const createGroupRoute = createRoute({
   },
 });
 
-const updateGroupRoute = createRoute({
+const updateBlockedRoute = createRoute({
   method: 'patch',
-  path: '/groups/{groupId}',
-  tags: ['Groups'],
-  summary: 'Update group',
-  description: 'Update an existing group',
+  path: '/blocked/{windowId}',
+  tags: ['Blocked'],
+  summary: 'Update blocked window',
+  description: 'Update an existing blocked time window',
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      groupId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      windowId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
     body: {
       content: {
         'application/json': {
-          schema: UpdateGroupSchema,
+          schema: UpdateBlockedWindowSchema,
         },
       },
       required: true,
@@ -156,10 +152,10 @@ const updateGroupRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: GroupResponseSchema,
+          schema: BlockedWindowResponseSchema,
         },
       },
-      description: 'Group updated successfully',
+      description: 'Blocked window updated successfully',
     },
     400: {
       content: {
@@ -188,21 +184,21 @@ const updateGroupRoute = createRoute({
   },
 });
 
-const deleteGroupRoute = createRoute({
+const deleteBlockedRoute = createRoute({
   method: 'delete',
-  path: '/groups/{groupId}',
-  tags: ['Groups'],
-  summary: 'Delete group',
-  description: 'Delete an existing group',
+  path: '/blocked/{windowId}',
+  tags: ['Blocked'],
+  summary: 'Delete blocked window',
+  description: 'Delete an existing blocked time window',
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      groupId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      windowId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
     204: {
-      description: 'Group deleted successfully',
+      description: 'Blocked window deleted successfully',
     },
     400: {
       content: {
@@ -235,66 +231,92 @@ const deleteGroupRoute = createRoute({
 // Route Handlers
 // ============================================
 
-app.openapi(getGroupsRoute, async (c) => {
+app.openapi(getBlockedRoute, async (c) => {
   const user = c.get('user');
 
   try {
-    const groups = await groupsService.getGroups(user.userId);
+    const windows = await blockedService.getBlockedWindows(user.userId);
     return c.json(
       {
         success: true as const,
-        data: { groups },
+        data: { windows },
       },
       200,
     );
   } catch (error) {
-    console.error('Error in GET /groups:', error);
+    console.error('Error in GET /blocked:', error);
     return c.json(
       {
         success: false as const,
         error: 'Internal Server Error',
-        message: 'Failed to fetch groups',
+        message: 'Failed to fetch blocked windows',
       },
       500,
     );
   }
 });
 
-app.openapi(createGroupRoute, async (c) => {
+app.openapi(createBlockedRoute, async (c) => {
   const user = c.get('user');
   const data = c.req.valid('json');
 
+  // Validate that end time is after start time
+  if (data.endTime <= data.startTime) {
+    return c.json(
+      {
+        success: false as const,
+        error: 'Validation Error',
+        message: 'End time must be after start time',
+      },
+      400,
+    );
+  }
+
   try {
-    const group = await groupsService.createGroup(user.userId, data);
+    const window = await blockedService.createBlockedWindow(user.userId, data);
     return c.json(
       {
         success: true as const,
-        data: { group },
-        message: 'Group created successfully',
+        data: { window },
+        message: 'Blocked window created successfully',
       },
       201,
     );
   } catch (error) {
-    console.error('Error in POST /groups:', error);
+    console.error('Error in POST /blocked:', error);
     return c.json(
       {
         success: false as const,
         error: 'Internal Server Error',
-        message: 'Failed to create group',
+        message: 'Failed to create blocked window',
       },
       500,
     );
   }
 });
 
-app.openapi(updateGroupRoute, async (c) => {
+app.openapi(updateBlockedRoute, async (c) => {
   const user = c.get('user');
-  const { groupId } = c.req.valid('param');
+  const { windowId } = c.req.valid('param');
   const data = c.req.valid('json');
 
+  // Validate times if both are provided
+  if (data.startTime && data.endTime) {
+    if (data.endTime <= data.startTime) {
+      return c.json(
+        {
+          success: false as const,
+          error: 'Validation Error',
+          message: 'End time must be after start time',
+        },
+        400,
+      );
+    }
+  }
+
   try {
-    const result = await groupsService.updateGroup(groupId, user.userId, data);
-    if (!result.success || !result.group) {
+    const result = await blockedService.updateBlockedWindow(user.userId, windowId, data);
+    if (!result.success || !result.window) {
       return c.json(
         {
           success: false as const,
@@ -308,30 +330,30 @@ app.openapi(updateGroupRoute, async (c) => {
     return c.json(
       {
         success: true as const,
-        data: { group: result.group },
-        message: 'Group updated successfully',
+        data: { window: result.window },
+        message: 'Blocked window updated successfully',
       },
       200,
     );
   } catch (error) {
-    console.error('Error in PATCH /groups/:groupId:', error);
+    console.error('Error in PATCH /blocked/:windowId:', error);
     return c.json(
       {
         success: false as const,
         error: 'Internal Server Error',
-        message: 'Failed to update group',
+        message: 'Failed to update blocked window',
       },
       500,
     );
   }
 });
 
-app.openapi(deleteGroupRoute, async (c) => {
+app.openapi(deleteBlockedRoute, async (c) => {
   const user = c.get('user');
-  const { groupId } = c.req.valid('param');
+  const { windowId } = c.req.valid('param');
 
   try {
-    const result = await groupsService.deleteGroup(groupId, user.userId);
+    const result = await blockedService.deleteBlockedWindow(user.userId, windowId);
     if (!result.success) {
       return c.json(
         {
@@ -345,18 +367,14 @@ app.openapi(deleteGroupRoute, async (c) => {
 
     return c.body(null, 204);
   } catch (error) {
-    console.error('Error in DELETE /groups/:groupId:', error);
+    console.error('Error in DELETE /blocked/:windowId:', error);
     return c.json(
       {
         success: false as const,
         error: 'Internal Server Error',
-        message: 'Failed to delete group',
+        message: 'Failed to delete blocked window',
       },
       500,
     );
   }
 });
-
-// Export the app for OpenAPI generation
-export { app };
-export const handler = handle(app);

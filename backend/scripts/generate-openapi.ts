@@ -11,15 +11,15 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Import all lambda apps
-import { app as authApp } from '../lambdas/auth';
-import { app as blockedApp } from '../lambdas/blocked';
-import { app as calendarsApp } from '../lambdas/calendars';
-import { app as emojiApp } from '../lambdas/emoji';
-import { app as eventsApp } from '../lambdas/events';
-import { app as busyTimesApp } from '../lambdas/busy-times';
-import { app as friendsApp } from '../lambdas/friends';
-import { app as groupsApp } from '../lambdas/groups';
-import { app as usersApp } from '../lambdas/users';
+import { app as authApp } from '../src/api/auth';
+import { app as blockedApp } from '../src/api/blocked';
+import { app as calendarsApp } from '../src/api/calendars';
+import { app as emojiApp } from '../src/api/emoji';
+import { app as eventsApp } from '../src/api/events';
+import { app as busyTimesApp } from '../src/api/busy-times';
+import { app as friendsApp } from '../src/api/friends';
+import { app as groupsApp } from '../src/api/groups';
+import { app as usersApp } from '../src/api/users';
 
 // Create the main app that combines all routes
 const mainApp = new OpenAPIHono();

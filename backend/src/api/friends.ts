@@ -1,20 +1,16 @@
 import { createRoute, z } from '@hono/zod-openapi';
-import {
-  createApp,
-  handle,
-  authMiddleware,
-} from '../src/middleware/hono';
+import { createApp, authMiddleware } from '../middleware/hono';
 import {
   FriendshipSchema,
   FriendWithUserSchema,
   FriendRequestSchema,
   UserSearchSchema,
   ErrorResponseSchema,
-} from '../src/types';
-import * as friendsService from '../src/services/friends';
-import * as userService from '../src/services/users';
+} from '../types';
+import * as friendsService from '../services/friends';
+import * as userService from '../services/users';
 
-const app = createApp();
+export const app = createApp();
 
 // All routes require authentication
 app.use('*', authMiddleware);
@@ -59,11 +55,13 @@ const UserSearchResponseSchema = z
   .object({
     success: z.literal(true),
     data: z.object({
-      users: z.array(z.object({
-        userId: z.string().uuid(),
-        fullName: z.string(),
-        avatarUrl: z.string().optional(),
-      })),
+      users: z.array(
+        z.object({
+          userId: z.string().uuid(),
+          fullName: z.string(),
+          avatarUrl: z.string().optional(),
+        }),
+      ),
     }),
   })
   .openapi('UserSearchResponse');
@@ -602,11 +600,7 @@ app.openapi(sendFriendRequestRoute, async (c) => {
   const { friendUserId, inviteCode } = c.req.valid('json');
 
   try {
-    const result = await friendsService.sendFriendRequest(
-      user.userId,
-      friendUserId,
-      inviteCode,
-    );
+    const result = await friendsService.sendFriendRequest(user.userId, friendUserId, inviteCode);
 
     if (!result.success || !result.friendship) {
       return c.json(
@@ -645,10 +639,7 @@ app.openapi(acceptFriendRequestRoute, async (c) => {
   const { friendId } = c.req.valid('param');
 
   try {
-    const result = await friendsService.acceptFriendRequest(
-      user.userId,
-      friendId,
-    );
+    const result = await friendsService.acceptFriendRequest(user.userId, friendId);
     if (!result.success || !result.friendship) {
       return c.json(
         {
@@ -686,10 +677,7 @@ app.openapi(declineFriendRequestRoute, async (c) => {
   const { friendId } = c.req.valid('param');
 
   try {
-    const result = await friendsService.declineFriendRequest(
-      user.userId,
-      friendId,
-    );
+    const result = await friendsService.declineFriendRequest(user.userId, friendId);
     if (!result.success) {
       return c.json(
         {
@@ -790,7 +778,3 @@ app.openapi(removeFriendRoute, async (c) => {
     );
   }
 });
-
-// Export the app for OpenAPI generation
-export { app };
-export const handler = handle(app);

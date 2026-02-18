@@ -1,9 +1,5 @@
 import { createRoute, z } from '@hono/zod-openapi';
-import {
-  createApp,
-  handle,
-  authMiddleware,
-} from '../src/middleware/hono';
+import { createApp, authMiddleware } from '../middleware/hono';
 import {
   UserSchema,
   UpdateUserSchema,
@@ -11,10 +7,10 @@ import {
   NotificationPreferencesSchema,
   UpdateNotificationPreferencesSchema,
   ErrorResponseSchema,
-} from '../src/types';
-import * as userService from '../src/services/users';
+} from '../types';
+import * as userService from '../services/users';
 
-const app = createApp();
+export const app = createApp();
 
 // All routes require authentication
 app.use('*', authMiddleware);
@@ -462,7 +458,3 @@ app.openapi(updateNotificationPreferencesRoute, async (c) => {
     );
   }
 });
-
-// Export the app for OpenAPI generation
-export { app };
-export const handler = handle(app);
