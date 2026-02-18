@@ -23,7 +23,6 @@ import {
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { GlassButton } from "../../components/ui/GlassFAB";
-import { EmptyState } from "../../components/common/EmptyState";
 import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
 import {
   useFriends,
@@ -241,7 +240,9 @@ export default function FriendsScreen() {
             >
               <Text
                 color={
-                  activeTab === "requests" ? "$primaryForeground" : "$colorMuted"
+                  activeTab === "requests"
+                    ? "$primaryForeground"
+                    : "$colorMuted"
                 }
                 fontWeight="500"
                 fontSize={14}
@@ -283,25 +284,23 @@ export default function FriendsScreen() {
                 ))}
               </>
             ) : filteredFriends.length === 0 ? (
-              <EmptyState
-                icon={<Text fontSize={48}>👋</Text>}
-                title={searchQuery ? "No friends found" : "No friends yet"}
-                description={
-                  searchQuery
-                    ? "Try a different search term"
-                    : "Add friends to start planning events together!"
-                }
-                action={
-                  !searchQuery && (
-                    <Button
-                      variant="primary"
-                      onPress={() => router.push("/friends/add")}
-                    >
-                      Add Friends
-                    </Button>
-                  )
-                }
-              />
+              <Theme name="Card">
+                <Card>
+                  <YStack alignItems="center" padding="$4" gap="$3">
+                    <Text color="$colorMuted" textAlign="center">
+                      {searchQuery ? "No friends found" : "No friends yet"}
+                    </Text>
+                    {!searchQuery && (
+                      <Button
+                        variant="primary"
+                        onPress={() => router.push("/friends/add")}
+                      >
+                        Add Friends
+                      </Button>
+                    )}
+                  </YStack>
+                </Card>
+              </Theme>
             ) : (
               filteredFriends.map((friendship) => (
                 <Theme key={friendship.friendId} name="Card">
@@ -352,25 +351,23 @@ export default function FriendsScreen() {
                 ))}
               </>
             ) : filteredGroups.length === 0 ? (
-              <EmptyState
-                icon={<Text fontSize={48}>👥</Text>}
-                title={searchQuery ? "No groups found" : "No groups yet"}
-                description={
-                  searchQuery
-                    ? "Try a different search term"
-                    : "Create groups to easily invite multiple friends to events."
-                }
-                action={
-                  !searchQuery && (
-                    <Button
-                      variant="primary"
-                      onPress={() => router.push("/groups/create" as const)}
-                    >
-                      Create Group
-                    </Button>
-                  )
-                }
-              />
+              <Theme name="Card">
+                <Card>
+                  <YStack alignItems="center" padding="$4" gap="$3">
+                    <Text color="$colorMuted" textAlign="center">
+                      {searchQuery ? "No groups found" : "No groups yet"}
+                    </Text>
+                    {!searchQuery && (
+                      <Button
+                        variant="primary"
+                        onPress={() => router.push("/groups/create" as const)}
+                      >
+                        Create Group
+                      </Button>
+                    )}
+                  </YStack>
+                </Card>
+              </Theme>
             ) : (
               <>
                 {filteredGroups.map((group) => (
@@ -440,11 +437,15 @@ export default function FriendsScreen() {
                 ))}
               </>
             ) : pendingReceived.length === 0 ? (
-              <EmptyState
-                icon={<Text fontSize={48}>📬</Text>}
-                title="No pending requests"
-                description="When someone sends you a friend request, it will appear here."
-              />
+              <Theme name="Card">
+                <Card>
+                  <YStack alignItems="center" padding="$4" gap="$2">
+                    <Text color="$colorMuted" textAlign="center">
+                      No pending requests
+                    </Text>
+                  </YStack>
+                </Card>
+              </Theme>
             ) : (
               pendingReceived.map((request) => (
                 <Theme key={request.friendId} name="Card">
