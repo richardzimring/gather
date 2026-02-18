@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "ios": "expo run:ios --device",
+    "build:development": "expo run:ios --device",
+    "build:release": "expo run:ios --configuration Release --device",
     "lint": "expo lint && tsc --noEmit",
-    "generate:api": "openapi-ts -i ../backend/openapi.json -o ./lib/api/generated -c @hey-api/client-fetch",
-    "android": "expo run:android"
+    "generate:api": "openapi-ts -i ../backend/openapi.json -o ./lib/api/generated -c @hey-api/client-fetch"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
