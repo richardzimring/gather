@@ -6,6 +6,9 @@ import {
   postCalendars,
   patchCalendarsByConnectionId,
   deleteCalendarsByConnectionId,
+  deleteCalendarsApple,
+  deleteCalendarsGoogle,
+  deleteCalendarsOutlook,
   getCalendarsGoogleAuthUrl,
   getCalendarsGoogleCalendars,
   postCalendarsGoogleSelect,
@@ -311,6 +314,31 @@ export function useTriggerGoogleSync() {
   })
 }
 
+/**
+ * Hook to disconnect all calendar connections for a given provider.
+ */
+export function useDisconnectCalendar() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (provider: 'apple' | 'google' | 'outlook') => {
+      const deleteFn =
+        provider === 'apple'
+          ? deleteCalendarsApple
+          : provider === 'google'
+            ? deleteCalendarsGoogle
+            : deleteCalendarsOutlook
+      const response = await deleteFn()
+      if (!response.data?.success) {
+        throw new Error(`Failed to disconnect ${provider} Calendar`)
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: calendarKeys.all })
+    },
+  })
+}
+
 // ============================================
 // Outlook Calendar Hooks
 // ============================================
@@ -392,3 +420,4 @@ export function useTriggerOutlookSync() {
     },
   })
 }
+

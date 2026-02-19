@@ -11,7 +11,7 @@ import {
   Circle,
   Separator,
 } from "tamagui";
-import { Calendar, CalendarCheck, Info } from "@tamagui/lucide-icons";
+import { Calendar, CalendarCheck, Info, Trash2 } from "@tamagui/lucide-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "../../components/ui/Button";
@@ -21,6 +21,7 @@ import { BackHeader } from "../../components/ui/ScreenHeader";
 import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
 import {
   useCalendarConnections,
+  useDisconnectCalendar,
   useGoogleCalendars,
   useSelectGoogleCalendars,
   useOutlookCalendars,
@@ -45,10 +46,10 @@ interface ProviderConfig {
 
 const PROVIDER_CONFIG: Record<CalendarProvider, ProviderConfig> = {
   apple: {
-    title: "Calendars",
+    title: "Apple Calendars",
     displayName: "Apple Calendar",
     infoBanner:
-      "Select which calendars to import. Gather will read your busy times to help find availability — event details stay on your device.",
+      "Select which Apple calendars to import. Gather will read your busy times to help find availability.",
     emptyMessage: "No calendars found on your device",
   },
   google: {
@@ -66,11 +67,6 @@ const PROVIDER_CONFIG: Record<CalendarProvider, ProviderConfig> = {
     emptyMessage: "No calendars found in your Outlook account",
   },
 };
-
-interface CalendarsBySource {
-  source: string;
-  calendars: DeviceCalendar[];
-}
 
 interface NormalizedCalendar {
   id: string;
@@ -120,6 +116,7 @@ export default function CalendarSelectScreen() {
   const syncCalendars = useSyncCalendars();
   const selectGoogleCalendars = useSelectGoogleCalendars();
   const selectOutlookCalendars = useSelectOutlookCalendars();
+  const disconnectCalendar = useDisconnectCalendar();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(provider === "apple");
@@ -212,13 +209,7 @@ export default function CalendarSelectScreen() {
       }
       setInitialized(true);
     }
-  }, [
-    googleCalendars,
-    outlookCalendars,
-    connectedIds,
-    initialized,
-    provider,
-  ]);
+  }, [googleCalendars, outlookCalendars, connectedIds, initialized, provider]);
 
   // Normalize calendars from different sources
   const normalizedCalendars = useMemo((): NormalizedCalendar[] => {
@@ -249,24 +240,6 @@ export default function CalendarSelectScreen() {
     return [];
   }, [provider, deviceCalendars, googleCalendars, outlookCalendars]);
 
-  // Group Apple calendars by source
-  const calendarsBySource = useMemo((): CalendarsBySource[] => {
-    if (provider !== "apple") return [];
-
-    const groups = new Map<string, DeviceCalendar[]>();
-    for (const cal of deviceCalendars) {
-      const source = cal.source || "Other";
-      if (!groups.has(source)) {
-        groups.set(source, []);
-      }
-      groups.get(source)!.push(cal);
-    }
-    return Array.from(groups.entries()).map(([source, calendars]) => ({
-      source,
-      calendars,
-    }));
-  }, [deviceCalendars, provider]);
-
   const toggleCalendar = useCallback((calendarId: string) => {
     haptic.selection();
     setSelectedIds((prev) => {
@@ -288,6 +261,33 @@ export default function CalendarSelectScreen() {
     }
     return false;
   }, [selectedIds, connectedIds]);
+
+  const handleDisconnect = () => {
+    haptic.warning();
+    Alert.alert(
+      `Disconnect ${config.displayName}`,
+      `Are you sure you want to disconnect ${config.displayName}? All calendar connections for this provider will be removed.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Disconnect",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await disconnectCalendar.mutateAsync(provider);
+              router.back();
+            } catch {
+              haptic.error();
+              Alert.alert(
+                "Error",
+                `Failed to disconnect ${config.displayName}. Please try again.`,
+              );
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const handleSave = async () => {
     try {
@@ -384,11 +384,7 @@ export default function CalendarSelectScreen() {
             <Text fontSize={18} fontWeight="600" textAlign="center">
               Unable to Load Calendars
             </Text>
-            <Text
-              color="$colorMuted"
-              textAlign="center"
-              paddingHorizontal="$4"
-            >
+            <Text color="$colorMuted" textAlign="center" paddingHorizontal="$4">
               Please check your {config.displayName} connection and try again.
             </Text>
             <Button variant="primary" onPress={() => router.back()}>
@@ -508,83 +504,66 @@ export default function CalendarSelectScreen() {
         {/* Calendar list */}
         {normalizedCalendars.length === 0 ? (
           <YStack alignItems="center" padding="$6" gap="$2">
-            {provider === "apple" ? (
-              <Calendar size={32} color="$colorMuted" />
-            ) : (
-              <CalendarProviderIcon provider={provider} size={32} />
-            )}
+            <CalendarProviderIcon provider={provider} size={32} />
             <Text color="$colorMuted" textAlign="center">
               {config.emptyMessage}
             </Text>
           </YStack>
         ) : provider === "apple" ? (
-          // Apple: Grouped by source
-          <YStack gap="$4">
-            {calendarsBySource.map((group) => (
-              <Theme name="Card" key={group.source}>
-                <Card>
-                  <XStack alignItems="center" gap="$2" marginBottom="$3">
-                    <CalendarProviderIcon provider="apple" size={14} />
-                    <Text color="$colorMuted" fontSize={13} fontWeight="600">
-                      {group.source.toUpperCase()}
-                    </Text>
-                  </XStack>
-                  <YStack gap="$1">
-                    {group.calendars.map((cal, index) => (
-                      <YStack key={cal.id}>
-                        {index > 0 && <Separator marginVertical="$2" />}
-                        <XStack
-                          alignItems="center"
-                          paddingVertical="$2"
-                          gap="$3"
-                        >
-                          {/* Color swatch */}
-                          <Circle
-                            size={12}
-                            backgroundColor={cal.color ?? "$colorMuted"}
-                          />
-
-                          {/* Calendar name */}
-                          <YStack flex={1}>
-                            <Text fontWeight="500" fontSize={15}>
-                              {cal.title}
-                            </Text>
-                          </YStack>
-
-                          {/* Toggle */}
-                          <Switch
-                            size="$3"
-                            checked={selectedIds.has(cal.id)}
-                            onCheckedChange={() => toggleCalendar(cal.id)}
-                            backgroundColor={
-                              selectedIds.has(cal.id)
-                                ? "$primary"
-                                : "$backgroundHover"
-                            }
-                          >
-                            <Switch.Thumb
-                              animation="quick"
-                              backgroundColor={
-                                selectedIds.has(cal.id)
-                                  ? "$primaryForeground"
-                                  : "$color"
-                              }
-                            />
-                          </Switch>
-                        </XStack>
-                      </YStack>
-                    ))}
-                  </YStack>
-                </Card>
-              </Theme>
-            ))}
-          </YStack>
-        ) : (
-          // Google/Outlook: Single card
+          // Apple
           <Theme name="Card">
             <Card>
               <XStack alignItems="center" gap="$2" marginBottom="$3">
-                <CalendarProviderIcon provider={provider} size={14} />
+                <CalendarProviderIcon provider="apple" size={16} />
+                <Text color="$colorMuted" fontSize={13} fontWeight="600">
+                  APPLE CALENDAR
+                </Text>
+              </XStack>
+              <YStack gap="$1">
+                {normalizedCalendars.map((cal, index) => (
+                  <YStack key={cal.id}>
+                    {index > 0 && <Separator marginVertical="$2" />}
+                    <XStack alignItems="center" paddingVertical="$2" gap="$3">
+                      <Circle
+                        size={12}
+                        backgroundColor={cal.color ?? "$colorMuted"}
+                      />
+                      <YStack flex={1}>
+                        <Text fontWeight="500" fontSize={15}>
+                          {cal.name}
+                        </Text>
+                      </YStack>
+                      <Switch
+                        size="$3"
+                        checked={selectedIds.has(cal.id)}
+                        onCheckedChange={() => toggleCalendar(cal.id)}
+                        backgroundColor={
+                          selectedIds.has(cal.id)
+                            ? "$primary"
+                            : "$backgroundHover"
+                        }
+                      >
+                        <Switch.Thumb
+                          animation="quick"
+                          backgroundColor={
+                            selectedIds.has(cal.id)
+                              ? "$primaryForeground"
+                              : "$color"
+                          }
+                        />
+                      </Switch>
+                    </XStack>
+                  </YStack>
+                ))}
+              </YStack>
+            </Card>
+          </Theme>
+        ) : (
+          // Google/Outlook
+          <Theme name="Card">
+            <Card>
+              <XStack alignItems="center" gap="$2" marginBottom="$3">
+                <CalendarProviderIcon provider={provider} size={16} />
                 <Text color="$colorMuted" fontSize={13} fontWeight="600">
                   {provider === "google"
                     ? "GOOGLE CALENDAR"
@@ -596,13 +575,10 @@ export default function CalendarSelectScreen() {
                   <YStack key={cal.id}>
                     {index > 0 && <Separator marginVertical="$2" />}
                     <XStack alignItems="center" paddingVertical="$2" gap="$3">
-                      {/* Color swatch */}
                       <Circle
                         size={12}
                         backgroundColor={cal.color ?? "$colorMuted"}
                       />
-
-                      {/* Calendar name */}
                       <YStack flex={1}>
                         <XStack alignItems="center" gap="$1.5">
                           <Text fontWeight="500" fontSize={15}>
@@ -615,8 +591,6 @@ export default function CalendarSelectScreen() {
                           )}
                         </XStack>
                       </YStack>
-
-                      {/* Toggle */}
                       <Switch
                         size="$3"
                         checked={selectedIds.has(cal.id)}
@@ -659,6 +633,21 @@ export default function CalendarSelectScreen() {
             </Text>
           </XStack>
         )}
+
+        {/* Disconnect provider */}
+        <Button
+          variant="ghost"
+          fullWidth
+          marginTop="$8"
+          icon={<Trash2 size={16} color="$error" />}
+          onPress={handleDisconnect}
+          loading={disconnectCalendar.isPending}
+          loadingText="Disconnecting..."
+        >
+          <Text color="$error" fontSize={14} fontWeight="500">
+            Disconnect {config.displayName}
+          </Text>
+        </Button>
       </ScrollView>
     </YStack>
   );

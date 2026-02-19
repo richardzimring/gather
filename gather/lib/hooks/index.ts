@@ -19,6 +19,8 @@ export {
   useDeleteCalendarConnection,
   useSyncCalendars,
   useTriggerCalendarSync,
+  // Provider Calendar hooks
+  useDisconnectCalendar,
   // Google Calendar hooks
   useGoogleAuthUrl,
   useGoogleCalendars,
