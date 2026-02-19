@@ -22,6 +22,7 @@ import {
 
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { GradientBackground } from "../../components/ui/GradientBackground";
 import { GlassButton } from "../../components/ui/GlassFAB";
 import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
 import {
@@ -129,6 +130,7 @@ export default function FriendsScreen() {
 
   return (
     <YStack flex={1} backgroundColor="$background">
+      <GradientBackground />
       {/* Scrollable content with header */}
       <ScrollView
         refreshControl={

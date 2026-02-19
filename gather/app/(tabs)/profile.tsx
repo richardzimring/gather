@@ -2,12 +2,12 @@ import {
   Bell,
   Calendar,
   ChevronRight,
+  Clock,
   Copy,
   LogOut,
   RefreshCw,
   Share2,
   Shield,
-  Trash2,
   User,
   UserX,
 } from "@tamagui/lucide-icons";
@@ -28,6 +28,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "../../components/ui/Button";
+import { GradientBackground } from "../../components/ui/GradientBackground";
 import { CalendarProviderIcon } from "../../components/ui/CalendarProviderIcon";
 import { Card } from "../../components/ui/Card";
 import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
@@ -36,7 +37,6 @@ import {
   useInviteCode,
   useRefresh,
   useCalendarConnections,
-  useDeleteCalendarConnection,
   useTriggerCalendarSync,
   useDeleteAccount,
 } from "../../lib/hooks";
@@ -117,7 +117,6 @@ export default function ProfileScreen() {
   // Calendar connections
   const { data: calendarConnections, isLoading: isLoadingCalendars } =
     useCalendarConnections();
-  const deleteCalendarConnection = useDeleteCalendarConnection();
   const triggerSync = useTriggerCalendarSync();
 
   const deleteAccount = useDeleteAccount();
@@ -168,29 +167,6 @@ export default function ProfileScreen() {
     );
   };
 
-  const handleDeleteCalendar = (connectionId: string, calendarName: string) => {
-    haptic.warning();
-    Alert.alert(
-      "Remove Calendar",
-      `Are you sure you want to remove "${calendarName}"?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Remove",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteCalendarConnection.mutateAsync(connectionId);
-            } catch (err) {
-              haptic.error();
-              console.error("Failed to remove calendar:", err);
-            }
-          },
-        },
-      ],
-    );
-  };
-
   const handleSignOut = async () => {
     haptic.warning();
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -227,6 +203,7 @@ export default function ProfileScreen() {
 
   return (
     <YStack flex={1} backgroundColor="$background">
+      <GradientBackground />
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -402,6 +379,14 @@ export default function ProfileScreen() {
                       borderRadius="$3"
                       alignItems="center"
                       gap="$2"
+                      pressStyle={{ opacity: 0.7 }}
+                      onPress={() => {
+                        haptic.light();
+                        router.push({
+                          pathname: "/calendars/[provider]",
+                          params: { provider: connection.provider },
+                        });
+                      }}
                     >
                       {connection.color && (
                         <Circle size={10} backgroundColor={connection.color} />
@@ -426,18 +411,7 @@ export default function ProfileScreen() {
                           </Text>
                         )}
                       </YStack>
-                      <Button
-                        variant="ghost"
-                        buttonSize="sm"
-                        circular
-                        icon={<Trash2 size={16} color="$error" />}
-                        onPress={() =>
-                          handleDeleteCalendar(
-                            connection.connectionId,
-                            connection.calendarName,
-                          )
-                        }
-                      />
+                      <ChevronRight size={16} color="$colorMuted" />
                     </XStack>
                   ))}
                 <Button
@@ -468,6 +442,11 @@ export default function ProfileScreen() {
               icon={<Bell size={16} color="$colorMuted" />}
               label="Notifications"
               onPress={() => router.push("/notifications/settings")}
+            />
+            <SettingsItem
+              icon={<Clock size={16} color="$colorMuted" />}
+              label="Blocked Windows"
+              onPress={() => router.push("/blocked")}
             />
           </Card>
         </Theme>

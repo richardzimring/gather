@@ -12,12 +12,7 @@ import {
 } from "@tamagui/lucide-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  LayoutAnimation,
-  RefreshControl,
-  UIManager,
-  Platform,
-} from "react-native";
+import { LayoutAnimation, RefreshControl } from "react-native";
 import {
   H1,
   Text,
@@ -44,6 +39,7 @@ import {
   type PlaceResult,
 } from "../../components/ui/LocationSearch";
 import { MapPreview } from "../../components/ui/MapPreview";
+import { GradientBackground } from "../../components/ui/GradientBackground";
 import { SkeletonBar } from "../../components/ui/Skeleton";
 import {
   TimeChipPicker,
@@ -63,14 +59,6 @@ import { useAuth } from "../../lib/hooks/useAuth";
 import type { LocationData } from "../../lib/api/generated/types.gen";
 import type { CommonFreeTimeSlot } from "../../lib/utils/availability";
 
-// Enable LayoutAnimation on Android (no-op on iOS, but safe to call)
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
 // ============================================
 // Types
 // ============================================
@@ -79,7 +67,7 @@ interface TimeSlot {
   date: Date;
   startTime: Date;
   endTime: Date;
-  friendIds: string[];
+  userIds: string[];
 }
 
 // ============================================
@@ -176,7 +164,7 @@ function groupSlotsByDay(slots: CommonFreeTimeSlot[]): Map<string, TimeSlot[]> {
       ),
       startTime,
       endTime,
-      friendIds: [...slot.friendIds],
+      userIds: [...slot.userIds],
     });
     result.set(dateKey, existing);
   }
@@ -366,7 +354,7 @@ export default function PlanScreen() {
     for (const day of daysInRange) {
       const key = toDateKey(day);
       const daySlots = slotsByDay.get(key) ?? [];
-      const hasAnyFree = daySlots.some((slot) => slot.friendIds.length > 0);
+      const hasAnyFree = daySlots.some((slot) => slot.userIds.length > 0);
       if (!hasAnyFree) {
         disabled.add(key);
       }
@@ -519,8 +507,8 @@ export default function PlanScreen() {
 
     // Add invited friends (filter out current user — they're already added as host)
     const invitedFriendIds = user
-      ? selectedSlot.friendIds.filter((id) => id !== user.userId)
-      : selectedSlot.friendIds;
+      ? selectedSlot.userIds.filter((id) => id !== user.userId)
+      : selectedSlot.userIds;
     for (const id of invitedFriendIds) {
       people.push({
         id,
@@ -669,6 +657,7 @@ export default function PlanScreen() {
   // --- Render ---
   return (
     <YStack flex={1} backgroundColor="$background">
+      <GradientBackground />
       <ScrollView
         ref={scrollViewRef}
         refreshControl={
@@ -843,7 +832,7 @@ export default function PlanScreen() {
           </Theme>
         )}
 
-        {/* ==================== Step 3: Time Filters & Suggested Times ==================== */}
+        {/* ==================== Step 3: Time Filters ==================== */}
         {showResults && (
           <YStack ref={timeSlotsRef}>
             {/* Time filter card */}
@@ -940,7 +929,7 @@ export default function PlanScreen() {
               </Card>
             </Theme>
 
-            {/* Available times header — pressable to expand/collapse when a slot is selected */}
+            {/* ==================== Step 4: Time Slots ==================== */}
             <XStack
               alignItems="center"
               justifyContent="space-between"
@@ -993,11 +982,12 @@ export default function PlanScreen() {
                       : filteredSlots.length > 0
                         ? (() => {
                             const freeCount = filteredSlots.filter(
-                              (s) => s.friendIds.length > 0,
+                              (s) =>
+                                s.userIds.length === selectedFriends.length + 1,
                             ).length;
                             return freeCount > 0
                               ? ` \u00B7 ${freeCount} available`
-                              : "";
+                              : ` \u00B7 No times available`;
                           })()
                         : ""}
                   </Text>
@@ -1069,19 +1059,25 @@ export default function PlanScreen() {
                     {filteredSlots.map((slot, index) => {
                       // Separate the current user from friends in this slot's availability
                       const isCurrentUserFree = user
-                        ? slot.friendIds.includes(user.userId)
+                        ? slot.userIds.includes(user.userId)
                         : true;
                       const freeFriendIds = user
-                        ? slot.friendIds.filter((id) => id !== user.userId)
-                        : slot.friendIds;
-                      const friendNames = freeFriendIds
-                        .map((id) => friendNameMap.get(id) ?? "Friend")
-                        .join(", ");
+                        ? slot.userIds.filter((id) => id !== user.userId)
+                        : slot.userIds;
+                      const freeFriendsSubtitle = (() => {
+                        const names = freeFriendIds.map(
+                          (id) => friendNameMap.get(id) ?? "Friend",
+                        );
+                        if (names.length === 1) return `${names[0]} is free`;
+                        if (names.length <= 2)
+                          return `${names.join(" and ")} are free`;
+                        return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]} are free`;
+                      })();
                       const allFriendsFree =
                         freeFriendIds.length === selectedFriends.length;
                       const isEveryoneAvailable =
                         allFriendsFree && isCurrentUserFree;
-                      const isEveryoneBusy = slot.friendIds.length === 0;
+                      const isEveryoneBusy = slot.userIds.length === 0;
 
                       const isSelected =
                         selectedSlot?.startTime.getTime() ===
@@ -1108,11 +1104,22 @@ export default function PlanScreen() {
                       } else if (isEveryoneBusy) {
                         badgeBg = "$backgroundHover";
                         badgeColor = "$colorMuted";
-                        badgeLabel = "Everyone busy";
+                        badgeLabel = "All busy";
                       } else if (!isCurrentUserFree) {
                         badgeBg = "$backgroundHover";
                         badgeColor = "$colorMuted";
                         badgeLabel = "You\u2019re busy";
+                      } else if (
+                        isCurrentUserFree &&
+                        freeFriendIds.length === 0
+                      ) {
+                        badgeBg = "$backgroundHover";
+                        badgeColor = "$colorMuted";
+                        badgeLabel = "Friends busy";
+                      } else {
+                        badgeBg = "$backgroundHover";
+                        badgeColor = "$colorMuted";
+                        badgeLabel = `${freeFriendIds.length} busy`;
                       }
 
                       // Subtitle text
@@ -1120,13 +1127,19 @@ export default function PlanScreen() {
                       if (isEveryoneBusy) {
                         subtitle = "No one is available";
                       } else if (isEveryoneAvailable) {
-                        subtitle = "Everyone\u2019s available";
+                        subtitle = "Everyone is available";
+                      } else if (
+                        isCurrentUserFree &&
+                        freeFriendIds.length === 0
+                      ) {
+                        subtitle = "You\u2019re free, but all friends are busy";
                       } else if (!isCurrentUserFree && allFriendsFree) {
-                        subtitle = "All friends free, but you have a conflict";
+                        subtitle =
+                          "All friends are free, but you have a conflict";
                       } else if (!isCurrentUserFree) {
-                        subtitle = `${friendNames} free, you have a conflict`;
+                        subtitle = `${freeFriendsSubtitle}, but you have a conflict`;
                       } else {
-                        subtitle = friendNames;
+                        subtitle = freeFriendsSubtitle;
                       }
 
                       return (
@@ -1218,7 +1231,7 @@ export default function PlanScreen() {
           </YStack>
         )}
 
-        {/* ==================== Step 4: Event Details (inline) ==================== */}
+        {/* ==================== Step 5: Event Details ==================== */}
         {selectedSlot && (
           <YStack marginTop="$4" ref={detailsRef}>
             <Text fontSize={18} fontWeight="600" marginBottom="$3">

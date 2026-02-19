@@ -20,6 +20,7 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { EventCard, EventCardSkeleton } from "../../components/ui/EventCard";
 import { GlassButton } from "../../components/ui/GlassFAB";
+import { GradientBackground } from "../../components/ui/GradientBackground";
 import { useAuth } from "../../lib/hooks/useAuth";
 import { useEvents, useRefresh } from "../../lib/hooks";
 
@@ -299,6 +300,7 @@ export default function HomeScreen() {
 
   return (
     <YStack flex={1} backgroundColor="$background">
+      <GradientBackground />
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -317,7 +319,11 @@ export default function HomeScreen() {
         {/* Header */}
         <YStack paddingBottom="$3">
           {/* Greeting */}
-          <Text fontSize={14} color="$colorMuted" marginBottom={-greetingPadding}>
+          <Text
+            fontSize={14}
+            color="$colorMuted"
+            marginBottom={-greetingPadding}
+          >
             {getGreeting()}, {user?.firstName ?? "there"}
           </Text>
 
