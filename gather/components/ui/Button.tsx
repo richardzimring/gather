@@ -2,9 +2,9 @@ import {
   styled,
   Button as TamaguiButton,
   GetProps,
-  Spinner,
   useTheme,
 } from "tamagui";
+import { Spinner } from "./Spinner";
 import { haptic } from "../../lib/haptics";
 
 /**
@@ -164,12 +164,14 @@ export function Button({
       disabled={isDisabled}
       variant={variant}
       opacity={isDisabled && !loading ? 0.5 : 1}
-      icon={
-        icon && loading ? <Spinner size="small" color={spinnerColor} /> : icon
-      }
+      icon={loading ? <Spinner size="small" color={spinnerColor} /> : icon}
       {...props}
     >
-      {loading ? (loadingText ?? children) : children}
+      {loading
+        ? icon
+          ? (loadingText ?? children)  // has icon: keep text, spinner replaces icon
+          : loadingText ?? null         // no icon: show loadingText or just spinner
+        : children}
     </StyledButton>
   );
 }

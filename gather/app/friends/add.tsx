@@ -7,12 +7,12 @@ import {
   Circle,
   Input,
   ScrollView,
-  Spinner,
   Text,
   Theme,
   XStack,
   YStack,
 } from 'tamagui'
+import { Spinner } from '../../components/ui/Spinner'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '../../components/ui/Button'

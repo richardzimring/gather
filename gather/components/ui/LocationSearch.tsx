@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useRef } from "react";
 import { MapPin, X, Search } from "@tamagui/lucide-icons";
-import { Input, XStack, YStack, Text, ScrollView, Spinner } from "tamagui";
+import { Input, XStack, YStack, Text, ScrollView } from "tamagui";
+import { Spinner } from "./Spinner";
 import * as Location from "expo-location";
 import debounce from "lodash.debounce";
 

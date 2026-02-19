@@ -4,12 +4,12 @@ import { router } from "expo-router";
 import {
   ScrollView,
   Separator,
-  Spinner,
   Text,
   XStack,
   YStack,
   Theme,
 } from "tamagui";
+import { Spinner } from "../../components/ui/Spinner";
 import { ChevronRight } from "@tamagui/lucide-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";

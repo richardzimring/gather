@@ -1,7 +1,8 @@
 import { Redirect } from 'expo-router'
-import { Spinner, YStack } from 'tamagui'
+import { YStack } from 'tamagui'
 
 import { useAuth } from '../lib/hooks/useAuth'
+import { Spinner } from '../components/ui/Spinner'
 
 /**
  * Root index handles auth-based routing.
