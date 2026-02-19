@@ -13,7 +13,7 @@ export interface CommonFreeTimeSlot {
   date: string; // "YYYY-MM-DD"
   startTime: string; // ISO datetime
   endTime: string; // ISO datetime
-  friendIds: string[]; // user IDs who are free during this slot
+  userIds: string[]; // user IDs who are free during this slot
 }
 
 // ============================================
@@ -136,11 +136,16 @@ export function computeCommonFreeTimeSlots(
   /**
    * Check if a user is free for the entire [slotStart, slotEnd) window.
    */
-  function isUserFree(userId: string, slotStart: number, slotEnd: number): boolean {
+  function isUserFree(
+    userId: string,
+    slotStart: number,
+    slotEnd: number,
+  ): boolean {
     const freeIntervals = perUserFree.get(userId);
     if (!freeIntervals) return false;
     return freeIntervals.some(
-      (interval) => interval.startTime <= slotStart && interval.endTime >= slotEnd,
+      (interval) =>
+        interval.startTime <= slotStart && interval.endTime >= slotEnd,
     );
   }
 
@@ -160,7 +165,7 @@ export function computeCommonFreeTimeSlots(
       date: toDateKey(slotStart),
       startTime: slotStart.toISOString(),
       endTime: new Date(candidateEnd).toISOString(),
-      friendIds: freeUserIds,
+      userIds: freeUserIds,
     });
 
     cursor += STEP_MS;
