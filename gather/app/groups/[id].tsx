@@ -318,7 +318,7 @@ export default function GroupDetailScreen() {
                 Members
               </Text>
               <Text color="$colorMuted" fontSize={13}>
-                {members.length} people
+                {members.length} {members.length === 1 ? "person" : "people"}
               </Text>
             </XStack>
 

@@ -257,8 +257,8 @@ export default function LoginScreen() {
   const handleAppleSignIn = async () => {
     setError(null);
     try {
-      const result = await signInWithApple();
-      if (result?.isNewUser) {
+      await signInWithApple();
+      if (true) {
         router.replace("/onboarding");
       } else {
         router.replace("/(tabs)");
@@ -266,7 +266,7 @@ export default function LoginScreen() {
     } catch (err) {
       if ((err as { code?: string }).code === "ERR_REQUEST_CANCELED") return;
       console.error("Apple Sign In error:", err);
-      setError("Failed to sign in with Apple. Please try again.");
+      setError("Failed to sign in. Please try again.");
     }
   };
 
@@ -340,7 +340,7 @@ export default function LoginScreen() {
             letterSpacing={0.08}
             color={isDark ? "rgba(255,255,255,0.38)" : "rgba(20,15,40,0.42)"}
           >
-            Find the perfect time to hang out with the people you love.
+            Find the perfect time to see the people you love.
           </Text>
         </YStack>
 

@@ -448,7 +448,7 @@ export default function EventDetailScreen() {
   // ---- Other handlers ----
 
   const handleResponse = async (status: InviteeStatus) => {
-    if (!id) return;
+    if (!id || pendingResponse !== null) return;
 
     // Trigger haptic feedback
     haptic.medium();
@@ -968,8 +968,9 @@ export default function EventDetailScreen() {
             onPress={handleSave}
             disabled={!canSave || updateEvent.isPending || isEmojiLoading}
             loading={updateEvent.isPending || isEmojiLoading}
+            loadingText="Saving..."
           >
-            {updateEvent.isPending ? "Saving..." : "Save Changes"}
+            Save Changes
           </Button>
         </GlassBottomBar>
       )}
@@ -989,7 +990,7 @@ export default function EventDetailScreen() {
                 flex={1}
                 onPress={() => handleResponse("accepted")}
                 loading={pendingResponse === "accepted"}
-                disabled={pendingResponse !== null}
+                disabled={pendingResponse === "accepted"}
               >
                 Yes
               </Button>
@@ -1000,7 +1001,7 @@ export default function EventDetailScreen() {
                 flex={1}
                 onPress={() => handleResponse("declined")}
                 loading={pendingResponse === "declined"}
-                disabled={pendingResponse !== null}
+                disabled={pendingResponse === "declined"}
               >
                 No
               </Button>
@@ -1011,7 +1012,7 @@ export default function EventDetailScreen() {
                 flex={1}
                 onPress={() => handleResponse("maybe")}
                 loading={pendingResponse === "maybe"}
-                disabled={pendingResponse !== null}
+                disabled={pendingResponse === "maybe"}
               >
                 Maybe
               </Button>
