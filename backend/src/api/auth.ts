@@ -214,8 +214,6 @@ app.openapi(appleCallbackRoute, async (c) => {
       });
       console.log('User created successfully:', user.userId);
       isNewUser = true;
-    } else {
-      console.log('User already exists:', user.userId);
     }
 
     // Return the identity token as the session token

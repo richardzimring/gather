@@ -152,6 +152,41 @@ export const deleteCalendarConnection = async (
   return { success: true };
 };
 
+/**
+ * Delete all calendar connections for a given provider and user.
+ * Used when disconnecting an entire provider account (e.g. Google, Outlook).
+ * Cached events are cascade-deleted via FK.
+ */
+export const deleteProviderConnections = async (
+  userId: string,
+  provider: 'apple' | 'google' | 'outlook',
+): Promise<{ success: boolean; deletedCount: number }> => {
+  const existing = await db
+    .select()
+    .from(calendarConnections)
+    .where(
+      and(
+        eq(calendarConnections.userId, userId),
+        eq(calendarConnections.provider, provider),
+      ),
+    );
+
+  if (existing.length === 0) {
+    return { success: true, deletedCount: 0 };
+  }
+
+  await db
+    .delete(calendarConnections)
+    .where(
+      and(
+        eq(calendarConnections.userId, userId),
+        eq(calendarConnections.provider, provider),
+      ),
+    );
+
+  return { success: true, deletedCount: existing.length };
+};
+
 // ============================================
 // Busy Slots Operations
 // ============================================

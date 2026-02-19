@@ -6,85 +6,80 @@ import { HTTPException } from 'hono/http-exception';
 import type { User } from '../types';
 import { APPLE_BUNDLE_ID } from '../constants';
 import * as userService from '../services/users';
-import { z } from 'zod'
+import { z } from 'zod';
 
-const AppleJwtPayloadSchema = z.object({
-  /** * The issuer registered claim. 
-   * Value is always "https://appleid.apple.com" 
-   */
-  iss: z.literal("https://appleid.apple.com"),
+const AppleJwtPayloadSchema = z
+  .object({
+    /** * The issuer registered claim.
+     * Value is always "https://appleid.apple.com"
+     */
+    iss: z.literal('https://appleid.apple.com'),
 
-  /** * The subject registered claim. 
-   * The unique identifier for the user. 
-   */
-  sub: z.string(),
+    /** * The subject registered claim.
+     * The unique identifier for the user.
+     */
+    sub: z.string(),
 
-  /** * The audience registered claim. 
-   * This will be your specific App Bundle ID (e.g., "com.myapp.ios") 
-   * or Service ID (e.g., "com.myapp.web"). 
-   */
-  aud: z.literal(APPLE_BUNDLE_ID),
+    /** * The audience registered claim.
+     * This will be your specific App Bundle ID (e.g., "com.myapp.ios")
+     * or Service ID (e.g., "com.myapp.web").
+     */
+    aud: z.literal(APPLE_BUNDLE_ID),
 
-  /** * Issued at time (seconds since Epoch). 
-   */
-  iat: z.number(),
+    /** * Issued at time (seconds since Epoch).
+     */
+    iat: z.number(),
 
-  /** * Expiration time (seconds since Epoch). 
-   */
-  exp: z.number(),
+    /** * Expiration time (seconds since Epoch).
+     */
+    exp: z.number(),
 
-  /** * The user's email address.
-   * NOTE: This is NOT guaranteed to be present on every login 
-   * (only the first one or if scopes are requested explicitly).
-   */
-  email: z.string().email().optional(),
+    /** * The user's email address.
+     * NOTE: This is NOT guaranteed to be present on every login
+     * (only the first one or if scopes are requested explicitly).
+     */
+    email: z.string().email().optional(),
 
-  /** * Verification status of the email.
-   */
-  email_verified: z.boolean().optional(),
+    /** * Verification status of the email.
+     */
+    email_verified: z.boolean().optional(),
 
-  /** * Indicates if the user used "Hide My Email".
-   * If true, the `email` field is a proxy address (e.g., @privaterelay.appleid.com).
-   */
-  is_private_email: z.boolean().optional(),
+    /** * Indicates if the user used "Hide My Email".
+     * If true, the `email` field is a proxy address (e.g., @privaterelay.appleid.com).
+     */
+    is_private_email: z.boolean().optional(),
 
-  /** * Nonce used to associate a client session with the ID token.
-   * Mandatory if you included a `nonce` in the authorization request.
-   */
-  nonce: z.string().optional(),
+    /** * Nonce used to associate a client session with the ID token.
+     * Mandatory if you included a `nonce` in the authorization request.
+     */
+    nonce: z.string().optional(),
 
-  /** * Indicates if the platform supports nonces.
-   */
-  nonce_supported: z.boolean().optional(),
+    /** * Indicates if the platform supports nonces.
+     */
+    nonce_supported: z.boolean().optional(),
 
-  /** * Time of authentication.
-   */
-  auth_time: z.number().optional(),
+    /** * Time of authentication.
+     */
+    auth_time: z.number().optional(),
 
-  /** * Access Token Hash.
-   * Used to validate the `access_token` if you received one.
-   */
-  at_hash: z.string().optional(),
+    /** * Access Token Hash.
+     * Used to validate the `access_token` if you received one.
+     */
+    at_hash: z.string().optional(),
 
-  /** * Real User Status (iOS 14+ / macOS 11+ only).
-   * 0: Unsupported, 1: Unknown, 2: LikelyReal
-   */
-  real_user_status: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
+    /** * Real User Status (iOS 14+ / macOS 11+ only).
+     * 0: Unsupported, 1: Unknown, 2: LikelyReal
+     */
+    real_user_status: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
 
-  /** * Transfer Subject.
-   * Only present during the 60-day period after transferring an app 
-   * to another developer team.
-   */
-  transfer_sub: z.string().optional(),
-})
-  .refine(
-    (data) => data.exp > Math.floor(Date.now() / 1000),
-    { message: "Token expired" }
-  )
-  .refine(
-    (data) => data.aud === APPLE_BUNDLE_ID,
-    { message: "Invalid token audience" }
-  );
+    /** * Transfer Subject.
+     * Only present during the 60-day period after transferring an app
+     * to another developer team.
+     */
+    transfer_sub: z.string().optional(),
+  })
+  .refine((data) => data.exp > Math.floor(Date.now() / 1000), { message: 'Token expired' })
+  .refine((data) => data.aud === APPLE_BUNDLE_ID, { message: 'Invalid token audience' });
 
 type AppleJwtPayload = z.infer<typeof AppleJwtPayloadSchema>;
 
@@ -138,9 +133,7 @@ const getAppleJwks = async (): Promise<{ keys: JWK[] }> => {
  * Verify an Apple identity token
  * Returns the payload if valid, null if invalid
  */
-export const verifyAppleToken = async (
-  token: string,
-): Promise<AppleJwtPayload | null> => {
+export const verifyAppleToken = async (token: string): Promise<AppleJwtPayload | null> => {
   try {
     // For development, allow a simple dev token
     if (token.startsWith('dev-')) {
@@ -162,9 +155,10 @@ export const verifyAppleToken = async (
       return null;
     }
 
-    const header = JSON.parse(
-      Buffer.from(headerBase64, 'base64url').toString(),
-    ) as { kid: string; alg: string };
+    const header = JSON.parse(Buffer.from(headerBase64, 'base64url').toString()) as {
+      kid: string;
+      alg: string;
+    };
 
     // Get JWKS and find matching key
     const jwks = await getAppleJwks();
@@ -185,9 +179,7 @@ export const verifyAppleToken = async (
     if (!payloadBase64) {
       return null;
     }
-    const payloadRaw = JSON.parse(
-      Buffer.from(payloadBase64, 'base64url').toString(),
-    );
+    const payloadRaw = JSON.parse(Buffer.from(payloadBase64, 'base64url').toString());
 
     // Validate with Zod schema
     const result = AppleJwtPayloadSchema.safeParse(payloadRaw);
@@ -213,9 +205,7 @@ export const createApp = () => {
     defaultHook: (result, c) => {
       if (!result.success) {
         const issues = result.error?.issues ?? [];
-        const message = issues
-          .map((e) => `${(e.path ?? []).join('.')}: ${e.message}`)
-          .join(', ');
+        const message = issues.map((e) => `${(e.path ?? []).join('.')}: ${e.message}`).join(', ');
         return c.json(
           {
             success: false as const,
@@ -357,7 +347,6 @@ export const authMiddleware = createMiddleware<AppEnv>(async (c, next) => {
   }
 
   const token = authHeader.slice(7);
-  console.log('Received token (first 50 chars):', token.substring(0, 50) + '...');
   const payload = await verifyAppleToken(token);
 
   if (!payload) {
@@ -405,8 +394,7 @@ export const validationHook = (result: any, c: any) => {
     const issues = result.error.issues || [];
     const message = issues
       .map(
-        (e: { path: (string | number)[]; message: string }) =>
-          `${e.path.join('.')}: ${e.message}`,
+        (e: { path: (string | number)[]; message: string }) => `${e.path.join('.')}: ${e.message}`,
       )
       .join(', ');
     return c.json(

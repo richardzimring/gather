@@ -1,4 +1,4 @@
-import { eq, and, or } from 'drizzle-orm';
+import { eq, and, or, inArray } from 'drizzle-orm';
 import { db, users, friendships, groups, groupMembers } from '../db';
 import type { Friendship, User } from '../types';
 import { getUserById, getUserByInviteCode } from './users';
@@ -302,20 +302,38 @@ export const removeFriend = async (
     return { success: false, message: 'Friendship not found' };
   }
 
-  // Remove each user from the other's "All Friends" group
-  const userAllFriendsGroup = await getAllFriendsGroup(userId);
-  const friendAllFriendsGroup = await getAllFriendsGroup(friendId);
+  // Remove friendId from all of userId's groups
+  const userGroups = await db
+    .select({ id: groups.id })
+    .from(groups)
+    .where(eq(groups.ownerId, userId));
 
-  if (userAllFriendsGroup) {
+  if (userGroups.length > 0) {
     await db
       .delete(groupMembers)
-      .where(and(eq(groupMembers.groupId, userAllFriendsGroup), eq(groupMembers.userId, friendId)));
+      .where(
+        and(
+          inArray(groupMembers.groupId, userGroups.map((g) => g.id)),
+          eq(groupMembers.userId, friendId),
+        ),
+      );
   }
 
-  if (friendAllFriendsGroup) {
+  // Remove userId from all of friendId's groups
+  const friendGroups = await db
+    .select({ id: groups.id })
+    .from(groups)
+    .where(eq(groups.ownerId, friendId));
+
+  if (friendGroups.length > 0) {
     await db
       .delete(groupMembers)
-      .where(and(eq(groupMembers.groupId, friendAllFriendsGroup), eq(groupMembers.userId, userId)));
+      .where(
+        and(
+          inArray(groupMembers.groupId, friendGroups.map((g) => g.id)),
+          eq(groupMembers.userId, userId),
+        ),
+      );
   }
 
   // Delete both friendship records

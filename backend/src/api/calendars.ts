@@ -16,6 +16,7 @@ import {
   createCalendarConnection,
   updateCalendarConnection,
   deleteCalendarConnection,
+  deleteProviderConnections,
   getBusySlotsForUser,
   syncCalendarsForUser,
   handleProviderOAuthCallback,
@@ -85,8 +86,16 @@ app.get('/calendars/outlook/callback', async (c) => {
   }
 });
 
-// Apply auth middleware to all remaining routes
-app.use('*', authMiddleware);
+// Apply auth middleware to all /calendars/* routes except the public OAuth callbacks.
+// Using a scoped path means registration order no longer determines whether a route
+// is public or protected — the callback exclusions are explicit.
+app.use('/calendars/*', async (c, next) => {
+  const path = c.req.path;
+  if (path === '/calendars/google/callback' || path === '/calendars/outlook/callback') {
+    return next();
+  }
+  return authMiddleware(c, next);
+});
 
 // ============================================
 // Response Schemas
@@ -623,6 +632,70 @@ app.openapi(updateCalendarRoute, async (c) => {
     );
   }
 });
+
+// ============================================
+// Provider Calendar Disconnect
+// Must be registered BEFORE the generic /{connectionId} DELETE route
+// so that static paths like /calendars/google are matched first.
+// ============================================
+
+const createProviderDisconnectRoute = (provider: 'apple' | 'google' | 'outlook') => {
+  const displayName = provider.charAt(0).toUpperCase() + provider.slice(1);
+  return createRoute({
+    method: 'delete',
+    path: `/calendars/${provider}`,
+    tags: ['Calendars'],
+    summary: `Disconnect ${displayName} Calendar`,
+    description: `Remove all ${displayName} Calendar connections for the current user`,
+    security: [{ BearerAuth: [] }],
+    responses: {
+      200: {
+        description: `${displayName} Calendar disconnected`,
+        content: { 'application/json': { schema: DeleteCalendarResponseSchema } },
+      },
+      401: {
+        description: 'Unauthorized',
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+      },
+      500: {
+        description: 'Internal server error',
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+      },
+    },
+  });
+};
+
+const appleDisconnectRoute = createProviderDisconnectRoute('apple');
+const googleDisconnectRoute = createProviderDisconnectRoute('google');
+const outlookDisconnectRoute = createProviderDisconnectRoute('outlook');
+
+const registerProviderDisconnectHandler = (
+  route: ReturnType<typeof createProviderDisconnectRoute>,
+  provider: 'apple' | 'google' | 'outlook',
+) => {
+  const displayName = provider.charAt(0).toUpperCase() + provider.slice(1);
+  app.openapi(route, async (c) => {
+    const user = c.get('user');
+    try {
+      await deleteProviderConnections(user.userId, provider);
+      return c.json({ success: true as const, message: `${displayName} Calendar disconnected` }, 200);
+    } catch (error) {
+      console.error(`Error in DELETE /calendars/${provider}:`, error);
+      return c.json(
+        {
+          success: false as const,
+          error: 'Internal Server Error',
+          message: `Failed to disconnect ${displayName} Calendar`,
+        },
+        500,
+      );
+    }
+  });
+};
+
+registerProviderDisconnectHandler(appleDisconnectRoute, 'apple');
+registerProviderDisconnectHandler(googleDisconnectRoute, 'google');
+registerProviderDisconnectHandler(outlookDisconnectRoute, 'outlook');
 
 app.openapi(deleteCalendarRoute, async (c) => {
   const user = c.get('user');

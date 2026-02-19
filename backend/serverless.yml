@@ -12,10 +12,16 @@ custom:
 provider:
   name: aws
   runtime: nodejs24.x
-  region: us-east-2
+  region: us-east-1
   stage: ${opt:stage, 'dev'}
   logRetentionInDays: 7
   versionFunctions: false
+  domain:
+    name: api.gather.rzimring.com
+    certificateArn: arn:aws:acm:us-east-1:496673558463:certificate/a7d513f0-049a-48b2-a544-c7f89fa6fdcc
+    createRoute53Record: false
+    apiType: http
+    endpointType: regional
   environment:
     STAGE: ${self:provider.stage}
     SERVICE: ${self:service}

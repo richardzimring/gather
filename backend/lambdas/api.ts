@@ -9,10 +9,16 @@ import { app as blockedApp } from '../src/api/blocked';
 import { app as busyTimesApp } from '../src/api/busy-times';
 import { app as eventsApp } from '../src/api/events';
 import { app as calendarsApp } from '../src/api/calendars';
+import { app as wellKnownApp } from '../src/api/well-known';
 
 const app = new OpenAPIHono();
 
+// Some public routes
+app.route('', wellKnownApp);
 app.route('', authApp);
+app.route('', calendarsApp);
+
+// Remaining routes will require authentication
 app.route('', usersApp);
 app.route('', friendsApp);
 app.route('', groupsApp);
@@ -20,6 +26,5 @@ app.route('', emojiApp);
 app.route('', blockedApp);
 app.route('', busyTimesApp);
 app.route('', eventsApp);
-app.route('', calendarsApp);
 
 export const handler = handle(app);
