@@ -945,6 +945,93 @@ export type PatchCalendarsByConnectionIdResponses = {
 
 export type PatchCalendarsByConnectionIdResponse = PatchCalendarsByConnectionIdResponses[keyof PatchCalendarsByConnectionIdResponses];
 
+export type DeleteCalendarsAppleData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendars/apple';
+};
+
+export type DeleteCalendarsAppleErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type DeleteCalendarsAppleError = DeleteCalendarsAppleErrors[keyof DeleteCalendarsAppleErrors];
+
+export type DeleteCalendarsAppleResponses = {
+    /**
+     * Apple Calendar disconnected
+     */
+    200: DeleteCalendarResponse;
+};
+
+export type DeleteCalendarsAppleResponse = DeleteCalendarsAppleResponses[keyof DeleteCalendarsAppleResponses];
+
+export type DeleteCalendarsGoogleData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendars/google';
+};
+
+export type DeleteCalendarsGoogleErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type DeleteCalendarsGoogleError = DeleteCalendarsGoogleErrors[keyof DeleteCalendarsGoogleErrors];
+
+export type DeleteCalendarsGoogleResponses = {
+    /**
+     * Google Calendar disconnected
+     */
+    200: DeleteCalendarResponse;
+};
+
+export type DeleteCalendarsGoogleResponse = DeleteCalendarsGoogleResponses[keyof DeleteCalendarsGoogleResponses];
+
+export type DeleteCalendarsOutlookData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendars/outlook';
+};
+
+export type DeleteCalendarsOutlookErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type DeleteCalendarsOutlookError = DeleteCalendarsOutlookErrors[keyof DeleteCalendarsOutlookErrors];
+
+export type DeleteCalendarsOutlookResponses = {
+    /**
+     * Outlook Calendar disconnected
+     */
+    200: DeleteCalendarResponse;
+};
+
+export type DeleteCalendarsOutlookResponse = DeleteCalendarsOutlookResponses[keyof DeleteCalendarsOutlookResponses];
+
 export type GetCalendarsGoogleAuthUrlData = {
     body?: never;
     path?: never;
