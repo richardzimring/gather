@@ -1,7 +1,14 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { migrate } from 'drizzle-orm/neon-http/migrator';
-import { PG_CONNECTION_STRING } from '../src/constants';
+
+const stage = process.env.DB_STAGE ?? 'dev';
+const PG_CONNECTION_STRING =
+  stage === 'prod' ? process.env.PG_CONNECTION_STRING_PROD : process.env.PG_CONNECTION_STRING_DEV;
+
+if (!PG_CONNECTION_STRING) {
+  throw new Error(`PG_CONNECTION_STRING_${stage.toUpperCase()} is not defined in .env`);
+}
 
 const sql = neon(PG_CONNECTION_STRING);
 const db = drizzle(sql);

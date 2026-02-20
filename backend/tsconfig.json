@@ -78,6 +78,7 @@
   
   // Include patterns
   "include": [
+    "*.ts",
     "src/**/*",
     "lambdas/**/*",
     "scripts/**/*"

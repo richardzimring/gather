@@ -9,6 +9,9 @@ custom:
   pgConnectionString:
     prod: ${env:PG_CONNECTION_STRING_PROD}
     dev: ${env:PG_CONNECTION_STRING_DEV}
+  domain:
+    prod: api.gather.rzimring.com
+    dev: dev-api.gather.rzimring.com
 provider:
   name: aws
   runtime: nodejs24.x
@@ -17,7 +20,7 @@ provider:
   logRetentionInDays: 7
   versionFunctions: false
   domain:
-    name: api.gather.rzimring.com
+    name: ${self:custom.domain.${self:provider.stage}}
     certificateArn: arn:aws:acm:us-east-1:496673558463:certificate/a7d513f0-049a-48b2-a544-c7f89fa6fdcc
     createRoute53Record: false
     apiType: http
