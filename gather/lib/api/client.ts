@@ -36,3 +36,26 @@ export function setAuthToken(token: string | null) {
 export function getBaseUrl() {
   return API_BASE_URL
 }
+
+let interceptorId: number | null = null
+
+/**
+ * Register a response interceptor that calls onUnauthorized whenever the API
+ * returns a 401. Safe to call multiple times — previous interceptor is ejected
+ * first. Pass null to remove the interceptor (e.g. on sign-out).
+ */
+export function setup401Interceptor(onUnauthorized: (() => void) | null) {
+  if (interceptorId !== null) {
+    client.interceptors.response.eject(interceptorId)
+    interceptorId = null
+  }
+
+  if (onUnauthorized) {
+    interceptorId = client.interceptors.response.use((response) => {
+      if (response.status === 401) {
+        onUnauthorized()
+      }
+      return response
+    })
+  }
+}

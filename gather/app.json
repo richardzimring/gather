@@ -4,7 +4,6 @@
     "slug": "gather",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon-dark.png",
     "scheme": "gather",
     "userInterfaceStyle": "automatic",
     "ios": {

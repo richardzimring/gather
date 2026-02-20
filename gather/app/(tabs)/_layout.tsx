@@ -11,7 +11,7 @@ import {
 } from "@react-navigation/native";
 import { useMemo, useRef, useEffect } from "react";
 import { DynamicColorIOS, useColorScheme } from "react-native";
-import { usePathname } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import * as Notifications from "expo-notifications";
 
 import { useAuth } from "../../lib/hooks/useAuth";
@@ -25,9 +25,17 @@ import { haptic } from "../../lib/haptics";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
   const pathname = usePathname();
   const previousTab = useRef<string | null>(null);
+
+  // Redirect to login when a mid-session token expiry is detected
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace("/(auth)/login");
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   // Trigger haptic feedback on tab change
   useEffect(() => {

@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store'
 import * as AppleAuthentication from 'expo-apple-authentication'
 import { useQueryClient } from '@tanstack/react-query'
 
-import { setAuthToken, getAuthMe, postAuthAppleCallback, type User } from '../api/client'
+import { setAuthToken, setup401Interceptor, getAuthMe, postAuthAppleCallback, type User } from '../api/client'
 import { DEV_APPLE_USER_ID } from '../config'
 
 const AUTH_TOKEN_KEY = 'gather_auth_token'
@@ -44,6 +44,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadStoredAuth()
   }, [])
 
+  const handleUnauthorized = useCallback(async () => {
+    setup401Interceptor(null)
+    await Promise.all([
+      SecureStore.deleteItemAsync(AUTH_TOKEN_KEY),
+      SecureStore.deleteItemAsync(APPLE_USER_ID_KEY),
+    ])
+    setAuthToken(null)
+    queryClient.clear()
+    setState({ user: null, status: 'unauthenticated' })
+  }, [queryClient])
+
   const loadStoredAuth = async () => {
     try {
       // Check for stored token
@@ -63,6 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const response = await getAuthMe()
           if (response.data?.success) {
+            setup401Interceptor(handleUnauthorized)
             setState({
               user: response.data.data.user,
               status: 'authenticated',
@@ -163,6 +175,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           SecureStore.setItemAsync(APPLE_USER_ID_KEY, credential.user),
         ])
         setAuthToken(token)
+        setup401Interceptor(handleUnauthorized)
 
         setState({
           user,
@@ -184,6 +197,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * Sign out the current user
    */
   const signOut = useCallback(async () => {
+    setup401Interceptor(null)
+
     // Clear stored tokens in parallel
     await Promise.all([
       SecureStore.deleteItemAsync(AUTH_TOKEN_KEY),
