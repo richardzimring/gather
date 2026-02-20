@@ -8,6 +8,7 @@ import {
   Dimensions,
   StyleSheet,
   View,
+  Image,
 } from "react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useRouter, Link } from "expo-router";
@@ -320,122 +321,144 @@ export default function LoginScreen() {
           },
         ]}
       >
-        {/* Wordmark */}
-        <YStack gap="$3" alignItems="center">
-          <Text
-            fontSize={44}
-            fontWeight="700"
-            textAlign="center"
-            letterSpacing={-2}
-            color={isDark ? "rgba(255,255,255,0.92)" : "rgba(12,10,9,0.9)"}
-          >
-            Gather
-          </Text>
-          <Text
-            fontSize={16}
-            lineHeight={25}
-            textAlign="center"
-            maxWidth={270}
-            letterSpacing={0.08}
-            color={isDark ? "rgba(255,255,255,0.38)" : "rgba(20,15,40,0.42)"}
-          >
-            Find the perfect time to see the people you love.
-          </Text>
-        </YStack>
-
-        {/* Sign In */}
-        <YStack gap="$4" alignItems="center">
-          {Platform.OS === "ios" && isAppleAuthAvailable ? (
-            <AppleAuthentication.AppleAuthenticationButton
-              buttonType={
-                AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
-              }
-              buttonStyle={
-                isDark
-                  ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
-                  : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
-              }
-              cornerRadius={14}
-              style={styles.appleButton}
-              onPress={handleAppleSignIn}
-            />
-          ) : (
-            <YStack
-              backgroundColor={
-                isDark ? "rgba(130,80,220,0.08)" : "rgba(100,60,200,0.06)"
-              }
-              padding="$4"
-              borderRadius="$3"
-              alignItems="center"
-              gap="$2"
-              borderWidth={1}
-              borderColor={
-                isDark ? "rgba(130,80,220,0.18)" : "rgba(100,60,200,0.14)"
-              }
+        {/* Logo + Wordmark */}
+        <YStack gap="$1" alignItems="center">
+          <Image
+            source={
+              isDark
+                ? require("../../assets/images/splash-icon-light.png")
+                : require("../../assets/images/splash-icon-dark.png")
+            }
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <YStack gap="$3" alignItems="center">
+            <Text
+              fontSize={44}
+              fontWeight="700"
+              textAlign="center"
+              letterSpacing={-2}
+              color={isDark ? "rgba(255,255,255,0.92)" : "rgba(12,10,9,0.9)"}
             >
-              <Text
-                color={isDark ? "rgba(255,255,255,0.45)" : "rgba(12,10,9,0.45)"}
-                fontSize={14}
-                textAlign="center"
-              >
-                Sign in with Apple is only available on iOS devices.
-              </Text>
-              {__DEV__ && (
-                <Text color="$yellow10" fontSize={12} textAlign="center">
-                  Dev mode: Use Expo Go on an iOS device to test.
-                </Text>
-              )}
-            </YStack>
-          )}
-
-          <YStack height={22} justifyContent="center" alignItems="center">
-            {error && (
-              <Text color="$red10" fontSize={14} textAlign="center">
-                {error}
-              </Text>
-            )}
-            {isLoading && (
-              <Text
-                color={isDark ? "rgba(255,255,255,0.35)" : "rgba(12,10,9,0.35)"}
-                fontSize={14}
-              >
-                Signing in...
-              </Text>
-            )}
+              Gather
+            </Text>
+            <Text
+              fontSize={16}
+              lineHeight={25}
+              textAlign="center"
+              maxWidth={270}
+              letterSpacing={0.08}
+              color={isDark ? "rgba(255,255,255,0.38)" : "rgba(20,15,40,0.42)"}
+            >
+              Find the perfect time to see the people you love.
+            </Text>
           </YStack>
         </YStack>
 
-        {/* Footer */}
-        <YStack alignItems="center">
-          <Text
-            color={isDark ? "rgba(255,255,255,0.22)" : "rgba(12,10,9,0.25)"}
-            fontSize={12}
-            textAlign="center"
-            maxWidth={300}
-          >
-            By continuing, you agree to our{" "}
-            <Link href="/legal/terms" asChild>
-              <Text
-                color={isDark ? "rgba(255,255,255,0.4)" : "rgba(12,10,9,0.42)"}
-                fontSize={12}
-                textDecorationLine="underline"
-                pressStyle={{ opacity: 0.6 }}
+        {/* Sign In + Footer — grouped at bottom */}
+        <YStack gap="$5" alignItems="center">
+          {/* Sign In */}
+          <YStack gap="$4" alignItems="center">
+            {Platform.OS === "ios" && isAppleAuthAvailable ? (
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={
+                  AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
+                }
+                buttonStyle={
+                  isDark
+                    ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+                    : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+                }
+                cornerRadius={14}
+                style={styles.appleButton}
+                onPress={handleAppleSignIn}
+              />
+            ) : (
+              <YStack
+                backgroundColor={
+                  isDark ? "rgba(130,80,220,0.08)" : "rgba(100,60,200,0.06)"
+                }
+                padding="$4"
+                borderRadius="$3"
+                alignItems="center"
+                gap="$2"
+                borderWidth={1}
+                borderColor={
+                  isDark ? "rgba(130,80,220,0.18)" : "rgba(100,60,200,0.14)"
+                }
               >
-                Terms of Service
-              </Text>
-            </Link>{" "}
-            and{" "}
-            <Link href="/legal/privacy" asChild>
-              <Text
-                color={isDark ? "rgba(255,255,255,0.4)" : "rgba(12,10,9,0.42)"}
-                fontSize={12}
-                textDecorationLine="underline"
-                pressStyle={{ opacity: 0.6 }}
-              >
-                Privacy Policy
-              </Text>
-            </Link>
-          </Text>
+                <Text
+                  color={
+                    isDark ? "rgba(255,255,255,0.45)" : "rgba(12,10,9,0.45)"
+                  }
+                  fontSize={14}
+                  textAlign="center"
+                >
+                  Sign in with Apple is only available on iOS devices.
+                </Text>
+                {__DEV__ && (
+                  <Text color="$yellow10" fontSize={12} textAlign="center">
+                    Dev mode: Use Expo Go on an iOS device to test.
+                  </Text>
+                )}
+              </YStack>
+            )}
+
+            <YStack height={22} justifyContent="center" alignItems="center">
+              {error && (
+                <Text color="$red10" fontSize={14} textAlign="center">
+                  {error}
+                </Text>
+              )}
+              {isLoading && (
+                <Text
+                  color={
+                    isDark ? "rgba(255,255,255,0.35)" : "rgba(12,10,9,0.35)"
+                  }
+                  fontSize={14}
+                >
+                  Signing in...
+                </Text>
+              )}
+            </YStack>
+          </YStack>
+
+          {/* Footer */}
+          <YStack alignItems="center">
+            <Text
+              color={isDark ? "rgba(255,255,255,0.22)" : "rgba(12,10,9,0.25)"}
+              fontSize={12}
+              textAlign="center"
+              maxWidth={300}
+            >
+              By continuing, you agree to our{" "}
+              <Link href="/legal/terms" asChild>
+                <Text
+                  color={
+                    isDark ? "rgba(255,255,255,0.4)" : "rgba(12,10,9,0.42)"
+                  }
+                  fontSize={12}
+                  textDecorationLine="underline"
+                  pressStyle={{ opacity: 0.6 }}
+                >
+                  Terms of Service
+                </Text>
+              </Link>{" "}
+              and{" "}
+              <Link href="/legal/privacy" asChild>
+                <Text
+                  color={
+                    isDark ? "rgba(255,255,255,0.4)" : "rgba(12,10,9,0.42)"
+                  }
+                  fontSize={12}
+                  textDecorationLine="underline"
+                  pressStyle={{ opacity: 0.6 }}
+                >
+                  Privacy Policy
+                </Text>
+              </Link>
+            </Text>
+          </YStack>
         </YStack>
       </Animated.View>
     </View>
@@ -455,5 +478,9 @@ const styles = StyleSheet.create({
   appleButton: {
     width: 280,
     height: 52,
+  },
+  logo: {
+    width: 72,
+    height: 72,
   },
 });
