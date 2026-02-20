@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Alert } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { ScrollView, Text, XStack, YStack, Theme, Switch } from "tamagui";
+import { ScrollView, Text, XStack, YStack, Theme } from "tamagui";
 import { Trash2 } from "@tamagui/lucide-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 import { Button } from "../../components/ui/Button";
+import { Toggle } from "../../components/ui/Toggle";
 import { Card } from "../../components/ui/Card";
 import { CancelHeader } from "../../components/ui/ScreenHeader";
 import { GlassButton } from "../../components/ui/GlassFAB";
@@ -258,7 +259,6 @@ export default function BlockedWindowScreen() {
                       setEndTime(new Date(date.getTime() + 60 * 60 * 1000));
                     }
                   }}
-                  themeVariant="dark"
                 />
               </XStack>
               <XStack alignItems="center" justifyContent="space-between">
@@ -269,7 +269,6 @@ export default function BlockedWindowScreen() {
                   value={endTime}
                   mode="datetime"
                   onChange={(_, date) => date && setEndTime(date)}
-                  themeVariant="dark"
                 />
               </XStack>
               {!isValidRange && (
@@ -297,22 +296,13 @@ export default function BlockedWindowScreen() {
                   Block this same window regularly
                 </Text>
               </YStack>
-              <Switch
-                size="$3"
+              <Toggle
                 checked={isRecurring}
                 onCheckedChange={(checked) => {
                   haptic.selection();
                   setIsRecurring(checked);
                 }}
-                backgroundColor={isRecurring ? "$primary" : "$backgroundHover"}
-              >
-                <Switch.Thumb
-                  animation="quick"
-                  backgroundColor={
-                    isRecurring ? "$primaryForeground" : "$color"
-                  }
-                />
-              </Switch>
+              />
             </XStack>
 
             {isRecurring && (

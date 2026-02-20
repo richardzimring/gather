@@ -22,7 +22,6 @@ import {
   ScrollView,
   Circle,
   Separator,
-  Switch,
   Input,
   TextArea,
   useTheme,
@@ -41,6 +40,7 @@ import {
 import { MapPreview } from "../../components/ui/MapPreview";
 import { GradientBackground } from "../../components/ui/GradientBackground";
 import { SkeletonBar } from "../../components/ui/Skeleton";
+import { Toggle } from "../../components/ui/Toggle";
 import {
   TimeChipPicker,
   DURATION_OPTIONS,
@@ -748,7 +748,6 @@ export default function PlanScreen() {
             {/* Friend list */}
             {friends.length === 0 ? (
               <YStack alignItems="center" padding="$4" gap="$3">
-                <Text fontSize={32}>👋</Text>
                 <Text color="$colorMuted" textAlign="center">
                   Add friends to start planning together
                 </Text>
@@ -898,7 +897,7 @@ export default function PlanScreen() {
                       Hide late nights & early mornings
                     </Text>
                   </XStack>
-                  <Switch
+                  <Toggle
                     size="$2"
                     checked={filterUngodlyHours}
                     onCheckedChange={(checked) => {
@@ -914,17 +913,7 @@ export default function PlanScreen() {
                         setPreferredStartTime(null);
                       }
                     }}
-                    backgroundColor={
-                      filterUngodlyHours ? "$primary" : "$backgroundHover"
-                    }
-                  >
-                    <Switch.Thumb
-                      animation="quick"
-                      backgroundColor={
-                        filterUngodlyHours ? "$primaryForeground" : "$color"
-                      }
-                    />
-                  </Switch>
+                  />
                 </XStack>
               </Card>
             </Theme>

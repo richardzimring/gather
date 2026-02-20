@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
+    "prebuild": "expo prebuild",
     "build:development": "expo run:ios --device",
     "build:release": "expo run:ios --configuration Release --device",
     "lint": "expo lint && tsc --noEmit",

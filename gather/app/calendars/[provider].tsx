@@ -7,7 +7,6 @@ import {
   XStack,
   YStack,
   Theme,
-  Switch,
   Circle,
   Separator,
 } from "tamagui";
@@ -15,6 +14,7 @@ import { Calendar, CalendarCheck, Info, Trash2 } from "@tamagui/lucide-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "../../components/ui/Button";
+import { Toggle } from "../../components/ui/Toggle";
 import { CalendarProviderIcon } from "../../components/ui/CalendarProviderIcon";
 import { Card } from "../../components/ui/Card";
 import { BackHeader } from "../../components/ui/ScreenHeader";
@@ -533,25 +533,10 @@ export default function CalendarSelectScreen() {
                           {cal.name}
                         </Text>
                       </YStack>
-                      <Switch
-                        size="$3"
+                      <Toggle
                         checked={selectedIds.has(cal.id)}
                         onCheckedChange={() => toggleCalendar(cal.id)}
-                        backgroundColor={
-                          selectedIds.has(cal.id)
-                            ? "$primary"
-                            : "$backgroundHover"
-                        }
-                      >
-                        <Switch.Thumb
-                          animation="quick"
-                          backgroundColor={
-                            selectedIds.has(cal.id)
-                              ? "$primaryForeground"
-                              : "$color"
-                          }
-                        />
-                      </Switch>
+                      />
                     </XStack>
                   </YStack>
                 ))}
@@ -591,25 +576,10 @@ export default function CalendarSelectScreen() {
                           )}
                         </XStack>
                       </YStack>
-                      <Switch
-                        size="$3"
+                      <Toggle
                         checked={selectedIds.has(cal.id)}
                         onCheckedChange={() => toggleCalendar(cal.id)}
-                        backgroundColor={
-                          selectedIds.has(cal.id)
-                            ? "$primary"
-                            : "$backgroundHover"
-                        }
-                      >
-                        <Switch.Thumb
-                          animation="quick"
-                          backgroundColor={
-                            selectedIds.has(cal.id)
-                              ? "$primaryForeground"
-                              : "$color"
-                          }
-                        />
-                      </Switch>
+                      />
                     </XStack>
                   </YStack>
                 ))}
