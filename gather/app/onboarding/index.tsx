@@ -56,6 +56,7 @@ import {
   connectOutlookCalendar,
   OutlookAuthCancelledError,
 } from "../../lib/services/outlookAuth";
+import { putUsersMeNotificationPreferences } from "../../lib/api/generated";
 import { haptic } from "../../lib/haptics";
 
 const TOTAL_STEPS = 6;
@@ -869,8 +870,17 @@ function NotificationsStep({ onComplete }: { onComplete: () => void }) {
             <Button
               variant="ghost"
               buttonSize="sm"
-              onPress={() => {
+              onPress={async () => {
                 haptic.light();
+                await putUsersMeNotificationPreferences({
+                  body: {
+                    eventInvites: false,
+                    eventUpdates: false,
+                    friendRequests: false,
+                    groupInvites: false,
+                    messages: false,
+                  },
+                }).catch(console.error);
                 onComplete();
               }}
             >
