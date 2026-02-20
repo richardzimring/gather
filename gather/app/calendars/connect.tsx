@@ -232,7 +232,7 @@ export default function CalendarConnectScreen() {
                       <Text flex={1} fontWeight="500" color="$color">
                         {isLoading ? "Connecting..." : provider.name}
                       </Text>
-                      {count > 0 && (
+                      {count > 0 && !isLoading && (
                         <Text
                           fontSize={12}
                           color="$colorMuted"
