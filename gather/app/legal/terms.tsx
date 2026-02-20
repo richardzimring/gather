@@ -20,7 +20,7 @@ export default function TermsOfServiceScreen() {
 
         <YStack gap="$4">
           <Text color="$colorMuted" fontSize={13}>
-            Last updated: February 14, 2026
+            Last updated: February 19, 2026
           </Text>
 
           <YStack gap="$2">
@@ -52,6 +52,27 @@ export default function TermsOfServiceScreen() {
               You must sign in with Apple to create an account. You are
               responsible for maintaining the security of your account. You must
               be at least 13 years old to use the App.
+            </Text>
+          </YStack>
+
+          <YStack gap="$2">
+            <Text fontSize={18} fontWeight="600">
+              Third-Party Calendar Integrations
+            </Text>
+            <Text color="$color" fontSize={14} lineHeight={22}>
+              Gather offers optional integrations with Google Calendar, Microsoft
+              Outlook Calendar, and Apple Calendar. These integrations are used
+              solely to display your availability to friends within the app.
+            </Text>
+            <Text color="$color" fontSize={14} lineHeight={22}>
+              By connecting a third-party calendar, you authorize Gather to
+              access your calendar data as described in our Privacy Policy. You
+              may disconnect any calendar integration at any time from the app
+              settings. Disconnecting immediately removes all associated calendar
+              data from our servers.
+            </Text>
+            <Text color="$color" fontSize={14} lineHeight={22}>
+              {"Your use of connected third-party services (Google, Microsoft) is also subject to those services' own terms of service and privacy policies. Gather's access is read-only and limited to availability data."}
             </Text>
           </YStack>
 
