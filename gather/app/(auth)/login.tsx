@@ -257,15 +257,14 @@ export default function LoginScreen() {
   const handleAppleSignIn = async () => {
     setError(null);
     try {
-      await signInWithApple();
-      if (true) {
+      const result = await signInWithApple();
+      if (result?.isNewUser) {
         router.replace("/onboarding");
       } else {
         router.replace("/(tabs)");
       }
-    } catch (err) {
-      if ((err as { code?: string }).code === "ERR_REQUEST_CANCELED") return;
-      console.error("Apple Sign In error:", err);
+    } catch (error) {
+      console.error("Apple Sign In error:", error);
       setError("Failed to sign in. Please try again.");
     }
   };
