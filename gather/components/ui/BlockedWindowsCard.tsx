@@ -121,15 +121,6 @@ export function BlockedWindowsCard() {
               <Text color="$colorMuted" textAlign="center" fontSize={14}>
                 No blocked windows yet
               </Text>
-              <Text
-                color="$colorMuted"
-                textAlign="center"
-                fontSize={13}
-                maxWidth={240}
-              >
-                Add windows when you&apos;re not available — like work hours or
-                Sunday mornings.
-              </Text>
             </YStack>
           ) : (
             windows.map((win, index) => (

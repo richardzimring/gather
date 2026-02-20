@@ -24,7 +24,7 @@ export default function BlockedWindowsScreen() {
           lineHeight={21}
           marginBottom="$4"
         >
-          Times you&apos;ve marked as unavailable. Gather will show you as busy
+          Times you&apos;ve marked unavailable. Gather will show you as busy
           during these windows.
         </Text>
 

@@ -292,14 +292,6 @@ export default function FriendsScreen() {
                     <Text color="$colorMuted" textAlign="center">
                       {searchQuery ? "No friends found" : "No friends yet"}
                     </Text>
-                    {!searchQuery && (
-                      <Button
-                        variant="primary"
-                        onPress={() => router.push("/friends/add")}
-                      >
-                        Add Friends
-                      </Button>
-                    )}
                   </YStack>
                 </Card>
               </Theme>
