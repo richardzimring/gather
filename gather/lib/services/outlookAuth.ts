@@ -1,3 +1,4 @@
+import * as Linking from 'expo-linking'
 import * as WebBrowser from 'expo-web-browser'
 
 import { getCalendarsOutlookAuthUrl } from '../api/client'
@@ -9,7 +10,7 @@ import { getCalendarsOutlookAuthUrl } from '../api/client'
  * 2. Opens it in an in-app browser via expo-web-browser
  * 3. Microsoft redirects to our backend (OUTLOOK_REDIRECT_URI), which exchanges
  *    the code for tokens and stores them server-side
- * 4. The backend then redirects to gather://calendars/outlook/callback?success=true
+ * 4. The backend then redirects to {scheme}://calendars/outlook/callback?success=true
  * 5. We detect that redirect here and return
  *
  * The authorization code never touches the client — it goes directly
@@ -27,7 +28,7 @@ export async function connectOutlookCalendar(): Promise<void> {
   // 2. Open in-app browser and wait for the backend to redirect back to the app
   const result = await WebBrowser.openAuthSessionAsync(
     authUrl,
-    'gather://calendars/outlook/callback',
+    Linking.createURL('calendars/outlook/callback'),
   )
 
   if (result.type !== 'success' || !result.url) {

@@ -364,7 +364,7 @@ export default function ProfileScreen() {
                   buttonSize="sm"
                   onPress={() => router.push("/calendars/connect")}
                 >
-                  Connect Calendars
+                  Add Calendars
                 </Button>
               </YStack>
             ) : (
