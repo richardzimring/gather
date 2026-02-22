@@ -5,10 +5,12 @@
   "scripts": {
     "start": "expo start",
     "prebuild": "expo prebuild",
-    "build:development": "expo run:ios --device",
-    "build:release": "expo run:ios --configuration Release --device",
+    "build:development": "APP_ENV=development expo prebuild --clean --platform ios && APP_ENV=development expo run:ios --device",
+    "build:release": "expo prebuild --clean --platform ios && expo run:ios --configuration Release --device",
     "lint": "expo lint && tsc --noEmit",
-    "generate:api": "openapi-ts -i ../backend/openapi.json -o ./lib/api/generated -c @hey-api/client-fetch"
+    "generate:api": "openapi-ts -i ../backend/openapi.json -o ./lib/api/generated -c @hey-api/client-fetch",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

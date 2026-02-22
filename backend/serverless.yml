@@ -12,6 +12,9 @@ custom:
   domain:
     prod: api.gather.rzimring.com
     dev: dev-api.gather.rzimring.com
+  appleBundleId:
+    prod: com.richardzimring.gather
+    dev: com.richardzimring.gather.dev
 provider:
   name: aws
   runtime: nodejs24.x
@@ -29,7 +32,7 @@ provider:
     STAGE: ${self:provider.stage}
     SERVICE: ${self:service}
     REGION: ${self:provider.region}
-    APPLE_BUNDLE_ID: com.richardzimring.gather
+    APPLE_BUNDLE_ID: ${self:custom.appleBundleId.${self:provider.stage}}
     PG_CONNECTION_STRING: ${self:custom.pgConnectionString.${self:provider.stage}}
     GEMINI_API_KEY: ${env:GEMINI_API_KEY}
     GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID}
