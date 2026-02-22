@@ -147,19 +147,6 @@ export type CreateCalendarConnection = {
     tokenExpiresAt?: string;
 };
 
-export type BusySlotsResponse = {
-    success: true;
-    data: {
-        busySlots: Array<BusySlot>;
-    };
-};
-
-export type BusySlot = {
-    startTime: string;
-    endTime: string;
-    calendarName?: string;
-};
-
 export type SyncCalendarsResponse = {
     success: true;
     data: {
@@ -778,38 +765,6 @@ export type PostCalendarsResponses = {
 };
 
 export type PostCalendarsResponse = PostCalendarsResponses[keyof PostCalendarsResponses];
-
-export type GetCalendarsBusySlotsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        startDate?: string;
-        endDate?: string;
-    };
-    url: '/calendars/busy-slots';
-};
-
-export type GetCalendarsBusySlotsErrors = {
-    /**
-     * Unauthorized
-     */
-    401: ErrorResponse;
-    /**
-     * Internal server error
-     */
-    500: ErrorResponse;
-};
-
-export type GetCalendarsBusySlotsError = GetCalendarsBusySlotsErrors[keyof GetCalendarsBusySlotsErrors];
-
-export type GetCalendarsBusySlotsResponses = {
-    /**
-     * List of busy slots
-     */
-    200: BusySlotsResponse;
-};
-
-export type GetCalendarsBusySlotsResponse = GetCalendarsBusySlotsResponses[keyof GetCalendarsBusySlotsResponses];
 
 export type PostCalendarsSyncData = {
     body: SyncCalendars;

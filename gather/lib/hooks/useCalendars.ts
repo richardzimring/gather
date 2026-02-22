@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   getCalendars,
   getCalendarsByConnectionId,
-  getCalendarsBusySlots,
   postCalendars,
   patchCalendarsByConnectionId,
   deleteCalendarsByConnectionId,
@@ -25,7 +24,6 @@ export const calendarKeys = {
   all: ['calendars'] as const,
   connections: () => [...calendarKeys.all, 'connections'] as const,
   connection: (id: string) => [...calendarKeys.all, 'connection', id] as const,
-  busySlots: (start?: string, end?: string) => [...calendarKeys.all, 'busy-slots', start, end] as const,
 }
 
 /**
@@ -60,24 +58,6 @@ export function useCalendarConnection(connectionId: string) {
       return response.data.data?.connection
     },
     enabled: !!connectionId,
-  })
-}
-
-/**
- * Hook to fetch busy slots from connected calendars
- */
-export function useBusySlots(startDate?: string, endDate?: string) {
-  return useQuery({
-    queryKey: calendarKeys.busySlots(startDate, endDate),
-    queryFn: async () => {
-      const response = await getCalendarsBusySlots({
-        query: { startDate, endDate },
-      })
-      if (!response.data?.success) {
-        throw new Error('Failed to fetch busy slots')
-      }
-      return response.data.data?.busySlots ?? []
-    },
   })
 }
 

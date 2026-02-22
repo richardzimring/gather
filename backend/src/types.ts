@@ -398,14 +398,6 @@ export const UpdateCalendarConnectionSchema = z
   })
   .openapi('UpdateCalendarConnection');
 
-export const BusySlotSchema = z
-  .object({
-    startTime: z.string().datetime().openapi({ example: '2024-01-15T14:00:00.000Z' }),
-    endTime: z.string().datetime().openapi({ example: '2024-01-15T15:00:00.000Z' }),
-    calendarName: z.string().optional().openapi({ example: 'Work Calendar' }),
-  })
-  .openapi('BusySlot');
-
 // Sync calendars schema (bulk sync from device)
 export const SyncCalendarEventSchema = z
   .object({
@@ -435,7 +427,6 @@ export type CalendarProvider = z.infer<typeof CalendarProviderSchema>;
 export type CalendarConnection = z.infer<typeof CalendarConnectionSchema>;
 export type CreateCalendarConnection = z.infer<typeof CreateCalendarConnectionSchema>;
 export type UpdateCalendarConnection = z.infer<typeof UpdateCalendarConnectionSchema>;
-export type BusySlot = z.infer<typeof BusySlotSchema>;
 export type SyncCalendarEvent = z.infer<typeof SyncCalendarEventSchema>;
 export type SyncCalendarEntry = z.infer<typeof SyncCalendarEntrySchema>;
 export type SyncCalendars = z.infer<typeof SyncCalendarsSchema>;
@@ -502,18 +493,3 @@ export const BusyTimeIntervalSchema = z
 export type BusyTimesQuery = z.infer<typeof BusyTimesQuerySchema>;
 export type BusyTimeInterval = z.infer<typeof BusyTimeIntervalSchema>;
 
-// ============================================
-// API Response Types
-// ============================================
-
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: string;
-}
-
-export interface AuthResponse {
-  user: User;
-  isNewUser: boolean;
-}

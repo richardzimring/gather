@@ -1,5 +1,3 @@
-import type { CalendarConnection } from '../../types';
-
 // ============================================
 // Calendar Provider Abstraction
 // ============================================
@@ -88,5 +86,3 @@ export function getCalendarProvider(provider: string): CalendarProviderService {
   }
   return service;
 }
-
-export type { CalendarConnection };

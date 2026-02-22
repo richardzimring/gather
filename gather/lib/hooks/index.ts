@@ -13,7 +13,6 @@ export {
   calendarKeys as calendarConnectionKeys,
   useCalendarConnections,
   useCalendarConnection,
-  useBusySlots as useServerBusySlots,
   useCreateCalendarConnection,
   useUpdateCalendarConnection,
   useDeleteCalendarConnection,
@@ -54,6 +53,5 @@ export {
   useCalendarPermissions,
   useCalendars,
   useCalendarEvents,
-  useBusySlots,
   useExportToCalendar,
 } from './useCalendar'

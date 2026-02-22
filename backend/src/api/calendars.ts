@@ -4,7 +4,6 @@ import {
   CalendarConnectionSchema,
   CreateCalendarConnectionSchema,
   UpdateCalendarConnectionSchema,
-  BusySlotSchema,
   SyncCalendarsSchema,
   GoogleCalendarSchema,
   GoogleSelectCalendarsSchema,
@@ -17,7 +16,6 @@ import {
   updateCalendarConnection,
   deleteCalendarConnection,
   deleteProviderConnections,
-  getBusySlotsForUser,
   syncCalendarsForUser,
   handleProviderOAuthCallback,
   syncServerProviderConnections,
@@ -120,15 +118,6 @@ const SingleCalendarResponseSchema = z
   })
   .openapi('SingleCalendarResponse');
 
-const BusySlotsResponseSchema = z
-  .object({
-    success: z.literal(true),
-    data: z.object({
-      busySlots: z.array(BusySlotSchema),
-    }),
-  })
-  .openapi('BusySlotsResponse');
-
 const DeleteCalendarResponseSchema = z
   .object({
     success: z.literal(true),
@@ -218,48 +207,6 @@ const createCalendarRoute = createRoute({
       content: {
         'application/json': {
           schema: ErrorResponseSchema,
-        },
-      },
-    },
-    401: {
-      description: 'Unauthorized',
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-    },
-    500: {
-      description: 'Internal server error',
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-    },
-  },
-});
-
-// GET /calendars/busy-slots - Get busy slots for the current user
-const getBusySlotsRoute = createRoute({
-  method: 'get',
-  path: '/calendars/busy-slots',
-  tags: ['Calendars'],
-  summary: 'Get busy slots',
-  description: 'Get busy time slots from connected calendars',
-  security: [{ BearerAuth: [] }],
-  request: {
-    query: z.object({
-      startDate: z.string().datetime().optional().openapi({ example: '2024-01-15T00:00:00.000Z' }),
-      endDate: z.string().datetime().optional().openapi({ example: '2024-02-15T00:00:00.000Z' }),
-    }),
-  },
-  responses: {
-    200: {
-      description: 'List of busy slots',
-      content: {
-        'application/json': {
-          schema: BusySlotsResponseSchema,
         },
       },
     },
@@ -521,30 +468,6 @@ app.openapi(createCalendarRoute, async (c) => {
         success: false as const,
         error: 'Failed to create calendar connection',
         message: String(error),
-      },
-      500,
-    );
-  }
-});
-
-app.openapi(getBusySlotsRoute, async (c) => {
-  const user = c.get('user');
-  const { startDate, endDate } = c.req.valid('query');
-
-  try {
-    // Default to next 30 days if not specified
-    const start = startDate ? new Date(startDate) : new Date();
-    const end = endDate ? new Date(endDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-
-    const busySlots = await getBusySlotsForUser(user.userId, start, end);
-    return c.json({ success: true as const, data: { busySlots } }, 200);
-  } catch (error) {
-    console.error('Error in GET /calendars/busy-slots:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to fetch busy slots',
       },
       500,
     );

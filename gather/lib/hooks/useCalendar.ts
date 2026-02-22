@@ -6,9 +6,7 @@ import {
   hasCalendarPermissions,
   getCalendars,
   getAllEvents,
-  getBusySlots,
   exportEventToCalendar,
-  type CalendarEvent,
 } from '../services/calendar'
 import type { Event } from '../api/client'
 
@@ -18,8 +16,6 @@ export const calendarKeys = {
   calendars: () => [...calendarKeys.all, 'calendars'] as const,
   events: (start: string, end: string) =>
     [...calendarKeys.all, 'events', start, end] as const,
-  busySlots: (start: string, end: string) =>
-    [...calendarKeys.all, 'busy', start, end] as const,
 }
 
 /**
@@ -79,19 +75,6 @@ export function useCalendarEvents(startDate: Date, endDate: Date) {
   return useQuery({
     queryKey: calendarKeys.events(startDate.toISOString(), endDate.toISOString()),
     queryFn: () => getAllEvents(startDate, endDate),
-    enabled: hasPermission === true,
-  })
-}
-
-/**
- * Hook to get busy time slots within a date range.
- */
-export function useBusySlots(startDate: Date, endDate: Date) {
-  const { hasPermission } = useCalendarPermissions()
-
-  return useQuery({
-    queryKey: calendarKeys.busySlots(startDate.toISOString(), endDate.toISOString()),
-    queryFn: () => getBusySlots(startDate, endDate),
     enabled: hasPermission === true,
   })
 }

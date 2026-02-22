@@ -606,58 +606,6 @@
           "calendarName"
         ]
       },
-      "BusySlotsResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "busySlots": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/BusySlot"
-                }
-              }
-            },
-            "required": [
-              "busySlots"
-            ]
-          }
-        },
-        "required": [
-          "success",
-          "data"
-        ]
-      },
-      "BusySlot": {
-        "type": "object",
-        "properties": {
-          "startTime": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2024-01-15T14:00:00.000Z"
-          },
-          "endTime": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2024-01-15T15:00:00.000Z"
-          },
-          "calendarName": {
-            "type": "string",
-            "example": "Work Calendar"
-          }
-        },
-        "required": [
-          "startTime",
-          "endTime"
-        ]
-      },
       "SyncCalendarsResponse": {
         "type": "object",
         "properties": {
@@ -2531,74 +2479,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/calendars/busy-slots": {
-      "get": {
-        "tags": [
-          "Calendars"
-        ],
-        "summary": "Get busy slots",
-        "description": "Get busy time slots from connected calendars",
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "date-time",
-              "example": "2024-01-15T00:00:00.000Z"
-            },
-            "required": false,
-            "name": "startDate",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "format": "date-time",
-              "example": "2024-02-15T00:00:00.000Z"
-            },
-            "required": false,
-            "name": "endDate",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of busy slots",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BusySlotsResponse"
                 }
               }
             }

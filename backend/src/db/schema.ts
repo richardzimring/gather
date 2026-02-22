@@ -377,6 +377,7 @@ export const calendarEventsCache = pgTable(
     uniqueIndex('calendar_events_cache_connection_event_idx').on(
       table.connectionId,
       table.externalEventId,
+      table.startTime,
     ),
   ],
 );
