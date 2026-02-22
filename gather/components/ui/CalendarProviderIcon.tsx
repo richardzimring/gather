@@ -1,7 +1,7 @@
-import Svg, { Path, Rect, Defs, LinearGradient, Stop } from "react-native-svg";
-import { useTheme } from "tamagui";
+import Svg, { Path, Rect, Defs, LinearGradient, Stop } from 'react-native-svg';
+import { useTheme } from 'tamagui';
 
-type CalendarProvider = "apple" | "google" | "outlook";
+type CalendarProvider = 'apple' | 'google' | 'outlook';
 
 interface CalendarProviderIconProps {
   provider: CalendarProvider;
@@ -21,11 +21,11 @@ export function CalendarProviderIcon({
   size = 16,
 }: CalendarProviderIconProps) {
   switch (provider) {
-    case "apple":
+    case 'apple':
       return <AppleIcon size={size} />;
-    case "google":
+    case 'google':
       return <GoogleIcon size={size} />;
-    case "outlook":
+    case 'outlook':
       return <OutlookIcon size={size} />;
   }
 }
@@ -78,10 +78,16 @@ function OutlookIcon({ size }: { size: number }) {
         fill="#0A2767"
       />
       {/* Calendar grid: top-left dark blue */}
-      <Path d="M1745.92 255.5V80.91c1-43.65-33.55-79.86-77.2-80.91H588.2c-43.65-1-78.2 35.21-77.2 78.86V255.5l638.75 170.33L1745.92 255.5z" fill="#0364B8" />
+      <Path
+        d="M1745.92 255.5V80.91c1-43.65-33.55-79.86-77.2-80.91H588.2c-43.65-1-78.2 35.21-77.2 78.86V255.5l638.75 170.33L1745.92 255.5z"
+        fill="#0364B8"
+      />
       {/* Calendar grid cells */}
       <Path d="M511 255.5h425.83v383.25H511V255.5z" fill="#0078D4" />
-      <Path d="M1362.67 255.5H936.83v383.25l425.83 383.25h383.25V638.75L1362.67 255.5z" fill="#28A8EA" />
+      <Path
+        d="M1362.67 255.5H936.83v383.25l425.83 383.25h383.25V638.75L1362.67 255.5z"
+        fill="#28A8EA"
+      />
       <Path d="M936.83 638.75h425.83V1022H936.83V638.75z" fill="#0078D4" />
       <Path d="M936.83 1022h425.83v383.25H936.83V1022z" fill="#0364B8" />
       <Path d="M1362.67 1022h383.25v383.25h-383.25V1022z" fill="#0078D4" />
@@ -94,13 +100,27 @@ function OutlookIcon({ size }: { size: number }) {
       <Path d="M1362.67 255.5h383.25v383.25h-383.25V255.5z" fill="#50D9FF" />
       {/* Blue rounded-rect with "O" */}
       <Defs>
-        <LinearGradient id="outlookGrad" x1="0" y1="383.25" x2="936.83" y2="1320.08" gradientUnits="userSpaceOnUse">
+        <LinearGradient
+          id="outlookGrad"
+          x1="0"
+          y1="383.25"
+          x2="936.83"
+          y2="1320.08"
+          gradientUnits="userSpaceOnUse"
+        >
           <Stop offset="0" stopColor="#1784D9" />
           <Stop offset="0.5" stopColor="#107AD5" />
           <Stop offset="1" stopColor="#0A63C9" />
         </LinearGradient>
       </Defs>
-      <Rect x="0" y="383.25" width="936.83" height="936.83" rx="78" fill="url(#outlookGrad)" />
+      <Rect
+        x="0"
+        y="383.25"
+        width="936.83"
+        height="936.83"
+        rx="78"
+        fill="url(#outlookGrad)"
+      />
       {/* White "O" letter */}
       <Path
         d="M243.96 710.63c19.24-40.99 50.29-75.29 89.17-98.5 43.06-24.65 92.08-36.94 141.68-35.51 45.96-1 91.32 10.65 131.11 33.68 37.41 22.31 67.55 55 86.74 94.11 20.9 43.09 31.32 90.51 30.41 138.4 1.01 50.04-9.71 99.63-31.3 144.78-19.65 40.5-50.74 74.36-89.43 97.39-41.33 23.73-88.37 35.69-136.01 34.58-46.95 1.13-93.3-10.65-134.01-34.07-37.74-22.34-68.25-55.07-87.89-94.28-21.03-42.47-31.57-89.36-30.75-136.74-0.87-49.62 9.48-98.79 30.28-143.84zm95.05 231.23c10.26 25.91 27.65 48.39 50.16 64.81 22.93 16.03 50.39 24.29 78.35 23.59 29.78 1.18 59.14-7.37 83.63-24.36 22.23-16.38 39.16-38.91 48.72-64.81 10.68-28.93 15.95-59.57 15.54-90.4 0.33-31.13-4.62-62.08-14.65-91.55-8.86-26.61-25.25-50.07-47.18-67.54-23.88-17.79-53.16-26.81-82.91-25.55-28.57-0.74-56.64 7.59-80.18 23.8-22.89 16.5-40.62 39.17-51.1 65.37-23.26 60.05-23.38 126.6-0.34 186.73z"

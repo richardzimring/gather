@@ -1,7 +1,7 @@
-import { CalendarPlus, Plus } from "@tamagui/lucide-icons";
-import { router } from "expo-router";
-import { useMemo } from "react";
-import { RefreshControl } from "react-native";
+import { CalendarPlus, Plus } from '@tamagui/lucide-icons';
+import { router } from 'expo-router';
+import { useMemo } from 'react';
+import { RefreshControl } from 'react-native';
 import {
   ScrollView,
   H1,
@@ -12,17 +12,17 @@ import {
   Circle,
   Theme,
   useTheme,
-} from "tamagui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+} from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { type AvatarStackPerson } from "../../components/ui/AttendeeAvatarStack";
-import { Button } from "../../components/ui/Button";
-import { Card } from "../../components/ui/Card";
-import { EventCard, EventCardSkeleton } from "../../components/ui/EventCard";
-import { GlassButton } from "../../components/ui/GlassFAB";
-import { GradientBackground } from "../../components/ui/GradientBackground";
-import { useAuth } from "../../lib/hooks/useAuth";
-import { useEvents, useRefresh } from "../../lib/hooks";
+import { type AvatarStackPerson } from '../../components/ui/AttendeeAvatarStack';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { EventCard, EventCardSkeleton } from '../../components/ui/EventCard';
+import { GlassButton } from '../../components/ui/GlassFAB';
+import { GradientBackground } from '../../components/ui/GradientBackground';
+import { useAuth } from '../../lib/hooks/useAuth';
+import { useEvents, useRefresh } from '../../lib/hooks';
 
 /**
  * Get time-based greeting with day awareness
@@ -33,15 +33,15 @@ function getGreeting(): string {
   const day = now.getDay(); // 0 = Sunday, 6 = Saturday
 
   // Friday evening/night - celebrate the weekend
-  if (day === 5 && hour >= 17) return "Happy Friday";
+  if (day === 5 && hour >= 17) return 'Happy Friday';
 
   // Weekday time-based greetings
   if (hour < 5) return "You're up late";
-  if (hour < 8) return "Rise and shine";
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  if (hour < 21) return "Good evening";
-  return "Good night";
+  if (hour < 8) return 'Rise and shine';
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  if (hour < 21) return 'Good evening';
+  return 'Good night';
 }
 
 /**
@@ -49,9 +49,9 @@ function getGreeting(): string {
  */
 function formatEventTime(startTime: string): string {
   const date = new Date(startTime);
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
   });
 }
 
@@ -76,10 +76,10 @@ function formatRelativeDate(startTime: string): string {
   if (eventDate.getTime() === tomorrow.getTime()) {
     return `Tomorrow, ${formatEventTime(startTime)}`;
   }
-  return `${date.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
+  return `${date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
   })}, ${formatEventTime(startTime)}`;
 }
 
@@ -100,15 +100,15 @@ function getSectionTitle(date: Date): string {
   compareDate.setHours(0, 0, 0, 0);
 
   if (compareDate.getTime() === today.getTime()) {
-    return "Today";
+    return 'Today';
   }
   if (compareDate.getTime() === tomorrow.getTime()) {
-    return "Tomorrow";
+    return 'Tomorrow';
   }
   if (compareDate < thisWeekEnd) {
-    return "This Week";
+    return 'This Week';
   }
-  return "Later";
+  return 'Later';
 }
 
 /**
@@ -118,7 +118,7 @@ function groupEventsBySection(events: EventData[]) {
   const sections: Record<string, EventData[]> = {
     Today: [],
     Tomorrow: [],
-    "This Week": [],
+    'This Week': [],
     Later: [],
   };
 
@@ -145,10 +145,10 @@ function groupEventsBySection(events: EventData[]) {
  */
 function getAttendeeSummary(event: EventData): string {
   const acceptedInvitees = event.invitees.filter(
-    (i) => i.status === "accepted",
+    (i) => i.status === 'accepted',
   ).length;
   const maybeInvitees = event.invitees.filter(
-    (i) => i.status === "maybe",
+    (i) => i.status === 'maybe',
   ).length;
 
   // Host is always counted as going
@@ -160,11 +160,11 @@ function getAttendeeSummary(event: EventData): string {
     const parts: string[] = [];
     parts.push(`${totalGoing} of ${totalInvited + 1} going`);
     if (maybeInvitees > 0) parts.push(`${maybeInvitees} maybe`);
-    return parts.join(", ");
+    return parts.join(', ');
   }
 
   // No invitees - just the host
-  return "Just you";
+  return 'Just you';
 }
 
 /**
@@ -178,7 +178,7 @@ function buildAvatarStackPeople(event: EventData): AvatarStackPerson[] {
   people.push({
     id: event.hostId,
     initials: event.hostInitials,
-    status: "host",
+    status: 'host',
     avatarUrl: event.hostAvatarUrl,
   });
 
@@ -187,7 +187,7 @@ function buildAvatarStackPeople(event: EventData): AvatarStackPerson[] {
     people.push({
       id: invitee.userId,
       initials: invitee.initials,
-      status: invitee.status as AvatarStackPerson["status"],
+      status: invitee.status as AvatarStackPerson['status'],
       avatarUrl: invitee.avatarUrl,
     });
   });
@@ -238,7 +238,7 @@ export default function HomeScreen() {
       events
         ?.filter((event) => {
           const eventDate = new Date(event.startTime);
-          return eventDate >= today && event.status !== "cancelled";
+          return eventDate >= today && event.status !== 'cancelled';
         })
         .sort(
           (a, b) =>
@@ -258,13 +258,13 @@ export default function HomeScreen() {
     const counts: Record<string, number> = {
       Today: 0,
       Tomorrow: 0,
-      "This Week": 0,
+      'This Week': 0,
       Later: 0,
     };
 
     upcomingEvents.forEach((event) => {
       const userInvitee = event.invitees.find(
-        (i) => i.userId === user?.userId && i.status === "pending",
+        (i) => i.userId === user?.userId && i.status === 'pending',
       );
       if (userInvitee && event.hostId !== user?.userId) {
         const date = new Date(event.startTime);
@@ -281,21 +281,21 @@ export default function HomeScreen() {
   };
 
   const navigateToPlan = () => {
-    router.push("/(tabs)/plan");
+    router.push('/(tabs)/plan');
   };
 
   const navigateToCreate = () => {
-    router.push("/(tabs)/plan");
+    router.push('/(tabs)/plan');
   };
 
   // Check if user has pending invitation for this event
   const isPendingForUser = (event: EventData) => {
     const userInvitee = event.invitees.find((i) => i.userId === user?.userId);
-    return userInvitee?.status === "pending" && event.hostId !== user?.userId;
+    return userInvitee?.status === 'pending' && event.hostId !== user?.userId;
   };
 
   // Ordered sections to display
-  const sectionOrder = ["Today", "Tomorrow", "This Week", "Later"];
+  const sectionOrder = ['Today', 'Tomorrow', 'This Week', 'Later'];
   const greetingPadding = 8;
 
   return (
@@ -324,7 +324,7 @@ export default function HomeScreen() {
             color="$colorMuted"
             marginBottom={-greetingPadding}
           >
-            {getGreeting()}, {user?.firstName ?? "there"}
+            {getGreeting()}, {user?.firstName ?? 'there'}
           </Text>
 
           {/* Header */}
@@ -357,7 +357,7 @@ export default function HomeScreen() {
               const sectionEvents = eventsBySection[section];
 
               // Skip empty sections except Today
-              if (sectionEvents.length === 0 && section !== "Today") {
+              if (sectionEvents.length === 0 && section !== 'Today') {
                 return null;
               }
 
@@ -391,7 +391,7 @@ export default function HomeScreen() {
                           </YStack>
                         </Card>
                       </Theme>
-                      {section === "Today" && (
+                      {section === 'Today' && (
                         <Button
                           variant="primary"
                           buttonSize="lg"

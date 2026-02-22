@@ -1,58 +1,58 @@
-import { useState, useEffect } from "react";
-import { Alert } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
-import { ScrollView, Text, XStack, YStack, Theme } from "tamagui";
-import { Trash2 } from "@tamagui/lucide-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import { useState, useEffect } from 'react';
+import { Alert } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { ScrollView, Text, XStack, YStack, Theme } from 'tamagui';
+import { Trash2 } from '@tamagui/lucide-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
-import { Button } from "../../components/ui/Button";
-import { Toggle } from "../../components/ui/Toggle";
-import { Card } from "../../components/ui/Card";
-import { CancelHeader } from "../../components/ui/ScreenHeader";
-import { GlassButton } from "../../components/ui/GlassFAB";
+import { Button } from '../../components/ui/Button';
+import { Toggle } from '../../components/ui/Toggle';
+import { Card } from '../../components/ui/Card';
+import { CancelHeader } from '../../components/ui/ScreenHeader';
+import { GlassButton } from '../../components/ui/GlassFAB';
 import {
   useBlockedWindows,
   useCreateBlockedWindow,
   useUpdateBlockedWindow,
   useDeleteBlockedWindow,
-} from "../../lib/hooks";
-import type { RecurringPattern } from "../../lib/api/client";
-import { haptic } from "../../lib/haptics";
+} from '../../lib/hooks';
+import type { RecurringPattern } from '../../lib/api/client';
+import { haptic } from '../../lib/haptics';
 
-type PatternOption = RecurringPattern | "weekdays" | "weekends";
+type PatternOption = RecurringPattern | 'weekdays' | 'weekends';
 
 const PATTERNS: { value: PatternOption; label: string; description: string }[] =
   [
-    { value: "daily", label: "Every day", description: "Repeats daily" },
-    { value: "weekdays", label: "Weekdays", description: "Mon – Fri" },
-    { value: "weekends", label: "Weekends", description: "Sat & Sun" },
+    { value: 'daily', label: 'Every day', description: 'Repeats daily' },
+    { value: 'weekdays', label: 'Weekdays', description: 'Mon – Fri' },
+    { value: 'weekends', label: 'Weekends', description: 'Sat & Sun' },
     {
-      value: "weekly",
-      label: "Every week",
-      description: "Same time each week",
+      value: 'weekly',
+      label: 'Every week',
+      description: 'Same time each week',
     },
     {
-      value: "biweekly",
-      label: "Every two weeks",
-      description: "Alternate weeks",
+      value: 'biweekly',
+      label: 'Every two weeks',
+      description: 'Alternate weeks',
     },
     {
-      value: "monthly",
-      label: "Every month",
-      description: "Same date monthly",
+      value: 'monthly',
+      label: 'Every month',
+      description: 'Same date monthly',
     },
   ];
 
 function buildRecurring(pattern: PatternOption) {
-  if (pattern === "weekdays") {
+  if (pattern === 'weekdays') {
     return {
-      pattern: "weekly" as RecurringPattern,
+      pattern: 'weekly' as RecurringPattern,
       daysOfWeek: [1, 2, 3, 4, 5],
     };
   }
-  if (pattern === "weekends") {
-    return { pattern: "weekly" as RecurringPattern, daysOfWeek: [0, 6] };
+  if (pattern === 'weekends') {
+    return { pattern: 'weekly' as RecurringPattern, daysOfWeek: [0, 6] };
   }
   return { pattern: pattern as RecurringPattern };
 }
@@ -61,10 +61,10 @@ function inferPatternOption(
   pattern: RecurringPattern,
   daysOfWeek?: number[],
 ): PatternOption {
-  if (pattern === "weekly" && daysOfWeek) {
-    const sorted = [...daysOfWeek].sort((a, b) => a - b).join(",");
-    if (sorted === "1,2,3,4,5") return "weekdays";
-    if (sorted === "0,6") return "weekends";
+  if (pattern === 'weekly' && daysOfWeek) {
+    const sorted = [...daysOfWeek].sort((a, b) => a - b).join(',');
+    if (sorted === '1,2,3,4,5') return 'weekdays';
+    if (sorted === '0,6') return 'weekends';
   }
   return pattern;
 }
@@ -78,7 +78,7 @@ function defaultStartTime() {
 export default function BlockedWindowScreen() {
   const insets = useSafeAreaInsets();
   const { windowId } = useLocalSearchParams<{ windowId: string }>();
-  const isNew = windowId === "new";
+  const isNew = windowId === 'new';
 
   const { data: windows, isLoading } = useBlockedWindows();
   const createBlockedWindow = useCreateBlockedWindow();
@@ -93,7 +93,7 @@ export default function BlockedWindowScreen() {
   );
   const [isRecurring, setIsRecurring] = useState(true);
   const [recurringPattern, setRecurringPattern] =
-    useState<PatternOption>("weekly");
+    useState<PatternOption>('weekly');
   const [initialized, setInitialized] = useState(isNew);
 
   useEffect(() => {
@@ -116,7 +116,7 @@ export default function BlockedWindowScreen() {
 
   const handleSave = async () => {
     if (!isValidRange) {
-      Alert.alert("Invalid time range", "End time must be after start time.");
+      Alert.alert('Invalid time range', 'End time must be after start time.');
       return;
     }
 
@@ -144,7 +144,7 @@ export default function BlockedWindowScreen() {
     } catch {
       haptic.error();
       Alert.alert(
-        "Something went wrong",
+        'Something went wrong',
         isNew
           ? "Couldn't save this blocked window. Please try again."
           : "Couldn't update this blocked window. Please try again.",
@@ -156,13 +156,13 @@ export default function BlockedWindowScreen() {
     if (!windowId) return;
     haptic.warning();
     Alert.alert(
-      "Remove blocked window?",
-      "Gather will be able to show you as available during this window again.",
+      'Remove blocked window?',
+      'Gather will be able to show you as available during this window again.',
       [
-        { text: "Cancel", style: "cancel" },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: "Remove",
-          style: "destructive",
+          text: 'Remove',
+          style: 'destructive',
           onPress: async () => {
             try {
               await deleteBlockedWindow.mutateAsync(windowId);
@@ -170,7 +170,7 @@ export default function BlockedWindowScreen() {
             } catch {
               haptic.error();
               Alert.alert(
-                "Something went wrong",
+                'Something went wrong',
                 "Couldn't remove this blocked window. Please try again.",
               );
             }
@@ -217,7 +217,7 @@ export default function BlockedWindowScreen() {
         }}
       >
         <CancelHeader
-          title={isNew ? "Block a Time" : "Edit Blocked Window"}
+          title={isNew ? 'Block a Time' : 'Edit Blocked Window'}
           rightAction={
             !isNew ? (
               <GlassButton
@@ -286,7 +286,7 @@ export default function BlockedWindowScreen() {
             <XStack
               alignItems="center"
               justifyContent="space-between"
-              marginBottom={isRecurring ? "$4" : 0}
+              marginBottom={isRecurring ? '$4' : 0}
             >
               <YStack flex={1} marginRight="$4">
                 <Text fontWeight="600" fontSize={14}>
@@ -317,7 +317,7 @@ export default function BlockedWindowScreen() {
                       paddingHorizontal="$3"
                       borderRadius="$2"
                       backgroundColor={
-                        isSelected ? "$secondary" : "transparent"
+                        isSelected ? '$secondary' : 'transparent'
                       }
                       pressStyle={{ opacity: 0.7 }}
                       onPress={() => {
@@ -331,9 +331,9 @@ export default function BlockedWindowScreen() {
                         height={18}
                         borderRadius={9}
                         borderWidth={2}
-                        borderColor={isSelected ? "$primary" : "$borderColor"}
+                        borderColor={isSelected ? '$primary' : '$borderColor'}
                         backgroundColor={
-                          isSelected ? "$primary" : "transparent"
+                          isSelected ? '$primary' : 'transparent'
                         }
                         alignItems="center"
                         justifyContent="center"
@@ -367,7 +367,7 @@ export default function BlockedWindowScreen() {
           loadingText="Saving..."
           disabled={!isValidRange}
         >
-          {isNew ? "Save blocked time" : "Save changes"}
+          {isNew ? 'Save blocked time' : 'Save changes'}
         </Button>
       </ScrollView>
     </YStack>

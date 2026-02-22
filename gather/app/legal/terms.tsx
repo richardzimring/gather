@@ -1,8 +1,8 @@
-import { router } from "expo-router";
-import { ScrollView, Text, YStack } from "tamagui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from 'expo-router';
+import { ScrollView, Text, YStack } from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackHeader } from "../../components/ui/ScreenHeader";
+import { BackHeader } from '../../components/ui/ScreenHeader';
 
 export default function TermsOfServiceScreen() {
   const insets = useSafeAreaInsets();
@@ -28,7 +28,9 @@ export default function TermsOfServiceScreen() {
               Acceptance of Terms
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              {"By accessing or using Gather (\"the App\"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the App."}
+              {
+                'By accessing or using Gather ("the App"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the App.'
+              }
             </Text>
           </YStack>
 
@@ -60,19 +62,22 @@ export default function TermsOfServiceScreen() {
               Third-Party Calendar Integrations
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              Gather offers optional integrations with Google Calendar, Microsoft
-              Outlook Calendar, and Apple Calendar. These integrations are used
-              solely to display your availability to friends within the app.
+              Gather offers optional integrations with Google Calendar,
+              Microsoft Outlook Calendar, and Apple Calendar. These integrations
+              are used solely to display your availability to friends within the
+              app.
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
               By connecting a third-party calendar, you authorize Gather to
               access your calendar data as described in our Privacy Policy. You
               may disconnect any calendar integration at any time from the app
-              settings. Disconnecting immediately removes all associated calendar
-              data from our servers.
+              settings. Disconnecting immediately removes all associated
+              calendar data from our servers.
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              {"Your use of connected third-party services (Google, Microsoft) is also subject to those services' own terms of service and privacy policies. Gather's access is read-only and limited to availability data."}
+              {
+                "Your use of connected third-party services (Google, Microsoft) is also subject to those services' own terms of service and privacy policies. Gather's access is read-only and limited to availability data."
+              }
             </Text>
           </YStack>
 
@@ -81,7 +86,9 @@ export default function TermsOfServiceScreen() {
               User Conduct
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              {"You agree not to:\n- Use the App for any unlawful purpose\n- Harass, abuse, or harm other users\n- Post offensive, inappropriate, or misleading content\n- Attempt to gain unauthorized access to other users' accounts\n- Use the App to send spam or unsolicited communications\n- Interfere with or disrupt the App's functionality"}
+              {
+                "You agree not to:\n- Use the App for any unlawful purpose\n- Harass, abuse, or harm other users\n- Post offensive, inappropriate, or misleading content\n- Attempt to gain unauthorized access to other users' accounts\n- Use the App to send spam or unsolicited communications\n- Interfere with or disrupt the App's functionality"
+              }
             </Text>
           </YStack>
 
@@ -126,7 +133,9 @@ export default function TermsOfServiceScreen() {
               Disclaimers
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              {"The App is provided \"as is\" without warranties of any kind. We do not guarantee that the App will be available at all times or that it will be free of errors."}
+              {
+                'The App is provided "as is" without warranties of any kind. We do not guarantee that the App will be available at all times or that it will be free of errors.'
+              }
             </Text>
           </YStack>
 

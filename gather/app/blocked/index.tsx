@@ -1,8 +1,8 @@
-import { ScrollView, Text, YStack } from "tamagui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ScrollView, Text, YStack } from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackHeader } from "../../components/ui/ScreenHeader";
-import { BlockedWindowsCard } from "../../components/ui/BlockedWindowsCard";
+import { BackHeader } from '../../components/ui/ScreenHeader';
+import { BlockedWindowsCard } from '../../components/ui/BlockedWindowsCard';
 
 export default function BlockedWindowsScreen() {
   const insets = useSafeAreaInsets();

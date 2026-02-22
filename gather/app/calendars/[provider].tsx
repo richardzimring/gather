@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 import {
   ScrollView,
   Text,
@@ -9,16 +9,16 @@ import {
   Theme,
   Circle,
   Separator,
-} from "tamagui";
-import { Calendar, CalendarCheck, Info, Trash2 } from "@tamagui/lucide-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+} from 'tamagui';
+import { Calendar, CalendarCheck, Info, Trash2 } from '@tamagui/lucide-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from "../../components/ui/Button";
-import { Toggle } from "../../components/ui/Toggle";
-import { CalendarProviderIcon } from "../../components/ui/CalendarProviderIcon";
-import { Card } from "../../components/ui/Card";
-import { BackHeader } from "../../components/ui/ScreenHeader";
-import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
+import { Button } from '../../components/ui/Button';
+import { Toggle } from '../../components/ui/Toggle';
+import { CalendarProviderIcon } from '../../components/ui/CalendarProviderIcon';
+import { Card } from '../../components/ui/Card';
+import { BackHeader } from '../../components/ui/ScreenHeader';
+import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton';
 import {
   useCalendarConnections,
   useDisconnectCalendar,
@@ -27,15 +27,15 @@ import {
   useOutlookCalendars,
   useSelectOutlookCalendars,
   useSyncCalendars,
-} from "../../lib/hooks";
+} from '../../lib/hooks';
 import {
   ensureCalendarPermissions,
   getDeviceCalendars,
   type DeviceCalendar,
-} from "../../lib/services/calendarSync";
-import { haptic } from "../../lib/haptics";
+} from '../../lib/services/calendarSync';
+import { haptic } from '../../lib/haptics';
 
-type CalendarProvider = "apple" | "google" | "outlook";
+type CalendarProvider = 'apple' | 'google' | 'outlook';
 
 interface ProviderConfig {
   title: string;
@@ -46,25 +46,25 @@ interface ProviderConfig {
 
 const PROVIDER_CONFIG: Record<CalendarProvider, ProviderConfig> = {
   apple: {
-    title: "Apple Calendars",
-    displayName: "Apple Calendar",
+    title: 'Apple Calendars',
+    displayName: 'Apple Calendar',
     infoBanner:
-      "Select which Apple calendars to import. Gather will read your busy times to help find availability.",
-    emptyMessage: "No calendars found on your device",
+      'Select which Apple calendars to import. Gather will read your busy times to help find availability.',
+    emptyMessage: 'No calendars found on your device',
   },
   google: {
-    title: "Google Calendars",
-    displayName: "Google Calendar",
+    title: 'Google Calendars',
+    displayName: 'Google Calendar',
     infoBanner:
-      "Select which Google calendars to import. Gather will read your busy times to help find availability.",
-    emptyMessage: "No calendars found in your Google account",
+      'Select which Google calendars to import. Gather will read your busy times to help find availability.',
+    emptyMessage: 'No calendars found in your Google account',
   },
   outlook: {
-    title: "Outlook Calendars",
-    displayName: "Outlook Calendar",
+    title: 'Outlook Calendars',
+    displayName: 'Outlook Calendar',
     infoBanner:
-      "Select which Outlook calendars to import. Gather will read your busy times to help find availability.",
-    emptyMessage: "No calendars found in your Outlook account",
+      'Select which Outlook calendars to import. Gather will read your busy times to help find availability.',
+    emptyMessage: 'No calendars found in your Outlook account',
   },
 };
 
@@ -105,12 +105,12 @@ export default function CalendarSelectScreen() {
     data: googleCalendars,
     isLoading: isLoadingGoogle,
     error: googleError,
-  } = useGoogleCalendars(provider === "google");
+  } = useGoogleCalendars(provider === 'google');
   const {
     data: outlookCalendars,
     isLoading: isLoadingOutlook,
     error: outlookError,
-  } = useOutlookCalendars(provider === "outlook");
+  } = useOutlookCalendars(provider === 'outlook');
 
   // Mutations
   const syncCalendars = useSyncCalendars();
@@ -119,7 +119,7 @@ export default function CalendarSelectScreen() {
   const disconnectCalendar = useDisconnectCalendar();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isLoading, setIsLoading] = useState(provider === "apple");
+  const [isLoading, setIsLoading] = useState(provider === 'apple');
   const [initialized, setInitialized] = useState(false);
 
   // Build a set of already-connected calendar IDs
@@ -128,11 +128,11 @@ export default function CalendarSelectScreen() {
     return new Set(
       connections
         .filter((c) => {
-          if (provider === "apple") return c.provider === "apple";
-          if (provider === "google")
-            return c.provider === "google" && c.importEnabled;
-          if (provider === "outlook")
-            return c.provider === "outlook" && c.importEnabled;
+          if (provider === 'apple') return c.provider === 'apple';
+          if (provider === 'google')
+            return c.provider === 'google' && c.importEnabled;
+          if (provider === 'outlook')
+            return c.provider === 'outlook' && c.importEnabled;
           return false;
         })
         .map((c) => c.externalCalendarId),
@@ -141,7 +141,7 @@ export default function CalendarSelectScreen() {
 
   // Apple: Load device calendars
   const loadCalendars = useCallback(async () => {
-    if (provider !== "apple") return;
+    if (provider !== 'apple') return;
 
     setIsLoading(true);
     try {
@@ -158,7 +158,7 @@ export default function CalendarSelectScreen() {
         }
       }
     } catch (error) {
-      console.error("Failed to load calendars:", error);
+      console.error('Failed to load calendars:', error);
       setHasPermission(false);
     } finally {
       setIsLoading(false);
@@ -167,7 +167,7 @@ export default function CalendarSelectScreen() {
 
   // Load device calendars on mount (Apple only)
   useEffect(() => {
-    if (provider === "apple") {
+    if (provider === 'apple') {
       loadCalendars();
     }
   }, [loadCalendars, provider]);
@@ -175,7 +175,7 @@ export default function CalendarSelectScreen() {
   // Apple: Pre-select already-connected calendars once we have both data sources
   useEffect(() => {
     if (
-      provider === "apple" &&
+      provider === 'apple' &&
       deviceCalendars.length > 0 &&
       connectedIds.size > 0
     ) {
@@ -191,10 +191,10 @@ export default function CalendarSelectScreen() {
 
   // Google/Outlook: Pre-select currently connected calendars once data is loaded
   useEffect(() => {
-    if (provider === "apple") return;
+    if (provider === 'apple') return;
 
     const calendars =
-      provider === "google" ? googleCalendars : outlookCalendars;
+      provider === 'google' ? googleCalendars : outlookCalendars;
 
     if (calendars && !initialized) {
       if (connectedIds.size > 0) {
@@ -213,7 +213,7 @@ export default function CalendarSelectScreen() {
 
   // Normalize calendars from different sources
   const normalizedCalendars = useMemo((): NormalizedCalendar[] => {
-    if (provider === "apple") {
+    if (provider === 'apple') {
       return deviceCalendars.map((cal) => ({
         id: cal.id,
         name: cal.title,
@@ -221,7 +221,7 @@ export default function CalendarSelectScreen() {
         source: cal.source,
       }));
     }
-    if (provider === "google" && googleCalendars) {
+    if (provider === 'google' && googleCalendars) {
       return googleCalendars.map((cal) => ({
         id: cal.externalCalendarId,
         name: cal.calendarName,
@@ -229,7 +229,7 @@ export default function CalendarSelectScreen() {
         isPrimary: cal.isPrimary,
       }));
     }
-    if (provider === "outlook" && outlookCalendars) {
+    if (provider === 'outlook' && outlookCalendars) {
       return outlookCalendars.map((cal) => ({
         id: cal.externalCalendarId,
         name: cal.calendarName,
@@ -268,10 +268,10 @@ export default function CalendarSelectScreen() {
       `Disconnect ${config.displayName}`,
       `Are you sure you want to disconnect ${config.displayName}? All calendar connections for this provider will be removed.`,
       [
-        { text: "Cancel", style: "cancel" },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: "Disconnect",
-          style: "destructive",
+          text: 'Disconnect',
+          style: 'destructive',
           onPress: async () => {
             try {
               await disconnectCalendar.mutateAsync(provider);
@@ -279,7 +279,7 @@ export default function CalendarSelectScreen() {
             } catch {
               haptic.error();
               Alert.alert(
-                "Error",
+                'Error',
                 `Failed to disconnect ${config.displayName}. Please try again.`,
               );
             }
@@ -293,11 +293,11 @@ export default function CalendarSelectScreen() {
     try {
       const calendarIds = Array.from(selectedIds);
 
-      if (provider === "apple") {
+      if (provider === 'apple') {
         await syncCalendars.mutateAsync(calendarIds);
-      } else if (provider === "google") {
+      } else if (provider === 'google') {
         await selectGoogleCalendars.mutateAsync(calendarIds);
-      } else if (provider === "outlook") {
+      } else if (provider === 'outlook') {
         await selectOutlookCalendars.mutateAsync(calendarIds);
       }
 
@@ -305,29 +305,29 @@ export default function CalendarSelectScreen() {
     } catch (error) {
       console.error(`Failed to save ${provider} calendar selection:`, error);
       Alert.alert(
-        "Save Failed",
-        "Failed to save your calendar selection. Please try again.",
+        'Save Failed',
+        'Failed to save your calendar selection. Please try again.',
       );
     }
   };
 
   // Get loading and error states
   const isDataLoading =
-    (provider === "apple" && isLoading) ||
-    (provider === "google" && (isLoadingGoogle || !googleCalendars)) ||
-    (provider === "outlook" && (isLoadingOutlook || !outlookCalendars));
+    (provider === 'apple' && isLoading) ||
+    (provider === 'google' && (isLoadingGoogle || !googleCalendars)) ||
+    (provider === 'outlook' && (isLoadingOutlook || !outlookCalendars));
 
   const hasError =
-    (provider === "google" && googleError) ||
-    (provider === "outlook" && outlookError);
+    (provider === 'google' && googleError) ||
+    (provider === 'outlook' && outlookError);
 
   const isSaving =
-    (provider === "apple" && syncCalendars.isPending) ||
-    (provider === "google" && selectGoogleCalendars.isPending) ||
-    (provider === "outlook" && selectOutlookCalendars.isPending);
+    (provider === 'apple' && syncCalendars.isPending) ||
+    (provider === 'google' && selectGoogleCalendars.isPending) ||
+    (provider === 'outlook' && selectOutlookCalendars.isPending);
 
   // Apple: Permission not granted state
-  if (provider === "apple" && hasPermission === false) {
+  if (provider === 'apple' && hasPermission === false) {
     return (
       <YStack flex={1} backgroundColor="$background">
         <ScrollView
@@ -441,7 +441,7 @@ export default function CalendarSelectScreen() {
             </Card>
           </Theme>
 
-          {provider === "apple" && (
+          {provider === 'apple' && (
             <Theme name="Card">
               <Card>
                 <XStack alignItems="center" gap="$2" marginBottom="$3">
@@ -509,7 +509,7 @@ export default function CalendarSelectScreen() {
               {config.emptyMessage}
             </Text>
           </YStack>
-        ) : provider === "apple" ? (
+        ) : provider === 'apple' ? (
           // Apple
           <Theme name="Card">
             <Card>
@@ -526,7 +526,7 @@ export default function CalendarSelectScreen() {
                     <XStack alignItems="center" paddingVertical="$2" gap="$3">
                       <Circle
                         size={12}
-                        backgroundColor={cal.color ?? "$colorMuted"}
+                        backgroundColor={cal.color ?? '$colorMuted'}
                       />
                       <YStack flex={1}>
                         <Text fontWeight="500" fontSize={15}>
@@ -550,9 +550,9 @@ export default function CalendarSelectScreen() {
               <XStack alignItems="center" gap="$2" marginBottom="$3">
                 <CalendarProviderIcon provider={provider} size={16} />
                 <Text color="$colorMuted" fontSize={13} fontWeight="600">
-                  {provider === "google"
-                    ? "GOOGLE CALENDAR"
-                    : "OUTLOOK CALENDAR"}
+                  {provider === 'google'
+                    ? 'GOOGLE CALENDAR'
+                    : 'OUTLOOK CALENDAR'}
                 </Text>
               </XStack>
               <YStack gap="$1">
@@ -562,7 +562,7 @@ export default function CalendarSelectScreen() {
                     <XStack alignItems="center" paddingVertical="$2" gap="$3">
                       <Circle
                         size={12}
-                        backgroundColor={cal.color ?? "$colorMuted"}
+                        backgroundColor={cal.color ?? '$colorMuted'}
                       />
                       <YStack flex={1}>
                         <XStack alignItems="center" gap="$1.5">
@@ -598,7 +598,7 @@ export default function CalendarSelectScreen() {
           >
             <CalendarCheck size={16} color="$colorMuted" />
             <Text color="$colorMuted" fontSize={13}>
-              {selectedIds.size} calendar{selectedIds.size !== 1 ? "s" : ""}{" "}
+              {selectedIds.size} calendar{selectedIds.size !== 1 ? 's' : ''}{' '}
               selected
             </Text>
           </XStack>

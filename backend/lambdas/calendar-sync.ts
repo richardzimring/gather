@@ -29,7 +29,9 @@ export const handler = async (): Promise<void> => {
     (c) => c.provider !== 'apple' && c.refreshToken,
   );
 
-  console.log(`Found ${serverConnections.length} server-side calendar connections to sync`);
+  console.log(
+    `Found ${serverConnections.length} server-side calendar connections to sync`,
+  );
 
   let successCount = 0;
   let errorCount = 0;

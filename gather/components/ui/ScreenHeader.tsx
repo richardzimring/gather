@@ -1,8 +1,8 @@
-import { ChevronLeft } from "@tamagui/lucide-icons";
-import { router } from "expo-router";
-import { Text, XStack, YStack, GetProps } from "tamagui";
+import { ChevronLeft } from '@tamagui/lucide-icons';
+import { router } from 'expo-router';
+import { Text, XStack, YStack, GetProps } from 'tamagui';
 
-import { GlassButton } from "./GlassFAB";
+import { GlassButton } from './GlassFAB';
 
 export interface ScreenHeaderProps extends GetProps<typeof XStack> {
   /** Main title of the screen */
@@ -90,7 +90,7 @@ export function SimpleHeader({
   title,
   rightAction,
   ...props
-}: Omit<ScreenHeaderProps, "showBack" | "onBack" | "leftAction">) {
+}: Omit<ScreenHeaderProps, 'showBack' | 'onBack' | 'leftAction'>) {
   return (
     <ScreenHeader
       title={title}
@@ -110,7 +110,7 @@ export function BackHeader({
   onBack,
   rightAction,
   ...props
-}: Omit<ScreenHeaderProps, "showBack" | "leftAction">) {
+}: Omit<ScreenHeaderProps, 'showBack' | 'leftAction'>) {
   return (
     <ScreenHeader
       title={title}
@@ -132,7 +132,7 @@ export function CancelHeader({
   onCancel,
   rightAction,
   ...props
-}: Omit<ScreenHeaderProps, "showBack" | "onBack" | "leftAction"> & {
+}: Omit<ScreenHeaderProps, 'showBack' | 'onBack' | 'leftAction'> & {
   onCancel?: () => void;
 }) {
   return (

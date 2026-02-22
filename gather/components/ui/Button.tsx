@@ -1,71 +1,66 @@
-import {
-  styled,
-  Button as TamaguiButton,
-  GetProps,
-  useTheme,
-} from "tamagui";
-import { Spinner } from "./Spinner";
-import { haptic } from "../../lib/haptics";
+import { styled, Button as TamaguiButton, GetProps, useTheme } from 'tamagui';
+import { Spinner } from './Spinner';
+import { haptic } from '../../lib/haptics';
 
 /**
  * Base styled button with theme integration.
  * shadcn Mira style - compact, neutral colors
  */
 const StyledButton = styled(TamaguiButton, {
-  name: "Button",
-  borderRadius: "$2",
-  fontWeight: "500",
+  name: 'Button',
+  borderRadius: '$2',
+  fontWeight: '500',
 
   variants: {
     /** Visual style variants (shadcn Mira - neutral primary) */
     variant: {
       primary: {
-        backgroundColor: "$primary",
-        color: "$primaryForeground",
+        backgroundColor: '$primary',
+        color: '$primaryForeground',
         pressStyle: {
-          backgroundColor: "$primaryPress",
+          backgroundColor: '$primaryPress',
         },
         hoverStyle: {
-          backgroundColor: "$primaryHover",
+          backgroundColor: '$primaryHover',
         },
       },
       secondary: {
-        backgroundColor: "$secondary",
-        color: "$secondaryForeground",
+        backgroundColor: '$secondary',
+        color: '$secondaryForeground',
         borderWidth: 1,
-        borderColor: "$borderColor",
+        borderColor: '$borderColor',
         pressStyle: {
-          backgroundColor: "$secondaryPress",
+          backgroundColor: '$secondaryPress',
         },
         hoverStyle: {
-          backgroundColor: "$secondaryHover",
+          backgroundColor: '$secondaryHover',
         },
       },
       outline: {
-        backgroundColor: "transparent",
-        color: "$color",
+        backgroundColor: 'transparent',
+        color: '$color',
         borderWidth: 1,
-        borderColor: "$borderColor",
+        borderColor: '$borderColor',
         pressStyle: {
-          backgroundColor: "$backgroundHover",
+          backgroundColor: '$backgroundHover',
         },
         hoverStyle: {
-          backgroundColor: "$backgroundHover",
+          backgroundColor: '$backgroundHover',
         },
       },
       ghost: {
-        backgroundColor: "transparent",
-        color: "$color",
+        backgroundColor: 'transparent',
+        color: '$color',
         pressStyle: {
-          backgroundColor: "$backgroundHover",
+          backgroundColor: '$backgroundHover',
         },
         hoverStyle: {
-          backgroundColor: "$backgroundHover",
+          backgroundColor: '$backgroundHover',
         },
       },
       destructive: {
-        backgroundColor: "$destructive",
-        color: "$destructiveForeground",
+        backgroundColor: '$destructive',
+        color: '$destructiveForeground',
         pressStyle: {
           opacity: 0.9,
         },
@@ -76,17 +71,17 @@ const StyledButton = styled(TamaguiButton, {
     buttonSize: {
       sm: {
         height: 32,
-        paddingHorizontal: "$3",
+        paddingHorizontal: '$3',
         fontSize: 13,
       },
       md: {
         height: 36,
-        paddingHorizontal: "$4",
+        paddingHorizontal: '$4',
         fontSize: 14,
       },
       lg: {
         height: 44,
-        paddingHorizontal: "$5",
+        paddingHorizontal: '$5',
         fontSize: 15,
       },
     },
@@ -94,14 +89,14 @@ const StyledButton = styled(TamaguiButton, {
     /** Full width button */
     fullWidth: {
       true: {
-        width: "100%",
+        width: '100%',
       },
     },
   } as const,
 
   defaultVariants: {
-    variant: "primary",
-    buttonSize: "md",
+    variant: 'primary',
+    buttonSize: 'md',
   },
 });
 
@@ -109,7 +104,7 @@ export type ButtonProps = GetProps<typeof StyledButton> & {
   /** Whether to trigger haptic feedback on press */
   haptic?: boolean;
   /** Override haptic intensity (defaults based on variant: primary=medium, destructive=heavy, others=light) */
-  hapticStyle?: "light" | "medium" | "heavy";
+  hapticStyle?: 'light' | 'medium' | 'heavy';
   /** Whether the button is in a loading state */
   loading?: boolean;
   /** Text to show while loading (optional, will show spinner if not provided) */
@@ -135,24 +130,28 @@ export function Button({
 
   const handlePress = (event: Parameters<NonNullable<typeof onPress>>[0]) => {
     if (loading) return;
-    
+
     if (enableHaptic) {
       // Determine haptic intensity based on variant
-      const intensity = hapticStyle || 
-        (variant === "destructive" ? "heavy" : 
-         variant === "primary" ? "medium" : "light");
-      
-      if (intensity === "heavy") haptic.heavy();
-      else if (intensity === "medium") haptic.medium();
+      const intensity =
+        hapticStyle ||
+        (variant === 'destructive'
+          ? 'heavy'
+          : variant === 'primary'
+            ? 'medium'
+            : 'light');
+
+      if (intensity === 'heavy') haptic.heavy();
+      else if (intensity === 'medium') haptic.medium();
       else haptic.light();
     }
-    
+
     onPress?.(event);
   };
 
   // Determine spinner color based on variant
   const spinnerColor =
-    variant === "primary" || variant === "destructive"
+    variant === 'primary' || variant === 'destructive'
       ? theme.primaryForeground.val
       : theme.color.val;
 
@@ -169,8 +168,8 @@ export function Button({
     >
       {loading
         ? icon
-          ? (loadingText ?? children)  // has icon: keep text, spinner replaces icon
-          : loadingText ?? null         // no icon: show loadingText or just spinner
+          ? (loadingText ?? children) // has icon: keep text, spinner replaces icon
+          : (loadingText ?? null) // no icon: show loadingText or just spinner
         : children}
     </StyledButton>
   );

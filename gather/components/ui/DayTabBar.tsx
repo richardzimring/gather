@@ -1,15 +1,15 @@
-import { useEffect, useRef } from "react";
-import { ScrollView as RNScrollView } from "react-native";
-import { ScrollView, Text, YStack } from "tamagui";
-import { haptic } from "../../lib/haptics";
+import { useEffect, useRef } from 'react';
+import { ScrollView as RNScrollView } from 'react-native';
+import { ScrollView, Text, YStack } from 'tamagui';
+import { haptic } from '../../lib/haptics';
 
-const DAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 /**
  * Get a date string key (YYYY-MM-DD) for comparison purposes.
  */
 function toDateKey(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 export interface DayTabBarProps {
@@ -69,8 +69,8 @@ export function DayTabBar({
 
         // Show "Today" or "Tmrw" for special days
         let label = DAYS_SHORT[day.getDay()];
-        if (dateKey === todayKey) label = "Today";
-        else if (dateKey === tomorrowKey) label = "Tmrw";
+        if (dateKey === todayKey) label = 'Today';
+        else if (dateKey === tomorrowKey) label = 'Tmrw';
 
         return (
           <YStack
@@ -80,7 +80,7 @@ export function DayTabBar({
             borderRadius="$2"
             alignItems="center"
             justifyContent="center"
-            backgroundColor={isSelected ? "$primary" : "$backgroundHover"}
+            backgroundColor={isSelected ? '$primary' : '$backgroundHover'}
             opacity={isDisabled && !isSelected ? 0.4 : 1}
             pressStyle={{ scale: 0.95, opacity: 0.8 }}
             onPress={() => {
@@ -92,14 +92,14 @@ export function DayTabBar({
             <Text
               fontSize={11}
               fontWeight="500"
-              color={isSelected ? "$primaryForeground" : "$colorMuted"}
+              color={isSelected ? '$primaryForeground' : '$colorMuted'}
             >
               {label}
             </Text>
             <Text
               fontSize={16}
-              fontWeight={isSelected ? "700" : "600"}
-              color={isSelected ? "$primaryForeground" : "$color"}
+              fontWeight={isSelected ? '700' : '600'}
+              color={isSelected ? '$primaryForeground' : '$color'}
             >
               {day.getDate()}
             </Text>

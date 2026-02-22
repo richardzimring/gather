@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
   requestCalendarPermissions,
@@ -7,8 +7,8 @@ import {
   getCalendars,
   getAllEvents,
   exportEventToCalendar,
-} from '../services/calendar'
-import type { Event } from '../api/client'
+} from '../services/calendar';
+import type { Event } from '../api/client';
 
 export const calendarKeys = {
   all: ['calendar'] as const,
@@ -16,92 +16,95 @@ export const calendarKeys = {
   calendars: () => [...calendarKeys.all, 'calendars'] as const,
   events: (start: string, end: string) =>
     [...calendarKeys.all, 'events', start, end] as const,
-}
+};
 
 /**
  * Hook to manage calendar permissions.
  */
 export function useCalendarPermissions() {
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null)
-  const [isRequesting, setIsRequesting] = useState(false)
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [isRequesting, setIsRequesting] = useState(false);
 
   useEffect(() => {
-    checkPermissions()
-  }, [])
+    checkPermissions();
+  }, []);
 
   const checkPermissions = async () => {
-    const granted = await hasCalendarPermissions()
-    setHasPermission(granted)
-  }
+    const granted = await hasCalendarPermissions();
+    setHasPermission(granted);
+  };
 
   const requestPermission = useCallback(async () => {
-    setIsRequesting(true)
+    setIsRequesting(true);
     try {
-      const granted = await requestCalendarPermissions()
-      setHasPermission(granted)
-      return granted
+      const granted = await requestCalendarPermissions();
+      setHasPermission(granted);
+      return granted;
     } finally {
-      setIsRequesting(false)
+      setIsRequesting(false);
     }
-  }, [])
+  }, []);
 
   return {
     hasPermission,
     isRequesting,
     requestPermission,
     checkPermissions,
-  }
+  };
 }
 
 /**
  * Hook to get available calendars.
  */
 export function useCalendars() {
-  const { hasPermission } = useCalendarPermissions()
+  const { hasPermission } = useCalendarPermissions();
 
   return useQuery({
     queryKey: calendarKeys.calendars(),
     queryFn: getCalendars,
     enabled: hasPermission === true,
-  })
+  });
 }
 
 /**
  * Hook to get calendar events within a date range.
  */
 export function useCalendarEvents(startDate: Date, endDate: Date) {
-  const { hasPermission } = useCalendarPermissions()
+  const { hasPermission } = useCalendarPermissions();
 
   return useQuery({
-    queryKey: calendarKeys.events(startDate.toISOString(), endDate.toISOString()),
+    queryKey: calendarKeys.events(
+      startDate.toISOString(),
+      endDate.toISOString(),
+    ),
     queryFn: () => getAllEvents(startDate, endDate),
     enabled: hasPermission === true,
-  })
+  });
 }
 
 /**
  * Hook to export a Gather event to the device calendar.
  */
 export function useExportToCalendar() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({
       event,
       calendarId,
     }: {
-      event: Event
-      calendarId?: string
+      event: Event;
+      calendarId?: string;
     }) => {
-      const calendarEventId = await exportEventToCalendar(event, calendarId)
+      const calendarEventId = await exportEventToCalendar(event, calendarId);
       if (!calendarEventId) {
-        throw new Error('Failed to export event to calendar')
+        throw new Error('Failed to export event to calendar');
       }
-      return calendarEventId
+      return calendarEventId;
     },
     onSuccess: () => {
       // Invalidate calendar events queries
-      queryClient.invalidateQueries({ queryKey: calendarKeys.all })
+      queryClient.invalidateQueries({ queryKey: calendarKeys.all });
     },
-  })
+  });
 }

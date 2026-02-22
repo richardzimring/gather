@@ -1,9 +1,9 @@
-import { useState, useMemo, useCallback, useRef } from "react";
-import { MapPin, X, Search } from "@tamagui/lucide-icons";
-import { Input, XStack, YStack, Text, ScrollView } from "tamagui";
-import { Spinner } from "./Spinner";
-import * as Location from "expo-location";
-import debounce from "lodash.debounce";
+import { useState, useMemo, useCallback, useRef } from 'react';
+import { MapPin, X, Search } from '@tamagui/lucide-icons';
+import { Input, XStack, YStack, Text, ScrollView } from 'tamagui';
+import { Spinner } from './Spinner';
+import * as Location from 'expo-location';
+import debounce from 'lodash.debounce';
 
 const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY;
 
@@ -45,9 +45,9 @@ interface LocationSearchProps {
 export function LocationSearch({
   value,
   onSelect,
-  placeholder = "Search for a place...",
+  placeholder = 'Search for a place...',
 }: LocationSearchProps) {
-  const [query, setQuery] = useState(value ?? "");
+  const [query, setQuery] = useState(value ?? '');
   const [results, setResults] = useState<PlaceResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -61,9 +61,9 @@ export function LocationSearch({
 
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
+      if (status !== 'granted') {
         console.log(
-          "Location permission not granted, search results will not be location-biased",
+          'Location permission not granted, search results will not be location-biased',
         );
         return;
       }
@@ -77,7 +77,7 @@ export function LocationSearch({
         longitude: location.coords.longitude,
       };
     } catch (error) {
-      console.log("Could not get user location:", error);
+      console.log('Could not get user location:', error);
     }
   }, []);
 
@@ -94,14 +94,14 @@ export function LocationSearch({
         );
         const data = await response.json();
 
-        if (data.status === "OK" && data.result?.geometry?.location) {
+        if (data.status === 'OK' && data.result?.geometry?.location) {
           return {
             latitude: String(data.result.geometry.location.lat),
             longitude: String(data.result.geometry.location.lng),
           };
         }
       } catch (error) {
-        console.error("Error fetching place details:", error);
+        console.error('Error fetching place details:', error);
       }
       return null;
     },
@@ -119,7 +119,7 @@ export function LocationSearch({
         }
 
         if (!GOOGLE_PLACES_API_KEY) {
-          console.warn("Google Places API key not configured");
+          console.warn('Google Places API key not configured');
           setResults([]);
           setIsSearching(false);
           return;
@@ -140,7 +140,7 @@ export function LocationSearch({
           const response = await fetch(apiUrl);
           const data = await response.json();
 
-          if (data.status === "OK" && data.predictions) {
+          if (data.status === 'OK' && data.predictions) {
             const places: PlaceResult[] = data.predictions.map(
               (prediction: AutocompletePrediction) => ({
                 placeId: prediction.place_id,
@@ -155,7 +155,7 @@ export function LocationSearch({
             setResults([]);
           }
         } catch (error) {
-          console.error("Error searching places:", error);
+          console.error('Error searching places:', error);
           setResults([]);
         } finally {
           setIsSearching(false);
@@ -189,7 +189,7 @@ export function LocationSearch({
   };
 
   const handleClear = () => {
-    setQuery("");
+    setQuery('');
     setResults([]);
     setShowResults(false);
     onSelect(null);
@@ -248,7 +248,7 @@ export function LocationSearch({
                 alignItems="center"
                 borderBottomWidth={index < results.length - 1 ? 1 : 0}
                 borderBottomColor="$borderColor"
-                pressStyle={{ backgroundColor: "$backgroundHover" }}
+                pressStyle={{ backgroundColor: '$backgroundHover' }}
                 onPress={() => handleSelectPlace(place)}
               >
                 <MapPin size={16} color="$accent" />

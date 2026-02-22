@@ -52,18 +52,30 @@ const dbUserToUser = (dbUser: typeof users.$inferSelect): User => {
 // ============================================
 
 export const getUserById = async (userId: string): Promise<User | null> => {
-  const result = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
   const user = result[0];
   return user ? dbUserToUser(user) : null;
 };
 
-export const getUserByAppleUserId = async (appleUserId: string): Promise<User | null> => {
-  const result = await db.select().from(users).where(eq(users.appleUserId, appleUserId)).limit(1);
+export const getUserByAppleUserId = async (
+  appleUserId: string,
+): Promise<User | null> => {
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.appleUserId, appleUserId))
+    .limit(1);
   const user = result[0];
   return user ? dbUserToUser(user) : null;
 };
 
-export const getUserByInviteCode = async (inviteCode: string): Promise<User | null> => {
+export const getUserByInviteCode = async (
+  inviteCode: string,
+): Promise<User | null> => {
   const result = await db
     .select()
     .from(users)
@@ -81,7 +93,10 @@ export const searchUsersByName = async (
   const searchPattern = `%${query}%`;
 
   const conditions = [
-    or(ilike(users.firstName, searchPattern), ilike(users.lastName, searchPattern)),
+    or(
+      ilike(users.firstName, searchPattern),
+      ilike(users.lastName, searchPattern),
+    ),
   ];
 
   if (excludeUserId) {
@@ -124,11 +139,15 @@ export const createUser = async (input: CreateUser): Promise<User> => {
   return dbUserToUser(newUser);
 };
 
-export const updateUser = async (userId: string, updates: UpdateUser): Promise<User | null> => {
+export const updateUser = async (
+  userId: string,
+  updates: UpdateUser,
+): Promise<User | null> => {
   const updateData: Partial<typeof users.$inferInsert> = {};
 
   if (updates.avatarUrl !== undefined) {
-    updateData.avatarUrl = updates.avatarUrl === null ? null : updates.avatarUrl;
+    updateData.avatarUrl =
+      updates.avatarUrl === null ? null : updates.avatarUrl;
   }
   if (updates.timezone !== undefined) {
     updateData.timezone = updates.timezone;
@@ -141,12 +160,19 @@ export const updateUser = async (userId: string, updates: UpdateUser): Promise<U
     return getUserById(userId);
   }
 
-  const [updated] = await db.update(users).set(updateData).where(eq(users.id, userId)).returning();
+  const [updated] = await db
+    .update(users)
+    .set(updateData)
+    .where(eq(users.id, userId))
+    .returning();
 
   return updated ? dbUserToUser(updated) : null;
 };
 
-export const updatePushToken = async (userId: string, pushToken: string): Promise<void> => {
+export const updatePushToken = async (
+  userId: string,
+  pushToken: string,
+): Promise<void> => {
   await db.update(users).set({ pushToken }).where(eq(users.id, userId));
 };
 
@@ -186,7 +212,10 @@ export const updateNotificationPreferences = async (
   const current = await getNotificationPreferences(userId);
   const merged = { ...current, ...updates };
 
-  await db.update(users).set({ notificationPreferences: merged }).where(eq(users.id, userId));
+  await db
+    .update(users)
+    .set({ notificationPreferences: merged })
+    .where(eq(users.id, userId));
 
   return merged;
 };
@@ -196,13 +225,18 @@ export const deleteUser = async (userId: string): Promise<void> => {
   await db.delete(users).where(eq(users.id, userId));
 };
 
-export const regenerateInviteCode = async (userId: string): Promise<string | null> => {
+export const regenerateInviteCode = async (
+  userId: string,
+): Promise<string | null> => {
   const user = await getUserById(userId);
   if (!user) return null;
 
   const newInviteCode = generateInviteCode();
 
-  await db.update(users).set({ inviteCode: newInviteCode }).where(eq(users.id, userId));
+  await db
+    .update(users)
+    .set({ inviteCode: newInviteCode })
+    .where(eq(users.id, userId));
 
   return newInviteCode;
 };

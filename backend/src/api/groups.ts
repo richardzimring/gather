@@ -1,6 +1,11 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import { createApp, authMiddleware } from '../middleware/hono';
-import { GroupSchema, CreateGroupSchema, UpdateGroupSchema, ErrorResponseSchema } from '../types';
+import {
+  GroupSchema,
+  CreateGroupSchema,
+  UpdateGroupSchema,
+  ErrorResponseSchema,
+} from '../types';
 import * as groupsService from '../services/groups';
 
 export const app = createApp();
@@ -132,7 +137,10 @@ const updateGroupRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      groupId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      groupId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
     body: {
       content: {
@@ -188,7 +196,10 @@ const deleteGroupRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      groupId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      groupId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {

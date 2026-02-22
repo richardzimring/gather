@@ -1,28 +1,28 @@
-import { useEffect, useState } from "react";
-import { Alert, AppState, Linking } from "react-native";
+import { useEffect, useState } from 'react';
+import { Alert, AppState, Linking } from 'react-native';
 import {
   Bell,
   Calendar,
   UserPlus,
   Users,
   AlertTriangle,
-} from "@tamagui/lucide-icons";
-import { router } from "expo-router";
-import { ScrollView, Text, XStack, YStack, Theme } from "tamagui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as Notifications from "expo-notifications";
+} from '@tamagui/lucide-icons';
+import { router } from 'expo-router';
+import { ScrollView, Text, XStack, YStack, Theme } from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Notifications from 'expo-notifications';
 
-import { Button } from "../../components/ui/Button";
-import { Toggle } from "../../components/ui/Toggle";
-import { Card } from "../../components/ui/Card";
-import { BackHeader } from "../../components/ui/ScreenHeader";
-import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
+import { Button } from '../../components/ui/Button';
+import { Toggle } from '../../components/ui/Toggle';
+import { Card } from '../../components/ui/Card';
+import { BackHeader } from '../../components/ui/ScreenHeader';
+import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton';
 import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
   registerPushTokenAsync,
-} from "../../lib/hooks";
-import { haptic } from "../../lib/haptics";
+} from '../../lib/hooks';
+import { haptic } from '../../lib/haptics';
 
 interface NotificationSettingProps {
   icon: React.ReactNode;
@@ -93,19 +93,19 @@ export default function NotificationSettingsScreen() {
 
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<
-    "granted" | "denied" | "undetermined"
-  >("undetermined");
+    'granted' | 'denied' | 'undetermined'
+  >('undetermined');
 
   const checkPermission = () => {
     Notifications.getPermissionsAsync().then(({ status }) => {
-      setPermissionStatus(status as "granted" | "denied" | "undetermined");
+      setPermissionStatus(status as 'granted' | 'denied' | 'undetermined');
     });
   };
 
   useEffect(() => {
     checkPermission();
-    const subscription = AppState.addEventListener("change", (nextState) => {
-      if (nextState === "active") {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
         checkPermission();
       }
     });
@@ -114,26 +114,29 @@ export default function NotificationSettingsScreen() {
 
   const handleToggle = (key: string) => async (value: boolean) => {
     if (value) {
-      if (permissionStatus === "undetermined") {
+      if (permissionStatus === 'undetermined') {
         const { status } = await Notifications.requestPermissionsAsync();
-        if (status === "granted") {
-          setPermissionStatus("granted");
+        if (status === 'granted') {
+          setPermissionStatus('granted');
           await registerPushTokenAsync().catch(console.error);
           haptic.selection();
           setPendingKey(key);
-          updatePreferences({ [key]: true }, { onSettled: () => setPendingKey(null) });
+          updatePreferences(
+            { [key]: true },
+            { onSettled: () => setPendingKey(null) },
+          );
         } else {
-          setPermissionStatus("denied");
+          setPermissionStatus('denied');
         }
         return;
       }
-      if (permissionStatus === "denied") {
+      if (permissionStatus === 'denied') {
         Alert.alert(
-          "Notifications Disabled",
-          "To receive notifications, enable them for Gather in iOS Settings.",
+          'Notifications Disabled',
+          'To receive notifications, enable them for Gather in iOS Settings.',
           [
-            { text: "Cancel", style: "cancel" },
-            { text: "Open Settings", onPress: () => Linking.openSettings() },
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
           ],
         );
         return;
@@ -141,7 +144,10 @@ export default function NotificationSettingsScreen() {
     }
     haptic.selection();
     setPendingKey(key);
-    updatePreferences({ [key]: value }, { onSettled: () => setPendingKey(null) });
+    updatePreferences(
+      { [key]: value },
+      { onSettled: () => setPendingKey(null) },
+    );
   };
 
   return (
@@ -157,7 +163,7 @@ export default function NotificationSettingsScreen() {
         <BackHeader title="Notifications" onBack={() => router.back()} />
 
         {/* Denied permission banner */}
-        {permissionStatus === "denied" && (
+        {permissionStatus === 'denied' && (
           <Theme name="Card">
             <Card marginBottom="$4">
               <XStack gap="$3" alignItems="center">
@@ -195,7 +201,7 @@ export default function NotificationSettingsScreen() {
         )}
 
         {/* Info Card */}
-        {permissionStatus !== "denied" && (
+        {permissionStatus !== 'denied' && (
           <Theme name="Card">
             <Card marginBottom="$4">
               <XStack gap="$3" alignItems="center">
@@ -271,16 +277,16 @@ export default function NotificationSettingsScreen() {
                   label="Event Invites"
                   description="Get notified when someone invites you to an event"
                   value={preferences?.eventInvites ?? true}
-                  onToggle={handleToggle("eventInvites")}
-                  disabled={pendingKey === "eventInvites"}
+                  onToggle={handleToggle('eventInvites')}
+                  disabled={pendingKey === 'eventInvites'}
                 />
                 <NotificationSetting
                   icon={<Calendar size={16} color="$colorMuted" />}
                   label="Event Updates"
                   description="Get notified about changes to events you're attending"
                   value={preferences?.eventUpdates ?? true}
-                  onToggle={handleToggle("eventUpdates")}
-                  disabled={pendingKey === "eventUpdates"}
+                  onToggle={handleToggle('eventUpdates')}
+                  disabled={pendingKey === 'eventUpdates'}
                 />
               </Card>
             </Theme>
@@ -301,16 +307,16 @@ export default function NotificationSettingsScreen() {
                   label="Friend Requests"
                   description="Get notified when someone sends you a friend request"
                   value={preferences?.friendRequests ?? true}
-                  onToggle={handleToggle("friendRequests")}
-                  disabled={pendingKey === "friendRequests"}
+                  onToggle={handleToggle('friendRequests')}
+                  disabled={pendingKey === 'friendRequests'}
                 />
                 <NotificationSetting
                   icon={<Users size={16} color="$colorMuted" />}
                   label="Group Invites"
                   description="Get notified when someone adds you to a group"
                   value={preferences?.groupInvites ?? true}
-                  onToggle={handleToggle("groupInvites")}
-                  disabled={pendingKey === "groupInvites"}
+                  onToggle={handleToggle('groupInvites')}
+                  disabled={pendingKey === 'groupInvites'}
                 />
               </Card>
             </Theme>

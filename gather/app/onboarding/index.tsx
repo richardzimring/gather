@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { router } from "expo-router";
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { router } from 'expo-router';
 import {
   Animated,
   Dimensions,
   Platform,
   KeyboardAvoidingView,
-} from "react-native";
-import * as Notifications from "expo-notifications";
-import { useQueryClient } from "@tanstack/react-query";
+} from 'react-native';
+import * as Notifications from 'expo-notifications';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Bell,
   Calendar,
@@ -20,7 +20,7 @@ import {
   Lock,
   MapPin,
   UserPlus,
-} from "@tamagui/lucide-icons";
+} from '@tamagui/lucide-icons';
 import {
   Circle,
   H1,
@@ -31,33 +31,33 @@ import {
   Theme,
   XStack,
   YStack,
-} from "tamagui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+} from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from "../../components/ui/Button";
-import { GradientBackground } from "../../components/ui/GradientBackground";
-import { Card } from "../../components/ui/Card";
-import { BlockedWindowsCard } from "../../components/ui/BlockedWindowsCard";
-import { CalendarProviderIcon } from "../../components/ui/CalendarProviderIcon";
-import { Spinner } from "../../components/ui/Spinner";
-import { useAuth } from "../../lib/hooks/useAuth";
+import { Button } from '../../components/ui/Button';
+import { GradientBackground } from '../../components/ui/GradientBackground';
+import { Card } from '../../components/ui/Card';
+import { BlockedWindowsCard } from '../../components/ui/BlockedWindowsCard';
+import { CalendarProviderIcon } from '../../components/ui/CalendarProviderIcon';
+import { Spinner } from '../../components/ui/Spinner';
+import { useAuth } from '../../lib/hooks/useAuth';
 import {
   useSendFriendRequest,
   useCalendarConnections,
   calendarConnectionKeys,
   useBlockedWindows,
   registerPushTokenAsync,
-} from "../../lib/hooks";
+} from '../../lib/hooks';
 import {
   connectGoogleCalendar,
   GoogleAuthCancelledError,
-} from "../../lib/services/googleAuth";
+} from '../../lib/services/googleAuth';
 import {
   connectOutlookCalendar,
   OutlookAuthCancelledError,
-} from "../../lib/services/outlookAuth";
-import { putUsersMeNotificationPreferences } from "../../lib/api/generated";
-import { haptic } from "../../lib/haptics";
+} from '../../lib/services/outlookAuth';
+import { putUsersMeNotificationPreferences } from '../../lib/api/generated';
+import { haptic } from '../../lib/haptics';
 
 const TOTAL_STEPS = 6;
 
@@ -72,7 +72,7 @@ function ProgressDots({ current, total }: { current: number; total: number }) {
         <Circle
           key={i}
           size={i === current ? 8 : 6}
-          backgroundColor={i === current ? "$primary" : "$colorMuted"}
+          backgroundColor={i === current ? '$primary' : '$colorMuted'}
           opacity={i === current ? 1 : i < current ? 0.5 : 0.2}
           animation="quick"
         />
@@ -119,7 +119,7 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
     ]).start();
   }, [fadeAnim, slideAnim, slide2Anim, slide3Anim]);
 
-  const firstName = user?.firstName || "there";
+  const firstName = user?.firstName || 'there';
 
   return (
     <YStack
@@ -134,7 +134,7 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
         style={{
           opacity: fadeAnim,
           transform: [{ translateY: slideAnim }],
-          alignItems: "center",
+          alignItems: 'center',
         }}
       >
         <H1
@@ -147,7 +147,10 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
           Hey, {firstName}.
         </H1>
         <Animated.View
-          style={{ opacity: fadeAnim, transform: [{ translateY: slide2Anim }] }}
+          style={{
+            opacity: fadeAnim,
+            transform: [{ translateY: slide2Anim }],
+          }}
         >
           <Text
             color="$colorMuted"
@@ -165,7 +168,7 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
         style={{
           opacity: fadeAnim,
           transform: [{ translateY: slide3Anim }],
-          width: "100%",
+          width: '100%',
           paddingHorizontal: 8,
         }}
       >
@@ -211,7 +214,7 @@ function HowItWorksStep({ onNext }: { onNext: () => void }) {
   const points = [
     {
       icon: <Eye size={20} color="$primary" />,
-      text: "Friends can only see your availability, not your full calendar and event details. ",
+      text: 'Friends can only see your availability, not your full calendar and event details. ',
     },
     {
       icon: <Calendar size={20} color="$primary" />,
@@ -231,8 +234,8 @@ function HowItWorksStep({ onNext }: { onNext: () => void }) {
         style={{
           opacity: fadeAnim,
           transform: [{ translateY: slideAnim }],
-          alignItems: "center",
-          width: "100%",
+          alignItems: 'center',
+          width: '100%',
         }}
       >
         <XStack alignItems="center" gap="$2" marginBottom="$2">
@@ -280,7 +283,7 @@ function HowItWorksStep({ onNext }: { onNext: () => void }) {
       </Animated.View>
 
       <Animated.View
-        style={{ opacity: fadeAnim, width: "100%", paddingHorizontal: 8 }}
+        style={{ opacity: fadeAnim, width: '100%', paddingHorizontal: 8 }}
       >
         <Button
           variant="primary"
@@ -309,20 +312,20 @@ function ConnectCalendarStep({ onNext }: { onNext: () => void }) {
   const [isConnectingOutlook, setIsConnectingOutlook] = useState(false);
 
   const hasAppleConnection = connections?.some(
-    (c) => c.provider === "apple" && c.importEnabled,
+    (c) => c.provider === 'apple' && c.importEnabled,
   );
   const hasGoogleConnection = connections?.some(
-    (c) => c.provider === "google" && c.importEnabled,
+    (c) => c.provider === 'google' && c.importEnabled,
   );
   const hasOutlookConnection = connections?.some(
-    (c) => c.provider === "outlook" && c.importEnabled,
+    (c) => c.provider === 'outlook' && c.importEnabled,
   );
 
   const handleApple = () => {
     haptic.light();
     router.push({
-      pathname: "/calendars/[provider]",
-      params: { provider: "apple" },
+      pathname: '/calendars/[provider]',
+      params: { provider: 'apple' },
     });
   };
 
@@ -362,22 +365,22 @@ function ConnectCalendarStep({ onNext }: { onNext: () => void }) {
 
   const providers = [
     {
-      id: "apple" as const,
-      name: "Apple Calendar",
+      id: 'apple' as const,
+      name: 'Apple Calendar',
       isConnected: !!hasAppleConnection,
       isConnecting: false,
       onPress: handleApple,
     },
     {
-      id: "google" as const,
-      name: "Google Calendar",
+      id: 'google' as const,
+      name: 'Google Calendar',
       isConnected: !!hasGoogleConnection,
       isConnecting: isConnectingGoogle,
       onPress: handleGoogle,
     },
     {
-      id: "outlook" as const,
-      name: "Outlook",
+      id: 'outlook' as const,
+      name: 'Outlook',
       isConnected: !!hasOutlookConnection,
       isConnecting: isConnectingOutlook,
       onPress: handleOutlook,
@@ -390,7 +393,7 @@ function ConnectCalendarStep({ onNext }: { onNext: () => void }) {
   return (
     <YStack flex={1} paddingHorizontal="$5">
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
         showsVerticalScrollIndicator={false}
       >
         <YStack alignItems="center" gap="$5">
@@ -484,7 +487,7 @@ function ConnectCalendarStep({ onNext }: { onNext: () => void }) {
                         color="$color"
                       >
                         {provider.isConnecting
-                          ? "Connecting..."
+                          ? 'Connecting...'
                           : provider.name}
                       </Text>
 
@@ -532,7 +535,7 @@ function ConnectCalendarStep({ onNext }: { onNext: () => void }) {
             onNext();
           }}
         >
-          {anyConnected ? "Skip for now" : "I'll do this later"}
+          {anyConnected ? 'Skip for now' : "I'll do this later"}
         </Button>
       </YStack>
     </YStack>
@@ -549,7 +552,7 @@ function BlockedTimesStep({ onNext }: { onNext: () => void }) {
   return (
     <YStack flex={1} paddingHorizontal="$5">
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
         showsVerticalScrollIndicator={false}
       >
         <YStack alignItems="center" gap="$5">
@@ -595,7 +598,7 @@ function BlockedTimesStep({ onNext }: { onNext: () => void }) {
             onNext();
           }}
         >
-          {windows && windows.length > 0 ? "Continue" : "Skip for now"}
+          {windows && windows.length > 0 ? 'Continue' : 'Skip for now'}
         </Button>
       </YStack>
     </YStack>
@@ -608,14 +611,14 @@ function BlockedTimesStep({ onNext }: { onNext: () => void }) {
 
 function InviteFriendsStep({ onNext }: { onNext: () => void }) {
   const sendFriendRequest = useSendFriendRequest();
-  const [friendCode, setFriendCode] = useState("");
+  const [friendCode, setFriendCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [requestSent, setRequestSent] = useState(false);
 
   const handleSendRequest = async () => {
     const cleanCode = friendCode.trim().toUpperCase();
     if (!cleanCode || cleanCode.length < 6) {
-      setError("Invalid invite code");
+      setError('Invalid invite code');
       return;
     }
     setError(null);
@@ -623,7 +626,7 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
       await sendFriendRequest.mutateAsync({ inviteCode: cleanCode });
       haptic.success();
       setRequestSent(true);
-      setFriendCode("");
+      setFriendCode('');
     } catch {
       haptic.error();
       setError("Couldn't find that code. Double-check it and try again.");
@@ -633,7 +636,7 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
   return (
     <YStack flex={1} paddingHorizontal="$5">
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -681,7 +684,7 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
                   autoCapitalize="characters"
                   autoCorrect={false}
                   backgroundColor="$backgroundHover"
-                  borderColor={error ? "$destructive" : "$borderColor"}
+                  borderColor={error ? '$destructive' : '$borderColor'}
                   borderWidth={1}
                   borderRadius="$2"
                   paddingHorizontal="$3"
@@ -735,7 +738,7 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
             onNext();
           }}
         >
-          {requestSent ? "Continue" : "Skip for now"}
+          {requestSent ? 'Continue' : 'Skip for now'}
         </Button>
       </YStack>
     </YStack>
@@ -748,21 +751,21 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
 
 function NotificationsStep({ onComplete }: { onComplete: () => void }) {
   const [permissionStatus, setPermissionStatus] = useState<
-    "undetermined" | "granted" | "denied"
-  >("undetermined");
+    'undetermined' | 'granted' | 'denied'
+  >('undetermined');
 
   useEffect(() => {
     Notifications.getPermissionsAsync().then(({ status }) => {
-      if (status === "granted") {
-        setPermissionStatus("granted");
+      if (status === 'granted') {
+        setPermissionStatus('granted');
       }
     });
   }, []);
 
   const handleEnableNotifications = async () => {
     const { status } = await Notifications.requestPermissionsAsync();
-    setPermissionStatus(status === "granted" ? "granted" : "denied");
-    if (status === "granted") {
+    setPermissionStatus(status === 'granted' ? 'granted' : 'denied');
+    if (status === 'granted') {
       registerPushTokenAsync().catch(console.error);
       haptic.success();
     }
@@ -771,13 +774,13 @@ function NotificationsStep({ onComplete }: { onComplete: () => void }) {
   const mockPreviews = [
     {
       icon: <Calendar size={18} color="$primary" />,
-      title: "Sarah invited you to Coffee",
-      subtitle: "Tomorrow at 10:00 AM",
+      title: 'Sarah invited you to Coffee',
+      subtitle: 'Tomorrow at 10:00 AM',
     },
     {
       icon: <MapPin size={18} color="$primary" />,
-      title: "Alex wants to grab dinner",
-      subtitle: "Friday at 7:30 PM",
+      title: 'Alex wants to grab dinner',
+      subtitle: 'Friday at 7:30 PM',
     },
   ];
 
@@ -841,7 +844,7 @@ function NotificationsStep({ onComplete }: { onComplete: () => void }) {
 
       {/* Action */}
       <YStack width="100%" gap="$3" paddingHorizontal={8}>
-        {permissionStatus === "granted" ? (
+        {permissionStatus === 'granted' ? (
           <Button
             variant="primary"
             buttonSize="lg"
@@ -897,7 +900,7 @@ function NotificationsStep({ onComplete }: { onComplete: () => void }) {
 // Main Onboarding Screen
 // ============================================
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
@@ -949,7 +952,7 @@ export default function OnboardingScreen() {
   }, [currentStep, animateTransition]);
 
   const handleComplete = useCallback(() => {
-    router.replace("/(tabs)");
+    router.replace('/(tabs)');
   }, []);
 
   const renderStep = () => {
@@ -974,7 +977,7 @@ export default function OnboardingScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <YStack flex={1} backgroundColor="$background">
         {/* Full-screen gradient — sits behind everything */}

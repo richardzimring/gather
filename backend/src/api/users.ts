@@ -411,7 +411,9 @@ app.openapi(getNotificationPreferencesRoute, async (c) => {
   const user = c.get('user');
 
   try {
-    const preferences = await userService.getNotificationPreferences(user.userId);
+    const preferences = await userService.getNotificationPreferences(
+      user.userId,
+    );
     return c.json(
       {
         success: true as const,
@@ -437,7 +439,10 @@ app.openapi(updateNotificationPreferencesRoute, async (c) => {
   const updates = c.req.valid('json');
 
   try {
-    const preferences = await userService.updateNotificationPreferences(user.userId, updates);
+    const preferences = await userService.updateNotificationPreferences(
+      user.userId,
+      updates,
+    );
     return c.json(
       {
         success: true as const,

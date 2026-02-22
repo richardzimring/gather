@@ -1,4 +1,4 @@
-import { styled, YStack, GetProps } from 'tamagui'
+import { styled, YStack, GetProps } from 'tamagui';
 
 /**
  * Card component with themed styling.
@@ -62,6 +62,6 @@ export const Card = styled(YStack, {
   defaultVariants: {
     cardSize: 'md',
   },
-})
+});
 
-export type CardProps = GetProps<typeof Card>
+export type CardProps = GetProps<typeof Card>;

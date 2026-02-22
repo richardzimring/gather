@@ -9,7 +9,7 @@ import { postEmojiGenerate } from '../api/client';
 export function useGenerateEmoji(text: string) {
   const [emoji, setEmoji] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Client-side cache to avoid redundant API calls
   const cacheRef = useRef<Map<string, string>>(new Map());
 

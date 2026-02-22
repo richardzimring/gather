@@ -1,4 +1,7 @@
-import Expo, { type ExpoPushMessage, type ExpoPushTicket } from 'expo-server-sdk';
+import Expo, {
+  type ExpoPushMessage,
+  type ExpoPushTicket,
+} from 'expo-server-sdk';
 import { eq } from 'drizzle-orm';
 import { db, users } from '../db';
 import type { Event } from '../types';
@@ -24,16 +27,17 @@ export type NotificationType =
   | 'counter_proposal';
 
 // Map notification types to preference keys
-const NOTIFICATION_TYPE_TO_PREFERENCE: Record<NotificationType, string | null> = {
-  friend_request: 'friendRequests',
-  friend_accepted: 'friendRequests',
-  event_invitation: 'eventInvites',
-  event_response: 'eventUpdates',
-  event_updated: 'eventUpdates',
-  event_cancelled: 'eventUpdates',
-  event_reminder: 'eventUpdates',
-  counter_proposal: 'eventUpdates',
-};
+const NOTIFICATION_TYPE_TO_PREFERENCE: Record<NotificationType, string | null> =
+  {
+    friend_request: 'friendRequests',
+    friend_accepted: 'friendRequests',
+    event_invitation: 'eventInvites',
+    event_response: 'eventUpdates',
+    event_updated: 'eventUpdates',
+    event_cancelled: 'eventUpdates',
+    event_reminder: 'eventUpdates',
+    counter_proposal: 'eventUpdates',
+  };
 
 interface NotificationPayload {
   type: NotificationType;
@@ -53,7 +57,10 @@ export const sendPushNotification = async (
   try {
     // Get user's push token and notification preferences
     const result = await db
-      .select({ pushToken: users.pushToken, notificationPreferences: users.notificationPreferences })
+      .select({
+        pushToken: users.pushToken,
+        notificationPreferences: users.notificationPreferences,
+      })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
@@ -76,7 +83,9 @@ export const sendPushNotification = async (
     }
 
     if (!Expo.isExpoPushToken(user.pushToken)) {
-      console.error(`Push token for user ${userId} is not a valid Expo push token`);
+      console.error(
+        `Push token for user ${userId} is not a valid Expo push token`,
+      );
       return;
     }
 
@@ -136,7 +145,9 @@ export const sendPushNotifications = async (
       }
 
       if (!Expo.isExpoPushToken(user.pushToken)) {
-        console.error(`Push token for user ${user.id} is not a valid Expo push token`);
+        console.error(
+          `Push token for user ${user.id} is not a valid Expo push token`,
+        );
         continue;
       }
 
@@ -157,7 +168,10 @@ export const sendPushNotifications = async (
 
     for (const chunk of chunks) {
       const tickets = await expo.sendPushNotificationsAsync(chunk);
-      const chunkUserIds = messageUserIds.slice(ticketIndex, ticketIndex + chunk.length);
+      const chunkUserIds = messageUserIds.slice(
+        ticketIndex,
+        ticketIndex + chunk.length,
+      );
       await handlePushTickets(tickets, chunkUserIds);
       ticketIndex += chunk.length;
     }
@@ -181,7 +195,10 @@ const handlePushTickets = async (
     if (!ticket || !userId) continue;
 
     if (ticket.status === 'error') {
-      console.error(`Push notification error for user ${userId}:`, ticket.message);
+      console.error(
+        `Push notification error for user ${userId}:`,
+        ticket.message,
+      );
 
       // If the device is not registered, clear the push token
       if (ticket.details?.error === 'DeviceNotRegistered') {
@@ -283,7 +300,10 @@ export const notifyEventUpdated = async (
   });
 };
 
-export const notifyEventCancelled = async (inviteeIds: string[], event: Event): Promise<void> => {
+export const notifyEventCancelled = async (
+  inviteeIds: string[],
+  event: Event,
+): Promise<void> => {
   await sendPushNotifications(inviteeIds, {
     type: 'event_cancelled',
     title: 'Event Cancelled',

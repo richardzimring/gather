@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react'
-import type { UseQueryResult } from '@tanstack/react-query'
+import { useCallback, useMemo } from 'react';
+import type { UseQueryResult } from '@tanstack/react-query';
 
 /**
  * Combines multiple React Query results into a single refresh handler for pull-to-refresh.
@@ -18,13 +18,13 @@ export function useRefresh(...queries: UseQueryResult<any, any>[]) {
   const isRefreshing = useMemo(
     () => queries.some((q) => q.isRefetching),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [queries.map((q) => q.isRefetching).join(',')]
-  )
+    [queries.map((q) => q.isRefetching).join(',')],
+  );
 
   const onRefresh = useCallback(() => {
-    queries.forEach((q) => q.refetch())
+    queries.forEach((q) => q.refetch());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queries.length])
+  }, [queries.length]);
 
-  return { isRefreshing, onRefresh }
+  return { isRefreshing, onRefresh };
 }

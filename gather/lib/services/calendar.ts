@@ -1,16 +1,16 @@
-import * as Calendar from 'expo-calendar'
-import { Platform } from 'react-native'
+import * as Calendar from 'expo-calendar';
+import { Platform } from 'react-native';
 
-import type { Event } from '../api/client'
+import type { Event } from '../api/client';
 
 export interface CalendarEvent {
-  id: string
-  title: string
-  startDate: Date
-  endDate: Date
-  location?: string
-  notes?: string
-  calendarId: string
+  id: string;
+  title: string;
+  startDate: Date;
+  endDate: Date;
+  location?: string;
+  notes?: string;
+  calendarId: string;
 }
 
 /**
@@ -18,16 +18,16 @@ export interface CalendarEvent {
  * Returns true if granted, false otherwise.
  */
 export async function requestCalendarPermissions(): Promise<boolean> {
-  const { status } = await Calendar.requestCalendarPermissionsAsync()
-  return status === 'granted'
+  const { status } = await Calendar.requestCalendarPermissionsAsync();
+  return status === 'granted';
 }
 
 /**
  * Check if we have calendar permissions.
  */
 export async function hasCalendarPermissions(): Promise<boolean> {
-  const { status } = await Calendar.getCalendarPermissionsAsync()
-  return status === 'granted'
+  const { status } = await Calendar.getCalendarPermissionsAsync();
+  return status === 'granted';
 }
 
 /**
@@ -35,37 +35,41 @@ export async function hasCalendarPermissions(): Promise<boolean> {
  * On iOS, this gets the default calendar for new events.
  */
 export async function getDefaultCalendar(): Promise<string | null> {
-  const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)
+  const calendars = await Calendar.getCalendarsAsync(
+    Calendar.EntityTypes.EVENT,
+  );
 
   if (Platform.OS === 'ios') {
     // Try to find the default calendar
     const defaultCalendar = calendars.find(
-      (cal) => cal.allowsModifications && cal.source.type === 'local'
-    )
-    if (defaultCalendar) return defaultCalendar.id
+      (cal) => cal.allowsModifications && cal.source.type === 'local',
+    );
+    if (defaultCalendar) return defaultCalendar.id;
 
     // Fall back to any modifiable calendar
-    const modifiableCalendar = calendars.find((cal) => cal.allowsModifications)
-    return modifiableCalendar?.id ?? null
+    const modifiableCalendar = calendars.find((cal) => cal.allowsModifications);
+    return modifiableCalendar?.id ?? null;
   }
 
   // For other platforms
-  const modifiableCalendar = calendars.find((cal) => cal.allowsModifications)
-  return modifiableCalendar?.id ?? null
+  const modifiableCalendar = calendars.find((cal) => cal.allowsModifications);
+  return modifiableCalendar?.id ?? null;
 }
 
 /**
  * Get all calendars available on the device.
  */
 export async function getCalendars() {
-  const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)
+  const calendars = await Calendar.getCalendarsAsync(
+    Calendar.EntityTypes.EVENT,
+  );
   return calendars.map((cal) => ({
     id: cal.id,
     title: cal.title,
     color: cal.color,
     allowsModifications: cal.allowsModifications,
     source: cal.source.name,
-  }))
+  }));
 }
 
 /**
@@ -74,14 +78,16 @@ export async function getCalendars() {
  */
 export async function getAllEvents(
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): Promise<CalendarEvent[]> {
-  const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)
-  const calendarIds = calendars.map((cal) => cal.id)
+  const calendars = await Calendar.getCalendarsAsync(
+    Calendar.EntityTypes.EVENT,
+  );
+  const calendarIds = calendars.map((cal) => cal.id);
 
-  if (calendarIds.length === 0) return []
+  if (calendarIds.length === 0) return [];
 
-  const events = await Calendar.getEventsAsync(calendarIds, startDate, endDate)
+  const events = await Calendar.getEventsAsync(calendarIds, startDate, endDate);
 
   return events.map((event) => ({
     id: event.id,
@@ -91,7 +97,7 @@ export async function getAllEvents(
     location: event.location ?? undefined,
     notes: event.notes ?? undefined,
     calendarId: event.calendarId,
-  }))
+  }));
 }
 
 /**
@@ -100,13 +106,13 @@ export async function getAllEvents(
  */
 export async function exportEventToCalendar(
   gatherEvent: Event,
-  calendarId?: string
+  calendarId?: string,
 ): Promise<string | null> {
   try {
-    const targetCalendarId = calendarId ?? (await getDefaultCalendar())
+    const targetCalendarId = calendarId ?? (await getDefaultCalendar());
     if (!targetCalendarId) {
-      console.error('No calendar available for creating events')
-      return null
+      console.error('No calendar available for creating events');
+      return null;
     }
 
     const eventId = await Calendar.createEventAsync(targetCalendarId, {
@@ -118,12 +124,11 @@ export async function exportEventToCalendar(
         ? `${gatherEvent.notes}\n\nCreated with Gather`
         : 'Created with Gather',
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    })
+    });
 
-    return eventId
+    return eventId;
   } catch (error) {
-    console.error('Failed to export event to calendar:', error)
-    return null
+    console.error('Failed to export event to calendar:', error);
+    return null;
   }
 }
-

@@ -291,7 +291,10 @@ const acceptFriendRequestRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      friendId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      friendId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
@@ -339,7 +342,10 @@ const declineFriendRequestRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      friendId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      friendId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
@@ -387,7 +393,10 @@ const blockUserRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      friendId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      friendId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
@@ -435,7 +444,10 @@ const removeFriendRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      friendId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      friendId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
@@ -600,7 +612,11 @@ app.openapi(sendFriendRequestRoute, async (c) => {
   const { friendUserId, inviteCode } = c.req.valid('json');
 
   try {
-    const result = await friendsService.sendFriendRequest(user.userId, friendUserId, inviteCode);
+    const result = await friendsService.sendFriendRequest(
+      user.userId,
+      friendUserId,
+      inviteCode,
+    );
 
     if (!result.success || !result.friendship) {
       return c.json(
@@ -639,7 +655,10 @@ app.openapi(acceptFriendRequestRoute, async (c) => {
   const { friendId } = c.req.valid('param');
 
   try {
-    const result = await friendsService.acceptFriendRequest(user.userId, friendId);
+    const result = await friendsService.acceptFriendRequest(
+      user.userId,
+      friendId,
+    );
     if (!result.success || !result.friendship) {
       return c.json(
         {
@@ -677,7 +696,10 @@ app.openapi(declineFriendRequestRoute, async (c) => {
   const { friendId } = c.req.valid('param');
 
   try {
-    const result = await friendsService.declineFriendRequest(user.userId, friendId);
+    const result = await friendsService.declineFriendRequest(
+      user.userId,
+      friendId,
+    );
     if (!result.success) {
       return c.json(
         {

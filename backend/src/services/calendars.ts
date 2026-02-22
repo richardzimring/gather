@@ -33,7 +33,9 @@ const dbConnectionToCalendarConnection = (
 // Calendar Connection Operations
 // ============================================
 
-export const getCalendarConnections = async (userId: string): Promise<CalendarConnection[]> => {
+export const getCalendarConnections = async (
+  userId: string,
+): Promise<CalendarConnection[]> => {
   const connections = await db
     .select()
     .from(calendarConnections)
@@ -50,7 +52,12 @@ export const getCalendarConnection = async (
   const [connection] = await db
     .select()
     .from(calendarConnections)
-    .where(and(eq(calendarConnections.id, connectionId), eq(calendarConnections.userId, userId)))
+    .where(
+      and(
+        eq(calendarConnections.id, connectionId),
+        eq(calendarConnections.userId, userId),
+      ),
+    )
     .limit(1);
 
   return connection ? dbConnectionToCalendarConnection(connection) : null;
@@ -72,7 +79,9 @@ export const createCalendarConnection = async (
       exportEnabled: input.exportEnabled ?? false,
       accessToken: input.accessToken,
       refreshToken: input.refreshToken,
-      tokenExpiresAt: input.tokenExpiresAt ? new Date(input.tokenExpiresAt) : null,
+      tokenExpiresAt: input.tokenExpiresAt
+        ? new Date(input.tokenExpiresAt)
+        : null,
     })
     .returning();
 
@@ -135,7 +144,9 @@ export const deleteCalendarConnection = async (
     return { success: false, message: 'Calendar connection not found' };
   }
 
-  await db.delete(calendarConnections).where(eq(calendarConnections.id, connectionId));
+  await db
+    .delete(calendarConnections)
+    .where(eq(calendarConnections.id, connectionId));
 
   return { success: true };
 };
@@ -152,7 +163,12 @@ export const deleteProviderConnections = async (
   const existing = await db
     .select()
     .from(calendarConnections)
-    .where(and(eq(calendarConnections.userId, userId), eq(calendarConnections.provider, provider)));
+    .where(
+      and(
+        eq(calendarConnections.userId, userId),
+        eq(calendarConnections.provider, provider),
+      ),
+    );
 
   if (existing.length === 0) {
     return { success: true, deletedCount: 0 };
@@ -160,7 +176,12 @@ export const deleteProviderConnections = async (
 
   await db
     .delete(calendarConnections)
-    .where(and(eq(calendarConnections.userId, userId), eq(calendarConnections.provider, provider)));
+    .where(
+      and(
+        eq(calendarConnections.userId, userId),
+        eq(calendarConnections.provider, provider),
+      ),
+    );
 
   return { success: true, deletedCount: existing.length };
 };
@@ -175,7 +196,9 @@ export const syncCalendarEvents = async (
   }[],
 ): Promise<void> => {
   // Delete existing cached events for this connection
-  await db.delete(calendarEventsCache).where(eq(calendarEventsCache.connectionId, connectionId));
+  await db
+    .delete(calendarEventsCache)
+    .where(eq(calendarEventsCache.connectionId, connectionId));
 
   if (events.length > 0) {
     await db
@@ -219,9 +242,16 @@ export const syncCalendarsForUser = async (
   const existingConnections = await db
     .select()
     .from(calendarConnections)
-    .where(and(eq(calendarConnections.userId, userId), eq(calendarConnections.provider, provider)));
+    .where(
+      and(
+        eq(calendarConnections.userId, userId),
+        eq(calendarConnections.provider, provider),
+      ),
+    );
 
-  const existingByExternalId = new Map(existingConnections.map((c) => [c.externalCalendarId, c]));
+  const existingByExternalId = new Map(
+    existingConnections.map((c) => [c.externalCalendarId, c]),
+  );
 
   // 2. Upsert each calendar and sync its events
   const connectionIds: string[] = [];
@@ -257,7 +287,9 @@ export const syncCalendarsForUser = async (
         .returning();
 
       if (!newConn) {
-        throw new Error(`Failed to create calendar connection for ${cal.calendarName}`);
+        throw new Error(
+          `Failed to create calendar connection for ${cal.calendarName}`,
+        );
       }
       connectionId = newConn.id;
     }
@@ -508,7 +540,12 @@ export const getValidProviderAccessToken = async (
   const [connection] = await db
     .select()
     .from(calendarConnections)
-    .where(and(eq(calendarConnections.userId, userId), eq(calendarConnections.provider, provider)))
+    .where(
+      and(
+        eq(calendarConnections.userId, userId),
+        eq(calendarConnections.provider, provider),
+      ),
+    )
     .limit(1);
 
   if (!connection) return null;
@@ -528,10 +565,17 @@ export const selectProviderCalendars = async (
   const userConnections = await db
     .select()
     .from(calendarConnections)
-    .where(and(eq(calendarConnections.userId, userId), eq(calendarConnections.provider, provider)));
+    .where(
+      and(
+        eq(calendarConnections.userId, userId),
+        eq(calendarConnections.provider, provider),
+      ),
+    );
 
   for (const connection of userConnections) {
-    const shouldImport = selectedCalendarIds.includes(connection.externalCalendarId);
+    const shouldImport = selectedCalendarIds.includes(
+      connection.externalCalendarId,
+    );
     if (connection.importEnabled !== shouldImport) {
       await db
         .update(calendarConnections)

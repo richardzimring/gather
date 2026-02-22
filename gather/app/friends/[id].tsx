@@ -4,9 +4,9 @@ import {
   MoreHorizontal,
   ShieldBan,
   UserMinus,
-} from "@tamagui/lucide-icons";
-import { router, useLocalSearchParams } from "expo-router";
-import { Alert, Linking } from "react-native";
+} from '@tamagui/lucide-icons';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Alert, Linking } from 'react-native';
 import {
   Circle,
   H1,
@@ -16,30 +16,30 @@ import {
   XStack,
   YStack,
   Sheet,
-} from "tamagui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useMemo, useState } from "react";
+} from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useMemo, useState } from 'react';
 
-import { Button } from "../../components/ui/Button";
-import { Card } from "../../components/ui/Card";
-import { BackHeader } from "../../components/ui/ScreenHeader";
-import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { BackHeader } from '../../components/ui/ScreenHeader';
+import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton';
 import {
   useFriends,
   useRemoveFriend,
   useBlockFriend,
   useEvents,
-} from "../../lib/hooks";
+} from '../../lib/hooks';
 
 /**
  * Format date for display
  */
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
   });
 }
 
@@ -48,9 +48,9 @@ function formatDate(dateString: string): string {
  */
 function formatTime(dateString: string): string {
   const date = new Date(dateString);
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
   });
 }
 
@@ -76,19 +76,19 @@ export default function FriendProfileScreen() {
     return events.filter(
       (event) =>
         event.invitees.some((i) => i.userId === id) &&
-        event.status !== "cancelled"
+        event.status !== 'cancelled',
     );
   }, [events, id]);
 
   const handleRemoveFriend = () => {
     Alert.alert(
-      "Remove Friend",
-      "Are you sure you want to remove this friend? This action cannot be undone.",
+      'Remove Friend',
+      'Are you sure you want to remove this friend? This action cannot be undone.',
       [
-        { text: "Cancel", style: "cancel" },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: "Remove",
-          style: "destructive",
+          text: 'Remove',
+          style: 'destructive',
           onPress: async () => {
             if (!id) return;
             setShowActionSheet(false); // Close sheet to show loading feedback
@@ -96,31 +96,31 @@ export default function FriendProfileScreen() {
               await removeFriend.mutateAsync(id);
               router.back();
             } catch (err) {
-              console.error("Failed to remove friend:", err);
+              console.error('Failed to remove friend:', err);
             }
           },
         },
-      ]
+      ],
     );
   };
 
   const handleInviteToEvent = () => {
     setShowActionSheet(false);
     router.push({
-      pathname: "/(tabs)/plan",
+      pathname: '/(tabs)/plan',
       params: { selectedFriendIds: id },
     });
   };
 
   const handleBlockUser = () => {
     Alert.alert(
-      "Block User",
-      "Are you sure you want to block this user? They will no longer be able to see your profile or invite you to events.",
+      'Block User',
+      'Are you sure you want to block this user? They will no longer be able to see your profile or invite you to events.',
       [
-        { text: "Cancel", style: "cancel" },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: "Block",
-          style: "destructive",
+          text: 'Block',
+          style: 'destructive',
           onPress: async () => {
             if (!id) return;
             setShowActionSheet(false);
@@ -128,35 +128,37 @@ export default function FriendProfileScreen() {
               await blockFriend.mutateAsync(id);
               router.back();
             } catch (err) {
-              console.error("Failed to block user:", err);
-              Alert.alert("Error", "Failed to block user. Please try again.");
+              console.error('Failed to block user:', err);
+              Alert.alert('Error', 'Failed to block user. Please try again.');
             }
           },
         },
-      ]
+      ],
     );
   };
 
   const handleReportUser = () => {
     setShowActionSheet(false);
-    const displayName = friend?.friend.fullName ?? "this user";
+    const displayName = friend?.friend.fullName ?? 'this user';
     Alert.alert(
-      "Report User",
+      'Report User',
       `Report ${displayName} for inappropriate behavior? This will send a report to our team for review.`,
       [
-        { text: "Cancel", style: "cancel" },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: "Report",
-          style: "destructive",
+          text: 'Report',
+          style: 'destructive',
           onPress: () => {
             const subject = encodeURIComponent(`Report User: ${displayName}`);
             const body = encodeURIComponent(
-              `I would like to report the user "${displayName}" (ID: ${id}) for the following reason:\n\n[Please describe the issue here]`
+              `I would like to report the user "${displayName}" (ID: ${id}) for the following reason:\n\n[Please describe the issue here]`,
             );
-            Linking.openURL(`mailto:support@gather.app?subject=${subject}&body=${body}`);
+            Linking.openURL(
+              `mailto:support@gather.app?subject=${subject}&body=${body}`,
+            );
           },
         },
-      ]
+      ],
     );
   };
 
@@ -319,12 +321,12 @@ export default function FriendProfileScreen() {
                   >
                     <XStack alignItems="center" gap="$3">
                       <Circle size={44} backgroundColor="$backgroundHover">
-                        <Text fontSize={20}>{event.emoji ?? "📅"}</Text>
+                        <Text fontSize={20}>{event.emoji ?? '📅'}</Text>
                       </Circle>
                       <YStack flex={1}>
                         <Text fontWeight="600">{event.title}</Text>
                         <Text color="$colorMuted" fontSize={13}>
-                          {formatDate(event.startTime)} at{" "}
+                          {formatDate(event.startTime)} at{' '}
                           {formatTime(event.startTime)}
                         </Text>
                       </YStack>
@@ -359,9 +361,7 @@ export default function FriendProfileScreen() {
             <Button
               variant="destructive"
               fullWidth
-              icon={
-                <UserMinus size={16} color="$destructiveForeground" />
-              }
+              icon={<UserMinus size={16} color="$destructiveForeground" />}
               onPress={handleRemoveFriend}
               loading={removeFriend.isPending}
               loadingText="Removing..."
@@ -371,9 +371,7 @@ export default function FriendProfileScreen() {
             <Button
               variant="destructive"
               fullWidth
-              icon={
-                <ShieldBan size={16} color="$destructiveForeground" />
-              }
+              icon={<ShieldBan size={16} color="$destructiveForeground" />}
               onPress={handleBlockUser}
               loading={blockFriend.isPending}
               loadingText="Blocking..."
@@ -383,9 +381,7 @@ export default function FriendProfileScreen() {
             <Button
               variant="destructive"
               fullWidth
-              icon={
-                <AlertTriangle size={16} color="$destructiveForeground" />
-              }
+              icon={<AlertTriangle size={16} color="$destructiveForeground" />}
               onPress={handleReportUser}
             >
               Report User

@@ -1,5 +1,10 @@
 import { Client } from '@microsoft/microsoft-graph-client';
-import type { Calendar, CalendarColor, Event, FreeBusyStatus } from '@microsoft/microsoft-graph-types';
+import type {
+  Calendar,
+  CalendarColor,
+  Event,
+  FreeBusyStatus,
+} from '@microsoft/microsoft-graph-types';
 import { z } from 'zod';
 
 import {
@@ -22,8 +27,10 @@ import type {
 const SCOPES = ['Calendars.Read', 'offline_access'];
 
 /** Microsoft OAuth 2.0 endpoints */
-const OAUTH_AUTHORIZE_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize';
-const OAUTH_TOKEN_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
+const OAUTH_AUTHORIZE_URL =
+  'https://login.microsoftonline.com/common/oauth2/v2.0/authorize';
+const OAUTH_TOKEN_URL =
+  'https://login.microsoftonline.com/common/oauth2/v2.0/token';
 
 /**
  * Color mapping from Outlook's CalendarColor enum to hex codes.
@@ -31,17 +38,17 @@ const OAUTH_TOKEN_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/to
  * and work well in both light and dark UI modes.
  */
 const OUTLOOK_COLOR_MAP: Record<string, string> = {
-  auto: '#808080',         // Gray - default fallback
-  lightBlue: '#5B9BD5',    // Light Blue
-  lightGreen: '#70AD47',   // Light Green
-  lightOrange: '#FFC000',  // Light Orange
-  lightGray: '#A6A6A6',    // Light Gray
-  lightYellow: '#FFD966',  // Light Yellow
-  lightTeal: '#4AACC5',    // Light Teal
-  lightPink: '#F06292',    // Light Pink
-  lightBrown: '#A67C52',   // Light Brown
-  lightRed: '#E74856',     // Light Red
-  maxColor: '#808080',     // Gray - fallback
+  auto: '#808080', // Gray - default fallback
+  lightBlue: '#5B9BD5', // Light Blue
+  lightGreen: '#70AD47', // Light Green
+  lightOrange: '#FFC000', // Light Orange
+  lightGray: '#A6A6A6', // Light Gray
+  lightYellow: '#FFD966', // Light Yellow
+  lightTeal: '#4AACC5', // Light Teal
+  lightPink: '#F06292', // Light Pink
+  lightBrown: '#A67C52', // Light Brown
+  lightRed: '#E74856', // Light Red
+  maxColor: '#808080', // Gray - fallback
 };
 
 // ============================================
@@ -193,7 +200,9 @@ export class OutlookCalendarProvider implements CalendarProviderService {
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`Failed to exchange Outlook authorization code: ${error}`);
+      throw new Error(
+        `Failed to exchange Outlook authorization code: ${error}`,
+      );
     }
 
     const json = await response.json();
@@ -251,7 +260,7 @@ export class OutlookCalendarProvider implements CalendarProviderService {
    */
   async fetchCalendars(accessToken: string): Promise<ExternalCalendar[]> {
     const client = this.createGraphClient(accessToken);
-    
+
     const response = await client
       .api('/me/calendars')
       .select(['id', 'name', 'color', 'isDefaultCalendar'])
@@ -263,7 +272,9 @@ export class OutlookCalendarProvider implements CalendarProviderService {
     return calendars.map((cal) => ({
       externalCalendarId: cal.id ?? '',
       calendarName: cal.name ?? 'Untitled Calendar',
-      color: cal.color ? (OUTLOOK_COLOR_MAP[cal.color] ?? OUTLOOK_COLOR_MAP.auto) : undefined,
+      color: cal.color
+        ? (OUTLOOK_COLOR_MAP[cal.color] ?? OUTLOOK_COLOR_MAP.auto)
+        : undefined,
       isPrimary: cal.isDefaultCalendar ?? false,
     }));
   }
@@ -316,9 +327,7 @@ export class OutlookCalendarProvider implements CalendarProviderService {
 
         // Determine busy status from showAs field
         // 'free' and 'tentative' are not busy, everything else is busy
-        const isBusy = 
-          event.showAs !== 'free' && 
-          event.showAs !== 'tentative';
+        const isBusy = event.showAs !== 'free' && event.showAs !== 'tentative';
 
         events.push({
           externalEventId: event.id ?? `${calendarId}_${startStr}`,

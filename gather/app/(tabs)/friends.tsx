@@ -1,7 +1,7 @@
-import { Search, UserPlus, Users as UsersIcon } from "@tamagui/lucide-icons";
-import { router } from "expo-router";
-import { useMemo, useState } from "react";
-import { RefreshControl, StyleSheet } from "react-native";
+import { Search, UserPlus, Users as UsersIcon } from '@tamagui/lucide-icons';
+import { router } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { RefreshControl, StyleSheet } from 'react-native';
 import {
   H1,
   Input,
@@ -12,36 +12,36 @@ import {
   Circle,
   Theme,
   useTheme,
-} from "tamagui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+} from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   GlassView,
   isLiquidGlassAvailable,
   isGlassEffectAPIAvailable,
-} from "expo-glass-effect";
+} from 'expo-glass-effect';
 
-import { Button } from "../../components/ui/Button";
-import { Card } from "../../components/ui/Card";
-import { GradientBackground } from "../../components/ui/GradientBackground";
-import { GlassButton } from "../../components/ui/GlassFAB";
-import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { GradientBackground } from '../../components/ui/GradientBackground';
+import { GlassButton } from '../../components/ui/GlassFAB';
+import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton';
 import {
   useFriends,
   useGroups,
   useAcceptFriendRequest,
   useDeclineFriendRequest,
   useRefresh,
-} from "../../lib/hooks";
-import { haptic } from "../../lib/haptics";
+} from '../../lib/hooks';
+import { haptic } from '../../lib/haptics';
 
 export default function FriendsScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
-  const [activeTab, setActiveTab] = useState("friends");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState('friends');
+  const [searchQuery, setSearchQuery] = useState('');
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<
-    "accept" | "decline" | null
+    'accept' | 'decline' | null
   >(null);
 
   const useGlass = isLiquidGlassAvailable() && isGlassEffectAPIAvailable();
@@ -77,13 +77,13 @@ export default function FriendsScreen() {
 
   const handleAccept = async (friendId: string) => {
     setPendingRequestId(friendId);
-    setPendingAction("accept");
+    setPendingAction('accept');
     try {
       await acceptRequest.mutateAsync(friendId);
       haptic.success();
     } catch (err) {
       haptic.error();
-      console.error("Failed to accept request:", err);
+      console.error('Failed to accept request:', err);
     } finally {
       setPendingRequestId(null);
       setPendingAction(null);
@@ -92,12 +92,12 @@ export default function FriendsScreen() {
 
   const handleDecline = async (friendId: string) => {
     setPendingRequestId(friendId);
-    setPendingAction("decline");
+    setPendingAction('decline');
     try {
       await declineRequest.mutateAsync(friendId);
     } catch (err) {
       haptic.error();
-      console.error("Failed to decline request:", err);
+      console.error('Failed to decline request:', err);
     } finally {
       setPendingRequestId(null);
       setPendingAction(null);
@@ -155,7 +155,7 @@ export default function FriendsScreen() {
             </H1>
             <GlassButton
               icon={<UserPlus size={20} color="$color" />}
-              onPress={() => router.push("/friends/add")}
+              onPress={() => router.push('/friends/add')}
             />
           </XStack>
 
@@ -177,7 +177,7 @@ export default function FriendsScreen() {
             <XStack
               flex={1}
               backgroundColor={
-                activeTab === "friends" ? "$primary" : "transparent"
+                activeTab === 'friends' ? '$primary' : 'transparent'
               }
               borderRadius="$2"
               paddingVertical="$2"
@@ -186,12 +186,12 @@ export default function FriendsScreen() {
               pressStyle={{ opacity: 0.8 }}
               onPress={() => {
                 haptic.selection();
-                setActiveTab("friends");
+                setActiveTab('friends');
               }}
             >
               <Text
                 color={
-                  activeTab === "friends" ? "$primaryForeground" : "$colorMuted"
+                  activeTab === 'friends' ? '$primaryForeground' : '$colorMuted'
                 }
                 fontWeight="500"
                 fontSize={14}
@@ -202,7 +202,7 @@ export default function FriendsScreen() {
             <XStack
               flex={1}
               backgroundColor={
-                activeTab === "groups" ? "$primary" : "transparent"
+                activeTab === 'groups' ? '$primary' : 'transparent'
               }
               borderRadius="$2"
               paddingVertical="$2"
@@ -211,12 +211,12 @@ export default function FriendsScreen() {
               pressStyle={{ opacity: 0.8 }}
               onPress={() => {
                 haptic.selection();
-                setActiveTab("groups");
+                setActiveTab('groups');
               }}
             >
               <Text
                 color={
-                  activeTab === "groups" ? "$primaryForeground" : "$colorMuted"
+                  activeTab === 'groups' ? '$primaryForeground' : '$colorMuted'
                 }
                 fontWeight="500"
                 fontSize={14}
@@ -227,7 +227,7 @@ export default function FriendsScreen() {
             <XStack
               flex={1}
               backgroundColor={
-                activeTab === "requests" ? "$primary" : "transparent"
+                activeTab === 'requests' ? '$primary' : 'transparent'
               }
               borderRadius="$2"
               paddingVertical="$2"
@@ -236,15 +236,15 @@ export default function FriendsScreen() {
               pressStyle={{ opacity: 0.8 }}
               onPress={() => {
                 haptic.selection();
-                setActiveTab("requests");
+                setActiveTab('requests');
               }}
               gap="$2"
             >
               <Text
                 color={
-                  activeTab === "requests"
-                    ? "$primaryForeground"
-                    : "$colorMuted"
+                  activeTab === 'requests'
+                    ? '$primaryForeground'
+                    : '$colorMuted'
                 }
                 fontWeight="500"
                 fontSize={14}
@@ -266,7 +266,7 @@ export default function FriendsScreen() {
           </XStack>
         </YStack>
         {/* Tab Content */}
-        {activeTab === "friends" && (
+        {activeTab === 'friends' && (
           <YStack gap="$3">
             {isFriendsLoading ? (
               // Skeleton loading
@@ -290,7 +290,7 @@ export default function FriendsScreen() {
                 <Card>
                   <YStack alignItems="center" padding="$4" gap="$3">
                     <Text color="$colorMuted" textAlign="center">
-                      {searchQuery ? "No friends found" : "No friends yet"}
+                      {searchQuery ? 'No friends found' : 'No friends yet'}
                     </Text>
                   </YStack>
                 </Card>
@@ -324,7 +324,7 @@ export default function FriendsScreen() {
           </YStack>
         )}
 
-        {activeTab === "groups" && (
+        {activeTab === 'groups' && (
           <YStack gap="$3">
             {isGroupsLoading ? (
               // Skeleton loading
@@ -349,12 +349,12 @@ export default function FriendsScreen() {
                 <Card>
                   <YStack alignItems="center" padding="$4" gap="$3">
                     <Text color="$colorMuted" textAlign="center">
-                      {searchQuery ? "No groups found" : "No groups yet"}
+                      {searchQuery ? 'No groups found' : 'No groups yet'}
                     </Text>
                     {!searchQuery && (
                       <Button
                         variant="primary"
-                        onPress={() => router.push("/groups/create" as const)}
+                        onPress={() => router.push('/groups/create' as const)}
                       >
                         Create Group
                       </Button>
@@ -372,7 +372,7 @@ export default function FriendsScreen() {
                     >
                       <XStack alignItems="center" gap="$3">
                         <Circle size={48} backgroundColor="$backgroundHover">
-                          <Text fontSize={22}>{group.emoji ?? "👥"}</Text>
+                          <Text fontSize={22}>{group.emoji ?? '👥'}</Text>
                         </Circle>
                         <YStack flex={1}>
                           <Text fontWeight="600">{group.name}</Text>
@@ -388,7 +388,7 @@ export default function FriendsScreen() {
                 <Button
                   variant="secondary"
                   marginTop="$2"
-                  onPress={() => router.push("/groups/create" as const)}
+                  onPress={() => router.push('/groups/create' as const)}
                 >
                   Create New Group
                 </Button>
@@ -397,7 +397,7 @@ export default function FriendsScreen() {
           </YStack>
         )}
 
-        {activeTab === "requests" && (
+        {activeTab === 'requests' && (
           <YStack gap="$3">
             {isFriendsLoading ? (
               // Skeleton loading
@@ -468,7 +468,7 @@ export default function FriendsScreen() {
                           onPress={() => handleAccept(request.friendId)}
                           loading={
                             pendingRequestId === request.friendId &&
-                            pendingAction === "accept"
+                            pendingAction === 'accept'
                           }
                           disabled={pendingRequestId !== null}
                         >
@@ -481,7 +481,7 @@ export default function FriendsScreen() {
                           onPress={() => handleDecline(request.friendId)}
                           loading={
                             pendingRequestId === request.friendId &&
-                            pendingAction === "decline"
+                            pendingAction === 'decline'
                           }
                           disabled={pendingRequestId !== null}
                         >
@@ -503,6 +503,6 @@ export default function FriendsScreen() {
 const glassStyles = StyleSheet.create({
   searchBar: {
     borderRadius: 12,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
 });

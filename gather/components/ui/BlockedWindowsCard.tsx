@@ -1,43 +1,43 @@
-import { router } from "expo-router";
-import { Text, XStack, YStack, Theme, Separator } from "tamagui";
-import { Clock, Pencil, Plus } from "@tamagui/lucide-icons";
+import { router } from 'expo-router';
+import { Text, XStack, YStack, Theme, Separator } from 'tamagui';
+import { Clock, Pencil, Plus } from '@tamagui/lucide-icons';
 
-import { Button } from "./Button";
-import { Card } from "./Card";
-import { SkeletonBar } from "./Skeleton";
-import { useBlockedWindows } from "../../lib/hooks";
-import type { BlockedWindow } from "../../lib/api/client";
+import { Button } from './Button';
+import { Card } from './Card';
+import { SkeletonBar } from './Skeleton';
+import { useBlockedWindows } from '../../lib/hooks';
+import type { BlockedWindow } from '../../lib/api/client';
 
 function formatTime(dateStr: string): string {
   return new Date(dateStr).toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
+    hour: 'numeric',
+    minute: '2-digit',
   });
 }
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString([], {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
   });
 }
 
 function recurringLabel(pattern: string, daysOfWeek?: number[]): string {
-  if (pattern === "weekly" && daysOfWeek) {
-    const sorted = [...daysOfWeek].sort((a, b) => a - b).join(",");
-    if (sorted === "1,2,3,4,5") return "Weekdays";
-    if (sorted === "0,6") return "Weekends";
+  if (pattern === 'weekly' && daysOfWeek) {
+    const sorted = [...daysOfWeek].sort((a, b) => a - b).join(',');
+    if (sorted === '1,2,3,4,5') return 'Weekdays';
+    if (sorted === '0,6') return 'Weekends';
   }
   switch (pattern) {
-    case "daily":
-      return "Every day";
-    case "weekly":
-      return "Every week";
-    case "biweekly":
-      return "Every two weeks";
-    case "monthly":
-      return "Every month";
+    case 'daily':
+      return 'Every day';
+    case 'weekly':
+      return 'Every week';
+    case 'biweekly':
+      return 'Every two weeks';
+    case 'monthly':
+      return 'Every month';
     default:
       return pattern;
   }
@@ -141,7 +141,7 @@ export function BlockedWindowsCard() {
         buttonSize="lg"
         fullWidth
         icon={<Plus size={18} />}
-        onPress={() => router.push("/blocked/new")}
+        onPress={() => router.push('/blocked/new')}
       >
         Add blocked time
       </Button>

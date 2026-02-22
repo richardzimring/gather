@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
   getBlocked,
@@ -7,11 +7,11 @@ import {
   deleteBlockedByWindowId,
   type CreateBlockedWindow,
   type UpdateBlockedWindow,
-} from "../api/client";
+} from '../api/client';
 
 export const blockedKeys = {
-  all: ["blocked"] as const,
-  list: () => [...blockedKeys.all, "list"] as const,
+  all: ['blocked'] as const,
+  list: () => [...blockedKeys.all, 'list'] as const,
 };
 
 /**
@@ -23,7 +23,7 @@ export function useBlockedWindows() {
     queryFn: async () => {
       const response = await getBlocked();
       if (!response.data?.success) {
-        throw new Error("Failed to fetch blocked windows");
+        throw new Error('Failed to fetch blocked windows');
       }
       return response.data.data.windows;
     },
@@ -40,7 +40,7 @@ export function useCreateBlockedWindow() {
     mutationFn: async (data: CreateBlockedWindow) => {
       const response = await postBlocked({ body: data });
       if (!response.data?.success) {
-        throw new Error("Failed to create blocked window");
+        throw new Error('Failed to create blocked window');
       }
       return response.data.data.window;
     },
@@ -68,7 +68,7 @@ export function useUpdateBlockedWindow() {
         body: data,
       });
       if (!response.data?.success) {
-        throw new Error("Failed to update blocked window");
+        throw new Error('Failed to update blocked window');
       }
       return response.data.data.window;
     },

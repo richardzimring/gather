@@ -4,9 +4,9 @@ import {
   Pencil,
   FileText,
   Trash2,
-} from "@tamagui/lucide-icons";
-import { router, useLocalSearchParams } from "expo-router";
-import { Alert } from "react-native";
+} from '@tamagui/lucide-icons';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Alert } from 'react-native';
 import {
   Circle,
   ScrollView,
@@ -17,40 +17,40 @@ import {
   Separator,
   Input,
   TextArea,
-} from "tamagui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useMemo, useState } from "react";
+} from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useMemo, useState } from 'react';
 
-import { BadgeLabel } from "../../components/ui/Badge";
-import { Button } from "../../components/ui/Button";
-import { Card } from "../../components/ui/Card";
-import { EventCard } from "../../components/ui/EventCard";
-import { GlassBottomBar } from "../../components/ui/GlassBottomBar";
-import { GlassButton } from "../../components/ui/GlassFAB";
-import { InlineCalendar } from "../../components/ui/InlineCalendar";
-import { LocationSearch } from "../../components/ui/LocationSearch";
-import { BackHeader } from "../../components/ui/ScreenHeader";
-import { MapPreview } from "../../components/ui/MapPreview";
-import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
+import { BadgeLabel } from '../../components/ui/Badge';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { EventCard } from '../../components/ui/EventCard';
+import { GlassBottomBar } from '../../components/ui/GlassBottomBar';
+import { GlassButton } from '../../components/ui/GlassFAB';
+import { InlineCalendar } from '../../components/ui/InlineCalendar';
+import { LocationSearch } from '../../components/ui/LocationSearch';
+import { BackHeader } from '../../components/ui/ScreenHeader';
+import { MapPreview } from '../../components/ui/MapPreview';
+import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton';
 import {
   TimeChipPicker,
   START_TIME_OPTIONS,
-} from "../../components/ui/TimeChipPicker";
-import { useAuth } from "../../lib/hooks/useAuth";
+} from '../../components/ui/TimeChipPicker';
+import { useAuth } from '../../lib/hooks/useAuth';
 import {
   useEvent,
   useRespondToEvent,
   useCancelEvent,
   useUpdateEvent,
-} from "../../lib/hooks";
-import { useGenerateEmoji } from "../../lib/hooks/useEmoji";
+} from '../../lib/hooks';
+import { useGenerateEmoji } from '../../lib/hooks/useEmoji';
 import type {
   EventInvitee,
   InviteeStatus,
   LocationData,
-} from "../../lib/api/generated/types.gen";
-import type { AvatarStackPerson } from "../../components/ui/AttendeeAvatarStack";
-import { haptic } from "../../lib/haptics";
+} from '../../lib/api/generated/types.gen';
+import type { AvatarStackPerson } from '../../components/ui/AttendeeAvatarStack';
+import { haptic } from '../../lib/haptics';
 
 // ============================================
 // Helpers
@@ -70,18 +70,18 @@ function formatEventDate(
   const end = new Date(endTime);
 
   const dateOptions: Intl.DateTimeFormatOptions = {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
   };
   const timeOptions: Intl.DateTimeFormatOptions = {
-    hour: "numeric",
-    minute: "2-digit",
+    hour: 'numeric',
+    minute: '2-digit',
   };
 
-  const date = start.toLocaleDateString("en-US", dateOptions);
-  const startTimeStr = start.toLocaleTimeString("en-US", timeOptions);
-  const endTimeStr = end.toLocaleTimeString("en-US", timeOptions);
+  const date = start.toLocaleDateString('en-US', dateOptions);
+  const startTimeStr = start.toLocaleTimeString('en-US', timeOptions);
+  const endTimeStr = end.toLocaleTimeString('en-US', timeOptions);
 
   return {
     date,
@@ -93,9 +93,9 @@ function formatEventDate(
  * Format time for display
  */
 function formatTime(date: Date): string {
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
   });
 }
 
@@ -112,13 +112,13 @@ function formatDate(date: Date): string {
   const compareDate = new Date(date);
   compareDate.setHours(0, 0, 0, 0);
 
-  if (compareDate.getTime() === today.getTime()) return "Today";
-  if (compareDate.getTime() === tomorrow.getTime()) return "Tomorrow";
+  if (compareDate.getTime() === today.getTime()) return 'Today';
+  if (compareDate.getTime() === tomorrow.getTime()) return 'Tomorrow';
 
-  const DAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  return `${DAYS_SHORT[date.getDay()]}, ${date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
+  const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  return `${DAYS_SHORT[date.getDay()]}, ${date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
   })}`;
 }
 
@@ -127,14 +127,14 @@ function formatDate(date: Date): string {
  */
 function getStatusColor(status: InviteeStatus) {
   switch (status) {
-    case "accepted":
-      return "$success";
-    case "declined":
-      return "$error";
-    case "maybe":
-      return "$warning";
+    case 'accepted':
+      return '$success';
+    case 'declined':
+      return '$error';
+    case 'maybe':
+      return '$warning';
     default:
-      return "$colorMuted";
+      return '$colorMuted';
   }
 }
 
@@ -269,7 +269,7 @@ export default function EventDetailScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
-  const { data: event, isLoading, error } = useEvent(id ?? "");
+  const { data: event, isLoading, error } = useEvent(id ?? '');
   const respondToEvent = useRespondToEvent();
   const cancelEvent = useCancelEvent();
   const updateEvent = useUpdateEvent();
@@ -280,8 +280,8 @@ export default function EventDetailScreen() {
 
   // ---- Edit mode state ----
   const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState("");
-  const [editNotes, setEditNotes] = useState("");
+  const [editTitle, setEditTitle] = useState('');
+  const [editNotes, setEditNotes] = useState('');
   const [editLocationData, setEditLocationData] = useState<LocationData | null>(
     null,
   );
@@ -292,7 +292,7 @@ export default function EventDetailScreen() {
   // Generate emoji only if the title has changed from the original
   const titleHasChanged = event?.title !== editTitle;
   const { emoji: previewEmoji, isLoading: isEmojiLoading } = useGenerateEmoji(
-    titleHasChanged ? editTitle : "",
+    titleHasChanged ? editTitle : '',
   );
 
   // ---- Derived values ----
@@ -302,8 +302,8 @@ export default function EventDetailScreen() {
   const showRsvpBar =
     !isEditing &&
     canRespond &&
-    event?.status !== "cancelled" &&
-    (userInvitee?.status === "pending" || isEditingResponse);
+    event?.status !== 'cancelled' &&
+    (userInvitee?.status === 'pending' || isEditingResponse);
   const showEditBar = isEditing;
 
   // End-time options: filter to only show times after the selected start time
@@ -323,7 +323,7 @@ export default function EventDetailScreen() {
     people.push({
       id: event.hostId,
       initials: event.hostInitials,
-      status: "host",
+      status: 'host',
       avatarUrl: event.hostAvatarUrl,
     });
 
@@ -332,7 +332,7 @@ export default function EventDetailScreen() {
       people.push({
         id: invitee.userId,
         initials: invitee.initials,
-        status: invitee.status as AvatarStackPerson["status"],
+        status: invitee.status as AvatarStackPerson['status'],
         avatarUrl: invitee.avatarUrl,
       });
     });
@@ -348,7 +348,7 @@ export default function EventDetailScreen() {
     const end = new Date(event.endTime);
 
     setEditTitle(event.title);
-    setEditNotes(event.notes ?? "");
+    setEditNotes(event.notes ?? '');
     setEditDate(
       new Date(start.getFullYear(), start.getMonth(), start.getDate()),
     );
@@ -361,8 +361,8 @@ export default function EventDetailScreen() {
     if (event.location) {
       setEditLocationData({
         name: event.location,
-        address: event.locationAddress ?? "",
-        placeId: event.locationPlaceId ?? "",
+        address: event.locationAddress ?? '',
+        placeId: event.locationPlaceId ?? '',
         latitude: event.latitude,
         longitude: event.longitude,
       });
@@ -437,7 +437,7 @@ export default function EventDetailScreen() {
         haptic.success();
       } catch (err) {
         haptic.error();
-        console.error("Failed to update event:", err);
+        console.error('Failed to update event:', err);
         return; // Stay in edit mode on failure
       }
     }
@@ -462,12 +462,12 @@ export default function EventDetailScreen() {
       setIsEditingResponse(false);
 
       // Success haptic for accepted invitations
-      if (status === "accepted") {
+      if (status === 'accepted') {
         haptic.success();
       }
     } catch (err) {
       haptic.error();
-      console.error("Failed to respond to event:", err);
+      console.error('Failed to respond to event:', err);
     } finally {
       setPendingResponse(null);
     }
@@ -476,13 +476,13 @@ export default function EventDetailScreen() {
   const handleDelete = () => {
     haptic.warning();
     Alert.alert(
-      "Cancel Event",
-      "Are you sure you want to cancel this event? This action cannot be undone.",
+      'Cancel Event',
+      'Are you sure you want to cancel this event? This action cannot be undone.',
       [
-        { text: "Keep Event", style: "cancel" },
+        { text: 'Keep Event', style: 'cancel' },
         {
-          text: "Cancel Event",
-          style: "destructive",
+          text: 'Cancel Event',
+          style: 'destructive',
           onPress: async () => {
             if (!id) return;
             try {
@@ -490,7 +490,7 @@ export default function EventDetailScreen() {
               router.back();
             } catch (err) {
               haptic.error();
-              console.error("Failed to cancel event:", err);
+              console.error('Failed to cancel event:', err);
             }
           },
         },
@@ -593,9 +593,9 @@ export default function EventDetailScreen() {
       >
         {/* Header */}
         <BackHeader
-          title={isEditing ? "Edit Event" : ""}
+          title={isEditing ? 'Edit Event' : ''}
           subtitle={undefined}
-          marginBottom={isEditing ? "$4" : "$2"}
+          marginBottom={isEditing ? '$4' : '$2'}
           onBack={isEditing ? cancelEdit : undefined}
           rightAction={
             isEditing ? (
@@ -604,7 +604,7 @@ export default function EventDetailScreen() {
                 onPress={handleDelete}
                 size={36}
               />
-            ) : isHost && event.status !== "cancelled" ? (
+            ) : isHost && event.status !== 'cancelled' ? (
               <GlassButton
                 icon={<Pencil size={18} color="$color" />}
                 onPress={enterEditMode}
@@ -618,15 +618,15 @@ export default function EventDetailScreen() {
         {!isEditing && (
           <YStack gap="$2" marginBottom="$4" alignItems="center">
             <Circle size={52} backgroundColor="$backgroundHover">
-              <Text fontSize={32}>{event.emoji ?? "📅"}</Text>
+              <Text fontSize={32}>{event.emoji ?? '📅'}</Text>
             </Circle>
             <YStack gap="$1" alignItems="center">
               <Text fontWeight="600" fontSize={24} textAlign="center">
                 {event.title}
               </Text>
               <Text fontSize={14} color="$colorMuted" textAlign="center">
-                Hosted by {isHost ? "you" : event.hostName}
-                {event.status === "cancelled" ? " · Cancelled" : ""}
+                Hosted by {isHost ? 'you' : event.hostName}
+                {event.status === 'cancelled' ? ' · Cancelled' : ''}
               </Text>
             </YStack>
           </YStack>
@@ -665,7 +665,7 @@ export default function EventDetailScreen() {
                 attendeeSummary={
                   previewPeople.length > 1
                     ? `${previewPeople.length} people`
-                    : "Just you"
+                    : 'Just you'
                 }
                 showAvatarStatus={false}
                 isPreview={true}
@@ -825,7 +825,7 @@ export default function EventDetailScreen() {
                 <XStack alignItems="center" gap="$2">
                   <MapPin size={14} color="$colorMuted" />
                   <Text fontWeight="500" fontSize={14}>
-                    Location{" "}
+                    Location{' '}
                     <Text fontSize={14} color="$colorMuted" fontWeight="400">
                       (optional)
                     </Text>
@@ -858,7 +858,7 @@ export default function EventDetailScreen() {
                 <XStack alignItems="center" gap="$2">
                   <FileText size={14} color="$colorMuted" />
                   <Text fontWeight="500" fontSize={14}>
-                    Notes{" "}
+                    Notes{' '}
                     <Text fontSize={14} color="$colorMuted" fontWeight="400">
                       (optional)
                     </Text>
@@ -931,8 +931,8 @@ export default function EventDetailScreen() {
                   const isCurrentUser = invitee.userId === user?.userId;
                   const canChange =
                     isCurrentUser &&
-                    invitee.status !== "pending" &&
-                    event.status !== "cancelled";
+                    invitee.status !== 'pending' &&
+                    event.status !== 'cancelled';
                   return (
                     <YStack key={invitee.userId}>
                       <InviteeItem
@@ -985,34 +985,34 @@ export default function EventDetailScreen() {
             <XStack gap="$3">
               <Button
                 variant={
-                  userInvitee.status === "accepted" ? "primary" : "secondary"
+                  userInvitee.status === 'accepted' ? 'primary' : 'secondary'
                 }
                 flex={1}
-                onPress={() => handleResponse("accepted")}
-                loading={pendingResponse === "accepted"}
-                disabled={pendingResponse === "accepted"}
+                onPress={() => handleResponse('accepted')}
+                loading={pendingResponse === 'accepted'}
+                disabled={pendingResponse === 'accepted'}
               >
                 Yes
               </Button>
               <Button
                 variant={
-                  userInvitee.status === "declined" ? "primary" : "secondary"
+                  userInvitee.status === 'declined' ? 'primary' : 'secondary'
                 }
                 flex={1}
-                onPress={() => handleResponse("declined")}
-                loading={pendingResponse === "declined"}
-                disabled={pendingResponse === "declined"}
+                onPress={() => handleResponse('declined')}
+                loading={pendingResponse === 'declined'}
+                disabled={pendingResponse === 'declined'}
               >
                 No
               </Button>
               <Button
                 variant={
-                  userInvitee.status === "maybe" ? "primary" : "secondary"
+                  userInvitee.status === 'maybe' ? 'primary' : 'secondary'
                 }
                 flex={1}
-                onPress={() => handleResponse("maybe")}
-                loading={pendingResponse === "maybe"}
-                disabled={pendingResponse === "maybe"}
+                onPress={() => handleResponse('maybe')}
+                loading={pendingResponse === 'maybe'}
+                disabled={pendingResponse === 'maybe'}
               >
                 Maybe
               </Button>

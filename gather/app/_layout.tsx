@@ -1,12 +1,12 @@
-import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
-import { useColorScheme } from "react-native";
+import { useFonts } from 'expo-font';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { useColorScheme } from 'react-native';
 
-import { AppProviders } from "../lib/providers";
-import { tokens } from "../tamagui.config";
+import { AppProviders } from '../lib/providers';
+import { tokens } from '../tamagui.config';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -34,7 +34,7 @@ export default function RootLayout() {
           headerShown: false,
           contentStyle: {
             backgroundColor:
-              colorScheme === "dark"
+              colorScheme === 'dark'
                 ? tokens.color.gray1.val
                 : tokens.color.lightGray1.val,
           },
@@ -44,7 +44,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       </Stack>
-      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
     </AppProviders>
   );
 }

@@ -1,7 +1,7 @@
-import { Check, X } from "@tamagui/lucide-icons";
-import { Circle, Text, XStack, GetProps } from "tamagui";
+import { Check, X } from '@tamagui/lucide-icons';
+import { Circle, Text, XStack, GetProps } from 'tamagui';
 
-import type { InviteeStatus } from "../../lib/api/generated/types.gen";
+import type { InviteeStatus } from '../../lib/api/generated/types.gen';
 
 /**
  * Represents a person to display in the avatar stack
@@ -9,25 +9,25 @@ import type { InviteeStatus } from "../../lib/api/generated/types.gen";
 export type AvatarStackPerson = {
   id: string;
   initials: string;
-  status: InviteeStatus | "host";
+  status: InviteeStatus | 'host';
   avatarUrl?: string;
 };
 
 /**
  * Get status indicator color
  */
-function getStatusColor(status: InviteeStatus | "host"): string {
+function getStatusColor(status: InviteeStatus | 'host'): string {
   switch (status) {
-    case "accepted":
-    case "host":
-      return "$success";
-    case "declined":
-      return "$error";
-    case "maybe":
-      return "$warning";
-    case "pending":
+    case 'accepted':
+    case 'host':
+      return '$success';
+    case 'declined':
+      return '$error';
+    case 'maybe':
+      return '$warning';
+    case 'pending':
     default:
-      return "$colorMuted";
+      return '$colorMuted';
   }
 }
 
@@ -38,19 +38,19 @@ function StatusIcon({
   status,
   size,
 }: {
-  status: InviteeStatus | "host";
+  status: InviteeStatus | 'host';
   size: number;
 }) {
   const iconSize = Math.max(8, Math.round(size * 0.65));
   const strokeWidth = 3;
 
   switch (status) {
-    case "accepted":
-    case "host":
+    case 'accepted':
+    case 'host':
       return <Check size={iconSize} color="white" strokeWidth={strokeWidth} />;
-    case "declined":
+    case 'declined':
       return <X size={iconSize} color="white" strokeWidth={strokeWidth} />;
-    case "maybe":
+    case 'maybe':
       return (
         <Text
           fontSize={Math.max(6, Math.round(size * 0.6))}
@@ -60,7 +60,7 @@ function StatusIcon({
           ?
         </Text>
       );
-    case "pending":
+    case 'pending':
     default:
       return null;
   }
@@ -70,7 +70,7 @@ function StatusIcon({
  * Sort people by status priority (host first, then accepted, maybe, pending, declined)
  */
 function sortByStatus(people: AvatarStackPerson[]): AvatarStackPerson[] {
-  const priority: Record<InviteeStatus | "host", number> = {
+  const priority: Record<InviteeStatus | 'host', number> = {
     host: 0,
     accepted: 1,
     maybe: 2,

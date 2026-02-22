@@ -196,4 +196,3 @@ export const deleteGroup = async (
   await db.delete(groups).where(eq(groups.id, groupId));
   return { success: true };
 };
-

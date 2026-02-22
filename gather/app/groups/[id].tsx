@@ -1,6 +1,6 @@
-import { Calendar, Trash2, UserMinus, UserPlus } from "@tamagui/lucide-icons";
-import { router, useLocalSearchParams } from "expo-router";
-import { Alert } from "react-native";
+import { Calendar, Trash2, UserMinus, UserPlus } from '@tamagui/lucide-icons';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Alert } from 'react-native';
 import {
   Circle,
   H1,
@@ -11,22 +11,22 @@ import {
   XStack,
   YStack,
   Sheet,
-} from "tamagui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useMemo, useState } from "react";
+} from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useMemo, useState } from 'react';
 
-import { Button } from "../../components/ui/Button";
-import { Card } from "../../components/ui/Card";
-import { GlassButton } from "../../components/ui/GlassFAB";
-import { BackHeader } from "../../components/ui/ScreenHeader";
-import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { GlassButton } from '../../components/ui/GlassFAB';
+import { BackHeader } from '../../components/ui/ScreenHeader';
+import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton';
 import {
   useGroups,
   useFriends,
   useUpdateGroup,
   useDeleteGroup,
-} from "../../lib/hooks";
-import type { FriendWithUser } from "../../lib/api/generated/types.gen";
+} from '../../lib/hooks';
+import type { FriendWithUser } from '../../lib/api/generated/types.gen';
 
 type Friendship = FriendWithUser;
 
@@ -67,19 +67,19 @@ export default function GroupDetailScreen() {
     if (!id || !group) return;
 
     Alert.alert(
-      "Delete Group",
-      "Are you sure you want to delete this group? This action cannot be undone.",
+      'Delete Group',
+      'Are you sure you want to delete this group? This action cannot be undone.',
       [
-        { text: "Cancel", style: "cancel" },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: "Delete",
-          style: "destructive",
+          text: 'Delete',
+          style: 'destructive',
           onPress: async () => {
             try {
               await deleteGroup.mutateAsync(id);
               router.back();
             } catch (err) {
-              console.error("Failed to delete group:", err);
+              console.error('Failed to delete group:', err);
             }
           },
         },
@@ -98,7 +98,7 @@ export default function GroupDetailScreen() {
         },
       });
     } catch (err) {
-      console.error("Failed to add member:", err);
+      console.error('Failed to add member:', err);
     } finally {
       setPendingMemberId(null);
     }
@@ -107,13 +107,13 @@ export default function GroupDetailScreen() {
   const handleRemoveMember = async (friendId: string) => {
     if (!group || !id) return;
     Alert.alert(
-      "Remove Member",
-      "Are you sure you want to remove this member from the group?",
+      'Remove Member',
+      'Are you sure you want to remove this member from the group?',
       [
-        { text: "Cancel", style: "cancel" },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: "Remove",
-          style: "destructive",
+          text: 'Remove',
+          style: 'destructive',
           onPress: async () => {
             setPendingMemberId(friendId);
             try {
@@ -124,7 +124,7 @@ export default function GroupDetailScreen() {
                 },
               });
             } catch (err) {
-              console.error("Failed to remove member:", err);
+              console.error('Failed to remove member:', err);
             } finally {
               setPendingMemberId(null);
             }
@@ -137,11 +137,11 @@ export default function GroupDetailScreen() {
   const handleInviteGroupToEvent = () => {
     if (group && group.memberIds.length > 0) {
       router.push({
-        pathname: "/(tabs)/plan",
-        params: { selectedFriendIds: group.memberIds.join(",") },
+        pathname: '/(tabs)/plan',
+        params: { selectedFriendIds: group.memberIds.join(',') },
       });
     } else {
-      router.push("/(tabs)/plan");
+      router.push('/(tabs)/plan');
     }
   };
 
@@ -253,7 +253,7 @@ export default function GroupDetailScreen() {
               icon={
                 <Trash2
                   size={18}
-                  color={group.isDefault ? "$colorMuted" : "$error"}
+                  color={group.isDefault ? '$colorMuted' : '$error'}
                 />
               }
               onPress={handleDeleteGroup}
@@ -270,7 +270,7 @@ export default function GroupDetailScreen() {
             backgroundColor="$backgroundHover"
             marginBottom="$3"
           >
-            <Text fontSize={36}>{group.emoji ?? "👥"}</Text>
+            <Text fontSize={36}>{group.emoji ?? '👥'}</Text>
           </Circle>
           <H1 fontSize={20} fontWeight="600" textAlign="center">
             {group.name}
@@ -318,7 +318,7 @@ export default function GroupDetailScreen() {
                 Members
               </Text>
               <Text color="$colorMuted" fontSize={13}>
-                {members.length} {members.length === 1 ? "person" : "people"}
+                {members.length} {members.length === 1 ? 'person' : 'people'}
               </Text>
             </XStack>
 

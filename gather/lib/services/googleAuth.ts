@@ -1,7 +1,7 @@
-import * as Linking from 'expo-linking'
-import * as WebBrowser from 'expo-web-browser'
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 
-import { getCalendarsGoogleAuthUrl } from '../api/client'
+import { getCalendarsGoogleAuthUrl } from '../api/client';
 
 /**
  * Initiate the Google OAuth flow.
@@ -18,34 +18,34 @@ import { getCalendarsGoogleAuthUrl } from '../api/client'
  */
 export async function connectGoogleCalendar(): Promise<void> {
   // 1. Get the OAuth URL from our backend
-  const authUrlResponse = await getCalendarsGoogleAuthUrl()
+  const authUrlResponse = await getCalendarsGoogleAuthUrl();
   if (!authUrlResponse.data?.success || !authUrlResponse.data.data?.authUrl) {
-    throw new Error('Failed to get Google OAuth URL')
+    throw new Error('Failed to get Google OAuth URL');
   }
 
-  const authUrl = authUrlResponse.data.data.authUrl
+  const authUrl = authUrlResponse.data.data.authUrl;
 
   // 2. Open in-app browser and wait for the backend to redirect back to the app
   const result = await WebBrowser.openAuthSessionAsync(
     authUrl,
     Linking.createURL('calendars/google/callback'),
-  )
+  );
 
   if (result.type !== 'success' || !result.url) {
-    throw new GoogleAuthCancelledError()
+    throw new GoogleAuthCancelledError();
   }
 
   // 3. Check if the backend reported success or an error
-  const url = new URL(result.url)
-  const success = url.searchParams.get('success')
-  const error = url.searchParams.get('error')
+  const url = new URL(result.url);
+  const success = url.searchParams.get('success');
+  const error = url.searchParams.get('error');
 
   if (error || success !== 'true') {
     throw new Error(
       error
         ? `Google authorization failed: ${error}`
         : 'Google authorization did not complete successfully',
-    )
+    );
   }
 
   // Token exchange and calendar import happened on the backend.
@@ -58,7 +58,7 @@ export async function connectGoogleCalendar(): Promise<void> {
  */
 export class GoogleAuthCancelledError extends Error {
   constructor() {
-    super('Google authorization was cancelled')
-    this.name = 'GoogleAuthCancelledError'
+    super('Google authorization was cancelled');
+    this.name = 'GoogleAuthCancelledError';
   }
 }

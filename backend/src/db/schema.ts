@@ -18,7 +18,11 @@ import { relations } from 'drizzle-orm';
 // Enums
 // ============================================
 
-export const friendshipStatusEnum = pgEnum('friendship_status', ['pending', 'accepted', 'blocked']);
+export const friendshipStatusEnum = pgEnum('friendship_status', [
+  'pending',
+  'accepted',
+  'blocked',
+]);
 
 export const inviteeStatusEnum = pgEnum('invitee_status', [
   'pending',
@@ -27,7 +31,11 @@ export const inviteeStatusEnum = pgEnum('invitee_status', [
   'maybe',
 ]);
 
-export const eventStatusEnum = pgEnum('event_status', ['draft', 'active', 'cancelled']);
+export const eventStatusEnum = pgEnum('event_status', [
+  'draft',
+  'active',
+  'cancelled',
+]);
 
 export const recurringPatternEnum = pgEnum('recurring_pattern', [
   'daily',
@@ -36,7 +44,11 @@ export const recurringPatternEnum = pgEnum('recurring_pattern', [
   'monthly',
 ]);
 
-export const calendarProviderEnum = pgEnum('calendar_provider', ['apple', 'google', 'outlook']);
+export const calendarProviderEnum = pgEnum('calendar_provider', [
+  'apple',
+  'google',
+  'outlook',
+]);
 
 // ============================================
 // Users Table
@@ -52,11 +64,17 @@ export const users = pgTable(
     lastName: varchar('last_name', { length: 50 }).notNull(),
     avatarUrl: text('avatar_url'),
     inviteCode: varchar('invite_code', { length: 8 }),
-    calendarSyncEnabled: boolean('calendar_sync_enabled').notNull().default(false),
+    calendarSyncEnabled: boolean('calendar_sync_enabled')
+      .notNull()
+      .default(false),
     pushToken: text('push_token'),
     notificationPreferences: jsonb('notification_preferences'),
-    timezone: varchar('timezone', { length: 100 }).notNull().default('America/New_York'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    timezone: varchar('timezone', { length: 100 })
+      .notNull()
+      .default('America/New_York'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     uniqueIndex('users_apple_user_id_idx').on(table.appleUserId),
@@ -94,7 +112,9 @@ export const friendships = pgTable(
     initiatedBy: uuid('initiated_by')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
     acceptedAt: timestamp('accepted_at', { withTimezone: true }),
   },
   (table) => [
@@ -135,7 +155,9 @@ export const groups = pgTable(
     name: varchar('name', { length: 50 }).notNull(),
     emoji: varchar('emoji', { length: 10 }),
     isDefault: boolean('is_default').notNull().default(false),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [index('groups_owner_id_idx').on(table.ownerId)],
 );
@@ -161,7 +183,9 @@ export const groupMembers = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
+    addedAt: timestamp('added_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     primaryKey({ columns: [table.groupId, table.userId] }),
@@ -198,13 +222,19 @@ export const blockedWindows = pgTable(
     recurringDaysOfWeek: integer('recurring_days_of_week').array(),
     recurringEndDate: timestamp('recurring_end_date', { withTimezone: true }),
     notes: text('notes'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('blocked_windows_user_id_idx').on(table.userId),
     index('blocked_windows_start_time_idx').on(table.startTime),
     // Composite index for busy-times availability query: WHERE user_id IN (...) AND start_time < ... AND end_time > ...
-    index('blocked_windows_user_time_idx').on(table.userId, table.startTime, table.endTime),
+    index('blocked_windows_user_time_idx').on(
+      table.userId,
+      table.startTime,
+      table.endTime,
+    ),
   ],
 );
 
@@ -246,8 +276,12 @@ export const events = pgTable(
       withTimezone: true,
     }),
     calendarEventId: varchar('calendar_event_id', { length: 255 }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('events_host_id_idx').on(table.hostId),
@@ -334,7 +368,9 @@ export const calendarConnections = pgTable(
     refreshToken: text('refresh_token'),
     tokenExpiresAt: timestamp('token_expires_at', { withTimezone: true }),
     lastSyncAt: timestamp('last_sync_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('calendar_connections_user_id_idx').on(table.userId),
@@ -346,13 +382,16 @@ export const calendarConnections = pgTable(
   ],
 );
 
-export const calendarConnectionsRelations = relations(calendarConnections, ({ one, many }) => ({
-  user: one(users, {
-    fields: [calendarConnections.userId],
-    references: [users.id],
+export const calendarConnectionsRelations = relations(
+  calendarConnections,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [calendarConnections.userId],
+      references: [users.id],
+    }),
+    cachedEvents: many(calendarEventsCache),
   }),
-  cachedEvents: many(calendarEventsCache),
-}));
+);
 
 // ============================================
 // Calendar Events Cache Table
@@ -369,7 +408,9 @@ export const calendarEventsCache = pgTable(
     startTime: timestamp('start_time', { withTimezone: true }).notNull(),
     endTime: timestamp('end_time', { withTimezone: true }).notNull(),
     isBusy: boolean('is_busy').notNull().default(true),
-    lastFetchedAt: timestamp('last_fetched_at', { withTimezone: true }).notNull().defaultNow(),
+    lastFetchedAt: timestamp('last_fetched_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('calendar_events_cache_connection_id_idx').on(table.connectionId),
@@ -382,12 +423,15 @@ export const calendarEventsCache = pgTable(
   ],
 );
 
-export const calendarEventsCacheRelations = relations(calendarEventsCache, ({ one }) => ({
-  connection: one(calendarConnections, {
-    fields: [calendarEventsCache.connectionId],
-    references: [calendarConnections.id],
+export const calendarEventsCacheRelations = relations(
+  calendarEventsCache,
+  ({ one }) => ({
+    connection: one(calendarConnections, {
+      fields: [calendarEventsCache.connectionId],
+      references: [calendarConnections.id],
+    }),
   }),
-}));
+);
 
 // ============================================
 // Emoji Cache Table
@@ -399,7 +443,9 @@ export const emojiCache = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     text: text('text').notNull(),
     emoji: text('emoji').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [uniqueIndex('emoji_cache_text_idx').on(table.text)],
 );

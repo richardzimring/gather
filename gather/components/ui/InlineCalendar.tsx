@@ -1,15 +1,15 @@
-import { ChevronLeft, ChevronRight } from "@tamagui/lucide-icons";
-import { useMemo, useState } from "react";
-import { Text, XStack, YStack } from "tamagui";
-import { haptic } from "../../lib/haptics";
+import { ChevronLeft, ChevronRight } from '@tamagui/lucide-icons';
+import { useMemo, useState } from 'react';
+import { Text, XStack, YStack } from 'tamagui';
+import { haptic } from '../../lib/haptics';
 
-const DAYS_OF_WEEK = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const DAYS_OF_WEEK = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 /**
  * Get a date string key (YYYY-MM-DD) for comparison purposes.
  */
 function toDateKey(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 /**
@@ -98,7 +98,7 @@ export function InlineCalendar({
 
   const calendarDays = useMemo(
     () => getCalendarDays(displayMonth.year, displayMonth.month),
-    [displayMonth.year, displayMonth.month]
+    [displayMonth.year, displayMonth.month],
   );
 
   // Single-date mode key
@@ -141,8 +141,8 @@ export function InlineCalendar({
   const monthLabel = new Date(
     displayMonth.year,
     displayMonth.month,
-    1
-  ).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    1,
+  ).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   const canGoPrev = useMemo(() => {
     if (!minDateNorm) return true;
@@ -171,12 +171,8 @@ export function InlineCalendar({
 
   const handleDayPress = (day: Date) => {
     haptic.selection();
-    
-    const selected = new Date(
-      day.getFullYear(),
-      day.getMonth(),
-      day.getDate()
-    );
+
+    const selected = new Date(day.getFullYear(), day.getMonth(), day.getDate());
 
     if (isRangeMode) {
       const selectedTime = selected.getTime();
@@ -226,10 +222,14 @@ export function InlineCalendar({
           justifyContent="center"
           pressStyle={{ scale: 0.9, opacity: 0.7 }}
           opacity={canGoPrev ? 1 : 0.3}
-          onPress={canGoPrev ? () => {
-            haptic.light();
-            navigateMonth(-1);
-          } : undefined}
+          onPress={
+            canGoPrev
+              ? () => {
+                  haptic.light();
+                  navigateMonth(-1);
+                }
+              : undefined
+          }
         >
           <ChevronLeft size={18} color="$color" />
         </YStack>
@@ -282,7 +282,11 @@ export function InlineCalendar({
             const isEndpoint = isRangeStart || isRangeEnd;
 
             // In-range: between start and end (exclusive of endpoints)
-            const dayTime = new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime();
+            const dayTime = new Date(
+              day.getFullYear(),
+              day.getMonth(),
+              day.getDate(),
+            ).getTime();
             const isInRange =
               isRangeMode &&
               rangeStartTime !== null &&
@@ -296,27 +300,30 @@ export function InlineCalendar({
             const isLastInRow = colIndex === 6;
 
             // Should this cell show the range band background?
-            const showRangeBand = isInRange || (isEndpoint && rangeEndTime !== null);
+            const showRangeBand =
+              isInRange || (isEndpoint && rangeEndTime !== null);
 
             // Single-date mode selected
             const isSelected = !isRangeMode && dateKey === selectedKey;
 
             // Determine circle background color
             const circleBackground = isEndpoint
-              ? "$primary"
+              ? '$primary'
               : isSelected
-                ? "$primary"
+                ? '$primary'
                 : isToday
-                  ? "$backgroundHover"
-                  : "transparent";
+                  ? '$backgroundHover'
+                  : 'transparent';
 
             // Determine text styling — disabled days are very obviously faded
-            const textColor = isEndpoint || isSelected
-              ? "$primaryForeground"
-              : isDisabled
-                ? "$colorSubtle"
-                : "$color";
-            const textWeight = isEndpoint || isSelected || isToday ? "600" : "400";
+            const textColor =
+              isEndpoint || isSelected
+                ? '$primaryForeground'
+                : isDisabled
+                  ? '$colorSubtle'
+                  : '$color';
+            const textWeight =
+              isEndpoint || isSelected || isToday ? '600' : '400';
             const textOpacity = isDisabled ? 0.3 : 1;
 
             // Range band styling: extend behind the circle for in-range days
@@ -358,8 +365,8 @@ export function InlineCalendar({
                       position="absolute"
                       top={0}
                       bottom={0}
-                      left={bandLeft ? (isFirstInRow ? 18 : 0) : "50%"}
-                      right={bandRight ? (isLastInRow ? 18 : 0) : "50%"}
+                      left={bandLeft ? (isFirstInRow ? 18 : 0) : '50%'}
+                      right={bandRight ? (isLastInRow ? 18 : 0) : '50%'}
                       backgroundColor="$backgroundHover"
                     />
                   )}
@@ -374,13 +381,9 @@ export function InlineCalendar({
                     backgroundColor={circleBackground}
                     zIndex={1}
                     pressStyle={
-                      isDisabled
-                        ? undefined
-                        : { scale: 0.92, opacity: 0.7 }
+                      isDisabled ? undefined : { scale: 0.92, opacity: 0.7 }
                     }
-                    onPress={
-                      isDisabled ? undefined : () => handleDayPress(day)
-                    }
+                    onPress={isDisabled ? undefined : () => handleDayPress(day)}
                   >
                     <Text
                       fontSize={14}

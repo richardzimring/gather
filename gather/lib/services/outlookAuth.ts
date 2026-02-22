@@ -1,7 +1,7 @@
-import * as Linking from 'expo-linking'
-import * as WebBrowser from 'expo-web-browser'
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 
-import { getCalendarsOutlookAuthUrl } from '../api/client'
+import { getCalendarsOutlookAuthUrl } from '../api/client';
 
 /**
  * Initiate the Outlook OAuth flow.
@@ -18,34 +18,34 @@ import { getCalendarsOutlookAuthUrl } from '../api/client'
  */
 export async function connectOutlookCalendar(): Promise<void> {
   // 1. Get the OAuth URL from our backend
-  const authUrlResponse = await getCalendarsOutlookAuthUrl()
+  const authUrlResponse = await getCalendarsOutlookAuthUrl();
   if (!authUrlResponse.data?.success || !authUrlResponse.data.data?.authUrl) {
-    throw new Error('Failed to get Outlook OAuth URL')
+    throw new Error('Failed to get Outlook OAuth URL');
   }
 
-  const authUrl = authUrlResponse.data.data.authUrl
+  const authUrl = authUrlResponse.data.data.authUrl;
 
   // 2. Open in-app browser and wait for the backend to redirect back to the app
   const result = await WebBrowser.openAuthSessionAsync(
     authUrl,
     Linking.createURL('calendars/outlook/callback'),
-  )
+  );
 
   if (result.type !== 'success' || !result.url) {
-    throw new OutlookAuthCancelledError()
+    throw new OutlookAuthCancelledError();
   }
 
   // 3. Check if the backend reported success or an error
-  const url = new URL(result.url)
-  const success = url.searchParams.get('success')
-  const error = url.searchParams.get('error')
+  const url = new URL(result.url);
+  const success = url.searchParams.get('success');
+  const error = url.searchParams.get('error');
 
   if (error || success !== 'true') {
     throw new Error(
       error
         ? `Outlook authorization failed: ${error}`
         : 'Outlook authorization did not complete successfully',
-    )
+    );
   }
 
   // Token exchange and calendar import happened on the backend.
@@ -58,7 +58,7 @@ export async function connectOutlookCalendar(): Promise<void> {
  */
 export class OutlookAuthCancelledError extends Error {
   constructor() {
-    super('Outlook authorization was cancelled')
-    this.name = 'OutlookAuthCancelledError'
+    super('Outlook authorization was cancelled');
+    this.name = 'OutlookAuthCancelledError';
   }
 }

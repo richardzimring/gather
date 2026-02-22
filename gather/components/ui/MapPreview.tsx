@@ -1,7 +1,7 @@
-import { Linking, Platform } from "react-native";
-import MapView, { Marker, PROVIDER_DEFAULT } from "react-native-maps";
-import { YStack, XStack, Text } from "tamagui";
-import { MapPin } from "@tamagui/lucide-icons";
+import { Linking, Platform } from 'react-native';
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import { YStack, XStack, Text } from 'tamagui';
+import { MapPin } from '@tamagui/lucide-icons';
 
 export interface MapPreviewProps {
   latitude: number;
@@ -26,7 +26,7 @@ export function MapPreview({
 }: MapPreviewProps) {
   const handlePress = () => {
     // Open in Apple Maps with directions
-    const label = encodeURIComponent(name || "Event Location");
+    const label = encodeURIComponent(name || 'Event Location');
     const url = Platform.select({
       ios: `maps://app?daddr=${latitude},${longitude}&q=${label}`,
       default: `https://maps.apple.com/?daddr=${latitude},${longitude}&q=${label}`,
@@ -49,7 +49,7 @@ export function MapPreview({
       >
         <MapView
           provider={PROVIDER_DEFAULT}
-          style={{ width: "100%", height }}
+          style={{ width: '100%', height }}
           initialRegion={{
             latitude,
             longitude,

@@ -1,6 +1,6 @@
-import { Check } from '@tamagui/lucide-icons'
-import { router } from 'expo-router'
-import { useState } from 'react'
+import { Check } from '@tamagui/lucide-icons';
+import { router } from 'expo-router';
+import { useState } from 'react';
 import {
   Circle,
   Input,
@@ -10,45 +10,45 @@ import {
   Theme,
   XStack,
   YStack,
-} from 'tamagui'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+} from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
-import { CancelHeader } from '../../components/ui/ScreenHeader'
-import { useCreateGroup, useFriends } from '../../lib/hooks'
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { CancelHeader } from '../../components/ui/ScreenHeader';
+import { useCreateGroup, useFriends } from '../../lib/hooks';
 
 export default function CreateGroupScreen() {
-  const insets = useSafeAreaInsets()
-  const { data: friendsData } = useFriends()
-  const createGroup = useCreateGroup()
+  const insets = useSafeAreaInsets();
+  const { data: friendsData } = useFriends();
+  const createGroup = useCreateGroup();
 
-  const [name, setName] = useState('')
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([])
+  const [name, setName] = useState('');
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
-  const friends = friendsData?.friends ?? []
+  const friends = friendsData?.friends ?? [];
 
   const toggleMember = (friendId: string) => {
     setSelectedMembers((prev) =>
       prev.includes(friendId)
         ? prev.filter((id) => id !== friendId)
-        : [...prev, friendId]
-    )
-  }
+        : [...prev, friendId],
+    );
+  };
 
   const handleCreate = async () => {
-    if (!name.trim()) return
+    if (!name.trim()) return;
 
     try {
       await createGroup.mutateAsync({
         name: name.trim(),
         memberIds: selectedMembers,
-      })
-      router.back()
+      });
+      router.back();
     } catch (err) {
-      console.error('Failed to create group:', err)
+      console.error('Failed to create group:', err);
     }
-  }
+  };
 
   return (
     <YStack flex={1} backgroundColor="$background">
@@ -66,7 +66,9 @@ export default function CreateGroupScreen() {
         <Theme name="Card">
           <Card marginBottom="$4">
             <YStack gap="$2">
-              <Text fontWeight="500" fontSize={14}>Group Name</Text>
+              <Text fontWeight="500" fontSize={14}>
+                Group Name
+              </Text>
               <Input
                 placeholder="e.g., Tennis Club"
                 placeholderTextColor="$colorMuted"
@@ -87,8 +89,14 @@ export default function CreateGroupScreen() {
         {/* Member Selection */}
         <Theme name="Card">
           <Card marginBottom="$4">
-            <XStack justifyContent="space-between" alignItems="center" marginBottom="$3">
-              <Text fontWeight="500" fontSize={14}>Add Members</Text>
+            <XStack
+              justifyContent="space-between"
+              alignItems="center"
+              marginBottom="$3"
+            >
+              <Text fontWeight="500" fontSize={14}>
+                Add Members
+              </Text>
               {selectedMembers.length > 0 && (
                 <Text color="$color" fontSize={13} fontWeight="500">
                   {selectedMembers.length} selected
@@ -105,7 +113,7 @@ export default function CreateGroupScreen() {
             ) : (
               <YStack>
                 {friends.map((friend, index) => {
-                  const isSelected = selectedMembers.includes(friend.friendId)
+                  const isSelected = selectedMembers.includes(friend.friendId);
                   return (
                     <YStack key={friend.friendId}>
                       <XStack
@@ -121,26 +129,36 @@ export default function CreateGroupScreen() {
                           borderRadius={4}
                           borderWidth={1}
                           borderColor={isSelected ? '$primary' : '$borderColor'}
-                          backgroundColor={isSelected ? '$primary' : 'transparent'}
+                          backgroundColor={
+                            isSelected ? '$primary' : 'transparent'
+                          }
                           alignItems="center"
                           justifyContent="center"
                         >
                           {isSelected && (
-                            <Check size={12} color="$primaryForeground" strokeWidth={3} />
+                            <Check
+                              size={12}
+                              color="$primaryForeground"
+                              strokeWidth={3}
+                            />
                           )}
                         </YStack>
                         <Circle size={36} backgroundColor="$backgroundHover">
-                          <Text fontWeight="500" fontSize={13}>{friend.friend.initials}</Text>
+                          <Text fontWeight="500" fontSize={13}>
+                            {friend.friend.initials}
+                          </Text>
                         </Circle>
                         <YStack flex={1}>
-                          <Text fontWeight="500" fontSize={14}>{friend.friend.fullName}</Text>
+                          <Text fontWeight="500" fontSize={14}>
+                            {friend.friend.fullName}
+                          </Text>
                         </YStack>
                       </XStack>
                       {index < friends.length - 1 && (
                         <Separator marginVertical="$1" />
                       )}
                     </YStack>
-                  )
+                  );
                 })}
               </YStack>
             )}
@@ -159,5 +177,5 @@ export default function CreateGroupScreen() {
         </Button>
       </ScrollView>
     </YStack>
-  )
+  );
 }

@@ -32,7 +32,9 @@ const dbUserToUser = (dbUser: typeof users.$inferSelect): User => {
   };
 };
 
-const dbFriendshipToFriendship = (dbFriendship: typeof friendships.$inferSelect): Friendship => {
+const dbFriendshipToFriendship = (
+  dbFriendship: typeof friendships.$inferSelect,
+): Friendship => {
   return {
     userId: dbFriendship.userId,
     friendId: dbFriendship.friendId,
@@ -51,7 +53,11 @@ const getAllFriendsGroup = async (userId: string): Promise<string | null> => {
     .select({ id: groups.id })
     .from(groups)
     .where(
-      and(eq(groups.ownerId, userId), eq(groups.isDefault, true), eq(groups.name, 'All Friends')),
+      and(
+        eq(groups.ownerId, userId),
+        eq(groups.isDefault, true),
+        eq(groups.name, 'All Friends'),
+      ),
     )
     .limit(1);
 
@@ -66,7 +72,9 @@ export interface FriendWithUser extends Friendship {
   friend: User;
 }
 
-export const getFriendships = async (userId: string): Promise<FriendWithUser[]> => {
+export const getFriendships = async (
+  userId: string,
+): Promise<FriendWithUser[]> => {
   // Use JOIN to get friendship and friend user data in one query
   const results = await db
     .select({
@@ -90,7 +98,9 @@ export const getFriendship = async (
   const result = await db
     .select()
     .from(friendships)
-    .where(and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)))
+    .where(
+      and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)),
+    )
     .limit(1);
 
   const friendship = result[0];
@@ -186,7 +196,9 @@ export const sendFriendRequest = async (
   return {
     success: true,
     message: 'Friend request sent',
-    friendship: requesterFriendship ? dbFriendshipToFriendship(requesterFriendship) : undefined,
+    friendship: requesterFriendship
+      ? dbFriendshipToFriendship(requesterFriendship)
+      : undefined,
   };
 };
 
@@ -309,14 +321,15 @@ export const removeFriend = async (
     .where(eq(groups.ownerId, userId));
 
   if (userGroups.length > 0) {
-    await db
-      .delete(groupMembers)
-      .where(
-        and(
-          inArray(groupMembers.groupId, userGroups.map((g) => g.id)),
-          eq(groupMembers.userId, friendId),
+    await db.delete(groupMembers).where(
+      and(
+        inArray(
+          groupMembers.groupId,
+          userGroups.map((g) => g.id),
         ),
-      );
+        eq(groupMembers.userId, friendId),
+      ),
+    );
   }
 
   // Remove userId from all of friendId's groups
@@ -326,14 +339,15 @@ export const removeFriend = async (
     .where(eq(groups.ownerId, friendId));
 
   if (friendGroups.length > 0) {
-    await db
-      .delete(groupMembers)
-      .where(
-        and(
-          inArray(groupMembers.groupId, friendGroups.map((g) => g.id)),
-          eq(groupMembers.userId, userId),
+    await db.delete(groupMembers).where(
+      and(
+        inArray(
+          groupMembers.groupId,
+          friendGroups.map((g) => g.id),
         ),
-      );
+        eq(groupMembers.userId, userId),
+      ),
+    );
   }
 
   // Delete both friendship records
@@ -356,7 +370,9 @@ export const blockUser = async (
   // Delete the other user's record of us
   await db
     .delete(friendships)
-    .where(and(eq(friendships.userId, friendId), eq(friendships.friendId, userId)));
+    .where(
+      and(eq(friendships.userId, friendId), eq(friendships.friendId, userId)),
+    );
 
   // Update or create our record as blocked
   const existing = await getFriendship(userId, friendId);
@@ -365,7 +381,9 @@ export const blockUser = async (
     await db
       .update(friendships)
       .set({ status: 'blocked' })
-      .where(and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)));
+      .where(
+        and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)),
+      );
   } else {
     await db.insert(friendships).values({
       userId,
@@ -378,11 +396,15 @@ export const blockUser = async (
   return { success: true, message: 'User blocked' };
 };
 
-export const getAcceptedFriendIds = async (userId: string): Promise<string[]> => {
+export const getAcceptedFriendIds = async (
+  userId: string,
+): Promise<string[]> => {
   const results = await db
     .select({ friendId: friendships.friendId })
     .from(friendships)
-    .where(and(eq(friendships.userId, userId), eq(friendships.status, 'accepted')));
+    .where(
+      and(eq(friendships.userId, userId), eq(friendships.status, 'accepted')),
+    );
 
   return results.map((r) => r.friendId);
 };

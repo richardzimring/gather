@@ -70,7 +70,9 @@ const AppleJwtPayloadSchema = z
     /** * Real User Status (iOS 14+ / macOS 11+ only).
      * 0: Unsupported, 1: Unknown, 2: LikelyReal
      */
-    real_user_status: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
+    real_user_status: z
+      .union([z.literal(0), z.literal(1), z.literal(2)])
+      .optional(),
 
     /** * Transfer Subject.
      * Only present during the 60-day period after transferring an app
@@ -78,8 +80,12 @@ const AppleJwtPayloadSchema = z
      */
     transfer_sub: z.string().optional(),
   })
-  .refine((data) => data.exp > Math.floor(Date.now() / 1000), { message: 'Token expired' })
-  .refine((data) => data.aud === APPLE_BUNDLE_ID, { message: 'Invalid token audience' });
+  .refine((data) => data.exp > Math.floor(Date.now() / 1000), {
+    message: 'Token expired',
+  })
+  .refine((data) => data.aud === APPLE_BUNDLE_ID, {
+    message: 'Invalid token audience',
+  });
 
 type AppleJwtPayload = z.infer<typeof AppleJwtPayloadSchema>;
 
@@ -133,7 +139,9 @@ const getAppleJwks = async (): Promise<{ keys: JWK[] }> => {
  * Verify an Apple identity token
  * Returns the payload if valid, null if invalid
  */
-export const verifyAppleToken = async (token: string): Promise<AppleJwtPayload | null> => {
+export const verifyAppleToken = async (
+  token: string,
+): Promise<AppleJwtPayload | null> => {
   try {
     // For development, allow a simple dev token
     if (token.startsWith('dev-')) {
@@ -155,7 +163,9 @@ export const verifyAppleToken = async (token: string): Promise<AppleJwtPayload |
       return null;
     }
 
-    const header = JSON.parse(Buffer.from(headerBase64, 'base64url').toString()) as {
+    const header = JSON.parse(
+      Buffer.from(headerBase64, 'base64url').toString(),
+    ) as {
       kid: string;
       alg: string;
     };
@@ -179,7 +189,9 @@ export const verifyAppleToken = async (token: string): Promise<AppleJwtPayload |
     if (!payloadBase64) {
       return null;
     }
-    const payloadRaw = JSON.parse(Buffer.from(payloadBase64, 'base64url').toString());
+    const payloadRaw = JSON.parse(
+      Buffer.from(payloadBase64, 'base64url').toString(),
+    );
 
     // Validate with Zod schema
     const result = AppleJwtPayloadSchema.safeParse(payloadRaw);
@@ -205,7 +217,9 @@ export const createApp = () => {
     defaultHook: (result, c) => {
       if (!result.success) {
         const issues = result.error?.issues ?? [];
-        const message = issues.map((e) => `${(e.path ?? []).join('.')}: ${e.message}`).join(', ');
+        const message = issues
+          .map((e) => `${(e.path ?? []).join('.')}: ${e.message}`)
+          .join(', ');
         return c.json(
           {
             success: false as const,
@@ -394,7 +408,8 @@ export const validationHook = (result: any, c: any) => {
     const issues = result.error.issues || [];
     const message = issues
       .map(
-        (e: { path: (string | number)[]; message: string }) => `${e.path.join('.')}: ${e.message}`,
+        (e: { path: (string | number)[]; message: string }) =>
+          `${e.path.join('.')}: ${e.message}`,
       )
       .join(', ');
     return c.json(

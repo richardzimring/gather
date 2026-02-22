@@ -1,5 +1,9 @@
 import { createRoute, z } from '@hono/zod-openapi';
-import { createApp, verifyAppleToken, authMiddleware } from '../middleware/hono';
+import {
+  createApp,
+  verifyAppleToken,
+  authMiddleware,
+} from '../middleware/hono';
 import { UserSchema, ErrorResponseSchema } from '../types';
 import * as userService from '../services/users';
 
@@ -191,7 +195,8 @@ app.openapi(appleCallbackRoute, async (c) => {
         {
           success: false as const,
           error: 'Bad Request',
-          message: 'Email is required but was not provided by Apple or in the request',
+          message:
+            'Email is required but was not provided by Apple or in the request',
         },
         400,
       );
@@ -202,7 +207,8 @@ app.openapi(appleCallbackRoute, async (c) => {
     let isNewUser = false;
 
     if (!user) {
-      const firstName = firstTimeUser?.name?.firstName ?? userEmail.split('@')[0] ?? 'User';
+      const firstName =
+        firstTimeUser?.name?.firstName ?? userEmail.split('@')[0] ?? 'User';
       const lastName = firstTimeUser?.name?.lastName ?? '';
 
       console.log('Creating new user...');
@@ -226,7 +232,9 @@ app.openapi(appleCallbackRoute, async (c) => {
           token: identityToken,
           isNewUser,
         },
-        message: isNewUser ? 'User created successfully' : 'User retrieved successfully',
+        message: isNewUser
+          ? 'User created successfully'
+          : 'User retrieved successfully',
       },
       200,
     );

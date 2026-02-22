@@ -1,6 +1,11 @@
 import { eq, and } from 'drizzle-orm';
 import { db, blockedWindows } from '../db';
-import type { BlockedWindow, CreateBlockedWindow, UpdateBlockedWindow, Recurring } from '../types';
+import type {
+  BlockedWindow,
+  CreateBlockedWindow,
+  UpdateBlockedWindow,
+  Recurring,
+} from '../types';
 
 // ============================================
 // Helpers
@@ -34,7 +39,9 @@ const dbWindowToBlockedWindow = (
 // Blocked Window Operations
 // ============================================
 
-export const getBlockedWindows = async (userId: string): Promise<BlockedWindow[]> => {
+export const getBlockedWindows = async (
+  userId: string,
+): Promise<BlockedWindow[]> => {
   const windows = await db
     .select()
     .from(blockedWindows)
@@ -50,7 +57,9 @@ export const getBlockedWindow = async (
   const result = await db
     .select()
     .from(blockedWindows)
-    .where(and(eq(blockedWindows.userId, userId), eq(blockedWindows.id, windowId)))
+    .where(
+      and(eq(blockedWindows.userId, userId), eq(blockedWindows.id, windowId)),
+    )
     .limit(1);
 
   const window = result[0];
@@ -71,7 +80,9 @@ export const createBlockedWindow = async (
       endTime: new Date(input.endTime),
       recurringPattern: input.recurring?.pattern,
       recurringDaysOfWeek: input.recurring?.daysOfWeek,
-      recurringEndDate: input.recurring?.endDate ? new Date(input.recurring.endDate) : null,
+      recurringEndDate: input.recurring?.endDate
+        ? new Date(input.recurring.endDate)
+        : null,
       notes: input.notes,
     })
     .returning();
@@ -125,7 +136,10 @@ export const updateBlockedWindow = async (
   }
 
   if (Object.keys(updateData).length > 0) {
-    await db.update(blockedWindows).set(updateData).where(eq(blockedWindows.id, windowId));
+    await db
+      .update(blockedWindows)
+      .set(updateData)
+      .where(eq(blockedWindows.id, windowId));
   }
 
   const updatedWindow = await getBlockedWindow(userId, windowId);

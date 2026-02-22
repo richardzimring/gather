@@ -1,7 +1,10 @@
-import { useCallback, useRef } from "react";
-import { ScrollView as RNScrollView, type LayoutChangeEvent } from "react-native";
-import { ScrollView, Text, XStack, YStack } from "tamagui";
-import { haptic } from "../../lib/haptics";
+import { useCallback, useRef } from 'react';
+import {
+  ScrollView as RNScrollView,
+  type LayoutChangeEvent,
+} from 'react-native';
+import { ScrollView, Text, XStack, YStack } from 'tamagui';
+import { haptic } from '../../lib/haptics';
 
 // ============================================
 // Types
@@ -32,23 +35,23 @@ export interface TimeChipPickerProps {
 // ============================================
 
 export const DURATION_OPTIONS: ChipOption[] = [
-  { label: "15m", value: 15 },
-  { label: "30m", value: 30 },
-  { label: "45m", value: 45 },
-  { label: "1h", value: 60 },
-  { label: "1.5h", value: 90 },
-  { label: "2h", value: 120 },
-  { label: "2.5h", value: 150 },
-  { label: "3h", value: 180 },
-  { label: "4h", value: 240 },
-  { label: "5h", value: 300 },
-  { label: "6h", value: 360 },
-  { label: "7h", value: 420 },
-  { label: "8h", value: 480 },
-  { label: "9h", value: 540 },
-  { label: "10h", value: 600 },
-  { label: "11h", value: 660 },
-  { label: "12h", value: 720 },
+  { label: '15m', value: 15 },
+  { label: '30m', value: 30 },
+  { label: '45m', value: 45 },
+  { label: '1h', value: 60 },
+  { label: '1.5h', value: 90 },
+  { label: '2h', value: 120 },
+  { label: '2.5h', value: 150 },
+  { label: '3h', value: 180 },
+  { label: '4h', value: 240 },
+  { label: '5h', value: 300 },
+  { label: '6h', value: 360 },
+  { label: '7h', value: 420 },
+  { label: '8h', value: 480 },
+  { label: '9h', value: 540 },
+  { label: '10h', value: 600 },
+  { label: '11h', value: 660 },
+  { label: '12h', value: 720 },
 ];
 
 /** Start time chip options (minutes since midnight, 6 AM – 11 PM, 30-min intervals) */
@@ -58,9 +61,9 @@ export const START_TIME_OPTIONS: ChipOption[] = (() => {
     for (const min of [0, 30]) {
       if (hour === 23 && min === 30) continue; // skip 11:30 PM
       const totalMinutes = hour * 60 + min;
-      const ampm = hour >= 12 ? "PM" : "AM";
+      const ampm = hour >= 12 ? 'PM' : 'AM';
       const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-      const displayMin = min === 0 ? "" : ":30";
+      const displayMin = min === 0 ? '' : ':30';
       options.push({
         label: `${displayHour}${displayMin} ${ampm}`,
         value: totalMinutes,
@@ -88,7 +91,7 @@ export function TimeChipPicker({
 }: TimeChipPickerProps) {
   const scrollRef = useRef<RNScrollView>(null);
   const chipLayoutsRef = useRef<Record<number, { x: number; width: number }>>(
-    {}
+    {},
   );
   const containerWidthRef = useRef(0);
   const contentWidthRef = useRef(0);
@@ -130,7 +133,7 @@ export function TimeChipPicker({
       chipLayoutsRef.current[value] = { x, width };
       if (value === initialValueRef.current) tryInitialScroll();
     },
-    [tryInitialScroll]
+    [tryInitialScroll],
   );
 
   const handleContainerLayout = useCallback(
@@ -138,7 +141,7 @@ export function TimeChipPicker({
       containerWidthRef.current = event.nativeEvent.layout.width;
       tryInitialScroll();
     },
-    [tryInitialScroll]
+    [tryInitialScroll],
   );
 
   const handleContentSizeChange = useCallback(
@@ -146,7 +149,7 @@ export function TimeChipPicker({
       contentWidthRef.current = w;
       tryInitialScroll();
     },
-    [tryInitialScroll]
+    [tryInitialScroll],
   );
 
   return (
@@ -173,7 +176,7 @@ export function TimeChipPicker({
                 paddingVertical={6}
                 paddingHorizontal={10}
                 borderRadius="$2"
-                backgroundColor={isActive ? "$primary" : "$backgroundHover"}
+                backgroundColor={isActive ? '$primary' : '$backgroundHover'}
                 pressStyle={{ scale: 0.96, opacity: 0.8 }}
                 onPress={() => {
                   haptic.selection();
@@ -189,8 +192,8 @@ export function TimeChipPicker({
               >
                 <Text
                   fontSize={12}
-                  fontWeight={isActive ? "600" : "400"}
-                  color={isActive ? "$primaryForeground" : "$color"}
+                  fontWeight={isActive ? '600' : '400'}
+                  color={isActive ? '$primaryForeground' : '$color'}
                 >
                   {option.label}
                 </Text>

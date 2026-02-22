@@ -1,15 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
-import { postBusyTimes } from "../api/client";
-import type { BusyTimeInterval } from "../api/generated/types.gen";
+import { postBusyTimes } from '../api/client';
+import type { BusyTimeInterval } from '../api/generated/types.gen';
 import {
   computeCommonFreeTimeSlots,
   type CommonFreeTimeSlot,
-} from "../utils/availability";
+} from '../utils/availability';
 
 export const busyTimesKeys = {
-  all: ["busy-times"] as const,
+  all: ['busy-times'] as const,
   query: (userIds: string[], startDate: string, endDate: string) =>
     [...busyTimesKeys.all, ...userIds.sort(), startDate, endDate] as const,
 };
@@ -41,7 +41,7 @@ export function useBusyTimes(
         body: { userIds, startDate, endDate },
       });
       if (!response.data?.success) {
-        throw new Error("Failed to fetch busy times");
+        throw new Error('Failed to fetch busy times');
       }
       return response.data.data.busyTimes;
     },

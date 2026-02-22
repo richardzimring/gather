@@ -1,13 +1,13 @@
-import { Text, XStack, YStack, Circle, Theme } from "tamagui";
+import { Text, XStack, YStack, Circle, Theme } from 'tamagui';
 
 import {
   AttendeeAvatarStack,
   type AvatarStackPerson,
-} from "./AttendeeAvatarStack";
-import { BadgeLabel } from "./Badge";
-import { Card } from "./Card";
-import { SkeletonBar, SkeletonCircle } from "./Skeleton";
-import { haptic } from "../../lib/haptics";
+} from './AttendeeAvatarStack';
+import { BadgeLabel } from './Badge';
+import { Card } from './Card';
+import { SkeletonBar, SkeletonCircle } from './Skeleton';
+import { haptic } from '../../lib/haptics';
 
 // ============================================
 // Types
@@ -66,20 +66,20 @@ export function EventCard({
   onRespondPress,
   isPreview = false,
 }: EventCardProps) {
-  const displayTitle = title || (isPreview ? "Your event" : "Untitled");
-  const displayEmoji = emoji ?? (isPreview ? "✨" : "📅");
+  const displayTitle = title || (isPreview ? 'Your event' : 'Untitled');
+  const displayEmoji = emoji ?? (isPreview ? '✨' : '📅');
   const titleIsPlaceholder = !title && isPreview;
 
   return (
     <Theme name="Card">
-      <Card 
-        pressable={!!onPress} 
+      <Card
+        pressable={!!onPress}
         onPress={() => {
           if (onPress) {
             haptic.light();
             onPress();
           }
-        }} 
+        }}
         outlined={isPending}
       >
         <YStack gap="$3">
@@ -97,7 +97,7 @@ export function EventCard({
                 <Text
                   fontWeight="600"
                   fontSize={16}
-                  color={titleIsPlaceholder ? "$colorMuted" : undefined}
+                  color={titleIsPlaceholder ? '$colorMuted' : undefined}
                 >
                   {displayTitle}
                 </Text>

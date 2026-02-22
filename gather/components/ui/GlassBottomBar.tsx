@@ -1,13 +1,13 @@
-import { StyleSheet, View, useColorScheme } from 'react-native'
+import { StyleSheet, View, useColorScheme } from 'react-native';
 import {
   GlassView,
   isLiquidGlassAvailable,
   isGlassEffectAPIAvailable,
-} from 'expo-glass-effect'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+} from 'expo-glass-effect';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface GlassBottomBarProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 /**
@@ -16,23 +16,21 @@ interface GlassBottomBarProps {
  * Falls back to a translucent background on platforms below iOS 26.
  */
 export function GlassBottomBar({ children }: GlassBottomBarProps) {
-  const insets = useSafeAreaInsets()
-  const colorScheme = useColorScheme()
-  const useGlass = isLiquidGlassAvailable() && isGlassEffectAPIAvailable()
+  const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const useGlass = isLiquidGlassAvailable() && isGlassEffectAPIAvailable();
 
-  const paddingBottom = Math.max(insets.bottom, 16)
+  const paddingBottom = Math.max(insets.bottom, 16);
 
   const fallbackBg =
     colorScheme === 'dark'
       ? 'rgba(28, 28, 30, 0.95)'
-      : 'rgba(242, 242, 247, 0.95)'
+      : 'rgba(242, 242, 247, 0.95)';
 
   if (useGlass) {
     return (
-      <GlassView style={[styles.bar, { paddingBottom }]}>
-        {children}
-      </GlassView>
-    )
+      <GlassView style={[styles.bar, { paddingBottom }]}>{children}</GlassView>
+    );
   }
 
   return (
@@ -45,7 +43,7 @@ export function GlassBottomBar({ children }: GlassBottomBarProps) {
     >
       {children}
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -61,4 +59,4 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: 'rgba(0, 0, 0, 0.15)',
   },
-})
+});

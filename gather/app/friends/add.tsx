@@ -1,8 +1,8 @@
-import { Copy, Share2, UserPlus } from '@tamagui/lucide-icons'
-import { router } from 'expo-router'
-import { useState } from 'react'
-import { Alert, Share } from 'react-native'
-import * as Clipboard from 'expo-clipboard'
+import { Copy, Share2, UserPlus } from '@tamagui/lucide-icons';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { Alert, Share } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import {
   Circle,
   Input,
@@ -11,74 +11,76 @@ import {
   Theme,
   XStack,
   YStack,
-} from 'tamagui'
-import { Spinner } from '../../components/ui/Spinner'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+} from 'tamagui';
+import { Spinner } from '../../components/ui/Spinner';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
-import { BackHeader } from '../../components/ui/ScreenHeader'
-import { useInviteCode, useSendFriendRequest } from '../../lib/hooks'
-import { haptic } from '../../lib/haptics'
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { BackHeader } from '../../components/ui/ScreenHeader';
+import { useInviteCode, useSendFriendRequest } from '../../lib/hooks';
+import { haptic } from '../../lib/haptics';
 
 export default function AddFriendScreen() {
-  const insets = useSafeAreaInsets()
-  const { data: inviteCodeData, isLoading: isLoadingCode } = useInviteCode()
-  const sendFriendRequest = useSendFriendRequest()
+  const insets = useSafeAreaInsets();
+  const { data: inviteCodeData, isLoading: isLoadingCode } = useInviteCode();
+  const sendFriendRequest = useSendFriendRequest();
 
-  const [inviteCode, setInviteCode] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
+  const [inviteCode, setInviteCode] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  const myInviteCode = inviteCodeData?.inviteCode ?? ''
+  const myInviteCode = inviteCodeData?.inviteCode ?? '';
 
   const handleCopyCode = async () => {
-    if (!myInviteCode) return
-    
-    await Clipboard.setStringAsync(myInviteCode)
-    haptic.success()
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    if (!myInviteCode) return;
+
+    await Clipboard.setStringAsync(myInviteCode);
+    haptic.success();
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleShare = async () => {
     try {
       await Share.share({
         message: `Hey, add me on Gather! My invite code is: ${myInviteCode}`,
-      })
+      });
     } catch (err) {
-      console.error('Failed to share:', err)
+      console.error('Failed to share:', err);
     }
-  }
+  };
 
   const handleAddFriend = async () => {
-    const cleanCode = inviteCode.trim().toUpperCase()
-    
+    const cleanCode = inviteCode.trim().toUpperCase();
+
     if (!cleanCode) {
-      setError('Please enter an invite code')
-      return
+      setError('Please enter an invite code');
+      return;
     }
 
     if (cleanCode.length < 6) {
-      setError('Invite code is too short')
-      return
+      setError('Invite code is too short');
+      return;
     }
 
-    setError(null)
+    setError(null);
 
     try {
-      await sendFriendRequest.mutateAsync({ inviteCode: cleanCode })
-      haptic.success()
+      await sendFriendRequest.mutateAsync({ inviteCode: cleanCode });
+      haptic.success();
       Alert.alert(
         'Friend Request Sent',
         'Your friend request has been sent. They will see it in their requests.',
-        [{ text: 'OK', onPress: () => router.back() }]
-      )
+        [{ text: 'OK', onPress: () => router.back() }],
+      );
     } catch {
-      haptic.error()
-      setError('Failed to send friend request. Please check the code and try again.')
+      haptic.error();
+      setError(
+        'Failed to send friend request. Please check the code and try again.',
+      );
     }
-  }
+  };
 
   return (
     <YStack flex={1} backgroundColor="$background">
@@ -116,8 +118,8 @@ export default function AddFriendScreen() {
                   placeholderTextColor="$colorMuted"
                   value={inviteCode}
                   onChangeText={(text) => {
-                    setInviteCode(text.toUpperCase())
-                    setError(null)
+                    setInviteCode(text.toUpperCase());
+                    setError(null);
                   }}
                   autoCapitalize="characters"
                   autoCorrect={false}
@@ -145,7 +147,9 @@ export default function AddFriendScreen() {
                 onPress={handleAddFriend}
                 disabled={sendFriendRequest.isPending || !inviteCode.trim()}
               >
-                {sendFriendRequest.isPending ? 'Sending...' : 'Send Friend Request'}
+                {sendFriendRequest.isPending
+                  ? 'Sending...'
+                  : 'Send Friend Request'}
               </Button>
             </YStack>
           </Card>
@@ -181,11 +185,7 @@ export default function AddFriendScreen() {
                     padding="$3"
                     alignItems="center"
                   >
-                    <Text
-                      fontSize={20}
-                      fontWeight="600"
-                      letterSpacing={2}
-                    >
+                    <Text fontSize={20} fontWeight="600" letterSpacing={2}>
                       {myInviteCode || '------'}
                     </Text>
                   </YStack>
@@ -219,10 +219,11 @@ export default function AddFriendScreen() {
         {/* Help Text */}
         <YStack marginTop="$4" alignItems="center">
           <Text color="$colorMuted" fontSize={12} textAlign="center">
-            Friend requests must be accepted before you can see each other&apos;s availability and create events together.
+            Friend requests must be accepted before you can see each
+            other&apos;s availability and create events together.
           </Text>
         </YStack>
       </ScrollView>
     </YStack>
-  )
+  );
 }

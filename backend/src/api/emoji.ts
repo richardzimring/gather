@@ -36,7 +36,8 @@ const generateEmojiRoute = createRoute({
   path: '/emoji/generate',
   tags: ['Emoji'],
   summary: 'Generate an emoji for given text',
-  description: 'Generate a single emoji that represents the provided text using AI, with caching',
+  description:
+    'Generate a single emoji that represents the provided text using AI, with caching',
   security: [{ BearerAuth: [] }],
   request: {
     body: {

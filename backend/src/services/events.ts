@@ -99,7 +99,8 @@ const getHostInfo = (hostUser: typeof users.$inferSelect | null): HostInfo => {
   }
   return {
     hostName: `${hostUser.firstName} ${hostUser.lastName}`,
-    hostInitials: `${hostUser.firstName.charAt(0)}${hostUser.lastName.charAt(0)}`.toUpperCase(),
+    hostInitials:
+      `${hostUser.firstName.charAt(0)}${hostUser.lastName.charAt(0)}`.toUpperCase(),
     hostAvatarUrl: hostUser.avatarUrl ?? undefined,
   };
 };
@@ -203,11 +204,18 @@ export const getEventsForUser = async (userId: string): Promise<Event[]> => {
 
   return eventResults.map((r) => {
     const hostInfo = getHostInfo(r.host);
-    return dbEventToEvent(r.event, inviteesByEvent.get(r.event.id) ?? [], hostInfo);
+    return dbEventToEvent(
+      r.event,
+      inviteesByEvent.get(r.event.id) ?? [],
+      hostInfo,
+    );
   });
 };
 
-export const createEvent = async (hostId: string, input: CreateEvent): Promise<Event> => {
+export const createEvent = async (
+  hostId: string,
+  input: CreateEvent,
+): Promise<Event> => {
   // Handle location data - if locationData is provided, use it; otherwise fall back to location string
   const locationName = input.locationData?.name ?? input.location;
   const locationPlaceId = input.locationData?.placeId;
@@ -336,9 +344,11 @@ export const updateEvent = async (
   const hasSignificantChanges = (() => {
     const timeChanged =
       (updates.startTime !== undefined &&
-        new Date(updates.startTime).getTime() !== new Date(existing.startTime).getTime()) ||
+        new Date(updates.startTime).getTime() !==
+          new Date(existing.startTime).getTime()) ||
       (updates.endTime !== undefined &&
-        new Date(updates.endTime).getTime() !== new Date(existing.endTime).getTime());
+        new Date(updates.endTime).getTime() !==
+          new Date(existing.endTime).getTime());
 
     const locationChanged =
       (updates.locationData !== undefined &&
@@ -454,19 +464,28 @@ export const respondToEvent = async (
     updateData.counterProposalEndTime = responseData.counterProposal.endTime
       ? new Date(responseData.counterProposal.endTime)
       : null;
-    updateData.counterProposalLocation = responseData.counterProposal.location ?? null;
-    updateData.counterProposalMessage = responseData.counterProposal.message ?? null;
+    updateData.counterProposalLocation =
+      responseData.counterProposal.location ?? null;
+    updateData.counterProposalMessage =
+      responseData.counterProposal.message ?? null;
   }
 
   await db
     .update(eventInvitees)
     .set(updateData)
-    .where(and(eq(eventInvitees.eventId, eventId), eq(eventInvitees.userId, userId)));
+    .where(
+      and(eq(eventInvitees.eventId, eventId), eq(eventInvitees.userId, userId)),
+    );
 
   // Notify the host of the response
   const responder = await getUserById(userId);
   if (responder) {
-    await notifyEventResponse(event.hostId, event, responder.fullName, responseData.status);
+    await notifyEventResponse(
+      event.hostId,
+      event,
+      responder.fullName,
+      responseData.status,
+    );
 
     // If there's a counter proposal, send additional notification
     if (responseData.counterProposal) {

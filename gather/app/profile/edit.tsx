@@ -1,11 +1,11 @@
-import { router } from "expo-router";
-import { ScrollView, Text, Theme, XStack, YStack } from "tamagui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from 'expo-router';
+import { ScrollView, Text, Theme, XStack, YStack } from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Card } from "../../components/ui/Card";
-import { BackHeader } from "../../components/ui/ScreenHeader";
-import { useAuth } from "../../lib/hooks/useAuth";
-import { getDeviceTimezone } from "../../lib/utils";
+import { Card } from '../../components/ui/Card';
+import { BackHeader } from '../../components/ui/ScreenHeader';
+import { useAuth } from '../../lib/hooks/useAuth';
+import { getDeviceTimezone } from '../../lib/utils';
 
 export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -41,7 +41,7 @@ export default function EditProfileScreen() {
                   justifyContent="center"
                 >
                   <Text color="$colorMuted" fontSize={14}>
-                    {user?.fullName ?? "Unknown"}
+                    {user?.fullName ?? 'Unknown'}
                   </Text>
                 </YStack>
                 <Text color="$colorMuted" fontSize={11}>
@@ -63,7 +63,7 @@ export default function EditProfileScreen() {
                   justifyContent="center"
                 >
                   <Text color="$colorMuted" fontSize={14}>
-                    {user?.email ?? "No email"}
+                    {user?.email ?? 'No email'}
                   </Text>
                 </YStack>
                 <Text color="$colorMuted" fontSize={11}>
@@ -100,7 +100,7 @@ export default function EditProfileScreen() {
                   Invite Code
                 </Text>
                 <Text fontWeight="600" fontSize={13}>
-                  {user?.inviteCode ?? "N/A"}
+                  {user?.inviteCode ?? 'N/A'}
                 </Text>
               </XStack>
             </YStack>

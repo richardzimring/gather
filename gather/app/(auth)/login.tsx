@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
-import { Text, YStack } from "tamagui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useState, useEffect, useRef } from 'react';
+import { Text, YStack } from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Platform,
   useColorScheme,
@@ -9,15 +9,15 @@ import {
   StyleSheet,
   View,
   Image,
-} from "react-native";
-import * as AppleAuthentication from "expo-apple-authentication";
-import { useRouter, Link } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
-import Svg, { Defs, RadialGradient, Stop, Path } from "react-native-svg";
+} from 'react-native';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import { useRouter, Link } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Defs, RadialGradient, Stop, Path } from 'react-native-svg';
 
-import { useAuth } from "../../lib/hooks/useAuth";
+import { useAuth } from '../../lib/hooks/useAuth';
 
-const { width: W, height: H } = Dimensions.get("window");
+const { width: W, height: H } = Dimensions.get('window');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Blob morphing engine
@@ -35,7 +35,7 @@ function reconstructPath(template: string, values: number[]): string {
   let i = 0;
   return template.replace(/-?\d+(\.\d+)?/g, () => {
     const v = values[i++];
-    return v !== undefined ? Math.round(v).toString() : "0";
+    return v !== undefined ? Math.round(v).toString() : '0';
   });
 }
 
@@ -95,36 +95,36 @@ type BlobConfig = {
 const BLOBS: BlobConfig[] = [
   {
     frames: BLOB_A_FRAMES,
-    gradientId: "blobA",
-    color1: "rgba(130, 80, 220, 0.9)",
-    color2: "rgba(80, 60, 180, 0.0)",
+    gradientId: 'blobA',
+    color1: 'rgba(130, 80, 220, 0.9)',
+    color2: 'rgba(80, 60, 180, 0.0)',
     opacity: 0.28,
     period: 20000,
     phaseOffset: 0,
   },
   {
     frames: BLOB_B_FRAMES,
-    gradientId: "blobB",
-    color1: "rgba(60, 100, 230, 0.9)",
-    color2: "rgba(40, 80, 200, 0.0)",
+    gradientId: 'blobB',
+    color1: 'rgba(60, 100, 230, 0.9)',
+    color2: 'rgba(40, 80, 200, 0.0)',
     opacity: 0.22,
     period: 24000,
     phaseOffset: 0.33,
   },
   {
     frames: BLOB_C_FRAMES,
-    gradientId: "blobC",
-    color1: "rgba(190, 70, 150, 0.9)",
-    color2: "rgba(150, 50, 120, 0.0)",
+    gradientId: 'blobC',
+    color1: 'rgba(190, 70, 150, 0.9)',
+    color2: 'rgba(150, 50, 120, 0.0)',
     opacity: 0.2,
     period: 28000,
     phaseOffset: 0.66,
   },
   {
     frames: BLOB_D_FRAMES,
-    gradientId: "blobD",
-    color1: "rgba(40, 180, 180, 0.9)",
-    color2: "rgba(20, 140, 160, 0.0)",
+    gradientId: 'blobD',
+    color1: 'rgba(40, 180, 180, 0.9)',
+    color2: 'rgba(20, 140, 160, 0.0)',
     opacity: 0.16,
     period: 22000,
     phaseOffset: 0.5,
@@ -260,17 +260,17 @@ export default function LoginScreen() {
     try {
       const result = await signInWithApple();
       if (result?.isNewUser) {
-        router.replace("/onboarding");
+        router.replace('/onboarding');
       } else {
-        router.replace("/(tabs)");
+        router.replace('/(tabs)');
       }
     } catch (error) {
-      console.error("Apple Sign In error:", error);
-      setError("Failed to sign in. Please try again.");
+      console.error('Apple Sign In error:', error);
+      setError('Failed to sign in. Please try again.');
     }
   };
 
-  const isDark = colorScheme === "dark";
+  const isDark = colorScheme === 'dark';
 
   return (
     <View style={styles.container}>
@@ -278,8 +278,8 @@ export default function LoginScreen() {
       <LinearGradient
         colors={
           isDark
-            ? ["#08060e", "#0d0a18", "#060410"]
-            : ["#f4f2fb", "#ede9f8", "#f0eef9"]
+            ? ['#08060e', '#0d0a18', '#060410']
+            : ['#f4f2fb', '#ede9f8', '#f0eef9']
         }
         locations={[0, 0.5, 1]}
         style={StyleSheet.absoluteFill}
@@ -293,16 +293,16 @@ export default function LoginScreen() {
         colors={
           isDark
             ? [
-                "rgba(8,6,14,0.6)",
-                "rgba(8,6,14,0.0)",
-                "rgba(8,6,14,0.0)",
-                "rgba(8,6,14,0.7)",
+                'rgba(8,6,14,0.6)',
+                'rgba(8,6,14,0.0)',
+                'rgba(8,6,14,0.0)',
+                'rgba(8,6,14,0.7)',
               ]
             : [
-                "rgba(244,242,251,0.5)",
-                "rgba(244,242,251,0.0)",
-                "rgba(244,242,251,0.0)",
-                "rgba(244,242,251,0.6)",
+                'rgba(244,242,251,0.5)',
+                'rgba(244,242,251,0.0)',
+                'rgba(244,242,251,0.0)',
+                'rgba(244,242,251,0.6)',
               ]
         }
         locations={[0, 0.25, 0.75, 1]}
@@ -326,8 +326,8 @@ export default function LoginScreen() {
           <Image
             source={
               isDark
-                ? require("../../assets/images/splash-icon-light.png")
-                : require("../../assets/images/splash-icon-dark.png")
+                ? require('../../assets/images/splash-icon-light.png')
+                : require('../../assets/images/splash-icon-dark.png')
             }
             style={styles.logo}
             resizeMode="contain"
@@ -338,7 +338,7 @@ export default function LoginScreen() {
               fontWeight="700"
               textAlign="center"
               letterSpacing={-2}
-              color={isDark ? "rgba(255,255,255,0.92)" : "rgba(12,10,9,0.9)"}
+              color={isDark ? 'rgba(255,255,255,0.92)' : 'rgba(12,10,9,0.9)'}
             >
               Gather
             </Text>
@@ -348,7 +348,7 @@ export default function LoginScreen() {
               textAlign="center"
               maxWidth={270}
               letterSpacing={0.08}
-              color={isDark ? "rgba(255,255,255,0.38)" : "rgba(20,15,40,0.42)"}
+              color={isDark ? 'rgba(255,255,255,0.38)' : 'rgba(20,15,40,0.42)'}
             >
               Find the perfect time to see the people you love.
             </Text>
@@ -359,7 +359,7 @@ export default function LoginScreen() {
         <YStack gap="$5" alignItems="center">
           {/* Sign In */}
           <YStack gap="$4" alignItems="center">
-            {Platform.OS === "ios" && isAppleAuthAvailable ? (
+            {Platform.OS === 'ios' && isAppleAuthAvailable ? (
               <AppleAuthentication.AppleAuthenticationButton
                 buttonType={
                   AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
@@ -376,7 +376,7 @@ export default function LoginScreen() {
             ) : (
               <YStack
                 backgroundColor={
-                  isDark ? "rgba(130,80,220,0.08)" : "rgba(100,60,200,0.06)"
+                  isDark ? 'rgba(130,80,220,0.08)' : 'rgba(100,60,200,0.06)'
                 }
                 padding="$4"
                 borderRadius="$3"
@@ -384,12 +384,12 @@ export default function LoginScreen() {
                 gap="$2"
                 borderWidth={1}
                 borderColor={
-                  isDark ? "rgba(130,80,220,0.18)" : "rgba(100,60,200,0.14)"
+                  isDark ? 'rgba(130,80,220,0.18)' : 'rgba(100,60,200,0.14)'
                 }
               >
                 <Text
                   color={
-                    isDark ? "rgba(255,255,255,0.45)" : "rgba(12,10,9,0.45)"
+                    isDark ? 'rgba(255,255,255,0.45)' : 'rgba(12,10,9,0.45)'
                   }
                   fontSize={14}
                   textAlign="center"
@@ -413,7 +413,7 @@ export default function LoginScreen() {
               {isLoading && (
                 <Text
                   color={
-                    isDark ? "rgba(255,255,255,0.35)" : "rgba(12,10,9,0.35)"
+                    isDark ? 'rgba(255,255,255,0.35)' : 'rgba(12,10,9,0.35)'
                   }
                   fontSize={14}
                 >
@@ -426,16 +426,16 @@ export default function LoginScreen() {
           {/* Footer */}
           <YStack alignItems="center">
             <Text
-              color={isDark ? "rgba(255,255,255,0.22)" : "rgba(12,10,9,0.25)"}
+              color={isDark ? 'rgba(255,255,255,0.22)' : 'rgba(12,10,9,0.25)'}
               fontSize={12}
               textAlign="center"
               maxWidth={300}
             >
-              By continuing, you agree to our{" "}
+              By continuing, you agree to our{' '}
               <Link href="/legal/terms" asChild>
                 <Text
                   color={
-                    isDark ? "rgba(255,255,255,0.4)" : "rgba(12,10,9,0.42)"
+                    isDark ? 'rgba(255,255,255,0.4)' : 'rgba(12,10,9,0.42)'
                   }
                   fontSize={12}
                   textDecorationLine="underline"
@@ -443,12 +443,12 @@ export default function LoginScreen() {
                 >
                   Terms of Service
                 </Text>
-              </Link>{" "}
-              and{" "}
+              </Link>{' '}
+              and{' '}
               <Link href="/legal/privacy" asChild>
                 <Text
                   color={
-                    isDark ? "rgba(255,255,255,0.4)" : "rgba(12,10,9,0.42)"
+                    isDark ? 'rgba(255,255,255,0.4)' : 'rgba(12,10,9,0.42)'
                   }
                   fontSize={12}
                   textDecorationLine="underline"
@@ -468,12 +468,12 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   content: {
     flex: 1,
     paddingHorizontal: 32,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
   },
   appleButton: {
     width: 280,

@@ -41,7 +41,9 @@ app.get('/calendars/google/callback', async (c) => {
   if (error || !code || !state) {
     const reason = error ?? 'missing_code_or_state';
     console.error('Google OAuth callback error:', reason);
-    return c.redirect(`${APP_SCHEME_CALLBACK}?error=${encodeURIComponent(reason)}`);
+    return c.redirect(
+      `${APP_SCHEME_CALLBACK}?error=${encodeURIComponent(reason)}`,
+    );
   }
 
   try {
@@ -70,7 +72,9 @@ app.get('/calendars/outlook/callback', async (c) => {
   if (error || !code || !state) {
     const reason = error ?? 'missing_code_or_state';
     console.error('Outlook OAuth callback error:', reason);
-    return c.redirect(`${OUTLOOK_APP_SCHEME_CALLBACK}?error=${encodeURIComponent(reason)}`);
+    return c.redirect(
+      `${OUTLOOK_APP_SCHEME_CALLBACK}?error=${encodeURIComponent(reason)}`,
+    );
   }
 
   try {
@@ -89,7 +93,10 @@ app.get('/calendars/outlook/callback', async (c) => {
 // is public or protected — the callback exclusions are explicit.
 app.use('/calendars/*', async (c, next) => {
   const path = c.req.path;
-  if (path === '/calendars/google/callback' || path === '/calendars/outlook/callback') {
+  if (
+    path === '/calendars/google/callback' ||
+    path === '/calendars/outlook/callback'
+  ) {
     return next();
   }
   return authMiddleware(c, next);
@@ -286,7 +293,10 @@ const getCalendarRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      connectionId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      connectionId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
@@ -335,7 +345,10 @@ const updateCalendarRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      connectionId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      connectionId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
     body: {
       content: {
@@ -392,7 +405,10 @@ const deleteCalendarRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      connectionId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      connectionId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
@@ -481,7 +497,11 @@ app.openapi(syncCalendarsRoute, async (c) => {
   try {
     const connections = await syncCalendarsForUser(user.userId, body);
     return c.json(
-      { success: true as const, data: { connections }, message: 'Calendars synced successfully' },
+      {
+        success: true as const,
+        data: { connections },
+        message: 'Calendars synced successfully',
+      },
       200,
     );
   } catch (error) {
@@ -505,7 +525,11 @@ app.openapi(getCalendarRoute, async (c) => {
     const connection = await getCalendarConnection(connectionId, user.userId);
     if (!connection) {
       return c.json(
-        { success: false as const, error: 'Not Found', message: 'Calendar connection not found' },
+        {
+          success: false as const,
+          error: 'Not Found',
+          message: 'Calendar connection not found',
+        },
         404,
       );
     }
@@ -530,7 +554,11 @@ app.openapi(updateCalendarRoute, async (c) => {
   const body = c.req.valid('json');
 
   try {
-    const result = await updateCalendarConnection(connectionId, user.userId, body);
+    const result = await updateCalendarConnection(
+      connectionId,
+      user.userId,
+      body,
+    );
     if (!result.success || !result.connection) {
       return c.json(
         {
@@ -542,7 +570,10 @@ app.openapi(updateCalendarRoute, async (c) => {
       );
     }
 
-    return c.json({ success: true as const, data: { connection: result.connection } }, 200);
+    return c.json(
+      { success: true as const, data: { connection: result.connection } },
+      200,
+    );
   } catch (error) {
     console.error('Error in PATCH /calendars/:id:', error);
     return c.json(
@@ -562,7 +593,9 @@ app.openapi(updateCalendarRoute, async (c) => {
 // so that static paths like /calendars/google are matched first.
 // ============================================
 
-const createProviderDisconnectRoute = (provider: 'apple' | 'google' | 'outlook') => {
+const createProviderDisconnectRoute = (
+  provider: 'apple' | 'google' | 'outlook',
+) => {
   const displayName = provider.charAt(0).toUpperCase() + provider.slice(1);
   return createRoute({
     method: 'delete',
@@ -574,7 +607,9 @@ const createProviderDisconnectRoute = (provider: 'apple' | 'google' | 'outlook')
     responses: {
       200: {
         description: `${displayName} Calendar disconnected`,
-        content: { 'application/json': { schema: DeleteCalendarResponseSchema } },
+        content: {
+          'application/json': { schema: DeleteCalendarResponseSchema },
+        },
       },
       401: {
         description: 'Unauthorized',
@@ -601,7 +636,13 @@ const registerProviderDisconnectHandler = (
     const user = c.get('user');
     try {
       await deleteProviderConnections(user.userId, provider);
-      return c.json({ success: true as const, message: `${displayName} Calendar disconnected` }, 200);
+      return c.json(
+        {
+          success: true as const,
+          message: `${displayName} Calendar disconnected`,
+        },
+        200,
+      );
     } catch (error) {
       console.error(`Error in DELETE /calendars/${provider}:`, error);
       return c.json(
@@ -637,7 +678,10 @@ app.openapi(deleteCalendarRoute, async (c) => {
       );
     }
 
-    return c.json({ success: true as const, message: 'Calendar connection deleted' }, 200);
+    return c.json(
+      { success: true as const, message: 'Calendar connection deleted' },
+      200,
+    );
   } catch (error) {
     console.error('Error in DELETE /calendars/:id:', error);
     return c.json(
@@ -683,7 +727,8 @@ const googleAuthUrlRoute = createRoute({
   path: '/calendars/google/auth-url',
   tags: ['Calendars', 'Google'],
   summary: 'Get Google OAuth URL',
-  description: 'Get the Google OAuth consent URL for the current user to authorize calendar access',
+  description:
+    'Get the Google OAuth consent URL for the current user to authorize calendar access',
   security: [{ BearerAuth: [] }],
   responses: {
     200: {
@@ -744,7 +789,8 @@ const googleSelectRoute = createRoute({
   path: '/calendars/google/select',
   tags: ['Calendars', 'Google'],
   summary: 'Select Google calendars to import',
-  description: 'Choose which Google calendars to import for availability tracking',
+  description:
+    'Choose which Google calendars to import for availability tracking',
   security: [{ BearerAuth: [] }],
   request: {
     body: {
@@ -833,14 +879,18 @@ app.openapi(googleCalendarsRoute, async (c) => {
   const user = c.get('user');
 
   try {
-    const accessToken = await getValidProviderAccessToken(user.userId, 'google');
+    const accessToken = await getValidProviderAccessToken(
+      user.userId,
+      'google',
+    );
 
     if (!accessToken) {
       return c.json(
         {
           success: false as const,
           error: 'Not Found',
-          message: 'No Google Calendar connection found. Please connect Google Calendar first.',
+          message:
+            'No Google Calendar connection found. Please connect Google Calendar first.',
         },
         404,
       );
@@ -874,7 +924,11 @@ app.openapi(googleSelectRoute, async (c) => {
   const { calendarIds } = c.req.valid('json');
 
   try {
-    const connections = await selectProviderCalendars(user.userId, 'google', calendarIds);
+    const connections = await selectProviderCalendars(
+      user.userId,
+      'google',
+      calendarIds,
+    );
     return c.json(
       {
         success: true as const,
@@ -899,7 +953,10 @@ app.openapi(googleSyncRoute, async (c) => {
   const user = c.get('user');
 
   try {
-    const connections = await syncServerProviderConnections(user.userId, 'google');
+    const connections = await syncServerProviderConnections(
+      user.userId,
+      'google',
+    );
     return c.json(
       {
         success: true as const,
@@ -993,7 +1050,8 @@ const outlookSelectRoute = createRoute({
   path: '/calendars/outlook/select',
   tags: ['Calendars', 'Outlook'],
   summary: 'Select Outlook calendars to import',
-  description: 'Choose which Outlook calendars to import for availability tracking',
+  description:
+    'Choose which Outlook calendars to import for availability tracking',
   security: [{ BearerAuth: [] }],
   request: {
     body: {
@@ -1082,14 +1140,18 @@ app.openapi(outlookCalendarsRoute, async (c) => {
   const user = c.get('user');
 
   try {
-    const accessToken = await getValidProviderAccessToken(user.userId, 'outlook');
+    const accessToken = await getValidProviderAccessToken(
+      user.userId,
+      'outlook',
+    );
 
     if (!accessToken) {
       return c.json(
         {
           success: false as const,
           error: 'Not Found',
-          message: 'No Outlook Calendar connection found. Please connect Outlook Calendar first.',
+          message:
+            'No Outlook Calendar connection found. Please connect Outlook Calendar first.',
         },
         404,
       );
@@ -1123,7 +1185,11 @@ app.openapi(outlookSelectRoute, async (c) => {
   const { calendarIds } = c.req.valid('json');
 
   try {
-    const connections = await selectProviderCalendars(user.userId, 'outlook', calendarIds);
+    const connections = await selectProviderCalendars(
+      user.userId,
+      'outlook',
+      calendarIds,
+    );
     return c.json(
       {
         success: true as const,
@@ -1148,7 +1214,10 @@ app.openapi(outlookSyncRoute, async (c) => {
   const user = c.get('user');
 
   try {
-    const connections = await syncServerProviderConnections(user.userId, 'outlook');
+    const connections = await syncServerProviderConnections(
+      user.userId,
+      'outlook',
+    );
     return c.json(
       {
         success: true as const,

@@ -1,6 +1,10 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import { createApp, authMiddleware } from '../middleware/hono';
-import { BusyTimesQuerySchema, BusyTimeIntervalSchema, ErrorResponseSchema } from '../types';
+import {
+  BusyTimesQuerySchema,
+  BusyTimeIntervalSchema,
+  ErrorResponseSchema,
+} from '../types';
 import * as busyTimeService from '../services/busy-times';
 
 export const app = createApp();
@@ -117,7 +121,10 @@ app.openapi(postBusyTimesRoute, async (c) => {
       200,
     );
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith('Invalid user IDs')) {
+    if (
+      error instanceof Error &&
+      error.message.startsWith('Invalid user IDs')
+    ) {
       return c.json(
         {
           success: false as const,

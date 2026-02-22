@@ -4,9 +4,9 @@
  */
 export const getDeviceTimezone = (): string => {
   try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
   } catch (error) {
-    console.error('Failed to get device timezone:', error)
-    return 'America/New_York' // fallback
+    console.error('Failed to get device timezone:', error);
+    return 'America/New_York'; // fallback
   }
-}
+};

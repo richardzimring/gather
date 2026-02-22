@@ -9,10 +9,10 @@ import {
   MoonStar,
   MapPin,
   FileText,
-} from "@tamagui/lucide-icons";
-import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { LayoutAnimation, RefreshControl } from "react-native";
+} from '@tamagui/lucide-icons';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { LayoutAnimation, RefreshControl } from 'react-native';
 import {
   H1,
   Text,
@@ -25,39 +25,39 @@ import {
   Input,
   TextArea,
   useTheme,
-} from "tamagui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+} from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from "../../components/ui/Button";
-import { Card } from "../../components/ui/Card";
-import { DayTabBar } from "../../components/ui/DayTabBar";
-import { EventCard } from "../../components/ui/EventCard";
-import { InlineCalendar, toDateKey } from "../../components/ui/InlineCalendar";
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { DayTabBar } from '../../components/ui/DayTabBar';
+import { EventCard } from '../../components/ui/EventCard';
+import { InlineCalendar, toDateKey } from '../../components/ui/InlineCalendar';
 import {
   LocationSearch,
   type PlaceResult,
-} from "../../components/ui/LocationSearch";
-import { MapPreview } from "../../components/ui/MapPreview";
-import { GradientBackground } from "../../components/ui/GradientBackground";
-import { SkeletonBar } from "../../components/ui/Skeleton";
-import { Toggle } from "../../components/ui/Toggle";
+} from '../../components/ui/LocationSearch';
+import { MapPreview } from '../../components/ui/MapPreview';
+import { GradientBackground } from '../../components/ui/GradientBackground';
+import { SkeletonBar } from '../../components/ui/Skeleton';
+import { Toggle } from '../../components/ui/Toggle';
 import {
   TimeChipPicker,
   DURATION_OPTIONS,
   START_TIME_OPTIONS,
-} from "../../components/ui/TimeChipPicker";
-import { haptic } from "../../lib/haptics";
+} from '../../components/ui/TimeChipPicker';
+import { haptic } from '../../lib/haptics';
 import {
   useCreateEvent,
   useFriends,
   useBusyTimes,
   useGroups,
   useRefresh,
-} from "../../lib/hooks";
-import { useGenerateEmoji } from "../../lib/hooks/useEmoji";
-import { useAuth } from "../../lib/hooks/useAuth";
-import type { LocationData } from "../../lib/api/generated/types.gen";
-import type { CommonFreeTimeSlot } from "../../lib/utils/availability";
+} from '../../lib/hooks';
+import { useGenerateEmoji } from '../../lib/hooks/useEmoji';
+import { useAuth } from '../../lib/hooks/useAuth';
+import type { LocationData } from '../../lib/api/generated/types.gen';
+import type { CommonFreeTimeSlot } from '../../lib/utils/availability';
 
 // ============================================
 // Types
@@ -74,7 +74,7 @@ interface TimeSlot {
 // Constants
 // ============================================
 
-const DAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const MAX_VISIBLE_FRIENDS = 8;
 
@@ -87,9 +87,9 @@ const UNGODLY_LATE = 1320; // 10:00 PM in minutes
 // ============================================
 
 function formatTime(date: Date): string {
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
   });
 }
 
@@ -103,23 +103,23 @@ function formatDate(date: Date): string {
   const compareDate = new Date(date);
   compareDate.setHours(0, 0, 0, 0);
 
-  if (compareDate.getTime() === today.getTime()) return "Today";
-  if (compareDate.getTime() === tomorrow.getTime()) return "Tomorrow";
+  if (compareDate.getTime() === today.getTime()) return 'Today';
+  if (compareDate.getTime() === tomorrow.getTime()) return 'Tomorrow';
 
-  return `${DAYS_SHORT[date.getDay()]}, ${date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
+  return `${DAYS_SHORT[date.getDay()]}, ${date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
   })}`;
 }
 
 /**
  * Get the time-of-day period for grouping slots.
  */
-function getTimePeriod(date: Date): "morning" | "afternoon" | "evening" {
+function getTimePeriod(date: Date): 'morning' | 'afternoon' | 'evening' {
   const hour = date.getHours();
-  if (hour < 12) return "morning";
-  if (hour < 17) return "afternoon";
-  return "evening";
+  if (hour < 12) return 'morning';
+  if (hour < 17) return 'afternoon';
+  return 'evening';
 }
 
 /**
@@ -183,8 +183,8 @@ function Checkbox({ checked }: { checked: boolean }) {
       height={20}
       borderRadius={4}
       borderWidth={1}
-      borderColor={checked ? "$primary" : "$borderColor"}
-      backgroundColor={checked ? "$primary" : "transparent"}
+      borderColor={checked ? '$primary' : '$borderColor'}
+      backgroundColor={checked ? '$primary' : 'transparent'}
       alignItems="center"
       justifyContent="center"
     >
@@ -238,9 +238,9 @@ export default function PlanScreen() {
   // --- Inline event creation state ---
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [timeSlotsExpanded, setTimeSlotsExpanded] = useState(true);
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState('');
   const [locationData, setLocationData] = useState<LocationData | null>(null);
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState('');
 
   // Generate emoji for the title with debouncing
   const { emoji: previewEmoji, isLoading: isEmojiLoading } =
@@ -269,7 +269,7 @@ export default function PlanScreen() {
   // --- Pre-select friends if passed via navigation params ---
   useEffect(() => {
     if (selectedFriendIds) {
-      const friendIdsArray = selectedFriendIds.split(",").filter(Boolean);
+      const friendIdsArray = selectedFriendIds.split(',').filter(Boolean);
       const validFriendIds = friendIdsArray.filter((id) =>
         friends.some((f) => f.friendId === id),
       );
@@ -491,7 +491,7 @@ export default function PlanScreen() {
     const people: {
       id: string;
       initials: string;
-      status: "host" | "pending";
+      status: 'host' | 'pending';
       avatarUrl?: string;
     }[] = [];
 
@@ -500,7 +500,7 @@ export default function PlanScreen() {
       people.push({
         id: user.userId,
         initials: user.initials,
-        status: "host" as const,
+        status: 'host' as const,
         avatarUrl: user.avatarUrl,
       });
     }
@@ -512,8 +512,8 @@ export default function PlanScreen() {
     for (const id of invitedFriendIds) {
       people.push({
         id,
-        initials: friendInitialsMap.get(id) ?? "??",
-        status: "pending" as const,
+        initials: friendInitialsMap.get(id) ?? '??',
+        status: 'pending' as const,
       });
     }
 
@@ -530,9 +530,9 @@ export default function PlanScreen() {
   const resetDownstreamState = useCallback(() => {
     setSelectedSlot(null);
     setTimeSlotsExpanded(true);
-    setTitle("");
+    setTitle('');
     setLocationData(null);
-    setNotes("");
+    setNotes('');
   }, []);
 
   const toggleFriend = (friendId: string) => {
@@ -633,7 +633,7 @@ export default function PlanScreen() {
       // Navigate to home screen first, then reset all plan state
       // after a brief delay so the LayoutAnimation from state resets
       // doesn't interfere with navigation
-      router.replace("/(tabs)");
+      router.replace('/(tabs)');
       setTimeout(() => {
         setSelectedFriends([]);
         setRangeStart(null);
@@ -644,13 +644,13 @@ export default function PlanScreen() {
         setFilterUngodlyHours(true);
         setSelectedSlot(null);
         setTimeSlotsExpanded(true);
-        setTitle("");
+        setTitle('');
         setLocationData(null);
-        setNotes("");
+        setNotes('');
       }, 300);
     } catch (err) {
       haptic.error();
-      console.error("Failed to create event:", err);
+      console.error('Failed to create event:', err);
     }
   };
 
@@ -718,19 +718,19 @@ export default function PlanScreen() {
                           paddingVertical="$2"
                           paddingHorizontal="$3"
                           backgroundColor={
-                            allSelected ? "$primary" : "$backgroundHover"
+                            allSelected ? '$primary' : '$backgroundHover'
                           }
                           borderRadius="$2"
                           pressStyle={{ scale: 0.98 }}
                           onPress={() => toggleGroup(group.memberIds)}
                         >
                           <XStack alignItems="center" gap="$2">
-                            <Text fontSize={14}>{group.emoji ?? "👥"}</Text>
+                            <Text fontSize={14}>{group.emoji ?? '👥'}</Text>
                             <Text
                               fontSize={13}
                               fontWeight="500"
                               color={
-                                allSelected ? "$primaryForeground" : "$color"
+                                allSelected ? '$primaryForeground' : '$color'
                               }
                             >
                               {group.name}
@@ -754,7 +754,7 @@ export default function PlanScreen() {
                 <Button
                   variant="secondary"
                   buttonSize="sm"
-                  onPress={() => router.push("/friends/add")}
+                  onPress={() => router.push('/friends/add')}
                 >
                   Add Friends
                 </Button>
@@ -796,7 +796,7 @@ export default function PlanScreen() {
                   <Button
                     variant="ghost"
                     buttonSize="sm"
-                    onPress={() => router.push("/(tabs)/friends")}
+                    onPress={() => router.push('/(tabs)/friends')}
                   >
                     View all {friends.length} friends
                   </Button>
@@ -868,10 +868,10 @@ export default function PlanScreen() {
                         color="$colorMuted"
                         textAlign="center"
                       >
-                        No times available for today.{" "}
+                        No times available for today.{' '}
                         {filterUngodlyHours
-                          ? "Try selecting a different day or turning off the late nights filter."
-                          : "Try selecting a different day."}
+                          ? 'Try selecting a different day or turning off the late nights filter.'
+                          : 'Try selecting a different day.'}
                       </Text>
                     </YStack>
                   </YStack>
@@ -922,7 +922,7 @@ export default function PlanScreen() {
             <XStack
               alignItems="center"
               justifyContent="space-between"
-              marginBottom={timeSlotsExpanded ? "$3" : "$0"}
+              marginBottom={timeSlotsExpanded ? '$3' : '$0'}
               {...(selectedSlot
                 ? {
                     pressStyle: { opacity: 0.7 },
@@ -955,8 +955,8 @@ export default function PlanScreen() {
               <YStack>
                 <Text fontSize={18} fontWeight="600">
                   {selectedFriends.length === 0
-                    ? "Select friends to find times"
-                    : "Times"}
+                    ? 'Select friends to find times'
+                    : 'Times'}
                 </Text>
                 {activeDay && (
                   <Text
@@ -967,7 +967,7 @@ export default function PlanScreen() {
                   >
                     {formatDate(activeDay)}
                     {isBusyTimesLoading
-                      ? " \u00B7 Loading\u2026"
+                      ? ' \u00B7 Loading\u2026'
                       : filteredSlots.length > 0
                         ? (() => {
                             const freeCount = filteredSlots.filter(
@@ -978,14 +978,14 @@ export default function PlanScreen() {
                               ? ` \u00B7 ${freeCount} available`
                               : ` \u00B7 No times available`;
                           })()
-                        : ""}
+                        : ''}
                   </Text>
                 )}
               </YStack>
               {selectedSlot && (
                 <XStack alignItems="center" gap="$1">
                   <Text fontSize={13} color="$colorMuted">
-                    {timeSlotsExpanded ? "Collapse" : "Change"}
+                    {timeSlotsExpanded ? 'Collapse' : 'Change'}
                   </Text>
                   {timeSlotsExpanded ? (
                     <ChevronUp size={16} color="$colorMuted" />
@@ -1055,12 +1055,12 @@ export default function PlanScreen() {
                         : slot.userIds;
                       const freeFriendsSubtitle = (() => {
                         const names = freeFriendIds.map(
-                          (id) => friendNameMap.get(id) ?? "Friend",
+                          (id) => friendNameMap.get(id) ?? 'Friend',
                         );
                         if (names.length === 1) return `${names[0]} is free`;
                         if (names.length <= 2)
-                          return `${names.join(" and ")} are free`;
-                        return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]} are free`;
+                          return `${names.join(' and ')} are free`;
+                        return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]} are free`;
                       })();
                       const allFriendsFree =
                         freeFriendIds.length === selectedFriends.length;
@@ -1083,48 +1083,48 @@ export default function PlanScreen() {
                       const showPeriodHeader = period !== prevPeriod;
 
                       // Status badge
-                      let badgeBg = "";
-                      let badgeColor = "";
-                      let badgeLabel = "";
+                      let badgeBg = '';
+                      let badgeColor = '';
+                      let badgeLabel = '';
                       if (isEveryoneAvailable) {
-                        badgeBg = "$successSubtle";
-                        badgeColor = "$success";
-                        badgeLabel = "All free";
+                        badgeBg = '$successSubtle';
+                        badgeColor = '$success';
+                        badgeLabel = 'All free';
                       } else if (isEveryoneBusy) {
-                        badgeBg = "$backgroundHover";
-                        badgeColor = "$colorMuted";
-                        badgeLabel = "All busy";
+                        badgeBg = '$backgroundHover';
+                        badgeColor = '$colorMuted';
+                        badgeLabel = 'All busy';
                       } else if (!isCurrentUserFree) {
-                        badgeBg = "$backgroundHover";
-                        badgeColor = "$colorMuted";
-                        badgeLabel = "You\u2019re busy";
+                        badgeBg = '$backgroundHover';
+                        badgeColor = '$colorMuted';
+                        badgeLabel = 'You\u2019re busy';
                       } else if (
                         isCurrentUserFree &&
                         freeFriendIds.length === 0
                       ) {
-                        badgeBg = "$backgroundHover";
-                        badgeColor = "$colorMuted";
-                        badgeLabel = "Friends busy";
+                        badgeBg = '$backgroundHover';
+                        badgeColor = '$colorMuted';
+                        badgeLabel = 'Friends busy';
                       } else {
-                        badgeBg = "$backgroundHover";
-                        badgeColor = "$colorMuted";
+                        badgeBg = '$backgroundHover';
+                        badgeColor = '$colorMuted';
                         badgeLabel = `${freeFriendIds.length} busy`;
                       }
 
                       // Subtitle text
-                      let subtitle = "";
+                      let subtitle = '';
                       if (isEveryoneBusy) {
-                        subtitle = "No one is available";
+                        subtitle = 'No one is available';
                       } else if (isEveryoneAvailable) {
-                        subtitle = "Everyone is available";
+                        subtitle = 'Everyone is available';
                       } else if (
                         isCurrentUserFree &&
                         freeFriendIds.length === 0
                       ) {
-                        subtitle = "You\u2019re free, but all friends are busy";
+                        subtitle = 'You\u2019re free, but all friends are busy';
                       } else if (!isCurrentUserFree && allFriendsFree) {
                         subtitle =
-                          "All friends are free, but you have a conflict";
+                          'All friends are free, but you have a conflict';
                       } else if (!isCurrentUserFree) {
                         subtitle = `${freeFriendsSubtitle}, but you have a conflict`;
                       } else {
@@ -1142,14 +1142,14 @@ export default function PlanScreen() {
                               color="$colorMuted"
                               textTransform="uppercase"
                               letterSpacing={0.5}
-                              marginTop={index > 0 ? "$2" : 0}
+                              marginTop={index > 0 ? '$2' : 0}
                               marginBottom="$1"
                             >
-                              {period === "morning"
-                                ? "Morning"
-                                : period === "afternoon"
-                                  ? "Afternoon"
-                                  : "Evening"}
+                              {period === 'morning'
+                                ? 'Morning'
+                                : period === 'afternoon'
+                                  ? 'Afternoon'
+                                  : 'Evening'}
                             </Text>
                           )}
                           <Theme name="Card">
@@ -1157,7 +1157,7 @@ export default function PlanScreen() {
                               pressable
                               onPress={() => selectSlot(slot)}
                               borderWidth={isSelected ? 2 : undefined}
-                              borderColor={isSelected ? "$primary" : undefined}
+                              borderColor={isSelected ? '$primary' : undefined}
                               opacity={isEveryoneBusy ? 0.5 : 1}
                             >
                               <XStack
@@ -1170,10 +1170,10 @@ export default function PlanScreen() {
                                     justifyContent="space-between"
                                   >
                                     <Text fontWeight="600" fontSize={15}>
-                                      {formatTime(slot.startTime)} –{" "}
+                                      {formatTime(slot.startTime)} –{' '}
                                       {formatTime(slot.endTime)}
                                     </Text>
-                                    {badgeLabel !== "" && (
+                                    {badgeLabel !== '' && (
                                       <XStack
                                         backgroundColor={badgeBg}
                                         paddingHorizontal="$2"
@@ -1240,7 +1240,7 @@ export default function PlanScreen() {
                 attendeeSummary={
                   selectedSlotPeople.length > 1
                     ? `${selectedSlotPeople.length} people`
-                    : "Just you"
+                    : 'Just you'
                 }
                 showAvatarStatus={false}
                 isPreview={true}
@@ -1281,7 +1281,7 @@ export default function PlanScreen() {
                     <XStack alignItems="center" gap="$2">
                       <MapPin size={14} color="$colorMuted" />
                       <Text fontWeight="500" fontSize={14}>
-                        Location{" "}
+                        Location{' '}
                         <Text
                           fontSize={14}
                           color="$colorMuted"
@@ -1312,7 +1312,7 @@ export default function PlanScreen() {
                     <XStack alignItems="center" gap="$2">
                       <FileText size={14} color="$colorMuted" />
                       <Text fontWeight="500" fontSize={14}>
-                        Notes{" "}
+                        Notes{' '}
                         <Text
                           fontSize={14}
                           color="$colorMuted"
@@ -1351,7 +1351,7 @@ export default function PlanScreen() {
                   disabled={createEvent.isPending || isEmojiLoading}
                   loading={createEvent.isPending || isEmojiLoading}
                 >
-                  {createEvent.isPending ? "Creating..." : "Create Event"}
+                  {createEvent.isPending ? 'Creating...' : 'Create Event'}
                 </Button>
               </YStack>
             )}

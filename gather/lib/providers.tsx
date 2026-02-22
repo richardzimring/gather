@@ -1,9 +1,9 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useColorScheme } from "react-native";
-import { TamaguiProvider, Theme } from "tamagui";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useColorScheme } from 'react-native';
+import { TamaguiProvider, Theme } from 'tamagui';
 
-import { config } from "../tamagui.config";
-import { AuthProvider } from "./hooks/useAuth";
+import { config } from '../tamagui.config';
+import { AuthProvider } from './hooks/useAuth';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -25,7 +25,7 @@ interface AppProvidersProps {
  */
 export function AppProviders({ children }: AppProvidersProps) {
   const colorScheme = useColorScheme();
-  const theme = colorScheme === "light" ? "light" : "dark";
+  const theme = colorScheme === 'light' ? 'light' : 'dark';
 
   return (
     <QueryClientProvider client={queryClient}>

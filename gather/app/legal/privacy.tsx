@@ -1,8 +1,8 @@
-import { router } from "expo-router";
-import { ScrollView, Text, YStack } from "tamagui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from 'expo-router';
+import { ScrollView, Text, YStack } from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackHeader } from "../../components/ui/ScreenHeader";
+import { BackHeader } from '../../components/ui/ScreenHeader';
 
 export default function PrivacyPolicyScreen() {
   const insets = useSafeAreaInsets();
@@ -28,7 +28,9 @@ export default function PrivacyPolicyScreen() {
               Introduction
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              {"Gather (\"we,\" \"our,\" or \"us\") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application."}
+              {
+                'Gather ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application.'
+              }
             </Text>
           </YStack>
 
@@ -58,7 +60,9 @@ export default function PrivacyPolicyScreen() {
               Location Information
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              {"With your permission, we may collect your device's location to provide location-based search results when creating events. This information is used only to improve search relevance and is not stored on our servers."}
+              {
+                "With your permission, we may collect your device's location to provide location-based search results when creating events. This information is used only to improve search relevance and is not stored on our servers."
+              }
             </Text>
           </YStack>
 
@@ -79,7 +83,9 @@ export default function PrivacyPolicyScreen() {
               How We Use Your Information
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              {"We use your information to:\n\u2022 Provide and maintain the app\n\u2022 Facilitate event planning and coordination with your friends\n\u2022 Send you notifications about events and social activity\n\u2022 Improve and personalize your experience\n\u2022 Respond to your requests and inquiries"}
+              {
+                'We use your information to:\n\u2022 Provide and maintain the app\n\u2022 Facilitate event planning and coordination with your friends\n\u2022 Send you notifications about events and social activity\n\u2022 Improve and personalize your experience\n\u2022 Respond to your requests and inquiries'
+              }
             </Text>
           </YStack>
 
@@ -93,10 +99,14 @@ export default function PrivacyPolicyScreen() {
               (calendar.readonly scope) to your Google Calendar data.
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              {"Using this access, we read:\n\u2022 Your Google account name and email — to identify which account is connected.\n\u2022 Your calendar names and colors — so you can select which calendars to include.\n\u2022 Event start/end times and free/busy status — to show your availability. We do not read or store event titles, descriptions, locations, or attendees."}
+              {
+                'Using this access, we read:\n\u2022 Your Google account name and email — to identify which account is connected.\n\u2022 Your calendar names and colors — so you can select which calendars to include.\n\u2022 Event start/end times and free/busy status — to show your availability. We do not read or store event titles, descriptions, locations, or attendees.'
+              }
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              {"Your Google data is used only for availability. We do not sell or share it with third parties. OAuth tokens are stored securely on our servers. You can disconnect at any time from app settings.\n\nOur use of Google data adheres to the Google API Services User Data Policy, including the Limited Use requirements."}
+              {
+                'Your Google data is used only for availability. We do not sell or share it with third parties. OAuth tokens are stored securely on our servers. You can disconnect at any time from app settings.\n\nOur use of Google data adheres to the Google API Services User Data Policy, including the Limited Use requirements.'
+              }
             </Text>
           </YStack>
 
@@ -110,7 +120,9 @@ export default function PrivacyPolicyScreen() {
               request Calendars.Read (read-only) and offline_access scopes.
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              {"Using this access, we read:\n\u2022 Your Microsoft account name and email — to identify which account is connected.\n\u2022 Your calendar names and colors — so you can select which calendars to include.\n\u2022 Event start/end times and free/busy status — to show your availability. We do not read or store event titles, descriptions, locations, or attendees."}
+              {
+                'Using this access, we read:\n\u2022 Your Microsoft account name and email — to identify which account is connected.\n\u2022 Your calendar names and colors — so you can select which calendars to include.\n\u2022 Event start/end times and free/busy status — to show your availability. We do not read or store event titles, descriptions, locations, or attendees.'
+              }
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
               Your Microsoft data is used only for availability. We do not sell
@@ -129,7 +141,9 @@ export default function PrivacyPolicyScreen() {
               third-party account connection is required.
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              {"If you grant calendar access, we read:\n\u2022 Calendar names — so you can select which calendars to include.\n\u2022 Event start/end times and free/busy status — to show your availability. Only availability data is sent to our servers; event titles, descriptions, and locations are not stored."}
+              {
+                'If you grant calendar access, we read:\n\u2022 Calendar names — so you can select which calendars to include.\n\u2022 Event start/end times and free/busy status — to show your availability. Only availability data is sent to our servers; event titles, descriptions, and locations are not stored.'
+              }
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
               With your permission, Gather can also add events to your Apple
@@ -144,7 +158,9 @@ export default function PrivacyPolicyScreen() {
               Data Sharing
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              {"We do not sell your personal information. We share your information only with other Gather users as part of the app's core functionality (e.g., your name and availability with friends you've connected with). Calendar data is used only to compute your free/busy availability — individual event details are never shared with other users."}
+              {
+                "We do not sell your personal information. We share your information only with other Gather users as part of the app's core functionality (e.g., your name and availability with friends you've connected with). Calendar data is used only to compute your free/busy availability — individual event details are never shared with other users."
+              }
             </Text>
           </YStack>
 
@@ -194,7 +210,9 @@ export default function PrivacyPolicyScreen() {
               Changes to This Policy
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              {"We may update this Privacy Policy from time to time. We will notify you of any changes by updating the \"Last updated\" date at the top of this policy."}
+              {
+                'We may update this Privacy Policy from time to time. We will notify you of any changes by updating the "Last updated" date at the top of this policy.'
+              }
             </Text>
           </YStack>
 

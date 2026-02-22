@@ -138,7 +138,10 @@ const getEventRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      eventId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      eventId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
@@ -194,7 +197,10 @@ const updateEventRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      eventId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      eventId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
     body: {
       content: {
@@ -250,7 +256,10 @@ const deleteEventRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      eventId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      eventId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
@@ -302,7 +311,10 @@ const respondToEventRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      eventId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      eventId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
     body: {
       content: {
@@ -475,7 +487,9 @@ app.openapi(getEventRoute, async (c) => {
 
     // If not showing invite list and user is invitee (not host), filter invitees
     if (!eventData.showInviteList && !isHost) {
-      eventData.invitees = eventData.invitees.filter((i) => i.userId === user.userId);
+      eventData.invitees = eventData.invitees.filter(
+        (i) => i.userId === user.userId,
+      );
     }
 
     return c.json(
@@ -595,7 +609,11 @@ app.openapi(respondToEventRoute, async (c) => {
   const data = c.req.valid('json');
 
   try {
-    const result = await eventsService.respondToEvent(eventId, user.userId, data);
+    const result = await eventsService.respondToEvent(
+      eventId,
+      user.userId,
+      data,
+    );
 
     if (!result.success) {
       return c.json(

@@ -10,11 +10,11 @@ import {
   Shield,
   User,
   UserX,
-} from "@tamagui/lucide-icons";
-import { router } from "expo-router";
-import { Alert, Share, RefreshControl } from "react-native";
-import * as Clipboard from "expo-clipboard";
-import { useState } from "react";
+} from '@tamagui/lucide-icons';
+import { router } from 'expo-router';
+import { Alert, Share, RefreshControl } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import { useState } from 'react';
 import {
   H1,
   ScrollView,
@@ -24,24 +24,24 @@ import {
   Circle,
   Theme,
   useTheme,
-} from "tamagui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+} from 'tamagui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from "../../components/ui/Button";
-import { GradientBackground } from "../../components/ui/GradientBackground";
-import { CalendarProviderIcon } from "../../components/ui/CalendarProviderIcon";
-import { Card } from "../../components/ui/Card";
-import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
-import { useAuth } from "../../lib/hooks/useAuth";
+import { Button } from '../../components/ui/Button';
+import { GradientBackground } from '../../components/ui/GradientBackground';
+import { CalendarProviderIcon } from '../../components/ui/CalendarProviderIcon';
+import { Card } from '../../components/ui/Card';
+import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton';
+import { useAuth } from '../../lib/hooks/useAuth';
 import {
   useInviteCode,
   useRefresh,
   useCalendarConnections,
   useTriggerCalendarSync,
   useDeleteAccount,
-} from "../../lib/hooks";
-import type { CalendarConnection } from "../../lib/api/client";
-import { haptic } from "../../lib/haptics";
+} from '../../lib/hooks';
+import type { CalendarConnection } from '../../lib/api/client';
+import { haptic } from '../../lib/haptics';
 
 interface SettingsItemProps {
   icon: React.ReactNode;
@@ -95,7 +95,7 @@ function formatLastSync(dateStr: string): string {
   const diffMs = now.getTime() - date.getTime();
   const diffMin = Math.floor(diffMs / 60000);
 
-  if (diffMin < 1) return "just now";
+  if (diffMin < 1) return 'just now';
   if (diffMin < 60) return `${diffMin}m ago`;
 
   const diffHr = Math.floor(diffMin / 60);
@@ -121,40 +121,40 @@ export default function ProfileScreen() {
 
   const deleteAccount = useDeleteAccount();
 
-  const inviteCode = inviteCodeData?.inviteCode ?? user?.inviteCode ?? "";
+  const inviteCode = inviteCodeData?.inviteCode ?? user?.inviteCode ?? '';
 
   const handleDeleteAccount = () => {
     haptic.warning();
     Alert.alert(
-      "Delete Account",
-      "Are you sure you want to delete your account? This will permanently remove all your data, events, and friendships. This action cannot be undone.",
+      'Delete Account',
+      'Are you sure you want to delete your account? This will permanently remove all your data, events, and friendships. This action cannot be undone.',
       [
-        { text: "Cancel", style: "cancel" },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: "Delete Account",
-          style: "destructive",
+          text: 'Delete Account',
+          style: 'destructive',
           onPress: () => {
             // Second confirmation for safety
             haptic.warning();
             Alert.alert(
-              "Are you absolutely sure?",
-              "This will permanently delete your account and all associated data.",
+              'Are you absolutely sure?',
+              'This will permanently delete your account and all associated data.',
               [
-                { text: "Cancel", style: "cancel" },
+                { text: 'Cancel', style: 'cancel' },
                 {
-                  text: "Yes, Delete My Account",
-                  style: "destructive",
+                  text: 'Yes, Delete My Account',
+                  style: 'destructive',
                   onPress: async () => {
                     try {
                       await deleteAccount.mutateAsync();
                       await signOut();
-                      router.replace("/(auth)/login");
+                      router.replace('/(auth)/login');
                     } catch (err) {
                       haptic.error();
-                      console.error("Failed to delete account:", err);
+                      console.error('Failed to delete account:', err);
                       Alert.alert(
-                        "Error",
-                        "Failed to delete your account. Please try again later.",
+                        'Error',
+                        'Failed to delete your account. Please try again later.',
                       );
                     }
                   },
@@ -169,14 +169,14 @@ export default function ProfileScreen() {
 
   const handleSignOut = async () => {
     haptic.warning();
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: "Sign Out",
-        style: "destructive",
+        text: 'Sign Out',
+        style: 'destructive',
         onPress: async () => {
           await signOut();
-          router.replace("/(auth)/login");
+          router.replace('/(auth)/login');
         },
       },
     ]);
@@ -197,7 +197,7 @@ export default function ProfileScreen() {
         message: `Hey, add me on Gather! My invite code is: ${inviteCode}`,
       });
     } catch (err) {
-      console.error("Failed to share:", err);
+      console.error('Failed to share:', err);
     }
   };
 
@@ -231,15 +231,15 @@ export default function ProfileScreen() {
             <XStack alignItems="center" gap="$4">
               <Circle size={72} backgroundColor="$backgroundHover">
                 <Text fontSize={32}>
-                  {user?.firstName?.[0]?.toUpperCase() ?? "?"}
-                  {user?.lastName?.[0]?.toUpperCase() ?? ""}
+                  {user?.firstName?.[0]?.toUpperCase() ?? '?'}
+                  {user?.lastName?.[0]?.toUpperCase() ?? ''}
                 </Text>
               </Circle>
               <YStack flex={1}>
                 <Text fontSize={20} fontWeight="600">
-                  {user?.fullName ?? "Unknown"}
+                  {user?.fullName ?? 'Unknown'}
                 </Text>
-                <Text color="$colorMuted">{user?.email ?? "No email"}</Text>
+                <Text color="$colorMuted">{user?.email ?? 'No email'}</Text>
               </YStack>
             </XStack>
             {/* <Button
@@ -277,7 +277,7 @@ export default function ProfileScreen() {
                 letterSpacing={2}
                 fontFamily="$body"
               >
-                {inviteCode || "------"}
+                {inviteCode || '------'}
               </Text>
             </YStack>
             <XStack gap="$2">
@@ -288,7 +288,7 @@ export default function ProfileScreen() {
                 onPress={handleCopyInviteCode}
                 disabled={!inviteCode}
               >
-                {copied ? "Copied!" : "Copy"}
+                {copied ? 'Copied!' : 'Copy'}
               </Button>
               <Button
                 variant="primary"
@@ -362,7 +362,7 @@ export default function ProfileScreen() {
                 <Button
                   variant="outline"
                   buttonSize="sm"
-                  onPress={() => router.push("/calendars/connect")}
+                  onPress={() => router.push('/calendars/connect')}
                 >
                   Add Calendars
                 </Button>
@@ -383,7 +383,7 @@ export default function ProfileScreen() {
                       onPress={() => {
                         haptic.light();
                         router.push({
-                          pathname: "/calendars/[provider]",
+                          pathname: '/calendars/[provider]',
                           params: { provider: connection.provider },
                         });
                       }}
@@ -418,7 +418,7 @@ export default function ProfileScreen() {
                   variant="outline"
                   buttonSize="sm"
                   marginTop="$1"
-                  onPress={() => router.push("/calendars/connect")}
+                  onPress={() => router.push('/calendars/connect')}
                 >
                   Manage Calendars
                 </Button>
@@ -441,12 +441,12 @@ export default function ProfileScreen() {
             <SettingsItem
               icon={<Bell size={16} color="$colorMuted" />}
               label="Notifications"
-              onPress={() => router.push("/notifications/settings")}
+              onPress={() => router.push('/notifications/settings')}
             />
             <SettingsItem
               icon={<Clock size={16} color="$colorMuted" />}
               label="Blocked Windows"
-              onPress={() => router.push("/blocked")}
+              onPress={() => router.push('/blocked')}
             />
           </Card>
         </Theme>
@@ -464,12 +464,12 @@ export default function ProfileScreen() {
             <SettingsItem
               icon={<User size={16} color="$colorMuted" />}
               label="Account Settings"
-              onPress={() => router.push("/profile/edit")}
+              onPress={() => router.push('/profile/edit')}
             />
             <SettingsItem
               icon={<Shield size={16} color="$colorMuted" />}
               label="Privacy Policy"
-              onPress={() => router.push("/legal/privacy")}
+              onPress={() => router.push('/legal/privacy')}
             />
           </Card>
         </Theme>

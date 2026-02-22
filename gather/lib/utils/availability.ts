@@ -1,4 +1,4 @@
-import type { BusyTimeInterval } from "../api/generated/types.gen";
+import type { BusyTimeInterval } from '../api/generated/types.gen';
 
 // ============================================
 // Types
@@ -40,8 +40,8 @@ function snapToHalfHour(date: Date): Date {
  */
 function toDateKey(date: Date): string {
   const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 }
 

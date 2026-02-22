@@ -45,7 +45,8 @@ const getBlockedRoute = createRoute({
   path: '/blocked',
   tags: ['Blocked'],
   summary: 'Get blocked windows',
-  description: 'Get blocked time windows for the current user (times when NOT available)',
+  description:
+    'Get blocked time windows for the current user (times when NOT available)',
   security: [{ BearerAuth: [] }],
   responses: {
     200: {
@@ -137,7 +138,10 @@ const updateBlockedRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      windowId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      windowId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
     body: {
       content: {
@@ -193,7 +197,10 @@ const deleteBlockedRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      windowId: z.string().uuid().openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+      windowId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
@@ -315,7 +322,11 @@ app.openapi(updateBlockedRoute, async (c) => {
   }
 
   try {
-    const result = await blockedService.updateBlockedWindow(user.userId, windowId, data);
+    const result = await blockedService.updateBlockedWindow(
+      user.userId,
+      windowId,
+      data,
+    );
     if (!result.success || !result.window) {
       return c.json(
         {
@@ -353,7 +364,10 @@ app.openapi(deleteBlockedRoute, async (c) => {
   const { windowId } = c.req.valid('param');
 
   try {
-    const result = await blockedService.deleteBlockedWindow(user.userId, windowId);
+    const result = await blockedService.deleteBlockedWindow(
+      user.userId,
+      windowId,
+    );
     if (!result.success) {
       return c.json(
         {

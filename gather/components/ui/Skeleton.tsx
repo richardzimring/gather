@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { Animated, Easing, ViewStyle } from "react-native";
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, ViewStyle } from 'react-native';
 
 /**
  * Pulsing skeleton bar used as a loading placeholder.
@@ -46,7 +46,7 @@ export function SkeletonBar({
           width,
           height,
           borderRadius,
-          backgroundColor: "#888",
+          backgroundColor: '#888',
           opacity,
         },
         style,
@@ -95,7 +95,7 @@ export function SkeletonCircle({
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: "#888",
+          backgroundColor: '#888',
           opacity,
         },
         style,

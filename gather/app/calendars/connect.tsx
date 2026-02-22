@@ -1,53 +1,46 @@
-import { useState } from "react";
-import { Alert } from "react-native";
-import { router } from "expo-router";
-import {
-  ScrollView,
-  Separator,
-  Text,
-  XStack,
-  YStack,
-  Theme,
-} from "tamagui";
-import { Spinner } from "../../components/ui/Spinner";
-import { ChevronRight } from "@tamagui/lucide-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useQueryClient } from "@tanstack/react-query";
+import { useState } from 'react';
+import { Alert } from 'react-native';
+import { router } from 'expo-router';
+import { ScrollView, Separator, Text, XStack, YStack, Theme } from 'tamagui';
+import { Spinner } from '../../components/ui/Spinner';
+import { ChevronRight } from '@tamagui/lucide-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { CalendarProviderIcon } from "../../components/ui/CalendarProviderIcon";
-import { Card } from "../../components/ui/Card";
-import { BackHeader } from "../../components/ui/ScreenHeader";
-import { SkeletonBar, SkeletonCircle } from "../../components/ui/Skeleton";
+import { CalendarProviderIcon } from '../../components/ui/CalendarProviderIcon';
+import { Card } from '../../components/ui/Card';
+import { BackHeader } from '../../components/ui/ScreenHeader';
+import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton';
 import {
   useCalendarConnections,
   calendarConnectionKeys,
-} from "../../lib/hooks";
+} from '../../lib/hooks';
 import {
   connectGoogleCalendar,
   GoogleAuthCancelledError,
-} from "../../lib/services/googleAuth";
+} from '../../lib/services/googleAuth';
 import {
   connectOutlookCalendar,
   OutlookAuthCancelledError,
-} from "../../lib/services/outlookAuth";
+} from '../../lib/services/outlookAuth';
 
 interface ProviderOption {
-  id: "apple" | "google" | "outlook";
+  id: 'apple' | 'google' | 'outlook';
   name: string;
 }
 
 const PROVIDERS: ProviderOption[] = [
   {
-    id: "apple",
-    name: "Apple Calendar",
+    id: 'apple',
+    name: 'Apple Calendar',
   },
   {
-    id: "google",
-    name: "Google Calendar",
+    id: 'google',
+    name: 'Google Calendar',
   },
   {
-    id: "outlook",
-    name: "Outlook",
+    id: 'outlook',
+    name: 'Outlook',
   },
 ];
 
@@ -59,25 +52,25 @@ export default function CalendarConnectScreen() {
   const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
   const [isConnectingOutlook, setIsConnectingOutlook] = useState(false);
 
-  const hasGoogleConnection = connections?.some((c) => c.provider === "google");
+  const hasGoogleConnection = connections?.some((c) => c.provider === 'google');
   const hasOutlookConnection = connections?.some(
-    (c) => c.provider === "outlook",
+    (c) => c.provider === 'outlook',
   );
 
   const handleProviderPress = async (provider: ProviderOption) => {
     switch (provider.id) {
-      case "apple":
+      case 'apple':
         router.push({
-          pathname: "/calendars/[provider]",
-          params: { provider: "apple" },
+          pathname: '/calendars/[provider]',
+          params: { provider: 'apple' },
         });
         break;
 
-      case "google":
+      case 'google':
         if (hasGoogleConnection) {
           router.push({
-            pathname: "/calendars/[provider]",
-            params: { provider: "google" },
+            pathname: '/calendars/[provider]',
+            params: { provider: 'google' },
           });
         } else {
           setIsConnectingGoogle(true);
@@ -89,17 +82,17 @@ export default function CalendarConnectScreen() {
               queryKey: calendarConnectionKeys.connections(),
             });
             router.push({
-              pathname: "/calendars/[provider]",
-              params: { provider: "google" },
+              pathname: '/calendars/[provider]',
+              params: { provider: 'google' },
             });
           } catch (error) {
             if (error instanceof GoogleAuthCancelledError) {
               return;
             }
-            console.error("Google Calendar connection failed:", error);
+            console.error('Google Calendar connection failed:', error);
             Alert.alert(
-              "Connection Failed",
-              "Failed to connect Google Calendar. Please try again.",
+              'Connection Failed',
+              'Failed to connect Google Calendar. Please try again.',
             );
           } finally {
             setIsConnectingGoogle(false);
@@ -107,11 +100,11 @@ export default function CalendarConnectScreen() {
         }
         break;
 
-      case "outlook":
+      case 'outlook':
         if (hasOutlookConnection) {
           router.push({
-            pathname: "/calendars/[provider]",
-            params: { provider: "outlook" },
+            pathname: '/calendars/[provider]',
+            params: { provider: 'outlook' },
           });
         } else {
           setIsConnectingOutlook(true);
@@ -123,17 +116,17 @@ export default function CalendarConnectScreen() {
               queryKey: calendarConnectionKeys.connections(),
             });
             router.push({
-              pathname: "/calendars/[provider]",
-              params: { provider: "outlook" },
+              pathname: '/calendars/[provider]',
+              params: { provider: 'outlook' },
             });
           } catch (error) {
             if (error instanceof OutlookAuthCancelledError) {
               return;
             }
-            console.error("Outlook Calendar connection failed:", error);
+            console.error('Outlook Calendar connection failed:', error);
             Alert.alert(
-              "Connection Failed",
-              "Failed to connect Outlook Calendar. Please try again.",
+              'Connection Failed',
+              'Failed to connect Outlook Calendar. Please try again.',
             );
           } finally {
             setIsConnectingOutlook(false);
@@ -197,8 +190,8 @@ export default function CalendarConnectScreen() {
               PROVIDERS.map((provider, index) => {
                 const count = getConnectionCount(provider.id);
                 const isLoading =
-                  (provider.id === "google" && isConnectingGoogle) ||
-                  (provider.id === "outlook" && isConnectingOutlook);
+                  (provider.id === 'google' && isConnectingGoogle) ||
+                  (provider.id === 'outlook' && isConnectingOutlook);
 
                 return (
                   <YStack key={provider.id}>
@@ -230,7 +223,7 @@ export default function CalendarConnectScreen() {
                         )}
                       </YStack>
                       <Text flex={1} fontWeight="500" color="$color">
-                        {isLoading ? "Connecting..." : provider.name}
+                        {isLoading ? 'Connecting...' : provider.name}
                       </Text>
                       {count > 0 && !isLoading && (
                         <Text
