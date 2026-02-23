@@ -11,6 +11,7 @@ import { Toggle } from '../../components/ui/Toggle';
 import { Card } from '../../components/ui/Card';
 import { CancelHeader } from '../../components/ui/ScreenHeader';
 import { GlassButton } from '../../components/ui/GlassFAB';
+import { SkeletonBar } from '../../components/ui/Skeleton';
 import {
   useBlockedWindows,
   useCreateBlockedWindow,
@@ -181,7 +182,46 @@ export default function BlockedWindowScreen() {
   };
 
   if (!isNew && (isLoading || !initialized)) {
-    return <YStack flex={1} backgroundColor="$background" />;
+    return (
+      <YStack flex={1} backgroundColor="$background">
+        <YStack
+          paddingTop={insets.top + 16}
+          paddingBottom={insets.bottom + 40}
+          paddingHorizontal={16}
+          gap="$4"
+        >
+          <XStack alignItems="center" gap="$4" marginBottom="$3">
+            <YStack
+              width={36}
+              height={36}
+              borderRadius={18}
+              backgroundColor="$backgroundHover"
+            />
+            <YStack flex={1} gap="$2">
+              <SkeletonBar width={160} height={16} />
+              <SkeletonBar width={220} height={12} />
+            </YStack>
+          </XStack>
+          <Theme name="Card">
+            <Card marginBottom="$4">
+              <YStack marginBottom="$3">
+                <SkeletonBar width={100} height={14} />
+              </YStack>
+              <YStack gap="$4">
+                <SkeletonBar width={1} style={{ width: '100%' }} height={36} />
+                <SkeletonBar width={1} style={{ width: '100%' }} height={36} />
+              </YStack>
+            </Card>
+          </Theme>
+          <Theme name="Card">
+            <Card marginBottom="$5">
+              <SkeletonBar width={1} style={{ width: '100%' }} height={36} />
+            </Card>
+          </Theme>
+          <SkeletonBar width={1} style={{ width: '100%' }} height={44} />
+        </YStack>
+      </YStack>
+    );
   }
 
   if (!isNew && !win) {
@@ -251,7 +291,8 @@ export default function BlockedWindowScreen() {
                 </Text>
                 <DateTimePicker
                   value={startTime}
-                  mode="datetime"
+                  mode={isRecurring ? 'time' : 'datetime'}
+                  minuteInterval={15}
                   onChange={(_, date) => {
                     if (!date) return;
                     setStartTime(date);
@@ -267,7 +308,8 @@ export default function BlockedWindowScreen() {
                 </Text>
                 <DateTimePicker
                   value={endTime}
-                  mode="datetime"
+                  mode={isRecurring ? 'time' : 'datetime'}
+                  minuteInterval={15}
                   onChange={(_, date) => date && setEndTime(date)}
                 />
               </XStack>
@@ -293,7 +335,7 @@ export default function BlockedWindowScreen() {
                   Repeat
                 </Text>
                 <Text color="$colorMuted" fontSize={13} marginTop={2}>
-                  Block this same window regularly
+                  Block this time regularly
                 </Text>
               </YStack>
               <Toggle
