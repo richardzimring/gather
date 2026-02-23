@@ -464,7 +464,6 @@ export const NotificationPreferencesSchema = z
     eventInvites: z.boolean().default(true).openapi({ example: true }),
     eventUpdates: z.boolean().default(true).openapi({ example: true }),
     friendRequests: z.boolean().default(true).openapi({ example: true }),
-    groupInvites: z.boolean().default(true).openapi({ example: true }),
     messages: z.boolean().default(true).openapi({ example: true }),
   })
   .openapi('NotificationPreferences');
@@ -474,7 +473,6 @@ export const UpdateNotificationPreferencesSchema = z
     eventInvites: z.boolean().optional().openapi({ example: true }),
     eventUpdates: z.boolean().optional().openapi({ example: true }),
     friendRequests: z.boolean().optional().openapi({ example: false }),
-    groupInvites: z.boolean().optional().openapi({ example: true }),
     messages: z.boolean().optional().openapi({ example: true }),
   })
   .openapi('UpdateNotificationPreferences');

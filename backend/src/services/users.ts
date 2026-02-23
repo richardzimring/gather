@@ -180,7 +180,6 @@ const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   eventInvites: true,
   eventUpdates: true,
   friendRequests: true,
-  groupInvites: true,
   messages: true,
 };
 

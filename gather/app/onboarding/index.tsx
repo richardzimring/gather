@@ -880,7 +880,6 @@ function NotificationsStep({ onComplete }: { onComplete: () => void }) {
                     eventInvites: false,
                     eventUpdates: false,
                     friendRequests: false,
-                    groupInvites: false,
                     messages: false,
                   },
                 }).catch(console.error);

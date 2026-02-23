@@ -1,12 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Alert, AppState, Linking } from 'react-native';
-import {
-  Bell,
-  Calendar,
-  UserPlus,
-  Users,
-  AlertTriangle,
-} from '@tamagui/lucide-icons';
+import { Bell, Calendar, UserPlus, AlertTriangle } from '@tamagui/lucide-icons';
 import { router } from 'expo-router';
 import { ScrollView, Text, XStack, YStack, Theme } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -255,7 +249,6 @@ export default function NotificationSettingsScreen() {
                   SOCIAL
                 </Text>
                 <NotificationSettingSkeleton />
-                <NotificationSettingSkeleton />
               </Card>
             </Theme>
           </>
@@ -309,14 +302,6 @@ export default function NotificationSettingsScreen() {
                   value={preferences?.friendRequests ?? true}
                   onToggle={handleToggle('friendRequests')}
                   disabled={pendingKey === 'friendRequests'}
-                />
-                <NotificationSetting
-                  icon={<Users size={16} color="$colorMuted" />}
-                  label="Group Invites"
-                  description="Get notified when someone adds you to a group"
-                  value={preferences?.groupInvites ?? true}
-                  onToggle={handleToggle('groupInvites')}
-                  disabled={pendingKey === 'groupInvites'}
                 />
               </Card>
             </Theme>

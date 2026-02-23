@@ -61,7 +61,7 @@ export type AuthMeResponse = {
 export type BlockedWindowsResponse = {
     success: true;
     data: {
-        windows: Array<BlockedWindow>;
+        windows: BlockedWindow[];
     };
 };
 
@@ -77,7 +77,7 @@ export type BlockedWindow = {
 
 export type Recurring = {
     pattern: RecurringPattern;
-    daysOfWeek?: Array<number>;
+    daysOfWeek?: number[];
     endDate?: string;
 };
 
@@ -108,7 +108,7 @@ export type UpdateBlockedWindow = {
 export type CalendarListResponse = {
     success: true;
     data: {
-        connections: Array<CalendarConnection>;
+        connections: CalendarConnection[];
     };
 };
 
@@ -150,20 +150,20 @@ export type CreateCalendarConnection = {
 export type SyncCalendarsResponse = {
     success: true;
     data: {
-        connections: Array<CalendarConnection>;
+        connections: CalendarConnection[];
     };
     message?: string;
 };
 
 export type SyncCalendars = {
-    calendars: Array<SyncCalendarEntry>;
+    calendars: SyncCalendarEntry[];
 };
 
 export type SyncCalendarEntry = {
     externalCalendarId: string;
     calendarName: string;
     color?: string;
-    events: Array<SyncCalendarEvent>;
+    events: SyncCalendarEvent[];
 };
 
 export type SyncCalendarEvent = {
@@ -196,7 +196,7 @@ export type GoogleAuthUrlResponse = {
 export type GoogleCalendarListResponse = {
     success: true;
     data: {
-        calendars: Array<GoogleCalendar>;
+        calendars: GoogleCalendar[];
     };
 };
 
@@ -211,7 +211,7 @@ export type GoogleSelectCalendars = {
     /**
      * External calendar IDs to import. Unselected calendars will have importEnabled set to false.
      */
-    calendarIds: Array<string>;
+    calendarIds: string[];
 };
 
 export type GenerateEmojiResponse = {
@@ -228,7 +228,7 @@ export type GenerateEmojiRequest = {
 export type EventsResponse = {
     success: true;
     data: {
-        events: Array<Event>;
+        events: Event[];
     };
 };
 
@@ -248,7 +248,7 @@ export type Event = {
     latitude?: string;
     longitude?: string;
     notes?: string;
-    invitees: Array<EventInvitee>;
+    invitees: EventInvitee[];
     showInviteList?: boolean;
     status: EventStatus;
     calendarEventId?: string;
@@ -293,7 +293,7 @@ export type CreateEvent = {
     location?: string;
     locationData?: LocationData;
     notes?: string;
-    inviteeIds: Array<string>;
+    inviteeIds: string[];
     showInviteList?: boolean;
     recurring?: EventRecurring;
 };
@@ -309,7 +309,7 @@ export type LocationData = {
 export type EventRecurring = {
     isRecurring: boolean;
     pattern?: 'weekly';
-    daysOfWeek?: Array<number>;
+    daysOfWeek?: number[];
     endDate?: string;
 };
 
@@ -333,7 +333,7 @@ export type BusyTimesResponse = {
     success: true;
     data: {
         busyTimes: {
-            [key: string]: Array<BusyTimeInterval>;
+            [key: string]: BusyTimeInterval[];
         };
     };
 };
@@ -347,7 +347,7 @@ export type BusyTimesQuery = {
     /**
      * User IDs to query busy times for (must be the current user or accepted friends)
      */
-    userIds: Array<string>;
+    userIds: string[];
     startDate: string;
     endDate: string;
 };
@@ -355,9 +355,9 @@ export type BusyTimesQuery = {
 export type FriendsResponse = {
     success: true;
     data: {
-        friends: Array<FriendWithUser>;
-        pendingReceived: Array<FriendWithUser>;
-        pendingSent: Array<FriendWithUser>;
+        friends: FriendWithUser[];
+        pendingReceived: FriendWithUser[];
+        pendingSent: FriendWithUser[];
     };
 };
 
@@ -376,11 +376,11 @@ export type FriendshipStatus = 'pending' | 'accepted' | 'blocked';
 export type UserSearchResponse = {
     success: true;
     data: {
-        users: Array<{
+        users: {
             userId: string;
             fullName: string;
             avatarUrl?: string;
-        }>;
+        }[];
     };
 };
 
@@ -426,7 +426,7 @@ export type SimpleSuccess = {
 export type GroupsResponse = {
     success: true;
     data: {
-        groups: Array<Group>;
+        groups: Group[];
     };
 };
 
@@ -435,7 +435,7 @@ export type Group = {
     ownerId: string;
     name: string;
     emoji?: string;
-    memberIds: Array<string>;
+    memberIds: string[];
     isDefault?: boolean;
     createdAt: string;
 };
@@ -451,13 +451,13 @@ export type GroupResponse = {
 export type CreateGroup = {
     name: string;
     emoji?: string;
-    memberIds?: Array<string>;
+    memberIds?: string[];
 };
 
 export type UpdateGroup = {
     name?: string;
     emoji?: string | null;
-    memberIds?: Array<string>;
+    memberIds?: string[];
 };
 
 export type UserResponse = {
@@ -494,7 +494,6 @@ export type NotificationPreferences = {
     eventInvites?: boolean;
     eventUpdates?: boolean;
     friendRequests?: boolean;
-    groupInvites?: boolean;
     messages?: boolean;
 };
 
@@ -502,7 +501,6 @@ export type UpdateNotificationPreferences = {
     eventInvites?: boolean;
     eventUpdates?: boolean;
     friendRequests?: boolean;
-    groupInvites?: boolean;
     messages?: boolean;
 };
 

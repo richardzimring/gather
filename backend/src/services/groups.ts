@@ -130,13 +130,10 @@ export const updateGroup = async (
   }
 
   if (existing.isDefault) {
-    // Can only update memberIds for default groups
-    if (updates.name !== undefined || updates.emoji !== undefined) {
-      return {
-        success: false,
-        message: 'Cannot modify default group name or emoji',
-      };
-    }
+    return {
+      success: false,
+      message: 'Cannot modify default groups',
+    };
   }
 
   // Update group fields

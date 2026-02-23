@@ -332,7 +332,7 @@ export default function LoginScreen() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <YStack gap="$3" alignItems="center">
+          <YStack gap="$2" alignItems="center">
             <Text
               fontSize={44}
               fontWeight="700"
@@ -346,11 +346,11 @@ export default function LoginScreen() {
               fontSize={16}
               lineHeight={25}
               textAlign="center"
-              maxWidth={270}
+              maxWidth={200}
               letterSpacing={0.08}
               color={isDark ? 'rgba(255,255,255,0.38)' : 'rgba(20,15,40,0.42)'}
             >
-              Find the perfect time to see the people you love.
+              Find the time to see the people you love.
             </Text>
           </YStack>
         </YStack>

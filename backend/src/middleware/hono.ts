@@ -82,9 +82,6 @@ const AppleJwtPayloadSchema = z
   })
   .refine((data) => data.exp > Math.floor(Date.now() / 1000), {
     message: 'Token expired',
-  })
-  .refine((data) => data.aud === APPLE_BUNDLE_ID, {
-    message: 'Invalid token audience',
   });
 
 type AppleJwtPayload = z.infer<typeof AppleJwtPayloadSchema>;
@@ -143,19 +140,6 @@ export const verifyAppleToken = async (
   token: string,
 ): Promise<AppleJwtPayload | null> => {
   try {
-    // For development, allow a simple dev token
-    if (token.startsWith('dev-')) {
-      // Dev token format: dev-{appleUserId}
-      const appleUserId = token.slice(4);
-      return {
-        sub: appleUserId,
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 3600,
-        iss: 'https://appleid.apple.com',
-        aud: 'dev',
-      };
-    }
-
     // Decode JWT header to get kid
     const [headerBase64] = token.split('.');
     if (!headerBase64) {

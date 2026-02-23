@@ -868,7 +868,7 @@ export default function PlanScreen() {
                         color="$colorMuted"
                         textAlign="center"
                       >
-                        No times available for today.{' '}
+                        No times remaining for today.{' '}
                         {filterUngodlyHours
                           ? 'Try selecting a different day or turning off the late nights filter.'
                           : 'Try selecting a different day.'}
@@ -1064,6 +1064,7 @@ export default function PlanScreen() {
                       })();
                       const allFriendsFree =
                         freeFriendIds.length === selectedFriends.length;
+                      const allFriendsBusy = freeFriendIds.length === 0;
                       const isEveryoneAvailable =
                         allFriendsFree && isCurrentUserFree;
                       const isEveryoneBusy = slot.userIds.length === 0;
@@ -1090,7 +1091,7 @@ export default function PlanScreen() {
                         badgeBg = '$successSubtle';
                         badgeColor = '$success';
                         badgeLabel = 'All free';
-                      } else if (isEveryoneBusy) {
+                      } else if (allFriendsBusy) {
                         badgeBg = '$backgroundHover';
                         badgeColor = '$colorMuted';
                         badgeLabel = 'All busy';
@@ -1098,13 +1099,6 @@ export default function PlanScreen() {
                         badgeBg = '$backgroundHover';
                         badgeColor = '$colorMuted';
                         badgeLabel = 'You\u2019re busy';
-                      } else if (
-                        isCurrentUserFree &&
-                        freeFriendIds.length === 0
-                      ) {
-                        badgeBg = '$backgroundHover';
-                        badgeColor = '$colorMuted';
-                        badgeLabel = 'Friends busy';
                       } else {
                         badgeBg = '$backgroundHover';
                         badgeColor = '$colorMuted';
@@ -1117,10 +1111,7 @@ export default function PlanScreen() {
                         subtitle = 'No one is available';
                       } else if (isEveryoneAvailable) {
                         subtitle = 'Everyone is available';
-                      } else if (
-                        isCurrentUserFree &&
-                        freeFriendIds.length === 0
-                      ) {
+                      } else if (isCurrentUserFree && allFriendsBusy) {
                         subtitle = 'You\u2019re free, but all friends are busy';
                       } else if (!isCurrentUserFree && allFriendsFree) {
                         subtitle =
@@ -1158,7 +1149,9 @@ export default function PlanScreen() {
                               onPress={() => selectSlot(slot)}
                               borderWidth={isSelected ? 2 : undefined}
                               borderColor={isSelected ? '$primary' : undefined}
-                              opacity={isEveryoneBusy ? 0.5 : 1}
+                              opacity={
+                                allFriendsBusy || !isCurrentUserFree ? 0.5 : 1
+                              }
                             >
                               <XStack
                                 alignItems="center"

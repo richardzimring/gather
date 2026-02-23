@@ -264,25 +264,21 @@ export default function GroupDetailScreen() {
         />
 
         {/* Group Header */}
-        <YStack alignItems="center" marginBottom="$4">
-          <Circle
-            size={80}
-            backgroundColor="$backgroundHover"
-            marginBottom="$3"
-          >
+        <YStack alignItems="center" marginBottom="$4" gap="$2">
+          <Circle size={80} backgroundColor="$backgroundHover">
             <Text fontSize={36}>{group.emoji ?? '👥'}</Text>
           </Circle>
-          <H1 fontSize={20} fontWeight="600" textAlign="center">
+          <Text fontSize={20} fontWeight="600" textAlign="center">
             {group.name}
-          </H1>
-          <Text color="$colorMuted" fontSize={13}>
-            {group.memberIds.length} members
           </Text>
           {group.isDefault && (
             <Text color="$color" fontSize={11} marginTop="$1">
               Default Group
             </Text>
           )}
+          <Text color="$colorMuted" fontSize={13}>
+            {group.memberIds.length} members
+          </Text>
         </YStack>
 
         {/* Quick Actions */}
