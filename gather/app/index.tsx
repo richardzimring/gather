@@ -26,6 +26,10 @@ export default function Index() {
 
   // Redirect based on auth state
   if (isAuthenticated) {
+    // In dev mode, always go to onboarding flow
+    if (__DEV__) {
+      return <Redirect href="/onboarding" />;
+    }
     return <Redirect href="/(tabs)" />;
   }
 

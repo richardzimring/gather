@@ -218,7 +218,7 @@ function HowItWorksStep({ onNext }: { onNext: () => void }) {
     },
     {
       icon: <Calendar size={20} color="$primary" />,
-      text: "When you connect a calendar, Gather only stores what times you're busy. Event details stay private.",
+      text: "When you connect a calendar, Gather only stores which times you're busy. Event details stay private.",
     },
   ];
 

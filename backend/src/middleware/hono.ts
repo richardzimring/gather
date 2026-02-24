@@ -4,7 +4,7 @@ import { handle } from 'hono/aws-lambda';
 import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
 import type { User } from '../types';
-import { APPLE_BUNDLE_ID } from '../constants';
+import { APPLE_BUNDLE_ID, STAGE } from '../constants';
 import * as userService from '../services/users';
 import { z } from 'zod';
 
@@ -140,6 +140,19 @@ export const verifyAppleToken = async (
   token: string,
 ): Promise<AppleJwtPayload | null> => {
   try {
+    // In development, allow a simple dev token
+    if (STAGE === 'dev' && token.startsWith('dev-')) {
+      // Dev token format: dev-{appleUserId}
+      const appleUserId = token.slice(4);
+      return {
+        sub: appleUserId,
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        iss: 'https://appleid.apple.com',
+        aud: APPLE_BUNDLE_ID,
+      };
+    }
+
     // Decode JWT header to get kid
     const [headerBase64] = token.split('.');
     if (!headerBase64) {
