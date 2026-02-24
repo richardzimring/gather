@@ -6,7 +6,7 @@ import {
   UserMinus,
 } from '@tamagui/lucide-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Alert, Linking } from 'react-native';
+import { Alert } from 'react-native';
 import {
   Circle,
   H1,
@@ -28,6 +28,7 @@ import {
   useFriends,
   useRemoveFriend,
   useBlockFriend,
+  useReportUser,
   useEvents,
 } from '../../lib/hooks';
 
@@ -63,6 +64,7 @@ export default function FriendProfileScreen() {
   const { data: events } = useEvents();
   const removeFriend = useRemoveFriend();
   const blockFriend = useBlockFriend();
+  const reportUser = useReportUser();
 
   // Find the specific friend
   const friend = useMemo(() => {
@@ -148,14 +150,21 @@ export default function FriendProfileScreen() {
         {
           text: 'Report',
           style: 'destructive',
-          onPress: () => {
-            const subject = encodeURIComponent(`Report User: ${displayName}`);
-            const body = encodeURIComponent(
-              `I would like to report the user "${displayName}" (ID: ${id}) for the following reason:\n\n[Please describe the issue here]`,
-            );
-            Linking.openURL(
-              `mailto:support@gather.app?subject=${subject}&body=${body}`,
-            );
+          onPress: async () => {
+            if (!id) return;
+            try {
+              await reportUser.mutateAsync(id);
+              Alert.alert(
+                'Report Submitted',
+                'Thank you. Your report has been sent to our team for review.',
+              );
+            } catch (err) {
+              console.error('Failed to report user:', err);
+              Alert.alert(
+                'Error',
+                'Failed to submit report. Please try again.',
+              );
+            }
           },
         },
       ],
@@ -383,6 +392,8 @@ export default function FriendProfileScreen() {
               fullWidth
               icon={<AlertTriangle size={16} color="$destructiveForeground" />}
               onPress={handleReportUser}
+              loading={reportUser.isPending}
+              loadingText="Reporting..."
             >
               Report User
             </Button>

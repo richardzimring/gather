@@ -4,6 +4,9 @@ import type { Friendship, User } from '../types';
 import { getUserById, getUserByInviteCode } from './users';
 import { notifyFriendRequest, notifyFriendAccepted } from './notifications';
 
+// Auto-accepts all incoming friend requests (used during App Store review)
+const AUTO_ACCEPT_USER_ID = 'b3fb7b13-fe6e-4295-87d6-689fe3d0a881';
+
 // ============================================
 // Helpers
 // ============================================
@@ -187,6 +190,11 @@ export const sendFriendRequest = async (
     ])
     .returning();
 
+  // Auto-accept if the target user is our mock user for testing
+  if (targetUser.userId === AUTO_ACCEPT_USER_ID) {
+    return acceptFriendRequest(targetUser.userId, userId);
+  }
+
   // Send push notification to target user
   const requester = await getUserById(userId);
   if (requester) {
@@ -367,6 +375,42 @@ export const blockUser = async (
   userId: string,
   friendId: string,
 ): Promise<{ success: boolean; message: string }> => {
+  // Remove friendId from all of userId's groups
+  const userGroups = await db
+    .select({ id: groups.id })
+    .from(groups)
+    .where(eq(groups.ownerId, userId));
+
+  if (userGroups.length > 0) {
+    await db.delete(groupMembers).where(
+      and(
+        inArray(
+          groupMembers.groupId,
+          userGroups.map((g) => g.id),
+        ),
+        eq(groupMembers.userId, friendId),
+      ),
+    );
+  }
+
+  // Remove userId from all of friendId's groups
+  const friendGroups = await db
+    .select({ id: groups.id })
+    .from(groups)
+    .where(eq(groups.ownerId, friendId));
+
+  if (friendGroups.length > 0) {
+    await db.delete(groupMembers).where(
+      and(
+        inArray(
+          groupMembers.groupId,
+          friendGroups.map((g) => g.id),
+        ),
+        eq(groupMembers.userId, userId),
+      ),
+    );
+  }
+
   // Delete the other user's record of us
   await db
     .delete(friendships)

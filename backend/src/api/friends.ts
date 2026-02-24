@@ -9,6 +9,7 @@ import {
 } from '../types';
 import * as friendsService from '../services/friends';
 import * as userService from '../services/users';
+import * as reportsService from '../services/reports';
 
 export const app = createApp();
 
@@ -435,6 +436,57 @@ const blockUserRoute = createRoute({
   },
 });
 
+const reportUserRoute = createRoute({
+  method: 'post',
+  path: '/friends/{friendId}/report',
+  tags: ['Friends'],
+  summary: 'Report user',
+  description: 'Report a user for inappropriate behavior',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: z.object({
+      friendId: z
+        .string()
+        .uuid()
+        .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: SimpleSuccessSchema,
+        },
+      },
+      description: 'User reported',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Report failed',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
 const removeFriendRoute = createRoute({
   method: 'delete',
   path: '/friends/{friendId}',
@@ -764,6 +816,44 @@ app.openapi(blockUserRoute, async (c) => {
         success: false as const,
         error: 'Internal Server Error',
         message: 'Failed to block user',
+      },
+      500,
+    );
+  }
+});
+
+app.openapi(reportUserRoute, async (c) => {
+  const user = c.get('user');
+  const { friendId } = c.req.valid('param');
+
+  try {
+    const result = await reportsService.reportUser(user.userId, friendId);
+    if (!result.success) {
+      return c.json(
+        {
+          success: false as const,
+          error: 'Report Failed',
+          message: result.message ?? 'Failed to report user',
+        },
+        400,
+      );
+    }
+
+    return c.json(
+      {
+        success: true as const,
+        data: {},
+        message: result.message ?? 'User reported',
+      },
+      200,
+    );
+  } catch (error) {
+    console.error('Error in POST /friends/:friendId/report:', error);
+    return c.json(
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to report user',
       },
       500,
     );

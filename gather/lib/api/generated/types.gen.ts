@@ -1763,6 +1763,41 @@ export type PostFriendsByFriendIdBlockResponses = {
 
 export type PostFriendsByFriendIdBlockResponse = PostFriendsByFriendIdBlockResponses[keyof PostFriendsByFriendIdBlockResponses];
 
+export type PostFriendsByFriendIdReportData = {
+    body?: never;
+    path: {
+        friendId: string;
+    };
+    query?: never;
+    url: '/friends/{friendId}/report';
+};
+
+export type PostFriendsByFriendIdReportErrors = {
+    /**
+     * Report failed
+     */
+    400: ErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostFriendsByFriendIdReportError = PostFriendsByFriendIdReportErrors[keyof PostFriendsByFriendIdReportErrors];
+
+export type PostFriendsByFriendIdReportResponses = {
+    /**
+     * User reported
+     */
+    200: SimpleSuccess;
+};
+
+export type PostFriendsByFriendIdReportResponse = PostFriendsByFriendIdReportResponses[keyof PostFriendsByFriendIdReportResponses];
+
 export type DeleteFriendsByFriendIdData = {
     body?: never;
     path: {

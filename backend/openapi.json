@@ -1991,11 +1991,6 @@
             "default": true,
             "example": true
           },
-          "groupInvites": {
-            "type": "boolean",
-            "default": true,
-            "example": true
-          },
           "messages": {
             "type": "boolean",
             "default": true,
@@ -2017,10 +2012,6 @@
           "friendRequests": {
             "type": "boolean",
             "example": false
-          },
-          "groupInvites": {
-            "type": "boolean",
-            "example": true
           },
           "messages": {
             "type": "boolean",
@@ -4330,6 +4321,74 @@
           },
           "400": {
             "description": "Block failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/friends/{friendId}/report": {
+      "post": {
+        "tags": [
+          "Friends"
+        ],
+        "summary": "Report user",
+        "description": "Report a user for inappropriate behavior",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "550e8400-e29b-41d4-a716-446655440000"
+            },
+            "required": true,
+            "name": "friendId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User reported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Report failed",
             "content": {
               "application/json": {
                 "schema": {

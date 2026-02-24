@@ -434,6 +434,44 @@ export const calendarEventsCacheRelations = relations(
 );
 
 // ============================================
+// User Reports Table
+// ============================================
+
+export const userReports = pgTable(
+  'user_reports',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    reporterId: uuid('reporter_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    reportedId: uuid('reported_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('user_reports_reporter_reported_idx').on(
+      table.reporterId,
+      table.reportedId,
+    ),
+    index('user_reports_reported_id_idx').on(table.reportedId),
+  ],
+);
+
+export const userReportsRelations = relations(userReports, ({ one }) => ({
+  reporter: one(users, {
+    fields: [userReports.reporterId],
+    references: [users.id],
+  }),
+  reported: one(users, {
+    fields: [userReports.reportedId],
+    references: [users.id],
+  }),
+}));
+
+// ============================================
 // Emoji Cache Table
 // ============================================
 
@@ -483,3 +521,6 @@ export type NewCalendarEventCache = typeof calendarEventsCache.$inferInsert;
 
 export type EmojiCache = typeof emojiCache.$inferSelect;
 export type NewEmojiCache = typeof emojiCache.$inferInsert;
+
+export type UserReport = typeof userReports.$inferSelect;
+export type NewUserReport = typeof userReports.$inferInsert;

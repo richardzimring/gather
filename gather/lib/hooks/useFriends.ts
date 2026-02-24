@@ -9,6 +9,7 @@ import {
   postFriendsByFriendIdDecline,
   deleteFriendsByFriendId,
   postFriendsByFriendIdBlock,
+  postFriendsByFriendIdReport,
   deleteUsersMe,
 } from '../api/client';
 
@@ -167,6 +168,23 @@ export function useBlockFriend() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendsKeys.list() });
+    },
+  });
+}
+
+/**
+ * Hook to report a user.
+ */
+export function useReportUser() {
+  return useMutation({
+    mutationFn: async (friendId: string) => {
+      const response = await postFriendsByFriendIdReport({
+        path: { friendId },
+      });
+      if (!response.data?.success) {
+        throw new Error('Failed to report user');
+      }
+      return response.data.data;
     },
   });
 }
