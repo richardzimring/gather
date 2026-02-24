@@ -7,9 +7,10 @@
     "format": "npx prettier --write \"{app,components,lib}/**/*.{ts,tsx,js,json}\"",
     "check": "npx prettier --check \"{app,components,lib}/**/*.{ts,tsx,js,json}\"",
     "start": "expo start",
-    "prebuild": "expo prebuild",
-    "build:development": "APP_ENV=development expo prebuild --clean --platform ios && APP_ENV=development expo run:ios --device",
-    "build:release": "expo prebuild --clean --platform ios && expo run:ios --configuration Release --device",
+    "prebuild:development": "APP_ENV=development expo prebuild --clean --platform ios",
+    "prebuild:release": "expo prebuild --clean --platform ios",
+    "build:development": "APP_ENV=development expo run:ios --device",
+    "build:release": "expo run:ios --configuration Release --device",
     "generate:api": "openapi-ts -i ../backend/openapi.json -o ./lib/api/generated -c @hey-api/client-fetch",
     "android": "expo run:android",
     "ios": "expo run:ios"
