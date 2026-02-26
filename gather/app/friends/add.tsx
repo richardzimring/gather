@@ -44,7 +44,8 @@ export default function AddFriendScreen() {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Hey, add me on Gather! My friend code is: ${myFriendCode}`,
+        url: 'https://apps.apple.com/us/app/gather-plan-with-friends/id6759443297',
+        message: `Hey, add me on Gather! My friend code is: ${friendCode}`,
       });
     } catch (err) {
       console.error('Failed to share:', err);

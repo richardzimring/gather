@@ -194,6 +194,7 @@ export default function ProfileScreen() {
   const handleShareFriendCode = async () => {
     try {
       await Share.share({
+        url: 'https://apps.apple.com/us/app/gather-plan-with-friends/id6759443297',
         message: `Hey, add me on Gather! My friend code is: ${friendCode}`,
       });
     } catch (err) {
