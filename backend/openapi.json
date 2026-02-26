@@ -1325,6 +1325,14 @@
           "showInviteList": {
             "type": "boolean",
             "example": false
+          },
+          "addInviteeIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": []
           }
         }
       },
@@ -2982,6 +2990,16 @@
               }
             }
           },
+          "403": {
+            "description": "OAuth access revoked — user must reconnect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "404": {
             "description": "No Google connection found",
             "content": {
@@ -3182,6 +3200,16 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "OAuth access revoked — user must reconnect",
             "content": {
               "application/json": {
                 "schema": {

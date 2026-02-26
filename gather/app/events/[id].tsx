@@ -4,9 +4,12 @@ import {
   Pencil,
   FileText,
   Trash2,
+  UserPlus,
+  ChevronDown,
+  ChevronUp,
 } from '@tamagui/lucide-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Alert } from 'react-native';
+import { Alert, LayoutAnimation } from 'react-native';
 import {
   Circle,
   ScrollView,
@@ -25,6 +28,7 @@ import { BadgeLabel } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { EventCard } from '../../components/ui/EventCard';
+import { FriendPicker } from '../../components/ui/FriendPicker';
 import { GlassBottomBar } from '../../components/ui/GlassBottomBar';
 import { GlassButton } from '../../components/ui/GlassFAB';
 import { InlineCalendar } from '../../components/ui/InlineCalendar';
@@ -42,6 +46,8 @@ import {
   useRespondToEvent,
   useCancelEvent,
   useUpdateEvent,
+  useFriends,
+  useGroups,
 } from '../../lib/hooks';
 import { useGenerateEmoji } from '../../lib/hooks/useEmoji';
 import type {
@@ -288,6 +294,17 @@ export default function EventDetailScreen() {
   const [editDate, setEditDate] = useState<Date | null>(null);
   const [editStartMinutes, setEditStartMinutes] = useState<number | null>(null);
   const [editEndMinutes, setEditEndMinutes] = useState<number | null>(null);
+  const [addInviteeIds, setAddInviteeIds] = useState<string[]>([]);
+  const [isAddingPeople, setIsAddingPeople] = useState(false);
+
+  // ---- Friends/groups data for add-people UI ----
+  const { data: friendsData } = useFriends();
+  const { data: groupsData } = useGroups();
+  const allFriends = useMemo(() => friendsData?.friends ?? [], [friendsData]);
+  const allGroups = useMemo(
+    () => (groupsData ?? []).filter((g) => g.memberIds.length > 0),
+    [groupsData],
+  );
 
   // Generate emoji only if the title has changed from the original
   const titleHasChanged = event?.title !== editTitle;
@@ -370,10 +387,14 @@ export default function EventDetailScreen() {
       setEditLocationData(null);
     }
 
+    setAddInviteeIds([]);
+    setIsAddingPeople(false);
     setIsEditing(true);
   };
 
   const cancelEdit = () => {
+    setAddInviteeIds([]);
+    setIsAddingPeople(false);
     setIsEditing(false);
   };
 
@@ -430,6 +451,10 @@ export default function EventDetailScreen() {
       }
     }
 
+    if (addInviteeIds.length > 0) {
+      data.addInviteeIds = addInviteeIds;
+    }
+
     // Only call API if something changed
     if (Object.keys(data).length > 0) {
       try {
@@ -442,6 +467,8 @@ export default function EventDetailScreen() {
       }
     }
 
+    setAddInviteeIds([]);
+    setIsAddingPeople(false);
     setIsEditing(false);
   };
 
@@ -894,7 +921,7 @@ export default function EventDetailScreen() {
         )}
 
         {/* ==================== Invitees List ==================== */}
-        {event.showInviteList && (
+        {(event.showInviteList || (isEditing && isHost)) && (
           <Theme name="Card">
             <Card marginBottom="$4">
               <Text fontWeight="600" marginBottom="$3">
@@ -952,6 +979,67 @@ export default function EventDetailScreen() {
                     </YStack>
                   );
                 })}
+
+                {/* Add people (host edit mode only) */}
+                {isEditing && isHost && (
+                  <YStack marginTop={event.invitees.length > 0 ? '$2' : '$0'}>
+                    <Separator marginBottom="$2" />
+                    <XStack
+                      alignItems="center"
+                      justifyContent="space-between"
+                      paddingVertical="$2"
+                      pressStyle={{ opacity: 0.7 }}
+                      onPress={() => {
+                        LayoutAnimation.configureNext(
+                          LayoutAnimation.Presets.easeInEaseOut,
+                        );
+                        haptic.light();
+                        setIsAddingPeople((prev) => !prev);
+                      }}
+                    >
+                      <XStack alignItems="center" gap="$2">
+                        <UserPlus size={16} color="$primary" />
+                        <Text fontWeight="500" fontSize={14} color="$primary">
+                          Add people
+                        </Text>
+                        {addInviteeIds.length > 0 && (
+                          <Text fontSize={13} color="$colorMuted">
+                            ({addInviteeIds.length} selected)
+                          </Text>
+                        )}
+                      </XStack>
+                      {isAddingPeople ? (
+                        <ChevronUp size={16} color="$colorMuted" />
+                      ) : (
+                        <ChevronDown size={16} color="$colorMuted" />
+                      )}
+                    </XStack>
+
+                    {isAddingPeople && (
+                      <YStack marginTop="$3">
+                        <FriendPicker
+                          friends={allFriends}
+                          groups={allGroups}
+                          selectedIds={addInviteeIds}
+                          onToggle={(id) => {
+                            LayoutAnimation.configureNext(
+                              LayoutAnimation.Presets.easeInEaseOut,
+                            );
+                            setAddInviteeIds((prev) =>
+                              prev.includes(id)
+                                ? prev.filter((i) => i !== id)
+                                : [...prev, id],
+                            );
+                          }}
+                          excludeIds={[
+                            event.hostId,
+                            ...event.invitees.map((i) => i.userId),
+                          ]}
+                        />
+                      </YStack>
+                    )}
+                  </YStack>
+                )}
               </YStack>
             </Card>
           </Theme>

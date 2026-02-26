@@ -383,13 +383,50 @@ export const updateEvent = async (
       .where(eq(eventInvitees.eventId, eventId));
   }
 
+  // Add new invitees if requested
+  let newlyAddedInviteeIds: string[] = [];
+  if (updates.addInviteeIds && updates.addInviteeIds.length > 0) {
+    const existingInviteeIds = new Set(existing.invitees.map((i) => i.userId));
+    existingInviteeIds.add(hostId); // also exclude the host
+    newlyAddedInviteeIds = updates.addInviteeIds.filter(
+      (id) => !existingInviteeIds.has(id),
+    );
+
+    if (newlyAddedInviteeIds.length > 0) {
+      await db.insert(eventInvitees).values(
+        newlyAddedInviteeIds.map((userId) => ({
+          eventId,
+          userId,
+          status: 'pending' as const,
+        })),
+      );
+    }
+  }
+
   const updatedEvent = await getEvent(eventId);
 
-  // Notify invitees of the update
   if (updatedEvent) {
-    const inviteeIds = updatedEvent.invitees.map((i) => i.userId);
-    if (inviteeIds.length > 0) {
-      await notifyEventUpdated(inviteeIds, updatedEvent, hasSignificantChanges);
+    const existingInviteeIds = existing.invitees.map((i) => i.userId);
+
+    // Only notify existing invitees about the event update if actual event
+    // fields changed (not just because new people were added)
+    const eventFieldsChanged =
+      Object.keys(updateData).filter((k) => k !== 'updatedAt').length > 0;
+    if (eventFieldsChanged && existingInviteeIds.length > 0) {
+      await notifyEventUpdated(
+        existingInviteeIds,
+        updatedEvent,
+        hasSignificantChanges,
+      );
+    }
+
+    // Notify newly added invitees with the invitation notification
+    if (newlyAddedInviteeIds.length > 0) {
+      const hostUser = await getUserById(hostId);
+      const hostName = hostUser
+        ? `${hostUser.firstName} ${hostUser.lastName}`
+        : 'Someone';
+      await notifyEventInvitation(newlyAddedInviteeIds, updatedEvent, hostName);
     }
   }
 

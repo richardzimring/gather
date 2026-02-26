@@ -531,6 +531,20 @@ app.openapi(updateEventRoute, async (c) => {
     }
   }
 
+  // Validate addInviteeIds if provided
+  if (data.addInviteeIds && data.addInviteeIds.length > 0) {
+    if (data.addInviteeIds.includes(user.userId)) {
+      return c.json(
+        {
+          success: false as const,
+          error: 'Validation Error',
+          message: 'Cannot invite yourself to an event',
+        },
+        400,
+      );
+    }
+  }
+
   try {
     const result = await eventsService.updateEvent(eventId, user.userId, data);
     if (!result.success || !result.event) {

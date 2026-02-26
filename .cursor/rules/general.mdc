@@ -3,3 +3,5 @@ alwaysApply: true
 ---
 
 Always ask the user questions using your ask questions tool if you need clarification, have options for them to pick from, need guidance, or are unsure of their preferences
+
+Make sure changes deployed to the backend do not break prior versions of the frontend. We release new versions of the ios app every few weeks, but can deploy changes to the backend anytime, so we should make backend changes backwards compatible.

@@ -32,6 +32,7 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { DayTabBar } from '../../components/ui/DayTabBar';
 import { EventCard } from '../../components/ui/EventCard';
+import { FriendPicker } from '../../components/ui/FriendPicker';
 import { InlineCalendar, toDateKey } from '../../components/ui/InlineCalendar';
 import {
   LocationSearch,
@@ -175,25 +176,6 @@ function groupSlotsByDay(slots: CommonFreeTimeSlot[]): Map<string, TimeSlot[]> {
 // ============================================
 // Sub-Components
 // ============================================
-
-function Checkbox({ checked }: { checked: boolean }) {
-  return (
-    <YStack
-      width={20}
-      height={20}
-      borderRadius={4}
-      borderWidth={1}
-      borderColor={checked ? '$primary' : '$borderColor'}
-      backgroundColor={checked ? '$primary' : 'transparent'}
-      alignItems="center"
-      justifyContent="center"
-    >
-      {checked && (
-        <Check size={12} color="$primaryForeground" strokeWidth={3} />
-      )}
-    </YStack>
-  );
-}
 
 /** Skeleton placeholder card mimicking a time-slot row. */
 function TimeSlotSkeleton() {
@@ -703,49 +685,6 @@ export default function PlanScreen() {
               )}
             </XStack>
 
-            {/* Quick group selection */}
-            {availableGroups.length > 0 && (
-              <YStack marginBottom="$3">
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <XStack gap="$2">
-                    {availableGroups.map((group) => {
-                      const allSelected = group.memberIds.every((id) =>
-                        selectedFriends.includes(id),
-                      );
-                      return (
-                        <YStack
-                          key={group.groupId}
-                          paddingVertical="$2"
-                          paddingHorizontal="$3"
-                          backgroundColor={
-                            allSelected ? '$primary' : '$backgroundHover'
-                          }
-                          borderRadius="$2"
-                          pressStyle={{ scale: 0.98 }}
-                          onPress={() => toggleGroup(group.memberIds)}
-                        >
-                          <XStack alignItems="center" gap="$2">
-                            <Text fontSize={14}>{group.emoji ?? '👥'}</Text>
-                            <Text
-                              fontSize={13}
-                              fontWeight="500"
-                              color={
-                                allSelected ? '$primaryForeground' : '$color'
-                              }
-                            >
-                              {group.name}
-                            </Text>
-                          </XStack>
-                        </YStack>
-                      );
-                    })}
-                  </XStack>
-                </ScrollView>
-                <Separator marginTop="$3" />
-              </YStack>
-            )}
-
-            {/* Friend list */}
             {friends.length === 0 ? (
               <YStack alignItems="center" padding="$4" gap="$3">
                 <Text color="$colorMuted" textAlign="center">
@@ -761,37 +700,14 @@ export default function PlanScreen() {
               </YStack>
             ) : (
               <YStack gap="$1">
-                {friends
-                  .slice(0, MAX_VISIBLE_FRIENDS)
-                  .map((friendship, index) => (
-                    <YStack key={friendship.friendId}>
-                      <XStack
-                        alignItems="center"
-                        gap="$3"
-                        paddingVertical="$2"
-                        pressStyle={{ opacity: 0.7 }}
-                        onPress={() => toggleFriend(friendship.friendId)}
-                      >
-                        <Checkbox
-                          checked={selectedFriends.includes(
-                            friendship.friendId,
-                          )}
-                        />
-                        <Circle size={36} backgroundColor="$backgroundHover">
-                          <Text fontWeight="500" fontSize={14}>
-                            {friendship.friend.initials}
-                          </Text>
-                        </Circle>
-                        <Text fontWeight="500" flex={1}>
-                          {friendship.friend.fullName}
-                        </Text>
-                      </XStack>
-                      {index <
-                        Math.min(friends.length, MAX_VISIBLE_FRIENDS) - 1 && (
-                        <Separator marginVertical="$1" />
-                      )}
-                    </YStack>
-                  ))}
+                <FriendPicker
+                  friends={friends}
+                  groups={availableGroups}
+                  selectedIds={selectedFriends}
+                  onToggle={toggleFriend}
+                  onToggleGroup={toggleGroup}
+                  maxVisible={MAX_VISIBLE_FRIENDS}
+                />
                 {friends.length > MAX_VISIBLE_FRIENDS && (
                   <Button
                     variant="ghost"

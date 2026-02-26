@@ -438,6 +438,10 @@ export const UpdateEventSchema = z
       .optional()
       .openapi({ example: 'Updated notes' }),
     showInviteList: z.boolean().optional().openapi({ example: false }),
+    addInviteeIds: z
+      .array(z.string().uuid())
+      .optional()
+      .openapi({ example: [] }),
   })
   .openapi('UpdateEvent');
 

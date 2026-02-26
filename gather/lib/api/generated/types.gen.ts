@@ -322,6 +322,7 @@ export type UpdateEvent = {
     locationData?: LocationData & unknown;
     notes?: string | null;
     showInviteList?: boolean;
+    addInviteeIds?: string[];
 };
 
 export type EventResponse = {
@@ -1027,6 +1028,10 @@ export type GetCalendarsGoogleCalendarsErrors = {
      */
     401: ErrorResponse;
     /**
+     * OAuth access revoked — user must reconnect
+     */
+    403: ErrorResponse;
+    /**
      * No Google connection found
      */
     404: ErrorResponse;
@@ -1146,6 +1151,10 @@ export type GetCalendarsOutlookCalendarsErrors = {
      * Unauthorized
      */
     401: ErrorResponse;
+    /**
+     * OAuth access revoked — user must reconnect
+     */
+    403: ErrorResponse;
     /**
      * No Outlook connection found
      */
