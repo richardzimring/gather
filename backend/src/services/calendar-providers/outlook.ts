@@ -18,6 +18,7 @@ import type {
   OAuthTokens,
   ProviderEvent,
 } from './index';
+import { OAuthRevokedError } from './index';
 
 // ============================================
 // Outlook Calendar Provider
@@ -241,8 +242,13 @@ export class OutlookCalendarProvider implements CalendarProviderService {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Failed to refresh Outlook access token: ${error}`);
+      const errorBody = await response.json().catch(() => null);
+      if (errorBody?.error === 'invalid_grant') {
+        throw new OAuthRevokedError('Outlook OAuth access has been revoked');
+      }
+      throw new Error(
+        `Failed to refresh Outlook access token: ${JSON.stringify(errorBody)}`,
+      );
     }
 
     const json = await response.json();

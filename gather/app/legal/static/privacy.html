@@ -89,15 +89,15 @@
 
   <section>
     <h2>Google Calendar Integration</h2>
-    <p>Gather offers an optional integration with Google Calendar. If you choose to connect your Google account, we request the following OAuth scope:</p>
+    <p>Gather offers an optional integration with Google Calendar. If you choose to connect your Google account, we request the following OAuth scopes:</p>
     <ul>
-      <li><strong>calendar.readonly</strong> — read-only access to your Google Calendar data.</li>
+      <li><strong>calendar.calendarlist.readonly</strong> — read-only access to your list of Google calendars.</li>
+      <li><strong>calendar.freebusy</strong> — read-only access to free/busy availability on your calendars.</li>
     </ul>
-    <p>Using this scope, we access:</p>
+    <p>Using these scopes, we access:</p>
     <ul>
-      <li><strong>Your Google account name and email address</strong> — to identify which Google account is connected in your settings.</li>
       <li><strong>Your calendar names and colors</strong> — so you can select which calendars to include.</li>
-      <li><strong>Event start and end times, and free/busy status</strong> — to show your availability to friends. We do not read or store event titles, descriptions, locations, or attendees.</li>
+      <li><strong>Free/busy time intervals</strong> — to show your availability to friends. We do not read or store event titles, descriptions, locations, or attendees.</li>
     </ul>
     <p>Our use of Google Calendar data is strictly limited to providing this availability feature. Specifically:</p>
     <ul>

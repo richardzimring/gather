@@ -6,7 +6,7 @@ import type {
   UpdateCalendarConnection,
   SyncCalendars,
 } from '../types';
-import { getCalendarProvider } from './calendar-providers';
+import { getCalendarProvider, OAuthRevokedError } from './calendar-providers';
 
 // ============================================
 // Helpers
@@ -359,19 +359,33 @@ export const ensureValidAccessToken = async (
 
   // Token expired or missing — refresh it
   const provider = getCalendarProvider(connection.provider);
-  const tokens = await provider.refreshAccessToken(connection.refreshToken);
 
-  // Persist the new tokens
-  await db
-    .update(calendarConnections)
-    .set({
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      tokenExpiresAt: tokens.tokenExpiresAt,
-    })
-    .where(eq(calendarConnections.id, connection.id));
+  try {
+    const tokens = await provider.refreshAccessToken(connection.refreshToken);
 
-  return tokens.accessToken;
+    // Persist the new tokens
+    await db
+      .update(calendarConnections)
+      .set({
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        tokenExpiresAt: tokens.tokenExpiresAt,
+      })
+      .where(eq(calendarConnections.id, connection.id));
+
+    return tokens.accessToken;
+  } catch (error) {
+    if (error instanceof OAuthRevokedError) {
+      // Clean up all stale connections for this provider — cached events
+      // cascade-delete via FK. After this, the user will be prompted to
+      // re-authenticate when they next visit the calendar connect screen.
+      await deleteProviderConnections(
+        connection.userId,
+        connection.provider as 'google' | 'outlook',
+      );
+    }
+    throw error;
+  }
 };
 
 /**

@@ -3,6 +3,18 @@
 // ============================================
 
 /**
+ * Thrown when an OAuth refresh token has been revoked or expired permanently
+ * (e.g. the user revoked Gather's access in their Google/Outlook account settings).
+ * Distinct from transient network/API errors so callers can clean up stale connections.
+ */
+export class OAuthRevokedError extends Error {
+  constructor(message = 'OAuth access has been revoked') {
+    super(message);
+    this.name = 'OAuthRevokedError';
+  }
+}
+
+/**
  * Represents an external calendar from a provider (Google, Outlook, etc.)
  * Used when listing calendars the user can choose to import.
  */

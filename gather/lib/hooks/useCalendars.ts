@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { OAuthRevokedError } from '../errors';
 import {
   getCalendars,
   getCalendarsByConnectionId,
@@ -256,6 +257,7 @@ export function useGoogleCalendars(enabled = true) {
     queryKey: [...calendarKeys.all, 'google', 'calendars'] as const,
     queryFn: async () => {
       const response = await getCalendarsGoogleCalendars();
+      if (response.response?.status === 403) throw new OAuthRevokedError();
       if (!response.data?.success) {
         throw new Error('Failed to fetch Google calendars');
       }
@@ -363,6 +365,7 @@ export function useOutlookCalendars(enabled = true) {
     queryKey: [...calendarKeys.all, 'outlook', 'calendars'] as const,
     queryFn: async () => {
       const response = await getCalendarsOutlookCalendars();
+      if (response.response?.status === 403) throw new OAuthRevokedError();
       if (!response.data?.success) {
         throw new Error('Failed to fetch Outlook calendars');
       }

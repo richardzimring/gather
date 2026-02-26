@@ -303,7 +303,7 @@
       <p>
         For all three calendar providers, Gather requests the
         <strong>minimum read-only access</strong> needed to show your
-        availability. We read event start/end times and free/busy status only —
+        availability. We read only free/busy time intervals —
         we never read or store event titles, descriptions, locations, or
         attendees.
       </p>
@@ -312,7 +312,7 @@
         Google Calendar
       </h3>
       <p>
-        Scope requested:
+        Scopes requested:
         <code
           style="
             font-size: 12px;
@@ -320,20 +320,25 @@
             padding: 2px 6px;
             border-radius: 4px;
           "
-          >calendar.readonly</code
+          >calendar.calendarlist.readonly</code
+        >
+        <code
+          style="
+            font-size: 12px;
+            background: #f5f7fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+          "
+          >calendar.freebusy</code
         >
       </p>
       <ul class="data-list">
-        <li>
-          <strong>Google account name &amp; email</strong> — to identify which
-          account is connected.
-        </li>
         <li>
           <strong>Calendar names</strong> — so you can choose which calendars to
           include.
         </li>
         <li>
-          <strong>Event times &amp; free/busy status</strong> — to compute your
+          <strong>Free/busy time intervals</strong> — to compute your
           availability. No event titles or details.
         </li>
       </ul>

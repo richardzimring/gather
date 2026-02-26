@@ -49,9 +49,8 @@ export default function PrivacyPolicyScreen() {
               If you choose to connect a third-party calendar (Google Calendar,
               Outlook Calendar, or Apple Calendar), we collect the minimum
               calendar data necessary to determine your availability —
-              specifically, calendar names and event start/end times with
-              free/busy status. See the calendar sections below for full
-              details.
+              specifically, calendar names and free/busy time intervals. See the
+              calendar sections below for full details.
             </Text>
           </YStack>
 
@@ -95,12 +94,13 @@ export default function PrivacyPolicyScreen() {
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
               Gather offers an optional integration with Google Calendar. If you
-              choose to connect your Google account, we request read-only access
-              (calendar.readonly scope) to your Google Calendar data.
+              choose to connect your Google account, we request two narrow
+              read-only scopes: calendar.calendarlist.readonly (to list your
+              calendars) and calendar.freebusy (to read free/busy availability).
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
               {
-                'Using this access, we read:\n\u2022 Your Google account name and email — to identify which account is connected.\n\u2022 Your calendar names and colors — so you can select which calendars to include.\n\u2022 Event start/end times and free/busy status — to show your availability. We do not read or store event titles, descriptions, locations, or attendees.'
+                'Using this access, we read:\n\u2022 Your calendar names and colors — so you can select which calendars to include.\n\u2022 Free/busy time intervals — to show your availability to friends. We do not read or store event titles, descriptions, locations, or attendees.'
               }
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>

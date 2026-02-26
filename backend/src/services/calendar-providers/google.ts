@@ -11,13 +11,16 @@ import type {
   OAuthTokens,
   ProviderEvent,
 } from './index';
+import { OAuthRevokedError } from './index';
 
 // ============================================
 // Google Calendar Provider
 // ============================================
 
-/** Google Calendar read-only scope */
-const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
+const SCOPES = [
+  'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
+  'https://www.googleapis.com/auth/calendar.freebusy',
+];
 
 /**
  * Google Calendar provider implementation using @googleapis/calendar SDK.
@@ -83,19 +86,32 @@ export class GoogleCalendarProvider implements CalendarProviderService {
     const oauth2Client = this.createOAuth2Client();
     oauth2Client.setCredentials({ refresh_token: refreshToken });
 
-    const { credentials } = await oauth2Client.refreshAccessToken();
+    try {
+      const { credentials } = await oauth2Client.refreshAccessToken();
 
-    if (!credentials.access_token) {
+      if (!credentials.access_token) {
+        throw new Error('Failed to refresh Google access token');
+      }
+
+      return {
+        accessToken: credentials.access_token,
+        refreshToken: credentials.refresh_token ?? refreshToken,
+        tokenExpiresAt: credentials.expiry_date
+          ? new Date(credentials.expiry_date)
+          : new Date(Date.now() + 3600 * 1000),
+      };
+    } catch (error: unknown) {
+      // Re-throw OAuthRevokedError as-is (e.g. if thrown above for missing token)
+      if (error instanceof OAuthRevokedError) throw error;
+
+      // Google returns invalid_grant when the refresh token has been revoked
+      const gaxiosError = error as { response?: { data?: { error?: string } } };
+      if (gaxiosError?.response?.data?.error === 'invalid_grant') {
+        throw new OAuthRevokedError('Google OAuth access has been revoked');
+      }
+
       throw new Error('Failed to refresh Google access token');
     }
-
-    return {
-      accessToken: credentials.access_token,
-      refreshToken: credentials.refresh_token ?? refreshToken,
-      tokenExpiresAt: credentials.expiry_date
-        ? new Date(credentials.expiry_date)
-        : new Date(Date.now() + 3600 * 1000),
-    };
   }
 
   /**
@@ -115,8 +131,9 @@ export class GoogleCalendarProvider implements CalendarProviderService {
   }
 
   /**
-   * Fetch events from a specific Google calendar within a time range.
-   * Uses `singleEvents: true` to expand recurring events into individual instances.
+   * Fetch busy intervals from a specific Google calendar within a time range.
+   * Uses the FreeBusy API which returns pre-merged busy windows — we never
+   * need individual event details, just the time intervals.
    */
   async fetchEvents(
     accessToken: string,
@@ -125,49 +142,28 @@ export class GoogleCalendarProvider implements CalendarProviderService {
     timeMax: Date,
   ): Promise<ProviderEvent[]> {
     const calendar = this.createCalendarClient(accessToken);
-    const events: ProviderEvent[] = [];
-    let pageToken: string | undefined;
 
-    do {
-      const response = await calendar.events.list({
-        calendarId,
+    const response = await calendar.freebusy.query({
+      requestBody: {
         timeMin: timeMin.toISOString(),
         timeMax: timeMax.toISOString(),
-        singleEvents: true,
-        orderBy: 'startTime',
-        maxResults: 2500,
-        pageToken,
+        items: [{ id: calendarId }],
+      },
+    });
+
+    const busyIntervals = response.data.calendars?.[calendarId]?.busy ?? [];
+
+    const events: ProviderEvent[] = [];
+
+    for (const interval of busyIntervals) {
+      if (!interval.start || !interval.end) continue;
+      events.push({
+        externalEventId: `${calendarId}_${interval.start}`,
+        startTime: new Date(interval.start),
+        endTime: new Date(interval.end),
+        isBusy: true,
       });
-
-      const items = response.data.items ?? [];
-
-      for (const event of items) {
-        // Skip cancelled events
-        if (event.status === 'cancelled') continue;
-
-        // Determine start/end times (dateTime for timed, date for all-day)
-        const startStr = event.start?.dateTime ?? event.start?.date;
-        const endStr = event.end?.dateTime ?? event.end?.date;
-
-        if (!startStr || !endStr) continue;
-
-        const startTime = new Date(startStr);
-        const endTime = new Date(endStr);
-
-        // Determine busy status from transparency
-        // Google uses 'transparent' for free, 'opaque' (default) for busy
-        const isBusy = event.transparency !== 'transparent';
-
-        events.push({
-          externalEventId: event.id ?? `${calendarId}_${startStr}`,
-          startTime,
-          endTime,
-          isBusy,
-        });
-      }
-
-      pageToken = response.data.nextPageToken ?? undefined;
-    } while (pageToken);
+    }
 
     return events;
   }

@@ -22,7 +22,10 @@ import {
   getValidProviderAccessToken,
   selectProviderCalendars,
 } from '../services/calendars';
-import { getCalendarProvider } from '../services/calendar-providers';
+import {
+  getCalendarProvider,
+  OAuthRevokedError,
+} from '../services/calendar-providers';
 
 export const app = createApp();
 
@@ -772,6 +775,10 @@ const googleCalendarsRoute = createRoute({
       description: 'Unauthorized',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
+    403: {
+      description: 'OAuth access revoked — user must reconnect',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
     404: {
       description: 'No Google connection found',
       content: { 'application/json': { schema: ErrorResponseSchema } },
@@ -907,6 +914,17 @@ app.openapi(googleCalendarsRoute, async (c) => {
       200,
     );
   } catch (error) {
+    if (error instanceof OAuthRevokedError) {
+      return c.json(
+        {
+          success: false as const,
+          error: 'Forbidden',
+          message:
+            'Google Calendar access has been revoked. Please reconnect your account.',
+        },
+        403,
+      );
+    }
     console.error('Error in GET /calendars/google/calendars:', error);
     return c.json(
       {
@@ -1031,6 +1049,10 @@ const outlookCalendarsRoute = createRoute({
     },
     401: {
       description: 'Unauthorized',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    403: {
+      description: 'OAuth access revoked — user must reconnect',
       content: { 'application/json': { schema: ErrorResponseSchema } },
     },
     404: {
@@ -1168,6 +1190,17 @@ app.openapi(outlookCalendarsRoute, async (c) => {
       200,
     );
   } catch (error) {
+    if (error instanceof OAuthRevokedError) {
+      return c.json(
+        {
+          success: false as const,
+          error: 'Forbidden',
+          message:
+            'Outlook Calendar access has been revoked. Please reconnect your account.',
+        },
+        403,
+      );
+    }
     console.error('Error in GET /calendars/outlook/calendars:', error);
     return c.json(
       {

@@ -213,12 +213,12 @@ function HowItWorksStep({ onNext }: { onNext: () => void }) {
 
   const points = [
     {
-      icon: <Eye size={20} color="$primary" />,
-      text: 'Friends can only see your availability, not your full calendar and event details. ',
+      icon: <Calendar size={20} color="$primary" />,
+      text: "When you connect a calendar, Gather can only see which times you're busy. Event details stay private.",
     },
     {
-      icon: <Calendar size={20} color="$primary" />,
-      text: "When you connect a calendar, Gather only stores which times you're busy. Event details stay private.",
+      icon: <Eye size={20} color="$primary" />,
+      text: 'Friends can only see your availability, not your full calendar and event details. ',
     },
   ];
 
@@ -655,7 +655,7 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
               </Text>
             </XStack>
             <H1 fontSize={28} fontWeight="700" textAlign="center">
-              Got a friend code?
+              Got a code?
             </H1>
             <Text
               color="$colorMuted"

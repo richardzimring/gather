@@ -28,6 +28,7 @@ import {
   useSelectOutlookCalendars,
   useSyncCalendars,
 } from '../../lib/hooks';
+import { OAuthRevokedError } from '../../lib/errors';
 import {
   ensureCalendarPermissions,
   getDeviceCalendars,
@@ -321,6 +322,10 @@ export default function CalendarSelectScreen() {
     (provider === 'google' && googleError) ||
     (provider === 'outlook' && outlookError);
 
+  const isRevoked =
+    (provider === 'google' && googleError instanceof OAuthRevokedError) ||
+    (provider === 'outlook' && outlookError instanceof OAuthRevokedError);
+
   const isSaving =
     (provider === 'apple' && syncCalendars.isPending) ||
     (provider === 'google' && selectGoogleCalendars.isPending) ||
@@ -382,13 +387,20 @@ export default function CalendarSelectScreen() {
           >
             <CalendarProviderIcon provider={provider} size={48} />
             <Text fontSize={18} fontWeight="600" textAlign="center">
-              Unable to Load Calendars
+              {isRevoked ? 'Access Revoked' : 'Unable to Load Calendars'}
             </Text>
             <Text color="$colorMuted" textAlign="center" paddingHorizontal="$4">
-              Please check your {config.displayName} connection and try again.
+              {isRevoked
+                ? `Your ${config.displayName} access was revoked. Please reconnect to continue syncing your calendar.`
+                : `Please check your ${config.displayName} connection and try again.`}
             </Text>
-            <Button variant="primary" onPress={() => router.back()}>
-              Go Back
+            <Button
+              variant="primary"
+              onPress={() =>
+                isRevoked ? router.replace('/calendars/connect') : router.back()
+              }
+            >
+              {isRevoked ? `Reconnect ${config.displayName}` : 'Go Back'}
             </Button>
           </YStack>
         </ScrollView>
