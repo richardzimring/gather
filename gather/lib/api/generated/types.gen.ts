@@ -27,7 +27,7 @@ export type User = {
     calendarSyncEnabled?: boolean;
     pushToken?: string;
     timezone?: string;
-    friendCode?: string;
+    inviteCode?: string;
 };
 
 export type ErrorResponse = {
@@ -384,11 +384,11 @@ export type UserSearchResponse = {
     };
 };
 
-export type FriendCodeResponse = {
+export type InviteCodeResponse = {
     success: true;
     data: {
-        friendCode?: string;
-        friendLink: string;
+        inviteCode?: string;
+        inviteLink: string;
     };
     message?: string;
 };
@@ -412,7 +412,7 @@ export type Friendship = {
 
 export type FriendRequest = {
     friendUserId?: string;
-    friendCode?: string;
+    inviteCode?: string;
 };
 
 export type SimpleSuccess = {
@@ -1567,39 +1567,39 @@ export type GetFriendsSearchResponses = {
 
 export type GetFriendsSearchResponse = GetFriendsSearchResponses[keyof GetFriendsSearchResponses];
 
-export type GetFriendsFriendCodeData = {
+export type GetFriendsInviteCodeData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/friends/friend-code';
+    url: '/friends/invite-code';
 };
 
-export type GetFriendsFriendCodeErrors = {
+export type GetFriendsInviteCodeErrors = {
     /**
      * Unauthorized
      */
     401: ErrorResponse;
 };
 
-export type GetFriendsFriendCodeError = GetFriendsFriendCodeErrors[keyof GetFriendsFriendCodeErrors];
+export type GetFriendsInviteCodeError = GetFriendsInviteCodeErrors[keyof GetFriendsInviteCodeErrors];
 
-export type GetFriendsFriendCodeResponses = {
+export type GetFriendsInviteCodeResponses = {
     /**
-     * Friend code retrieved
+     * Invite code retrieved
      */
-    200: FriendCodeResponse;
+    200: InviteCodeResponse;
 };
 
-export type GetFriendsFriendCodeResponse = GetFriendsFriendCodeResponses[keyof GetFriendsFriendCodeResponses];
+export type GetFriendsInviteCodeResponse = GetFriendsInviteCodeResponses[keyof GetFriendsInviteCodeResponses];
 
-export type PostFriendsFriendCodeRegenerateData = {
+export type PostFriendsInviteCodeRegenerateData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/friends/friend-code/regenerate';
+    url: '/friends/invite-code/regenerate';
 };
 
-export type PostFriendsFriendCodeRegenerateErrors = {
+export type PostFriendsInviteCodeRegenerateErrors = {
     /**
      * Unauthorized
      */
@@ -1614,16 +1614,16 @@ export type PostFriendsFriendCodeRegenerateErrors = {
     500: ErrorResponse;
 };
 
-export type PostFriendsFriendCodeRegenerateError = PostFriendsFriendCodeRegenerateErrors[keyof PostFriendsFriendCodeRegenerateErrors];
+export type PostFriendsInviteCodeRegenerateError = PostFriendsInviteCodeRegenerateErrors[keyof PostFriendsInviteCodeRegenerateErrors];
 
-export type PostFriendsFriendCodeRegenerateResponses = {
+export type PostFriendsInviteCodeRegenerateResponses = {
     /**
-     * Friend code regenerated
+     * Invite code regenerated
      */
-    200: FriendCodeResponse;
+    200: InviteCodeResponse;
 };
 
-export type PostFriendsFriendCodeRegenerateResponse = PostFriendsFriendCodeRegenerateResponses[keyof PostFriendsFriendCodeRegenerateResponses];
+export type PostFriendsInviteCodeRegenerateResponse = PostFriendsInviteCodeRegenerateResponses[keyof PostFriendsInviteCodeRegenerateResponses];
 
 export type PostFriendsRequestData = {
     body: FriendRequest;

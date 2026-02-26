@@ -100,7 +100,7 @@ export default function EditProfileScreen() {
                   Friend Code
                 </Text>
                 <Text fontWeight="600" fontSize={13}>
-                  {user?.friendCode ?? 'N/A'}
+                  {user?.inviteCode ?? 'N/A'}
                 </Text>
               </XStack>
             </YStack>

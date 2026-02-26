@@ -63,7 +63,7 @@ export const users = pgTable(
     firstName: varchar('first_name', { length: 50 }).notNull(),
     lastName: varchar('last_name', { length: 50 }).notNull(),
     avatarUrl: text('avatar_url'),
-    friendCode: varchar('friend_code', { length: 8 }),
+    inviteCode: varchar('invite_code', { length: 8 }),
     calendarSyncEnabled: boolean('calendar_sync_enabled')
       .notNull()
       .default(false),
@@ -78,7 +78,7 @@ export const users = pgTable(
   },
   (table) => [
     uniqueIndex('users_apple_user_id_idx').on(table.appleUserId),
-    uniqueIndex('users_friend_code_idx').on(table.friendCode),
+    uniqueIndex('users_invite_code_idx').on(table.inviteCode),
     index('users_email_idx').on(table.email),
   ],
 );

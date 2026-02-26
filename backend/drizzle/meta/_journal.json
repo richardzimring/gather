@@ -8,13 +8,6 @@
       "when": 1772065098512,
       "tag": "0000_legal_flatman",
       "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1772065714175,
-      "tag": "0001_purple_boomerang",
-      "breakpoints": true
     }
   ]
 }

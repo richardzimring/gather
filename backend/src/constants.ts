@@ -47,8 +47,8 @@ export const OUTLOOK_REDIRECT_URI = getOptionalEnvironmentVariable(
   'OUTLOOK_REDIRECT_URI',
 );
 
-// Friend Code Configuration
-export const FRIEND_CODE_LENGTH = 8;
+// Invite Code Configuration
+export const INVITE_CODE_LENGTH = 8;
 
 // Default Groups
 export const DEFAULT_GROUPS = [{ name: 'All Friends', emoji: '👥' }] as const;

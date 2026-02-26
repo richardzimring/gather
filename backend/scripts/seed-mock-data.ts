@@ -25,7 +25,7 @@ import {
   eventInvitees,
   blockedWindows,
 } from '../src/db';
-import { DEFAULT_GROUPS, FRIEND_CODE_LENGTH } from '../src/constants';
+import { DEFAULT_GROUPS, INVITE_CODE_LENGTH } from '../src/constants';
 import { eq, and, inArray, or } from 'drizzle-orm';
 import {
   sendFriendRequest,
@@ -42,9 +42,9 @@ if (!MY_APPLE_USER_ID) {
   process.exit(1);
 }
 
-const generateFriendCode = (): string => {
-  const bytes = crypto.randomBytes(FRIEND_CODE_LENGTH);
-  return bytes.toString('base64url').slice(0, FRIEND_CODE_LENGTH).toUpperCase();
+const generateInviteCode = (): string => {
+  const bytes = crypto.randomBytes(INVITE_CODE_LENGTH);
+  return bytes.toString('base64url').slice(0, INVITE_CODE_LENGTH).toUpperCase();
 };
 
 // ============================================
@@ -224,7 +224,7 @@ async function createMockUsers(): Promise<Map<string, string>> {
         firstName: userData.firstName,
         lastName: userData.lastName,
         timezone: userData.timezone,
-        friendCode: generateFriendCode(),
+        inviteCode: generateInviteCode(),
         calendarSyncEnabled: false,
       })
       .returning();

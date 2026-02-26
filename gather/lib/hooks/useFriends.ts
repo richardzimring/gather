@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getFriends,
   getFriendsSearch,
-  getFriendsFriendCode,
+  getFriendsInviteCode,
   postFriendsRequest,
   postFriendsByFriendIdAccept,
   postFriendsByFriendIdDecline,
@@ -60,7 +60,7 @@ export function useFriendCode() {
   return useQuery({
     queryKey: friendsKeys.friendCode(),
     queryFn: async () => {
-      const response = await getFriendsFriendCode();
+      const response = await getFriendsInviteCode();
       if (!response.data?.success) {
         throw new Error('Failed to get friend code');
       }
@@ -78,7 +78,7 @@ export function useSendFriendRequest() {
   return useMutation({
     mutationFn: async (data: {
       friendUserId?: string;
-      friendCode?: string;
+      inviteCode?: string;
     }) => {
       const response = await postFriendsRequest({ body: data });
       if (!response.data?.success) {

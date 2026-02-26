@@ -121,7 +121,7 @@ export default function ProfileScreen() {
 
   const deleteAccount = useDeleteAccount();
 
-  const friendCode = friendCodeData?.friendCode ?? user?.friendCode ?? '';
+  const friendCode = friendCodeData?.inviteCode ?? user?.inviteCode ?? '';
 
   const handleDeleteAccount = () => {
     haptic.warning();

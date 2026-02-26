@@ -124,7 +124,7 @@
             "default": "America/New_York",
             "example": "America/New_York"
           },
-          "friendCode": {
+          "inviteCode": {
             "type": "string",
             "example": "ABC123"
           }
@@ -1566,7 +1566,7 @@
           "data"
         ]
       },
-      "FriendCodeResponse": {
+      "InviteCodeResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -1578,15 +1578,15 @@
           "data": {
             "type": "object",
             "properties": {
-              "friendCode": {
+              "inviteCode": {
                 "type": "string"
               },
-              "friendLink": {
+              "inviteLink": {
                 "type": "string"
               }
             },
             "required": [
-              "friendLink"
+              "inviteLink"
             ]
           },
           "message": {
@@ -1675,7 +1675,7 @@
             "format": "uuid",
             "example": "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
           },
-          "friendCode": {
+          "inviteCode": {
             "type": "string",
             "example": "ABC123"
           }
@@ -3990,13 +3990,13 @@
         }
       }
     },
-    "/friends/friend-code": {
+    "/friends/invite-code": {
       "get": {
         "tags": [
           "Friends"
         ],
-        "summary": "Get friend code",
-        "description": "Get your unique friend code",
+        "summary": "Get invite code",
+        "description": "Get your unique invite code",
         "security": [
           {
             "BearerAuth": []
@@ -4004,11 +4004,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Friend code retrieved",
+            "description": "Invite code retrieved",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FriendCodeResponse"
+                  "$ref": "#/components/schemas/InviteCodeResponse"
                 }
               }
             }
@@ -4026,13 +4026,13 @@
         }
       }
     },
-    "/friends/friend-code/regenerate": {
+    "/friends/invite-code/regenerate": {
       "post": {
         "tags": [
           "Friends"
         ],
-        "summary": "Regenerate friend code",
-        "description": "Generate a new friend code",
+        "summary": "Regenerate invite code",
+        "description": "Generate a new invite code",
         "security": [
           {
             "BearerAuth": []
@@ -4040,11 +4040,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Friend code regenerated",
+            "description": "Invite code regenerated",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FriendCodeResponse"
+                  "$ref": "#/components/schemas/InviteCodeResponse"
                 }
               }
             }

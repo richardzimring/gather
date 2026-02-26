@@ -30,7 +30,7 @@ export default function AddFriendScreen() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const myFriendCode = friendCodeData?.friendCode ?? '';
+  const myFriendCode = friendCodeData?.inviteCode ?? '';
 
   const handleCopyCode = async () => {
     if (!myFriendCode) return;
@@ -68,7 +68,7 @@ export default function AddFriendScreen() {
     setError(null);
 
     try {
-      await sendFriendRequest.mutateAsync({ friendCode: cleanCode });
+      await sendFriendRequest.mutateAsync({ inviteCode: cleanCode });
       haptic.success();
       Alert.alert(
         'Friend Request Sent',

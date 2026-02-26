@@ -41,16 +41,16 @@ const FriendshipResponseSchema = z
   })
   .openapi('FriendshipResponse');
 
-const FriendCodeResponseSchema = z
+const InviteCodeResponseSchema = z
   .object({
     success: z.literal(true),
     data: z.object({
-      friendCode: z.string().optional(),
-      friendLink: z.string(),
+      inviteCode: z.string().optional(),
+      inviteLink: z.string(),
     }),
     message: z.string().optional(),
   })
-  .openapi('FriendCodeResponse');
+  .openapi('InviteCodeResponse');
 
 const UserSearchResponseSchema = z
   .object({
@@ -160,21 +160,21 @@ const searchUsersRoute = createRoute({
   },
 });
 
-const getFriendCodeRoute = createRoute({
+const getInviteCodeRoute = createRoute({
   method: 'get',
-  path: '/friends/friend-code',
+  path: '/friends/invite-code',
   tags: ['Friends'],
-  summary: 'Get friend code',
-  description: 'Get your unique friend code',
+  summary: 'Get invite code',
+  description: 'Get your unique invite code',
   security: [{ BearerAuth: [] }],
   responses: {
     200: {
       content: {
         'application/json': {
-          schema: FriendCodeResponseSchema,
+          schema: InviteCodeResponseSchema,
         },
       },
-      description: 'Friend code retrieved',
+      description: 'Invite code retrieved',
     },
     401: {
       content: {
@@ -187,21 +187,21 @@ const getFriendCodeRoute = createRoute({
   },
 });
 
-const regenerateFriendCodeRoute = createRoute({
+const regenerateInviteCodeRoute = createRoute({
   method: 'post',
-  path: '/friends/friend-code/regenerate',
+  path: '/friends/invite-code/regenerate',
   tags: ['Friends'],
-  summary: 'Regenerate friend code',
-  description: 'Generate a new friend code',
+  summary: 'Regenerate invite code',
+  description: 'Generate a new invite code',
   security: [{ BearerAuth: [] }],
   responses: {
     200: {
       content: {
         'application/json': {
-          schema: FriendCodeResponseSchema,
+          schema: InviteCodeResponseSchema,
         },
       },
-      description: 'Friend code regenerated',
+      description: 'Invite code regenerated',
     },
     401: {
       content: {
@@ -603,32 +603,32 @@ app.openapi(searchUsersRoute, async (c) => {
   }
 });
 
-app.openapi(getFriendCodeRoute, (c) => {
+app.openapi(getInviteCodeRoute, (c) => {
   const user = c.get('user');
 
   return c.json(
     {
       success: true as const,
       data: {
-        friendCode: user.friendCode,
-        friendLink: `https://gather.app/add/${user.friendCode}`,
+        inviteCode: user.inviteCode,
+        inviteLink: `https://gather.app/invite/${user.inviteCode}`,
       },
     },
     200,
   );
 });
 
-app.openapi(regenerateFriendCodeRoute, async (c) => {
+app.openapi(regenerateInviteCodeRoute, async (c) => {
   const user = c.get('user');
 
   try {
-    const newFriendCode = await userService.regenerateFriendCode(user.userId);
+    const newInviteCode = await userService.regenerateInviteCode(user.userId);
 
-    if (!newFriendCode) {
+    if (!newInviteCode) {
       return c.json(
         {
           success: false as const,
-          error: 'Failed to regenerate friend code',
+          error: 'Failed to regenerate invite code',
           message: 'User not found',
         },
         404,
@@ -639,20 +639,20 @@ app.openapi(regenerateFriendCodeRoute, async (c) => {
       {
         success: true as const,
         data: {
-          friendCode: newFriendCode,
-          friendLink: `https://gather.app/add/${newFriendCode}`,
+          inviteCode: newInviteCode,
+          inviteLink: `https://gather.app/invite/${newInviteCode}`,
         },
-        message: 'Friend code regenerated successfully',
+        message: 'Invite code regenerated successfully',
       },
       200,
     );
   } catch (error) {
-    console.error('Error regenerating friend code:', error);
+    console.error('Error regenerating invite code:', error);
     return c.json(
       {
         success: false as const,
         error: 'Internal Server Error',
-        message: 'Failed to regenerate friend code',
+        message: 'Failed to regenerate invite code',
       },
       500,
     );
@@ -661,13 +661,13 @@ app.openapi(regenerateFriendCodeRoute, async (c) => {
 
 app.openapi(sendFriendRequestRoute, async (c) => {
   const user = c.get('user');
-  const { friendUserId, friendCode } = c.req.valid('json');
+  const { friendUserId, inviteCode } = c.req.valid('json');
 
   try {
     const result = await friendsService.sendFriendRequest(
       user.userId,
       friendUserId,
-      friendCode,
+      inviteCode,
     );
 
     if (!result.success || !result.friendship) {

@@ -623,7 +623,7 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
     }
     setError(null);
     try {
-      await sendFriendRequest.mutateAsync({ friendCode: cleanCode });
+      await sendFriendRequest.mutateAsync({ inviteCode: cleanCode });
       haptic.success();
       setRequestSent(true);
       setFriendCode('');
