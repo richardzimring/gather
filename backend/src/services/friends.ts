@@ -1,7 +1,7 @@
 import { eq, and, or, inArray } from 'drizzle-orm';
 import { db, users, friendships, groups, groupMembers } from '../db';
 import type { Friendship, User } from '../types';
-import { getUserById, getUserByInviteCode } from './users';
+import { getUserById, getUserByFriendCode } from './users';
 import { notifyFriendRequest, notifyFriendAccepted } from './notifications';
 
 // Auto-accepts all incoming friend requests (used during App Store review)
@@ -31,7 +31,7 @@ const dbUserToUser = (dbUser: typeof users.$inferSelect): User => {
     calendarSyncEnabled: dbUser.calendarSyncEnabled,
     pushToken: dbUser.pushToken ?? undefined,
     timezone: dbUser.timezone,
-    inviteCode: dbUser.inviteCode ?? undefined,
+    friendCode: dbUser.friendCode ?? undefined,
   };
 };
 
@@ -111,30 +111,30 @@ export const getFriendship = async (
 };
 
 /**
- * Send a friend request using either a direct userId or an invite code
+ * Send a friend request using either a direct userId or a friend code
  */
 export const sendFriendRequest = async (
   userId: string,
   targetUserId?: string,
-  inviteCode?: string,
+  friendCode?: string,
 ): Promise<{ success: boolean; message: string; friendship?: Friendship }> => {
   let targetUser: User | null = null;
 
-  // Find target user by userId or invite code
+  // Find target user by userId or friend code
   if (targetUserId) {
     targetUser = await getUserById(targetUserId);
     if (!targetUser) {
       return { success: false, message: 'User not found' };
     }
-  } else if (inviteCode) {
-    targetUser = await getUserByInviteCode(inviteCode);
+  } else if (friendCode) {
+    targetUser = await getUserByFriendCode(friendCode);
     if (!targetUser) {
-      return { success: false, message: 'Invalid invite code' };
+      return { success: false, message: 'Invalid friend code' };
     }
   } else {
     return {
       success: false,
-      message: 'Either friendUserId or inviteCode is required',
+      message: 'Either friendUserId or friendCode is required',
     };
   }
 

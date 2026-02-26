@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getFriends,
   getFriendsSearch,
-  getFriendsInviteCode,
+  getFriendsFriendCode,
   postFriendsRequest,
   postFriendsByFriendIdAccept,
   postFriendsByFriendIdDecline,
@@ -17,7 +17,7 @@ export const friendsKeys = {
   all: ['friends'] as const,
   list: () => [...friendsKeys.all, 'list'] as const,
   search: (query: string) => [...friendsKeys.all, 'search', query] as const,
-  inviteCode: () => [...friendsKeys.all, 'invite-code'] as const,
+  friendCode: () => [...friendsKeys.all, 'friend-code'] as const,
 };
 
 /**
@@ -54,15 +54,15 @@ export function useFriendsSearch(query: string) {
 }
 
 /**
- * Hook to get the user's invite code.
+ * Hook to get the user's friend code.
  */
-export function useInviteCode() {
+export function useFriendCode() {
   return useQuery({
-    queryKey: friendsKeys.inviteCode(),
+    queryKey: friendsKeys.friendCode(),
     queryFn: async () => {
-      const response = await getFriendsInviteCode();
+      const response = await getFriendsFriendCode();
       if (!response.data?.success) {
-        throw new Error('Failed to get invite code');
+        throw new Error('Failed to get friend code');
       }
       return response.data.data;
     },
@@ -78,7 +78,7 @@ export function useSendFriendRequest() {
   return useMutation({
     mutationFn: async (data: {
       friendUserId?: string;
-      inviteCode?: string;
+      friendCode?: string;
     }) => {
       const response = await postFriendsRequest({ body: data });
       if (!response.data?.success) {

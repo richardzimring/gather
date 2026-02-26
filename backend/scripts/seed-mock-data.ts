@@ -25,9 +25,12 @@ import {
   eventInvitees,
   blockedWindows,
 } from '../src/db';
-import { DEFAULT_GROUPS, INVITE_CODE_LENGTH } from '../src/constants';
+import { DEFAULT_GROUPS, FRIEND_CODE_LENGTH } from '../src/constants';
 import { eq, and, inArray, or } from 'drizzle-orm';
-import { sendFriendRequest, acceptFriendRequest } from '../src/services/friends';
+import {
+  sendFriendRequest,
+  acceptFriendRequest,
+} from '../src/services/friends';
 import { createGroup } from '../src/services/groups';
 import { createEvent, respondToEvent } from '../src/services/events';
 
@@ -39,9 +42,9 @@ if (!MY_APPLE_USER_ID) {
   process.exit(1);
 }
 
-const generateInviteCode = (): string => {
-  const bytes = crypto.randomBytes(INVITE_CODE_LENGTH);
-  return bytes.toString('base64url').slice(0, INVITE_CODE_LENGTH).toUpperCase();
+const generateFriendCode = (): string => {
+  const bytes = crypto.randomBytes(FRIEND_CODE_LENGTH);
+  return bytes.toString('base64url').slice(0, FRIEND_CODE_LENGTH).toUpperCase();
 };
 
 // ============================================
@@ -165,20 +168,29 @@ async function cleanupDatabase(myUserId: string | null): Promise<void> {
       .where(eq(groups.ownerId, myUserId));
     const myGroupIds = myGroups.map((g) => g.id);
     if (myGroupIds.length > 0) {
-      await db.delete(groupMembers).where(inArray(groupMembers.groupId, myGroupIds));
+      await db
+        .delete(groupMembers)
+        .where(inArray(groupMembers.groupId, myGroupIds));
     }
   }
 
   // Delete non-default groups for my user
   if (myUserId) {
-    await db.delete(groups).where(and(eq(groups.ownerId, myUserId), eq(groups.isDefault, false)));
+    await db
+      .delete(groups)
+      .where(and(eq(groups.ownerId, myUserId), eq(groups.isDefault, false)));
   }
 
   // Delete all friendships involving my user
   if (myUserId) {
     await db
       .delete(friendships)
-      .where(or(eq(friendships.userId, myUserId), eq(friendships.friendId, myUserId)));
+      .where(
+        or(
+          eq(friendships.userId, myUserId),
+          eq(friendships.friendId, myUserId),
+        ),
+      );
   }
 
   // Delete mock users (this cascades to their friendships, groups, etc.)
@@ -212,7 +224,7 @@ async function createMockUsers(): Promise<Map<string, string>> {
         firstName: userData.firstName,
         lastName: userData.lastName,
         timezone: userData.timezone,
-        inviteCode: generateInviteCode(),
+        friendCode: generateFriendCode(),
         calendarSyncEnabled: false,
       })
       .returning();
@@ -236,7 +248,10 @@ async function createMockUsers(): Promise<Map<string, string>> {
   return userMap;
 }
 
-async function createFriendships(myUserId: string, userMap: Map<string, string>): Promise<void> {
+async function createFriendships(
+  myUserId: string,
+  userMap: Map<string, string>,
+): Promise<void> {
   console.log('🤝 Creating friendships...');
 
   // Friends I have accepted (mutual friendship)
@@ -301,7 +316,10 @@ async function createGroups(
   return groupMap;
 }
 
-async function createEvents(myUserId: string, userMap: Map<string, string>): Promise<void> {
+async function createEvents(
+  myUserId: string,
+  userMap: Map<string, string>,
+): Promise<void> {
   console.log('📅 Creating events...');
 
   // Get user IDs upfront and validate they exist
@@ -398,7 +416,9 @@ async function createEvents(myUserId: string, userMap: Map<string, string>): Pro
     status: 'maybe',
     counterProposal: {
       startTime: counterStart.toISOString(),
-      endTime: new Date(counterStart.getTime() + 2 * 60 * 60 * 1000).toISOString(),
+      endTime: new Date(
+        counterStart.getTime() + 2 * 60 * 60 * 1000,
+      ).toISOString(),
       message: 'Can we do 5pm instead? I have a meeting until 4:30.',
     },
   });
@@ -482,7 +502,9 @@ async function createEvents(myUserId: string, userMap: Map<string, string>): Pro
     status: 'maybe',
     counterProposal: {
       startTime: counterStart7.toISOString(),
-      endTime: new Date(counterStart7.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+      endTime: new Date(
+        counterStart7.getTime() + 3 * 60 * 60 * 1000,
+      ).toISOString(),
       message: 'Could we start at 7pm? I have an early morning the next day.',
     },
   });
@@ -572,7 +594,9 @@ async function main() {
   // Get my user ID
   const myUserId = await getMyUserId();
   if (!myUserId) {
-    console.error('❌ Error: Your user not found. Please sign in to the app first.');
+    console.error(
+      '❌ Error: Your user not found. Please sign in to the app first.',
+    );
     process.exit(1);
   }
   console.log(`📍 Found your user ID: ${myUserId}\n`);
@@ -612,8 +636,12 @@ async function main() {
   console.log('📱 Push Notifications:');
   console.log('  If you have push notifications enabled, you should receive:');
   console.log('  - 2 friend request notifications (from Ethan and Fiona)');
-  console.log('  - 4 friend accepted notifications (from Alice, Bob, Charlie, Diana)');
-  console.log('  - 5 event invitation notifications (from Alice, Bob, Charlie, Diana)');
+  console.log(
+    '  - 4 friend accepted notifications (from Alice, Bob, Charlie, Diana)',
+  );
+  console.log(
+    '  - 5 event invitation notifications (from Alice, Bob, Charlie, Diana)',
+  );
   console.log('  - 9 event response notifications (as host of your events)');
   console.log('  - 1 counter proposal notification (from Charlie)');
 }

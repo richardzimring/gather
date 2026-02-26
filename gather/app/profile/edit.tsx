@@ -97,10 +97,10 @@ export default function EditProfileScreen() {
               </XStack>
               <XStack justifyContent="space-between">
                 <Text color="$colorMuted" fontSize={13}>
-                  Invite Code
+                  Friend Code
                 </Text>
                 <Text fontWeight="600" fontSize={13}>
-                  {user?.inviteCode ?? 'N/A'}
+                  {user?.friendCode ?? 'N/A'}
                 </Text>
               </XStack>
             </YStack>

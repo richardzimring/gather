@@ -18,24 +18,24 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { BackHeader } from '../../components/ui/ScreenHeader';
-import { useInviteCode, useSendFriendRequest } from '../../lib/hooks';
+import { useFriendCode, useSendFriendRequest } from '../../lib/hooks';
 import { haptic } from '../../lib/haptics';
 
 export default function AddFriendScreen() {
   const insets = useSafeAreaInsets();
-  const { data: inviteCodeData, isLoading: isLoadingCode } = useInviteCode();
+  const { data: friendCodeData, isLoading: isLoadingCode } = useFriendCode();
   const sendFriendRequest = useSendFriendRequest();
 
-  const [inviteCode, setInviteCode] = useState('');
+  const [friendCode, setFriendCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const myInviteCode = inviteCodeData?.inviteCode ?? '';
+  const myFriendCode = friendCodeData?.friendCode ?? '';
 
   const handleCopyCode = async () => {
-    if (!myInviteCode) return;
+    if (!myFriendCode) return;
 
-    await Clipboard.setStringAsync(myInviteCode);
+    await Clipboard.setStringAsync(myFriendCode);
     haptic.success();
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -44,7 +44,7 @@ export default function AddFriendScreen() {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Hey, add me on Gather! My invite code is: ${myInviteCode}`,
+        message: `Hey, add me on Gather! My friend code is: ${myFriendCode}`,
       });
     } catch (err) {
       console.error('Failed to share:', err);
@@ -52,22 +52,22 @@ export default function AddFriendScreen() {
   };
 
   const handleAddFriend = async () => {
-    const cleanCode = inviteCode.trim().toUpperCase();
+    const cleanCode = friendCode.trim().toUpperCase();
 
     if (!cleanCode) {
-      setError('Please enter an invite code');
+      setError('Please enter a friend code');
       return;
     }
 
     if (cleanCode.length < 6) {
-      setError('Invite code is too short');
+      setError('Friend code is too short');
       return;
     }
 
     setError(null);
 
     try {
-      await sendFriendRequest.mutateAsync({ inviteCode: cleanCode });
+      await sendFriendRequest.mutateAsync({ friendCode: cleanCode });
       haptic.success();
       Alert.alert(
         'Friend Request Sent',
@@ -94,7 +94,7 @@ export default function AddFriendScreen() {
         {/* Header */}
         <BackHeader title="Add Friend" />
 
-        {/* Enter Invite Code Section */}
+        {/* Enter Friend Code Section */}
         <Theme name="Card">
           <Card marginBottom="$4">
             <YStack gap="$3">
@@ -104,10 +104,10 @@ export default function AddFriendScreen() {
                 </Circle>
                 <YStack flex={1}>
                   <Text fontWeight="600" fontSize={16}>
-                    Enter Invite Code
+                    Enter Friend Code
                   </Text>
                   <Text color="$colorMuted" fontSize={13}>
-                    Ask your friend for their invite code
+                    Ask your friend for their friend code
                   </Text>
                 </YStack>
               </XStack>
@@ -116,9 +116,9 @@ export default function AddFriendScreen() {
                 <Input
                   placeholder="Enter code (e.g., ABC123)"
                   placeholderTextColor="$colorMuted"
-                  value={inviteCode}
+                  value={friendCode}
                   onChangeText={(text) => {
-                    setInviteCode(text.toUpperCase());
+                    setFriendCode(text.toUpperCase());
                     setError(null);
                   }}
                   autoCapitalize="characters"
@@ -145,7 +145,7 @@ export default function AddFriendScreen() {
                 variant="primary"
                 fullWidth
                 onPress={handleAddFriend}
-                disabled={sendFriendRequest.isPending || !inviteCode.trim()}
+                disabled={sendFriendRequest.isPending || !friendCode.trim()}
               >
                 {sendFriendRequest.isPending
                   ? 'Sending...'
@@ -155,7 +155,7 @@ export default function AddFriendScreen() {
           </Card>
         </Theme>
 
-        {/* Your Invite Code Section */}
+        {/* Your Friend Code Section */}
         <Theme name="Card">
           <Card>
             <YStack gap="$3">
@@ -186,7 +186,7 @@ export default function AddFriendScreen() {
                     alignItems="center"
                   >
                     <Text fontSize={20} fontWeight="600" letterSpacing={2}>
-                      {myInviteCode || '------'}
+                      {myFriendCode || '------'}
                     </Text>
                   </YStack>
 
@@ -196,7 +196,7 @@ export default function AddFriendScreen() {
                       flex={1}
                       icon={<Copy size={14} />}
                       onPress={handleCopyCode}
-                      disabled={!myInviteCode}
+                      disabled={!myFriendCode}
                     >
                       {copied ? 'Copied!' : 'Copy'}
                     </Button>
@@ -205,7 +205,7 @@ export default function AddFriendScreen() {
                       flex={1}
                       icon={<Share2 size={14} color="$primaryForeground" />}
                       onPress={handleShare}
-                      disabled={!myInviteCode}
+                      disabled={!myFriendCode}
                     >
                       Share
                     </Button>

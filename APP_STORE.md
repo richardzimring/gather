@@ -6,6 +6,7 @@
 
 - **App Name:** Gather
 - **App Store Name:** Gather: Plan with Friends
+- **Subtitle:** Sync your calendars / See when friends are free
 
 ---
 
@@ -85,11 +86,10 @@
 
 ## 2. Promotional Text
 
-See when friends are free
+Stop texting back and forth trying to find a time. Gather syncs your calendars and helps you make plans in seconds — not days.
 
 ### Ideas / Scratch pad
 
-Stop texting back and forth trying to find a time. Gather syncs your calendars and helps you make plans in seconds — not days.
 Sync your calendar and make plans in seconds — not days.
 Find when friends are free
 Sync your calendars with friends
@@ -145,7 +145,7 @@ Get notified when someone invites you to an event, when an event is updated, or 
 
 ADDING FRIENDS
 
-Every account has a unique invite code. Share it to connect with friends on Gather, and accept or decline requests from within the app.
+Every account has a unique code. Share it to connect with friends on Gather, and accept or decline requests from within the app.
 
 ---
 

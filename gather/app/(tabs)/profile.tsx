@@ -34,7 +34,7 @@ import { Card } from '../../components/ui/Card';
 import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton';
 import { useAuth } from '../../lib/hooks/useAuth';
 import {
-  useInviteCode,
+  useFriendCode,
   useRefresh,
   useCalendarConnections,
   useTriggerCalendarSync,
@@ -109,10 +109,10 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { user, signOut } = useAuth();
-  const inviteCodeQuery = useInviteCode();
-  const { data: inviteCodeData } = inviteCodeQuery;
+  const friendCodeQuery = useFriendCode();
+  const { data: friendCodeData } = friendCodeQuery;
   const [copied, setCopied] = useState(false);
-  const { isRefreshing, onRefresh } = useRefresh(inviteCodeQuery);
+  const { isRefreshing, onRefresh } = useRefresh(friendCodeQuery);
 
   // Calendar connections
   const { data: calendarConnections, isLoading: isLoadingCalendars } =
@@ -121,7 +121,7 @@ export default function ProfileScreen() {
 
   const deleteAccount = useDeleteAccount();
 
-  const inviteCode = inviteCodeData?.inviteCode ?? user?.inviteCode ?? '';
+  const friendCode = friendCodeData?.friendCode ?? user?.friendCode ?? '';
 
   const handleDeleteAccount = () => {
     haptic.warning();
@@ -182,19 +182,19 @@ export default function ProfileScreen() {
     ]);
   };
 
-  const handleCopyInviteCode = async () => {
-    if (!inviteCode) return;
+  const handleCopyFriendCode = async () => {
+    if (!friendCode) return;
 
-    await Clipboard.setStringAsync(inviteCode);
+    await Clipboard.setStringAsync(friendCode);
     haptic.success();
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleShareInviteCode = async () => {
+  const handleShareFriendCode = async () => {
     try {
       await Share.share({
-        message: `Hey, add me on Gather! My invite code is: ${inviteCode}`,
+        message: `Hey, add me on Gather! My friend code is: ${friendCode}`,
       });
     } catch (err) {
       console.error('Failed to share:', err);
@@ -253,7 +253,7 @@ export default function ProfileScreen() {
           </Card>
         </Theme>
 
-        {/* Invite Code */}
+        {/* Friend Code */}
         <Theme name="Card">
           <Card marginBottom="$4">
             <Text
@@ -262,7 +262,7 @@ export default function ProfileScreen() {
               fontWeight="600"
               marginBottom="$2"
             >
-              YOUR INVITE CODE
+              YOUR FRIEND CODE
             </Text>
             <YStack
               backgroundColor="$backgroundHover"
@@ -277,7 +277,7 @@ export default function ProfileScreen() {
                 letterSpacing={2}
                 fontFamily="$body"
               >
-                {inviteCode || '------'}
+                {friendCode || '------'}
               </Text>
             </YStack>
             <XStack gap="$2">
@@ -285,8 +285,8 @@ export default function ProfileScreen() {
                 variant="outline"
                 flex={1}
                 icon={<Copy size={14} />}
-                onPress={handleCopyInviteCode}
-                disabled={!inviteCode}
+                onPress={handleCopyFriendCode}
+                disabled={!friendCode}
               >
                 {copied ? 'Copied!' : 'Copy'}
               </Button>
@@ -294,8 +294,8 @@ export default function ProfileScreen() {
                 variant="primary"
                 flex={1}
                 icon={<Share2 size={14} color="$primaryForeground" />}
-                onPress={handleShareInviteCode}
-                disabled={!inviteCode}
+                onPress={handleShareFriendCode}
+                disabled={!friendCode}
               >
                 Share
               </Button>

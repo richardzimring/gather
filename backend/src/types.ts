@@ -37,7 +37,7 @@ export const UserSchema = z
       .string()
       .default('America/New_York')
       .openapi({ example: 'America/New_York' }),
-    inviteCode: z.string().optional().openapi({ example: 'ABC123' }),
+    friendCode: z.string().optional().openapi({ example: 'ABC123' }),
   })
   .openapi('User');
 
@@ -108,7 +108,7 @@ export const FriendWithUserSchema = z
   })
   .openapi('FriendWithUser');
 
-// Friend request can be by userId or inviteCode
+// Friend request can be by userId or friendCode
 export const FriendRequestSchema = z
   .object({
     friendUserId: z
@@ -116,10 +116,10 @@ export const FriendRequestSchema = z
       .uuid()
       .optional()
       .openapi({ example: EXAMPLE_UUID_2 }),
-    inviteCode: z.string().optional().openapi({ example: 'ABC123' }),
+    friendCode: z.string().optional().openapi({ example: 'ABC123' }),
   })
-  .refine((data) => data.friendUserId || data.inviteCode, {
-    message: 'Either friendUserId or inviteCode is required',
+  .refine((data) => data.friendUserId || data.friendCode, {
+    message: 'Either friendUserId or friendCode is required',
   })
   .openapi('FriendRequest');
 

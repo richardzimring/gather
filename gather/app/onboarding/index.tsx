@@ -618,12 +618,12 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
   const handleSendRequest = async () => {
     const cleanCode = friendCode.trim().toUpperCase();
     if (!cleanCode || cleanCode.length < 6) {
-      setError('Invalid invite code');
+      setError('Invalid friend code');
       return;
     }
     setError(null);
     try {
-      await sendFriendRequest.mutateAsync({ inviteCode: cleanCode });
+      await sendFriendRequest.mutateAsync({ friendCode: cleanCode });
       haptic.success();
       setRequestSent(true);
       setFriendCode('');
@@ -655,7 +655,7 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
               </Text>
             </XStack>
             <H1 fontSize={28} fontWeight="700" textAlign="center">
-              Got an invite code?
+              Got a friend code?
             </H1>
             <Text
               color="$colorMuted"

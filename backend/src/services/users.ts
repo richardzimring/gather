@@ -8,15 +8,15 @@ import type {
   NotificationPreferences,
   UpdateNotificationPreferences,
 } from '../types';
-import { DEFAULT_GROUPS, INVITE_CODE_LENGTH } from '../constants';
+import { DEFAULT_GROUPS, FRIEND_CODE_LENGTH } from '../constants';
 
 // ============================================
-// Invite Code Generation
+// Friend Code Generation
 // ============================================
 
-const generateInviteCode = (): string => {
-  const bytes = crypto.randomBytes(INVITE_CODE_LENGTH);
-  return bytes.toString('base64url').slice(0, INVITE_CODE_LENGTH).toUpperCase();
+const generateFriendCode = (): string => {
+  const bytes = crypto.randomBytes(FRIEND_CODE_LENGTH);
+  return bytes.toString('base64url').slice(0, FRIEND_CODE_LENGTH).toUpperCase();
 };
 
 // ============================================
@@ -43,7 +43,7 @@ const dbUserToUser = (dbUser: typeof users.$inferSelect): User => {
     calendarSyncEnabled: dbUser.calendarSyncEnabled,
     pushToken: dbUser.pushToken ?? undefined,
     timezone: dbUser.timezone,
-    inviteCode: dbUser.inviteCode ?? undefined,
+    friendCode: dbUser.friendCode ?? undefined,
   };
 };
 
@@ -73,13 +73,13 @@ export const getUserByAppleUserId = async (
   return user ? dbUserToUser(user) : null;
 };
 
-export const getUserByInviteCode = async (
-  inviteCode: string,
+export const getUserByFriendCode = async (
+  friendCode: string,
 ): Promise<User | null> => {
   const result = await db
     .select()
     .from(users)
-    .where(eq(users.inviteCode, inviteCode.toUpperCase()))
+    .where(eq(users.friendCode, friendCode.toUpperCase()))
     .limit(1);
   const user = result[0];
   return user ? dbUserToUser(user) : null;
@@ -113,7 +113,7 @@ export const searchUsersByName = async (
 };
 
 export const createUser = async (input: CreateUser): Promise<User> => {
-  const inviteCode = generateInviteCode();
+  const friendCode = generateFriendCode();
 
   const [newUser] = await db
     .insert(users)
@@ -124,7 +124,7 @@ export const createUser = async (input: CreateUser): Promise<User> => {
       lastName: input.lastName,
       avatarUrl: input.avatarUrl,
       timezone: input.timezone ?? 'America/New_York',
-      inviteCode,
+      friendCode,
       calendarSyncEnabled: false,
     })
     .returning();
@@ -224,20 +224,20 @@ export const deleteUser = async (userId: string): Promise<void> => {
   await db.delete(users).where(eq(users.id, userId));
 };
 
-export const regenerateInviteCode = async (
+export const regenerateFriendCode = async (
   userId: string,
 ): Promise<string | null> => {
   const user = await getUserById(userId);
   if (!user) return null;
 
-  const newInviteCode = generateInviteCode();
+  const newFriendCode = generateFriendCode();
 
   await db
     .update(users)
-    .set({ inviteCode: newInviteCode })
+    .set({ friendCode: newFriendCode })
     .where(eq(users.id, userId));
 
-  return newInviteCode;
+  return newFriendCode;
 };
 
 // ============================================
