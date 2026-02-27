@@ -46,6 +46,7 @@ export { useCalendarAutoSync } from './useCalendarSync';
 
 // Utilities
 export * from './useRefresh';
+export { useScrollGradient } from './useScrollGradient';
 
 // Device calendar services
 export {

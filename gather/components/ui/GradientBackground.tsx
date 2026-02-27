@@ -1,13 +1,20 @@
-import { View, useColorScheme } from 'react-native';
+import { Animated, useColorScheme } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export function GradientBackground() {
+interface GradientBackgroundProps {
+  style?: object;
+}
+
+export function GradientBackground({ style }: GradientBackgroundProps = {}) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
   return (
-    <View
-      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+    <Animated.View
+      style={[
+        { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+        style,
+      ]}
       pointerEvents="none"
     >
       <LinearGradient
@@ -24,6 +31,6 @@ export function GradientBackground() {
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 0.3 }}
       />
-    </View>
+    </Animated.View>
   );
 }

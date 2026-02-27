@@ -54,6 +54,7 @@ import {
   useBusyTimes,
   useGroups,
   useRefresh,
+  useScrollGradient,
 } from '../../lib/hooks';
 import { useGenerateEmoji } from '../../lib/hooks/useEmoji';
 import { useAuth } from '../../lib/hooks/useAuth';
@@ -637,9 +638,11 @@ export default function PlanScreen() {
   };
 
   // --- Render ---
+  const { gradientOpacity, scrollProps } = useScrollGradient();
+
   return (
     <YStack flex={1} backgroundColor="$background">
-      <GradientBackground />
+      <GradientBackground style={{ opacity: gradientOpacity }} />
       <KeyboardAwareScrollView
         ref={scrollViewRef}
         refreshControl={
@@ -656,6 +659,7 @@ export default function PlanScreen() {
           paddingHorizontal: 16,
         }}
         bottomOffset={16}
+        {...scrollProps}
       >
         {/* Header */}
         <YStack paddingBottom="$3">

@@ -22,7 +22,7 @@ import { EventCard, EventCardSkeleton } from '../../components/ui/EventCard';
 import { GlassButton } from '../../components/ui/GlassFAB';
 import { GradientBackground } from '../../components/ui/GradientBackground';
 import { useAuth } from '../../lib/hooks/useAuth';
-import { useEvents, useRefresh } from '../../lib/hooks';
+import { useEvents, useRefresh, useScrollGradient } from '../../lib/hooks';
 
 /**
  * Get time-based greeting with day awareness
@@ -297,10 +297,11 @@ export default function HomeScreen() {
   // Ordered sections to display
   const sectionOrder = ['Today', 'Tomorrow', 'This Week', 'Later'];
   const greetingPadding = 8;
+  const { gradientOpacity, scrollProps } = useScrollGradient();
 
   return (
     <YStack flex={1} backgroundColor="$background">
-      <GradientBackground />
+      <GradientBackground style={{ opacity: gradientOpacity }} />
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -315,6 +316,7 @@ export default function HomeScreen() {
           paddingBottom: insets.bottom + 100,
           paddingHorizontal: 16,
         }}
+        {...scrollProps}
       >
         {/* Header */}
         <YStack paddingBottom="$3">

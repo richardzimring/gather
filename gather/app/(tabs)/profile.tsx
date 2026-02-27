@@ -39,6 +39,7 @@ import {
   useCalendarConnections,
   useTriggerCalendarSync,
   useDeleteAccount,
+  useScrollGradient,
 } from '../../lib/hooks';
 import type { CalendarConnection } from '../../lib/api/client';
 import { haptic } from '../../lib/haptics';
@@ -202,9 +203,11 @@ export default function ProfileScreen() {
     }
   };
 
+  const { gradientOpacity, scrollProps } = useScrollGradient();
+
   return (
     <YStack flex={1} backgroundColor="$background">
-      <GradientBackground />
+      <GradientBackground style={{ opacity: gradientOpacity }} />
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -219,6 +222,7 @@ export default function ProfileScreen() {
           paddingBottom: insets.bottom + 100,
           paddingHorizontal: 16,
         }}
+        {...scrollProps}
       >
         {/* Header */}
         <YStack paddingBottom="$3">

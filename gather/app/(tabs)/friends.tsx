@@ -31,6 +31,7 @@ import {
   useAcceptFriendRequest,
   useDeclineFriendRequest,
   useRefresh,
+  useScrollGradient,
 } from '../../lib/hooks';
 import { haptic } from '../../lib/haptics';
 
@@ -128,9 +129,11 @@ export default function FriendsScreen() {
     </XStack>
   );
 
+  const { gradientOpacity, scrollProps } = useScrollGradient();
+
   return (
     <YStack flex={1} backgroundColor="$background">
-      <GradientBackground />
+      <GradientBackground style={{ opacity: gradientOpacity }} />
       {/* Scrollable content with header */}
       <ScrollView
         refreshControl={
@@ -146,6 +149,7 @@ export default function FriendsScreen() {
           paddingBottom: insets.bottom + 100,
           paddingHorizontal: 16,
         }}
+        {...scrollProps}
       >
         {/* Header */}
         <YStack gap="$3" paddingBottom="$3">
