@@ -3,15 +3,8 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Share } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import {
-  Circle,
-  Input,
-  ScrollView,
-  Text,
-  Theme,
-  XStack,
-  YStack,
-} from 'tamagui';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { Circle, Input, Text, Theme, XStack, YStack } from 'tamagui';
 import { Spinner } from '../../components/ui/Spinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -85,12 +78,13 @@ export default function AddFriendScreen() {
 
   return (
     <YStack flex={1} backgroundColor="$background">
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingBottom: insets.bottom + 100,
           paddingHorizontal: 16,
         }}
+        bottomOffset={16}
       >
         {/* Header */}
         <BackHeader title="Add Friend" />
@@ -224,7 +218,7 @@ export default function AddFriendScreen() {
             other&apos;s availability and create events together.
           </Text>
         </YStack>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </YStack>
   );
 }

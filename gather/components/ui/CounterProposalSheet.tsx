@@ -1,15 +1,13 @@
 import { Calendar, FileText, MapPin, X } from '@tamagui/lucide-icons';
 import { useMemo, useState } from 'react';
 import {
-  KeyboardAvoidingView,
   Modal,
-  Platform,
-  ScrollView,
   StyleSheet,
   TouchableWithoutFeedback,
   useColorScheme,
   View,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Separator, Text, TextArea, Theme, XStack, YStack } from 'tamagui';
 
 import { Card } from './Card';
@@ -190,10 +188,7 @@ export function CounterProposalSheet({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoid}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <View style={styles.container}>
         {/* Overlay — tap to dismiss */}
         <TouchableWithoutFeedback onPress={onClose}>
           <View style={[styles.overlay, { backgroundColor: overlayBg }]} />
@@ -211,10 +206,11 @@ export function CounterProposalSheet({
             />
           </View>
 
-          <ScrollView
+          <KeyboardAwareScrollView
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            bottomOffset={16}
           >
             <YStack gap="$4">
               {/* Header */}
@@ -359,15 +355,15 @@ export function CounterProposalSheet({
                 Send Suggestion
               </Button>
             </YStack>
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  keyboardAvoid: {
+  container: {
     flex: 1,
     justifyContent: 'flex-end',
   },

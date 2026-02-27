@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { useColorScheme } from 'react-native';
 import { TamaguiProvider, Theme } from 'tamagui';
 
@@ -31,7 +32,9 @@ export function AppProviders({ children }: AppProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <TamaguiProvider config={config} defaultTheme={theme}>
         <Theme name={theme}>
-          <AuthProvider>{children}</AuthProvider>
+          <KeyboardProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </KeyboardProvider>
         </Theme>
       </TamaguiProvider>
     </QueryClientProvider>

@@ -1,16 +1,8 @@
 import { Check } from '@tamagui/lucide-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import {
-  Circle,
-  Input,
-  ScrollView,
-  Separator,
-  Text,
-  Theme,
-  XStack,
-  YStack,
-} from 'tamagui';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { Circle, Input, Separator, Text, Theme, XStack, YStack } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '../../components/ui/Button';
@@ -52,12 +44,13 @@ export default function CreateGroupScreen() {
 
   return (
     <YStack flex={1} backgroundColor="$background">
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingBottom: insets.bottom + 100,
           paddingHorizontal: 16,
         }}
+        bottomOffset={16}
       >
         {/* Header */}
         <CancelHeader title="Create Group" />
@@ -175,7 +168,7 @@ export default function CreateGroupScreen() {
         >
           {createGroup.isPending ? 'Creating...' : 'Create Group'}
         </Button>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </YStack>
   );
 }

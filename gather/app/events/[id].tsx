@@ -10,9 +10,9 @@ import {
 } from '@tamagui/lucide-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Alert, LayoutAnimation } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import {
   Circle,
-  ScrollView,
   Text,
   Theme,
   XStack,
@@ -641,7 +641,7 @@ export default function EventDetailScreen() {
   if (isLoading) {
     return (
       <YStack flex={1} backgroundColor="$background">
-        <ScrollView
+        <KeyboardAwareScrollView
           contentContainerStyle={{
             paddingTop: insets.top + 16,
             paddingBottom: insets.bottom + 32,
@@ -653,7 +653,7 @@ export default function EventDetailScreen() {
 
           {/* Skeleton content */}
           <EventDetailSkeleton />
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </YStack>
     );
   }
@@ -697,7 +697,7 @@ export default function EventDetailScreen() {
 
   return (
     <YStack flex={1} backgroundColor="$background">
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
           paddingBottom: showEditBar
@@ -707,6 +707,7 @@ export default function EventDetailScreen() {
               : insets.bottom + 32,
           paddingHorizontal: 16,
         }}
+        bottomOffset={16}
       >
         {/* Header */}
         <BackHeader
@@ -1147,7 +1148,7 @@ export default function EventDetailScreen() {
             </Card>
           </Theme>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* ==================== Bottom Bar: Edit Mode ==================== */}
       {showEditBar && (

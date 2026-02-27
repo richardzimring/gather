@@ -13,13 +13,13 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LayoutAnimation, RefreshControl } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import {
   H1,
   Text,
   XStack,
   YStack,
   Theme,
-  ScrollView,
   Circle,
   Separator,
   Input,
@@ -640,7 +640,7 @@ export default function PlanScreen() {
   return (
     <YStack flex={1} backgroundColor="$background">
       <GradientBackground />
-      <ScrollView
+      <KeyboardAwareScrollView
         ref={scrollViewRef}
         refreshControl={
           <RefreshControl
@@ -655,6 +655,7 @@ export default function PlanScreen() {
           paddingBottom: insets.bottom + 100,
           paddingHorizontal: 16,
         }}
+        bottomOffset={16}
       >
         {/* Header */}
         <YStack paddingBottom="$3">
@@ -1266,7 +1267,7 @@ export default function PlanScreen() {
             )}
           </YStack>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </YStack>
   );
 }
