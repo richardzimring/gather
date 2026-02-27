@@ -327,7 +327,7 @@ export type UpdateEvent = {
 
 export type EventResponse = {
     status: InviteeStatus;
-    counterProposal?: CounterProposal;
+    counterProposal?: CounterProposal | null;
 };
 
 export type BusyTimesResponse = {

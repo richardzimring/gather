@@ -1,4 +1,5 @@
 import { calendar_v3, auth as googleAuth } from '@googleapis/calendar';
+import { GaxiosError } from 'gaxios';
 
 import {
   GOOGLE_CLIENT_ID,
@@ -104,9 +105,11 @@ export class GoogleCalendarProvider implements CalendarProviderService {
       // Re-throw OAuthRevokedError as-is (e.g. if thrown above for missing token)
       if (error instanceof OAuthRevokedError) throw error;
 
-      // Google returns invalid_grant when the refresh token has been revoked
-      const gaxiosError = error as { response?: { data?: { error?: string } } };
-      if (gaxiosError?.response?.data?.error === 'invalid_grant') {
+      // Google returns invalid_grant when the refresh token has been revoked or expired.
+      if (
+        error instanceof GaxiosError &&
+        error.response?.data?.error === 'invalid_grant'
+      ) {
         throw new OAuthRevokedError('Google OAuth access has been revoked');
       }
 

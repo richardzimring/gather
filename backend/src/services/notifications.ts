@@ -330,3 +330,19 @@ export const notifyCounterProposal = async (
     },
   });
 };
+
+export const notifyCounterProposalRetracted = async (
+  hostId: string,
+  event: Event,
+  proposerName: string,
+): Promise<void> => {
+  await sendPushNotification(hostId, {
+    type: 'counter_proposal',
+    title: 'Suggestion Withdrawn',
+    body: `${proposerName} withdrew their suggestion for ${event.title}`,
+    data: {
+      type: 'counter_proposal',
+      eventId: event.eventId,
+    },
+  });
+};

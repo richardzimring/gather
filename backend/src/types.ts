@@ -448,7 +448,7 @@ export const UpdateEventSchema = z
 export const EventResponseSchema = z
   .object({
     status: InviteeStatusSchema,
-    counterProposal: CounterProposalSchema.optional(),
+    counterProposal: CounterProposalSchema.nullable().optional(),
   })
   .openapi('EventResponse');
 

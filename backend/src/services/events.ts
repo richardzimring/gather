@@ -15,6 +15,7 @@ import {
   notifyEventUpdated,
   notifyEventCancelled,
   notifyCounterProposal,
+  notifyCounterProposalRetracted,
 } from './notifications';
 import { generateEmoji } from './emoji';
 
@@ -494,7 +495,12 @@ export const respondToEvent = async (
     respondedAt: now,
   };
 
-  if (responseData.counterProposal) {
+  if (responseData.counterProposal === null) {
+    updateData.counterProposalStartTime = null;
+    updateData.counterProposalEndTime = null;
+    updateData.counterProposalLocation = null;
+    updateData.counterProposalMessage = null;
+  } else if (responseData.counterProposal) {
     updateData.counterProposalStartTime = responseData.counterProposal.startTime
       ? new Date(responseData.counterProposal.startTime)
       : null;
@@ -517,16 +523,26 @@ export const respondToEvent = async (
   // Notify the host of the response
   const responder = await getUserById(userId);
   if (responder) {
-    await notifyEventResponse(
-      event.hostId,
-      event,
-      responder.fullName,
-      responseData.status,
-    );
+    const statusChanged = invitee.status !== responseData.status;
 
-    // If there's a counter proposal, send additional notification
+    if (statusChanged) {
+      await notifyEventResponse(
+        event.hostId,
+        event,
+        responder.fullName,
+        responseData.status,
+      );
+    }
+
+    // Notify host when a counter proposal is submitted, updated, or withdrawn
     if (responseData.counterProposal) {
       await notifyCounterProposal(event.hostId, event, responder.fullName);
+    } else if (responseData.counterProposal === null) {
+      await notifyCounterProposalRetracted(
+        event.hostId,
+        event,
+        responder.fullName,
+      );
     }
   }
 

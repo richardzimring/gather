@@ -1343,7 +1343,14 @@
             "$ref": "#/components/schemas/InviteeStatus"
           },
           "counterProposal": {
-            "$ref": "#/components/schemas/CounterProposal"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CounterProposal"
+              },
+              {
+                "nullable": true
+              }
+            ]
           }
         },
         "required": [

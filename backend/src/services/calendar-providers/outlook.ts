@@ -57,6 +57,14 @@ const OUTLOOK_COLOR_MAP: Record<string, string> = {
 // ============================================
 
 /**
+ * Schema for Microsoft OAuth 2.0 error response.
+ * @see https://learn.microsoft.com/en-us/entra/identity-platform/reference-error-codes
+ */
+const OAuthErrorSchema = z
+  .object({ error: z.string().optional() })
+  .passthrough();
+
+/**
  * Schema for Microsoft OAuth 2.0 token response.
  * Validates the response from token and refresh token endpoints.
  */
@@ -242,12 +250,13 @@ export class OutlookCalendarProvider implements CalendarProviderService {
     });
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => null);
-      if (errorBody?.error === 'invalid_grant') {
+      const rawBody = await response.json().catch(() => null);
+      const parsed = OAuthErrorSchema.safeParse(rawBody ?? {});
+      if (parsed.success && parsed.data.error === 'invalid_grant') {
         throw new OAuthRevokedError('Outlook OAuth access has been revoked');
       }
       throw new Error(
-        `Failed to refresh Outlook access token: ${JSON.stringify(errorBody)}`,
+        `Failed to refresh Outlook access token: ${JSON.stringify(rawBody)}`,
       );
     }
 

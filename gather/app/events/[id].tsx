@@ -23,6 +23,8 @@ import {
 } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMemo, useState } from 'react';
+import { CounterProposalCard } from '../../components/ui/CounterProposalCard';
+import { CounterProposalSheet } from '../../components/ui/CounterProposalSheet';
 
 import { BadgeLabel } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -51,6 +53,7 @@ import {
 } from '../../lib/hooks';
 import { useGenerateEmoji } from '../../lib/hooks/useEmoji';
 import type {
+  CounterProposal,
   EventInvitee,
   InviteeStatus,
   LocationData,
@@ -221,49 +224,77 @@ function InviteeItem({
   isCurrentUser,
   canChange,
   isEditing,
+  isHost,
+  isApplyingProposal,
+  isRetractingProposal,
   onChangePress,
   onCancelPress,
+  onRetractProposal,
+  onApplyProposal,
 }: {
   invitee: EventInvitee;
   isCurrentUser?: boolean;
   canChange?: boolean;
   isEditing?: boolean;
+  isHost?: boolean;
+  isApplyingProposal?: boolean;
+  isRetractingProposal?: boolean;
   onChangePress?: () => void;
   onCancelPress?: () => void;
+  onApplyProposal?: (proposal: CounterProposal) => void;
+  onRetractProposal?: () => void;
 }) {
   return (
-    <XStack alignItems="center" gap="$3" paddingVertical="$2">
-      <Circle size={40} backgroundColor="$backgroundHover">
-        <Text fontSize={16}>{invitee.initials}</Text>
-      </Circle>
-      <YStack flex={1}>
-        <XStack alignItems="center" gap="$2">
-          <Text fontWeight="500">{invitee.fullName}</Text>
-          {isCurrentUser && (
-            <Text fontSize={11} color="$colorMuted">
-              (You)
+    <YStack paddingVertical="$2" gap="$2">
+      <XStack alignItems="center" gap="$3">
+        <Circle size={40} backgroundColor="$backgroundHover">
+          <Text fontSize={16}>{invitee.initials}</Text>
+        </Circle>
+        <YStack flex={1}>
+          <XStack alignItems="center" gap="$2">
+            <Text fontWeight="500">{invitee.fullName}</Text>
+            {isCurrentUser && (
+              <Text fontSize={11} color="$colorMuted">
+                (You)
+              </Text>
+            )}
+          </XStack>
+          <XStack alignItems="center" gap="$2">
+            <Circle size={8} backgroundColor={getStatusColor(invitee.status)} />
+            <Text fontSize={13} color="$colorMuted" textTransform="capitalize">
+              {invitee.status}
             </Text>
-          )}
-        </XStack>
-        <XStack alignItems="center" gap="$2">
-          <Circle size={8} backgroundColor={getStatusColor(invitee.status)} />
-          <Text fontSize={13} color="$colorMuted" textTransform="capitalize">
-            {invitee.status}
-          </Text>
-        </XStack>
-      </YStack>
-      {isCurrentUser &&
-        canChange &&
-        (isEditing ? (
-          <Button variant="outline" buttonSize="sm" onPress={onCancelPress}>
-            Cancel
-          </Button>
-        ) : (
-          <Button variant="outline" buttonSize="sm" onPress={onChangePress}>
-            Change
-          </Button>
-        ))}
-    </XStack>
+          </XStack>
+        </YStack>
+        {isCurrentUser &&
+          canChange &&
+          (isEditing ? (
+            <Button variant="outline" buttonSize="sm" onPress={onCancelPress}>
+              Cancel
+            </Button>
+          ) : (
+            <Button variant="outline" buttonSize="sm" onPress={onChangePress}>
+              Change
+            </Button>
+          ))}
+      </XStack>
+
+      {invitee.counterProposal && (
+        <CounterProposalCard
+          counterProposal={invitee.counterProposal}
+          isHost={isHost && !isCurrentUser}
+          isApplying={isApplyingProposal}
+          onApply={
+            isHost && !isCurrentUser && onApplyProposal
+              ? () => onApplyProposal(invitee.counterProposal!)
+              : undefined
+          }
+          isOwn={isCurrentUser}
+          isRetracting={isRetractingProposal}
+          onRetract={isCurrentUser ? onRetractProposal : undefined}
+        />
+      )}
+    </YStack>
   );
 }
 
@@ -283,6 +314,11 @@ export default function EventDetailScreen() {
     null,
   );
   const [isEditingResponse, setIsEditingResponse] = useState(false);
+  const [isCounterProposalOpen, setIsCounterProposalOpen] = useState(false);
+  const [applyingProposalUserId, setApplyingProposalUserId] = useState<
+    string | null
+  >(null);
+  const [isRetractingProposal, setIsRetractingProposal] = useState(false);
 
   // ---- Edit mode state ----
   const [isEditing, setIsEditing] = useState(false);
@@ -477,7 +513,6 @@ export default function EventDetailScreen() {
   const handleResponse = async (status: InviteeStatus) => {
     if (!id || pendingResponse !== null) return;
 
-    // Trigger haptic feedback
     haptic.medium();
 
     setPendingResponse(status);
@@ -488,7 +523,6 @@ export default function EventDetailScreen() {
       });
       setIsEditingResponse(false);
 
-      // Success haptic for accepted invitations
       if (status === 'accepted') {
         haptic.success();
       }
@@ -497,6 +531,61 @@ export default function EventDetailScreen() {
       console.error('Failed to respond to event:', err);
     } finally {
       setPendingResponse(null);
+    }
+  };
+
+  const handleCounterProposalSubmit = async (
+    counterProposal: CounterProposal,
+  ) => {
+    if (!id) return;
+    await respondToEvent.mutateAsync({
+      eventId: id,
+      response: { status: userInvitee?.status ?? 'maybe', counterProposal },
+    });
+    setIsEditingResponse(false);
+    haptic.success();
+  };
+
+  const handleRetractProposal = async () => {
+    if (!id) return;
+    haptic.medium();
+    setIsRetractingProposal(true);
+    try {
+      await respondToEvent.mutateAsync({
+        eventId: id,
+        response: {
+          status: userInvitee?.status ?? 'maybe',
+          counterProposal: null,
+        },
+      });
+      haptic.success();
+    } catch (err) {
+      haptic.error();
+      console.error('Failed to retract counter proposal:', err);
+    } finally {
+      setIsRetractingProposal(false);
+    }
+  };
+
+  const handleApplyProposal = async (
+    proposal: CounterProposal,
+    proposerUserId: string,
+  ) => {
+    if (!id || !event) return;
+    haptic.medium();
+    setApplyingProposalUserId(proposerUserId);
+    try {
+      const data: Record<string, unknown> = {};
+      if (proposal.startTime) data.startTime = proposal.startTime;
+      if (proposal.endTime) data.endTime = proposal.endTime;
+      if (proposal.location) data.location = proposal.location;
+      await updateEvent.mutateAsync({ eventId: id, data: data as any });
+      haptic.success();
+    } catch (err) {
+      haptic.error();
+      console.error('Failed to apply counter proposal:', err);
+    } finally {
+      setApplyingProposalUserId(null);
     }
   };
 
@@ -611,9 +700,10 @@ export default function EventDetailScreen() {
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + 16,
-          paddingBottom:
-            showRsvpBar || showEditBar
-              ? insets.bottom + 100
+          paddingBottom: showEditBar
+            ? insets.bottom + 100
+            : showRsvpBar
+              ? insets.bottom + 140
               : insets.bottom + 32,
           paddingHorizontal: 16,
         }}
@@ -965,13 +1055,26 @@ export default function EventDetailScreen() {
                       <InviteeItem
                         invitee={invitee}
                         isCurrentUser={isCurrentUser}
+                        isHost={isHost}
                         canChange={canChange && !isEditing}
                         isEditing={isCurrentUser && isEditingResponse}
+                        isApplyingProposal={
+                          applyingProposalUserId === invitee.userId
+                        }
+                        isRetractingProposal={
+                          isCurrentUser && isRetractingProposal
+                        }
                         onChangePress={() => {
                           haptic.selection();
                           setIsEditingResponse(true);
                         }}
                         onCancelPress={() => setIsEditingResponse(false)}
+                        onApplyProposal={(proposal) =>
+                          handleApplyProposal(proposal, invitee.userId)
+                        }
+                        onRetractProposal={
+                          isCurrentUser ? handleRetractProposal : undefined
+                        }
                       />
                       {index < event.invitees.length - 1 && (
                         <Separator marginVertical="$2" />
@@ -1078,7 +1181,7 @@ export default function EventDetailScreen() {
                 flex={1}
                 onPress={() => handleResponse('accepted')}
                 loading={pendingResponse === 'accepted'}
-                disabled={pendingResponse === 'accepted'}
+                disabled={pendingResponse !== null}
               >
                 Yes
               </Button>
@@ -1089,7 +1192,7 @@ export default function EventDetailScreen() {
                 flex={1}
                 onPress={() => handleResponse('declined')}
                 loading={pendingResponse === 'declined'}
-                disabled={pendingResponse === 'declined'}
+                disabled={pendingResponse !== null}
               >
                 No
               </Button>
@@ -1100,13 +1203,41 @@ export default function EventDetailScreen() {
                 flex={1}
                 onPress={() => handleResponse('maybe')}
                 loading={pendingResponse === 'maybe'}
-                disabled={pendingResponse === 'maybe'}
+                disabled={pendingResponse !== null}
               >
                 Maybe
               </Button>
             </XStack>
+            <Text
+              textAlign="center"
+              fontSize={13}
+              color="$primary"
+              fontWeight="500"
+              onPress={() => {
+                haptic.light();
+                setIsCounterProposalOpen(true);
+              }}
+              pressStyle={{ opacity: 0.6 }}
+            >
+              {userInvitee.counterProposal
+                ? 'Edit your suggestion'
+                : 'Suggest a different time or place'}
+            </Text>
           </YStack>
         </GlassBottomBar>
+      )}
+
+      {/* ==================== Counter Proposal Sheet ==================== */}
+      {event && canRespond && (
+        <CounterProposalSheet
+          isOpen={isCounterProposalOpen}
+          onClose={() => setIsCounterProposalOpen(false)}
+          onSubmit={handleCounterProposalSubmit}
+          eventStartTime={event.startTime}
+          eventEndTime={event.endTime}
+          eventLocation={event.location}
+          existingProposal={userInvitee?.counterProposal}
+        />
       )}
     </YStack>
   );

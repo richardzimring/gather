@@ -17,11 +17,23 @@ alwaysApply: false
 
 ```
 backend/
-  lambdas/           # One handler file per lambda (auth.ts, events.ts, etc.). Just light wrappers in these files.
+  lambdas/           # One handler file per lambda (api.ts, calendar-sync.ts). Just light wrappers in these files.
   src/
     db/              # Drizzle ORM - schema and connection
       index.ts       # Database connection and exports
       schema.ts      # Drizzle schema definitions
+    api/
+      auth.ts
+      blocked.ts
+      busy-times.ts
+      calendars.ts
+      emoji.ts
+      events.ts
+      friends.ts
+      events.ts
+      friends.ts
+      groups.ts
+      users.ts
     middleware/
     services/        # Business logic
     types.ts         # Zod schemas and TypeScript types
