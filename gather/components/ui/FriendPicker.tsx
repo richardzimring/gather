@@ -118,7 +118,7 @@ export function FriendPicker({
                       allSelected ? '$primary' : '$backgroundHover'
                     }
                     borderRadius="$2"
-                    pressStyle={{ scale: 0.98 }}
+                    pressStyle={{ scale: 0.95, opacity: 0.8 }}
                     onPress={() => {
                       haptic.selection();
                       handleToggleGroup(group.memberIds);

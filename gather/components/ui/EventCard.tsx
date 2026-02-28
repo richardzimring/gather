@@ -133,7 +133,7 @@ export function EventCard({
                   paddingHorizontal="$3"
                   paddingVertical="$2"
                   borderRadius="$2"
-                  pressStyle={{ scale: 0.97, opacity: 0.8 }}
+                  pressStyle={{ scale: 0.95, opacity: 0.8 }}
                   onPress={(e) => {
                     e.stopPropagation();
                     haptic.medium();

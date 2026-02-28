@@ -25,8 +25,7 @@ export const Card = styled(YStack, {
     pressable: {
       true: {
         pressStyle: {
-          backgroundColor: '$backgroundPress',
-          scale: 0.99,
+          opacity: 0.8,
         },
         cursor: 'pointer',
       },

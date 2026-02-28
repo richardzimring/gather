@@ -178,95 +178,73 @@ export default function FriendsScreen() {
 
           {/* Tab Bar */}
           <XStack gap="$1">
-            <XStack
+            <Button
               flex={1}
-              backgroundColor={
-                activeTab === 'friends' ? '$primary' : 'transparent'
-              }
-              borderRadius="$2"
-              paddingVertical="$2"
-              justifyContent="center"
-              alignItems="center"
-              pressStyle={{ opacity: 0.8 }}
-              onPress={() => {
-                haptic.selection();
-                setActiveTab('friends');
-              }}
+              variant={activeTab === 'friends' ? 'primary' : 'ghost'}
+              buttonSize="sm"
+              hapticStyle="light"
+              onPress={() => setActiveTab('friends')}
             >
               <Text
-                color={
-                  activeTab === 'friends' ? '$primaryForeground' : '$colorMuted'
-                }
                 fontWeight="500"
-                fontSize={14}
+                color={
+                  activeTab === 'friends'
+                    ? theme.primaryForeground.val
+                    : theme.color.val
+                }
               >
                 All Friends
               </Text>
-            </XStack>
-            <XStack
+            </Button>
+            <Button
               flex={1}
-              backgroundColor={
-                activeTab === 'groups' ? '$primary' : 'transparent'
-              }
-              borderRadius="$2"
-              paddingVertical="$2"
-              justifyContent="center"
-              alignItems="center"
-              pressStyle={{ opacity: 0.8 }}
-              onPress={() => {
-                haptic.selection();
-                setActiveTab('groups');
-              }}
+              variant={activeTab === 'groups' ? 'primary' : 'ghost'}
+              buttonSize="sm"
+              hapticStyle="light"
+              onPress={() => setActiveTab('groups')}
             >
               <Text
-                color={
-                  activeTab === 'groups' ? '$primaryForeground' : '$colorMuted'
-                }
                 fontWeight="500"
-                fontSize={14}
+                color={
+                  activeTab === 'groups'
+                    ? theme.primaryForeground.val
+                    : theme.color.val
+                }
               >
                 Groups
               </Text>
-            </XStack>
-            <XStack
+            </Button>
+            <Button
               flex={1}
-              backgroundColor={
-                activeTab === 'requests' ? '$primary' : 'transparent'
+              variant={activeTab === 'requests' ? 'primary' : 'ghost'}
+              buttonSize="sm"
+              hapticStyle="light"
+              iconAfter={
+                pendingReceived.length > 0 ? (
+                  <Circle size={16} backgroundColor="$destructive">
+                    <Text
+                      color="$destructiveForeground"
+                      fontSize={10}
+                      fontWeight="600"
+                    >
+                      {pendingReceived.length}
+                    </Text>
+                  </Circle>
+                ) : undefined
               }
-              borderRadius="$2"
-              paddingVertical="$2"
-              justifyContent="center"
-              alignItems="center"
-              pressStyle={{ opacity: 0.8 }}
-              onPress={() => {
-                haptic.selection();
-                setActiveTab('requests');
-              }}
-              gap="$2"
+              onPress={() => setActiveTab('requests')}
             >
               <Text
+                fontWeight="500"
                 color={
                   activeTab === 'requests'
-                    ? '$primaryForeground'
-                    : '$colorMuted'
+                    ? theme.primaryForeground.val
+                    : theme.color.val
                 }
-                fontWeight="500"
-                fontSize={14}
               >
                 Requests
               </Text>
-              {pendingReceived.length > 0 && (
-                <Circle size={16} backgroundColor="$destructive">
-                  <Text
-                    color="$destructiveForeground"
-                    fontSize={10}
-                    fontWeight="600"
-                  >
-                    {pendingReceived.length}
-                  </Text>
-                </Circle>
-              )}
-            </XStack>
+            </Button>
           </XStack>
         </YStack>
         {/* Tab Content */}

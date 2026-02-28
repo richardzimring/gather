@@ -1218,7 +1218,7 @@ export default function EventDetailScreen() {
                 haptic.light();
                 setIsCounterProposalOpen(true);
               }}
-              pressStyle={{ opacity: 0.6 }}
+              pressStyle={{ opacity: 0.7 }}
             >
               {userInvitee.counterProposal
                 ? 'Edit your suggestion'

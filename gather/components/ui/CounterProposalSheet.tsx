@@ -222,7 +222,7 @@ export function CounterProposalSheet({
                   onPress={onClose}
                   padding="$2"
                   borderRadius="$10"
-                  pressStyle={{ opacity: 0.6 }}
+                  pressStyle={{ scale: 0.9, opacity: 0.8 }}
                 >
                   <X size={20} color="$colorMuted" />
                 </YStack>

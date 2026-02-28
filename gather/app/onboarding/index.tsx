@@ -484,8 +484,7 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
               lineHeight={24}
               maxWidth={280}
             >
-              If a friend invited you, enter their code to connect with them on
-              Gather.
+              If a friend invited you, enter their code to add them on Gather.
             </Text>
           </YStack>
 

@@ -177,7 +177,7 @@ export function TimeChipPicker({
                 paddingHorizontal={10}
                 borderRadius="$2"
                 backgroundColor={isActive ? '$primary' : '$backgroundHover'}
-                pressStyle={{ scale: 0.96, opacity: 0.8 }}
+                pressStyle={{ scale: 0.95, opacity: 0.8 }}
                 onPress={() => {
                   haptic.selection();
                   if (isActive && allowDeselect) {

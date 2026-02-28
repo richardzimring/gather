@@ -441,7 +441,7 @@ export default function LoginScreen() {
                   }
                   fontSize={12}
                   textDecorationLine="underline"
-                  pressStyle={{ opacity: 0.6 }}
+                  pressStyle={{ opacity: 0.7 }}
                 >
                   Terms of Service
                 </Text>
@@ -454,7 +454,7 @@ export default function LoginScreen() {
                   }
                   fontSize={12}
                   textDecorationLine="underline"
-                  pressStyle={{ opacity: 0.6 }}
+                  pressStyle={{ opacity: 0.7 }}
                 >
                   Privacy Policy
                 </Text>

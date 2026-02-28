@@ -220,7 +220,7 @@ export function InlineCalendar({
           borderRadius="$2"
           alignItems="center"
           justifyContent="center"
-          pressStyle={{ scale: 0.9, opacity: 0.7 }}
+          pressStyle={{ scale: 0.9, opacity: 0.8 }}
           opacity={canGoPrev ? 1 : 0.3}
           onPress={
             canGoPrev
@@ -244,7 +244,7 @@ export function InlineCalendar({
           borderRadius="$2"
           alignItems="center"
           justifyContent="center"
-          pressStyle={{ scale: 0.9, opacity: 0.7 }}
+          pressStyle={{ scale: 0.9, opacity: 0.8 }}
           onPress={() => {
             haptic.light();
             navigateMonth(1);
@@ -381,7 +381,7 @@ export function InlineCalendar({
                     backgroundColor={circleBackground}
                     zIndex={1}
                     pressStyle={
-                      isDisabled ? undefined : { scale: 0.92, opacity: 0.7 }
+                      isDisabled ? undefined : { scale: 0.92, opacity: 0.8 }
                     }
                     onPress={isDisabled ? undefined : () => handleDayPress(day)}
                   >

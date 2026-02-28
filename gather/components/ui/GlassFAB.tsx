@@ -92,6 +92,7 @@ export function GlassButton({
 const styles = StyleSheet.create({
   pressed: {
     transform: [{ scale: 0.9 }],
+    opacity: 0.8,
   },
   disabled: {
     opacity: 0.5,

@@ -165,6 +165,7 @@ const tokens = createTokens({
     warningLight: '#fcd34d',
     warningDark: '#92400e',
     error: '#ef4444',
+    errorPress: '#dc2626',
     errorLight: '#fca5a5',
     errorDark: '#991b1b',
 
@@ -233,6 +234,7 @@ const dark = {
   error: tokens.color.error,
   errorSubtle: 'rgba(239, 68, 68, 0.15)',
   destructive: tokens.color.error,
+  destructivePress: tokens.color.errorPress,
   destructiveForeground: tokens.color.gray11,
 
   // Purple accent
@@ -325,6 +327,7 @@ const light = {
   error: tokens.color.error,
   errorSubtle: 'rgba(239, 68, 68, 0.15)',
   destructive: tokens.color.error,
+  destructivePress: tokens.color.errorPress,
   destructiveForeground: tokens.color.lightGray1,
 
   // Purple accent

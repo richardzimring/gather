@@ -62,6 +62,7 @@ const StyledButton = styled(TamaguiButton, {
         backgroundColor: '$destructive',
         color: '$destructiveForeground',
         pressStyle: {
+          backgroundColor: '$destructive',
           opacity: 0.9,
         },
       },

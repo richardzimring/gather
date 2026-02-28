@@ -110,7 +110,7 @@ export function CounterProposalCard({
             onPress={isRetracting ? undefined : onRetract}
             padding="$1"
             borderRadius="$10"
-            pressStyle={{ opacity: 0.6 }}
+            pressStyle={{ scale: 0.9, opacity: 0.8 }}
             opacity={isRetracting ? 0.4 : 1}
           >
             <X size={14} color="$colorMuted" />
