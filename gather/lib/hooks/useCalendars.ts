@@ -17,6 +17,12 @@ import {
   getCalendarsOutlookCalendars,
   postCalendarsOutlookSelect,
   postCalendarsOutlookSync,
+  getCalendarsExportStatus,
+  postCalendarsExportEnable,
+  postCalendarsExportDisable,
+  postCalendarsExportSync,
+  getCalendarsGoogleExportAuthUrl,
+  getCalendarsOutlookExportAuthUrl,
 } from '../api/client';
 import {
   syncSelectedCalendars,
@@ -414,5 +420,138 @@ export function useTriggerOutlookSync() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: calendarKeys.all });
     },
+  });
+}
+
+// ============================================
+// Calendar Export Hooks
+// ============================================
+
+export const exportKeys = {
+  all: [...calendarKeys.all, 'export'] as const,
+  status: () => [...exportKeys.all, 'status'] as const,
+};
+
+/**
+ * Hook to fetch export sync status per provider.
+ */
+export function useExportStatus() {
+  return useQuery({
+    queryKey: exportKeys.status(),
+    queryFn: async () => {
+      const response = await getCalendarsExportStatus();
+      if (!response.data?.success) {
+        throw new Error('Failed to fetch export status');
+      }
+      return response.data.data?.statuses ?? [];
+    },
+  });
+}
+
+/**
+ * Hook to enable calendar export for a provider.
+ * Creates the "Gather" secondary calendar and performs an initial sync.
+ * Call `markExportScope` first to ensure the provider's tokens have write access.
+ */
+export function useEnableExport() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (provider: 'google' | 'outlook' | 'apple') => {
+      const response = await postCalendarsExportEnable({ body: { provider } });
+      if (!response.data?.success) {
+        throw new Error(
+          response.data?.message ?? 'Failed to enable calendar export',
+        );
+      }
+      return response.data.data?.status;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: exportKeys.all });
+    },
+  });
+}
+
+/**
+ * Hook to disable calendar export for a provider.
+ */
+export function useDisableExport() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      provider,
+      deleteCalendar = false,
+    }: {
+      provider: 'google' | 'outlook' | 'apple';
+      deleteCalendar?: boolean;
+    }) => {
+      const response = await postCalendarsExportDisable({
+        body: { provider, deleteCalendar },
+      });
+      if (!response.data?.success) {
+        throw new Error(
+          response.data?.message ?? 'Failed to disable calendar export',
+        );
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: exportKeys.all });
+    },
+  });
+}
+
+/**
+ * Hook to trigger a full re-sync of exported events.
+ */
+export function useTriggerExportSync() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await postCalendarsExportSync();
+      if (!response.data?.success) {
+        throw new Error('Failed to trigger export sync');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: exportKeys.all });
+    },
+  });
+}
+
+/**
+ * Hook to get the Google OAuth URL with export (write) scope.
+ * Use this when the user wants to enable Google calendar export.
+ */
+export function useGoogleExportAuthUrl() {
+  return useQuery({
+    queryKey: [...calendarKeys.all, 'google', 'export-auth-url'] as const,
+    queryFn: async () => {
+      const response = await getCalendarsGoogleExportAuthUrl();
+      if (!response.data?.success) {
+        throw new Error('Failed to get Google export auth URL');
+      }
+      return response.data.data?.authUrl ?? '';
+    },
+    enabled: false,
+  });
+}
+
+/**
+ * Hook to get the Outlook OAuth URL with export (write) scope.
+ * Use this when the user wants to enable Outlook calendar export.
+ */
+export function useOutlookExportAuthUrl() {
+  return useQuery({
+    queryKey: [...calendarKeys.all, 'outlook', 'export-auth-url'] as const,
+    queryFn: async () => {
+      const response = await getCalendarsOutlookExportAuthUrl();
+      if (!response.data?.success) {
+        throw new Error('Failed to get Outlook export auth URL');
+      }
+      return response.data.data?.authUrl ?? '';
+    },
+    enabled: false,
   });
 }

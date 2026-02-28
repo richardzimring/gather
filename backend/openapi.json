@@ -499,6 +499,10 @@
             "type": "boolean",
             "example": false
           },
+          "hasExportScope": {
+            "type": "boolean",
+            "example": false
+          },
           "lastSyncAt": {
             "type": "string",
             "format": "date-time",
@@ -518,6 +522,7 @@
           "calendarName",
           "importEnabled",
           "exportEnabled",
+          "hasExportScope",
           "createdAt"
         ]
       },
@@ -850,6 +855,180 @@
         },
         "required": [
           "calendarIds"
+        ]
+      },
+      "ExportStatusListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "statuses": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CalendarExportStatus"
+                }
+              }
+            },
+            "required": [
+              "statuses"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "CalendarExportStatus": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "$ref": "#/components/schemas/CalendarExportProvider"
+          },
+          "enabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "calendarName": {
+            "type": "string",
+            "example": "Gather"
+          },
+          "externalCalendarId": {
+            "type": "string",
+            "example": "abc123"
+          },
+          "eventCount": {
+            "type": "integer",
+            "example": 5
+          },
+          "hasExportScope": {
+            "type": "boolean",
+            "example": true
+          },
+          "isConnected": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "provider",
+          "enabled",
+          "hasExportScope",
+          "isConnected"
+        ]
+      },
+      "CalendarExportProvider": {
+        "type": "string",
+        "enum": [
+          "google",
+          "outlook",
+          "apple"
+        ]
+      },
+      "ExportStatusResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "$ref": "#/components/schemas/CalendarExportStatus"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "EnableCalendarExport": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "$ref": "#/components/schemas/CalendarExportProvider"
+          }
+        },
+        "required": [
+          "provider"
+        ]
+      },
+      "ExportSyncResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "DisableCalendarExport": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "$ref": "#/components/schemas/CalendarExportProvider"
+          },
+          "deleteCalendar": {
+            "type": "boolean",
+            "default": false,
+            "example": false
+          }
+        },
+        "required": [
+          "provider"
+        ]
+      },
+      "ExportAuthUrlResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "authUrl": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "authUrl"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
         ]
       },
       "GenerateEmojiResponse": {
@@ -2929,6 +3108,19 @@
             "BearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "boolean",
+              "nullable": true,
+              "description": "Request export (write) scope in addition to read scopes"
+            },
+            "required": false,
+            "description": "Request export (write) scope in addition to read scopes",
+            "name": "includeExportScope",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OAuth URL generated",
@@ -3147,6 +3339,19 @@
             "BearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "boolean",
+              "nullable": true,
+              "description": "Request export (write) scope in addition to read scopes"
+            },
+            "required": false,
+            "description": "Request export (write) scope in addition to read scopes",
+            "name": "includeExportScope",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OAuth URL generated",
@@ -3325,6 +3530,320 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SyncCalendarsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendars/export/status": {
+      "get": {
+        "tags": [
+          "Calendars",
+          "CalendarExport"
+        ],
+        "summary": "Get calendar export status",
+        "description": "Get the export sync status for each calendar provider (google, outlook, apple)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Export status per provider",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportStatusListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendars/export/enable": {
+      "post": {
+        "tags": [
+          "Calendars",
+          "CalendarExport"
+        ],
+        "summary": "Enable calendar export",
+        "description": "Enable syncing Gather events to the user's calendar. Creates a \"Gather\" secondary calendar if needed.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnableCalendarExport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Export enabled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — provider not connected or missing export scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendars/export/disable": {
+      "post": {
+        "tags": [
+          "Calendars",
+          "CalendarExport"
+        ],
+        "summary": "Disable calendar export",
+        "description": "Disable syncing Gather events to the user's calendar.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisableCalendarExport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Export disabled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportSyncResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendars/export/sync": {
+      "post": {
+        "tags": [
+          "Calendars",
+          "CalendarExport"
+        ],
+        "summary": "Trigger full export sync",
+        "description": "Re-sync all active Gather events to the user's export calendars.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Export sync triggered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportSyncResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendars/google/export-auth-url": {
+      "get": {
+        "tags": [
+          "Calendars",
+          "Google",
+          "CalendarExport"
+        ],
+        "summary": "Get Google OAuth URL with export scope",
+        "description": "Get the Google OAuth consent URL including the calendar.app.created write scope for enabling event export",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OAuth URL generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportAuthUrlResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendars/outlook/export-auth-url": {
+      "get": {
+        "tags": [
+          "Calendars",
+          "Outlook",
+          "CalendarExport"
+        ],
+        "summary": "Get Outlook OAuth URL with export scope",
+        "description": "Get the Outlook OAuth consent URL with Calendars.ReadWrite scope for enabling event export",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OAuth URL generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportAuthUrlResponse"
                 }
               }
             }

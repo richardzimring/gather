@@ -14,10 +14,11 @@ import {
 import { router } from 'expo-router';
 import { Alert, Share, RefreshControl } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   H1,
   ScrollView,
+  Separator,
   Text,
   XStack,
   YStack,
@@ -30,6 +31,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../../components/ui/Button';
 import { GradientBackground } from '../../components/ui/GradientBackground';
 import { CalendarProviderIcon } from '../../components/ui/CalendarProviderIcon';
+import { BadgeLabel } from '../../components/ui/Badge';
 import { Card } from '../../components/ui/Card';
 import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton';
 import { useAuth } from '../../lib/hooks/useAuth';
@@ -40,7 +42,9 @@ import {
   useTriggerCalendarSync,
   useDeleteAccount,
   useScrollGradient,
+  useExportStatus,
 } from '../../lib/hooks';
+import { useAppleExport } from '../../lib/hooks/useAppleExport';
 import type { CalendarConnection } from '../../lib/api/client';
 import { haptic } from '../../lib/haptics';
 
@@ -119,6 +123,34 @@ export default function ProfileScreen() {
   const { data: calendarConnections, isLoading: isLoadingCalendars } =
     useCalendarConnections();
   const triggerSync = useTriggerCalendarSync();
+
+  // Export status
+  const { data: exportStatuses } = useExportStatus();
+  const { enabled: appleExportEnabled } = useAppleExport();
+
+  const getExportEnabled = (provider: string): boolean => {
+    if (provider === 'apple') return appleExportEnabled;
+    return (
+      exportStatuses?.find((s) => s.provider === provider)?.enabled ?? false
+    );
+  };
+
+  // Group all connections by provider (import or export), preserving insertion order.
+  // Apple export is device-side, so we may need to synthesize an entry for it even
+  // when there are no import connection records.
+  const connectionsByProvider = useMemo(() => {
+    if (!calendarConnections) return [];
+    const map = new Map<string, CalendarConnection[]>();
+    for (const conn of calendarConnections) {
+      const group = map.get(conn.provider) ?? [];
+      group.push(conn);
+      map.set(conn.provider, group);
+    }
+    if (appleExportEnabled && !map.has('apple')) {
+      map.set('apple', []);
+    }
+    return Array.from(map.entries());
+  }, [calendarConnections, appleExportEnabled]);
 
   const deleteAccount = useDeleteAccount();
 
@@ -317,7 +349,7 @@ export default function ProfileScreen() {
               marginBottom="$3"
             >
               <Text color="$colorMuted" fontSize={13} fontWeight="600">
-                CALENDAR INTEGRATIONS
+                INTEGRATIONS
               </Text>
               <XStack gap="$2">
                 {calendarConnections && calendarConnections.length > 0 && (
@@ -356,9 +388,7 @@ export default function ProfileScreen() {
                   </XStack>
                 ))}
               </YStack>
-            ) : !calendarConnections ||
-              calendarConnections.filter((c) => c.importEnabled).length ===
-                0 ? (
+            ) : connectionsByProvider.length === 0 ? (
               <YStack alignItems="center" padding="$4" gap="$3">
                 <Calendar size={32} color="$colorMuted" />
                 <Text color="$colorMuted" textAlign="center">
@@ -367,63 +397,116 @@ export default function ProfileScreen() {
                 <Button
                   variant="outline"
                   buttonSize="sm"
-                  onPress={() => router.push('/calendars/connect')}
+                  onPress={() => router.push('/calendars/add')}
                 >
-                  Add Calendars
+                  Add a Calendar
                 </Button>
               </YStack>
             ) : (
-              <YStack gap="$3">
-                {calendarConnections
-                  .filter((c) => c.importEnabled)
-                  .map((connection: CalendarConnection) => (
-                    <XStack
-                      key={connection.connectionId}
-                      padding="$3"
-                      backgroundColor="$backgroundHover"
-                      borderRadius="$3"
-                      alignItems="center"
-                      gap="$2"
-                      pressStyle={{ opacity: 0.7 }}
-                      onPress={() => {
-                        haptic.light();
-                        router.push({
-                          pathname: '/calendars/[provider]',
-                          params: { provider: connection.provider },
-                        });
-                      }}
-                    >
-                      {connection.color && (
-                        <Circle size={10} backgroundColor={connection.color} />
-                      )}
-                      <YStack flex={1}>
-                        <XStack alignItems="center" gap="$1.5">
-                          <Text
-                            fontWeight="600"
-                            numberOfLines={1}
-                            flexShrink={1}
+              <YStack gap="$4">
+                {connectionsByProvider.map(([provider, connections]) => {
+                  const providerName =
+                    provider === 'google'
+                      ? 'Google Calendar'
+                      : provider === 'outlook'
+                        ? 'Outlook'
+                        : 'Apple Calendar';
+                  const exportEnabled = getExportEnabled(provider);
+
+                  return (
+                    <YStack key={provider} gap="$2">
+                      {/* Provider header */}
+                      <XStack alignItems="center" gap="$2">
+                        <CalendarProviderIcon
+                          provider={provider as 'apple' | 'google' | 'outlook'}
+                          size={16}
+                        />
+                        <Text fontSize={13} fontWeight="600" flex={1}>
+                          {providerName}
+                        </Text>
+                        <BadgeLabel
+                          variant={exportEnabled ? 'success' : 'muted'}
+                        >
+                          {exportEnabled ? 'Export on' : 'Export off'}
+                        </BadgeLabel>
+                      </XStack>
+
+                      {/* Calendar rows — only show import-enabled calendars */}
+                      {(() => {
+                        const importConnections = connections.filter(
+                          (c) => c.importEnabled,
+                        );
+                        return importConnections.length > 0 ? (
+                          <YStack
+                            backgroundColor="$backgroundHover"
+                            borderRadius="$3"
+                            overflow="hidden"
                           >
-                            {connection.calendarName}
-                          </Text>
-                          <CalendarProviderIcon
-                            provider={connection.provider}
-                            size={14}
-                          />
-                        </XStack>
-                        {connection.lastSyncAt && (
-                          <Text color="$colorMuted" fontSize={11}>
-                            Synced {formatLastSync(connection.lastSyncAt)}
-                          </Text>
-                        )}
-                      </YStack>
-                      <ChevronRight size={16} color="$colorMuted" />
-                    </XStack>
-                  ))}
+                            {importConnections.map((connection, index) => (
+                              <YStack key={connection.connectionId}>
+                                {index > 0 && <Separator />}
+                                <XStack
+                                  padding="$3"
+                                  alignItems="center"
+                                  gap="$2"
+                                  pressStyle={{ opacity: 0.7 }}
+                                  onPress={() => {
+                                    haptic.light();
+                                    router.push({
+                                      pathname: '/calendars/[provider]',
+                                      params: { provider: connection.provider },
+                                    });
+                                  }}
+                                >
+                                  {connection.color && (
+                                    <Circle
+                                      size={10}
+                                      backgroundColor={connection.color}
+                                    />
+                                  )}
+                                  <YStack flex={1}>
+                                    <Text fontWeight="600" numberOfLines={1}>
+                                      {connection.calendarName}
+                                    </Text>
+                                    {connection.lastSyncAt && (
+                                      <Text color="$colorMuted" fontSize={11}>
+                                        Synced{' '}
+                                        {formatLastSync(connection.lastSyncAt)}
+                                      </Text>
+                                    )}
+                                  </YStack>
+                                  <ChevronRight size={16} color="$colorMuted" />
+                                </XStack>
+                              </YStack>
+                            ))}
+                          </YStack>
+                        ) : (
+                          <XStack
+                            padding="$3"
+                            backgroundColor="$backgroundHover"
+                            borderRadius="$3"
+                            pressStyle={{ opacity: 0.7 }}
+                            onPress={() => {
+                              haptic.light();
+                              router.push({
+                                pathname: '/calendars/[provider]',
+                                params: { provider },
+                              });
+                            }}
+                          >
+                            <Text color="$colorMuted" fontSize={13}>
+                              No calendars imported
+                            </Text>
+                          </XStack>
+                        );
+                      })()}
+                    </YStack>
+                  );
+                })}
                 <Button
                   variant="outline"
                   buttonSize="sm"
-                  marginTop="$1"
-                  onPress={() => router.push('/calendars/connect')}
+                  onPress={() => router.push('/calendars/add')}
                 >
                   Manage Calendars
                 </Button>

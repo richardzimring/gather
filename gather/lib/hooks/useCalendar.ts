@@ -9,6 +9,7 @@ import {
   exportEventToCalendar,
 } from '../services/calendar';
 import type { Event } from '../api/client';
+import { useAuth } from './useAuth';
 
 export const calendarKeys = {
   all: ['calendar'] as const,
@@ -87,6 +88,7 @@ export function useCalendarEvents(startDate: Date, endDate: Date) {
  */
 export function useExportToCalendar() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -96,7 +98,11 @@ export function useExportToCalendar() {
       event: Event;
       calendarId?: string;
     }) => {
-      const calendarEventId = await exportEventToCalendar(event, calendarId);
+      const calendarEventId = await exportEventToCalendar(
+        event,
+        calendarId,
+        user?.userId,
+      );
       if (!calendarEventId) {
         throw new Error('Failed to export event to calendar');
       }

@@ -7,7 +7,9 @@ import {
   GOOGLE_REDIRECT_URI,
 } from '../../constants';
 import type {
+  AuthUrlOptions,
   CalendarProviderService,
+  ExportableEvent,
   ExternalCalendar,
   OAuthTokens,
   ProviderEvent,
@@ -18,10 +20,12 @@ import { OAuthRevokedError } from './index';
 // Google Calendar Provider
 // ============================================
 
-const SCOPES = [
+const READ_SCOPES = [
   'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
   'https://www.googleapis.com/auth/calendar.freebusy',
 ];
+
+const EXPORT_SCOPE = 'https://www.googleapis.com/auth/calendar.app.created';
 
 /**
  * Google Calendar provider implementation using @googleapis/calendar SDK.
@@ -46,14 +50,22 @@ export class GoogleCalendarProvider implements CalendarProviderService {
    * Generate the Google OAuth consent URL.
    * The `state` parameter encodes the userId so we can associate tokens
    * with the correct user when Google redirects back.
+   * Pass `includeExportScope: true` to request write access for exporting events.
    */
-  getAuthUrl(userId: string): string {
+  getAuthUrl(userId: string, options?: AuthUrlOptions): string {
     const oauth2Client = this.createOAuth2Client();
+    const scopes = options?.includeExportScope
+      ? [...READ_SCOPES, EXPORT_SCOPE]
+      : READ_SCOPES;
 
     return oauth2Client.generateAuthUrl({
       access_type: 'offline',
-      scope: SCOPES,
+      scope: scopes,
+      // Always force consent so Google issues a new refresh token with the
+      // updated scope set (required for incremental authorization).
       prompt: 'consent',
+      // Carry existing granted scopes forward when upgrading incrementally.
+      include_granted_scopes: options?.includeExportScope ? true : undefined,
       state: userId,
     });
   }
@@ -77,6 +89,7 @@ export class GoogleCalendarProvider implements CalendarProviderService {
       tokenExpiresAt: tokens.expiry_date
         ? new Date(tokens.expiry_date)
         : new Date(Date.now() + 3600 * 1000),
+      grantedScopes: tokens.scope ? tokens.scope.split(' ') : undefined,
     };
   }
 
@@ -169,5 +182,124 @@ export class GoogleCalendarProvider implements CalendarProviderService {
     }
 
     return events;
+  }
+
+  /**
+   * Create a new secondary Google Calendar with the given name.
+   * Requires the `calendar.app.created` scope.
+   */
+  async createCalendar(
+    accessToken: string,
+    name: string,
+    timeZone: string,
+  ): Promise<ExternalCalendar> {
+    const calendar = this.createCalendarClient(accessToken);
+
+    const response = await calendar.calendars.insert({
+      requestBody: { summary: name, timeZone },
+    });
+
+    return {
+      externalCalendarId: response.data.id ?? '',
+      calendarName: response.data.summary ?? name,
+    };
+  }
+
+  /**
+   * Create an event in a specific Google calendar.
+   * Requires the `calendar.app.created` scope (when the calendar was created by this app).
+   * Returns the provider's event ID.
+   */
+  async createEvent(
+    accessToken: string,
+    calendarId: string,
+    event: ExportableEvent,
+  ): Promise<string> {
+    const calendar = this.createCalendarClient(accessToken);
+
+    const response = await calendar.events.insert({
+      calendarId,
+      requestBody: {
+        summary: event.title,
+        description: event.description,
+        location: event.locationString,
+        start: {
+          dateTime: event.startTime.toISOString(),
+          timeZone: event.timeZone,
+        },
+        end: {
+          dateTime: event.endTime.toISOString(),
+          timeZone: event.timeZone,
+        },
+        reminders: {
+          useDefault: false,
+          overrides: [{ method: 'popup', minutes: 60 }],
+        },
+      },
+    });
+
+    if (!response.data.id) {
+      throw new Error(
+        'Google Calendar did not return an event ID after insert',
+      );
+    }
+
+    return response.data.id;
+  }
+
+  /**
+   * Update an existing event in a Google calendar.
+   */
+  async updateEvent(
+    accessToken: string,
+    calendarId: string,
+    externalEventId: string,
+    event: ExportableEvent,
+  ): Promise<void> {
+    const calendar = this.createCalendarClient(accessToken);
+
+    await calendar.events.update({
+      calendarId,
+      eventId: externalEventId,
+      requestBody: {
+        summary: event.title,
+        description: event.description,
+        location: event.locationString,
+        start: {
+          dateTime: event.startTime.toISOString(),
+          timeZone: event.timeZone,
+        },
+        end: {
+          dateTime: event.endTime.toISOString(),
+          timeZone: event.timeZone,
+        },
+        reminders: {
+          useDefault: false,
+          overrides: [{ method: 'popup', minutes: 60 }],
+        },
+      },
+    });
+  }
+
+  /**
+   * Delete an event from a Google calendar.
+   */
+  async deleteEvent(
+    accessToken: string,
+    calendarId: string,
+    externalEventId: string,
+  ): Promise<void> {
+    const calendar = this.createCalendarClient(accessToken);
+
+    await calendar.events.delete({ calendarId, eventId: externalEventId });
+  }
+
+  /**
+   * Delete an entire Google calendar (e.g. the "Gather" export calendar).
+   */
+  async deleteCalendar(accessToken: string, calendarId: string): Promise<void> {
+    const calendar = this.createCalendarClient(accessToken);
+
+    await calendar.calendars.delete({ calendarId });
   }
 }

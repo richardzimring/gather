@@ -20,7 +20,6 @@ import {
   XStack,
   YStack,
   Theme,
-  Circle,
   Separator,
   Input,
   TextArea,

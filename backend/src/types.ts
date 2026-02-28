@@ -575,6 +575,7 @@ export const CalendarConnectionSchema = z
     color: z.string().optional().openapi({ example: '#4285F4' }),
     importEnabled: z.boolean().openapi({ example: true }),
     exportEnabled: z.boolean().openapi({ example: false }),
+    hasExportScope: z.boolean().openapi({ example: false }),
     lastSyncAt: z
       .string()
       .datetime()
@@ -705,6 +706,46 @@ export type GoogleAuthUrlResponse = z.infer<typeof GoogleAuthUrlResponseSchema>;
 export type GoogleCallback = z.infer<typeof GoogleCallbackSchema>;
 export type GoogleCalendar = z.infer<typeof GoogleCalendarSchema>;
 export type GoogleSelectCalendars = z.infer<typeof GoogleSelectCalendarsSchema>;
+
+// Calendar export schemas
+export const CalendarExportProviderSchema = z
+  .enum(['google', 'outlook', 'apple'])
+  .openapi('CalendarExportProvider');
+
+export const CalendarExportStatusSchema = z
+  .object({
+    provider: CalendarExportProviderSchema,
+    enabled: z.boolean().openapi({ example: true }),
+    calendarName: z.string().optional().openapi({ example: 'Gather' }),
+    externalCalendarId: z.string().optional().openapi({ example: 'abc123' }),
+    eventCount: z.number().int().optional().openapi({ example: 5 }),
+    /** Whether the stored OAuth tokens include write scopes. */
+    hasExportScope: z.boolean().openapi({ example: true }),
+    /** Whether this provider is connected (has calendar connections). */
+    isConnected: z.boolean().openapi({ example: true }),
+  })
+  .openapi('CalendarExportStatus');
+
+export const EnableCalendarExportSchema = z
+  .object({
+    provider: CalendarExportProviderSchema,
+  })
+  .openapi('EnableCalendarExport');
+
+export const DisableCalendarExportSchema = z
+  .object({
+    provider: CalendarExportProviderSchema,
+    /** Whether to delete the "Gather" calendar from the provider. Defaults to false. */
+    deleteCalendar: z.boolean().default(false).openapi({ example: false }),
+  })
+  .openapi('DisableCalendarExport');
+
+export type CalendarExportProvider = z.infer<
+  typeof CalendarExportProviderSchema
+>;
+export type CalendarExportStatus = z.infer<typeof CalendarExportStatusSchema>;
+export type EnableCalendarExport = z.infer<typeof EnableCalendarExportSchema>;
+export type DisableCalendarExport = z.infer<typeof DisableCalendarExportSchema>;
 
 // Busy times query schemas
 export const BusyTimesQuerySchema = z

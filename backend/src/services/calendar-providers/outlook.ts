@@ -13,7 +13,9 @@ import {
   OUTLOOK_REDIRECT_URI,
 } from '../../constants';
 import type {
+  AuthUrlOptions,
   CalendarProviderService,
+  ExportableEvent,
   ExternalCalendar,
   OAuthTokens,
   ProviderEvent,
@@ -24,8 +26,11 @@ import { OAuthRevokedError } from './index';
 // Outlook Calendar Provider
 // ============================================
 
-/** Outlook Calendar scopes */
-const SCOPES = ['Calendars.Read', 'offline_access'];
+/** Read-only scopes for importing calendar availability */
+const READ_SCOPES = ['Calendars.Read', 'offline_access'];
+
+/** ReadWrite scopes for exporting events to user's calendar */
+const EXPORT_SCOPES = ['Calendars.ReadWrite', 'offline_access'];
 
 /** Microsoft OAuth 2.0 endpoints */
 const OAUTH_AUTHORIZE_URL =
@@ -154,6 +159,21 @@ const GraphEventsResponseSchema = z.object({
 });
 
 /**
+ * Schema for a created/updated Microsoft Graph Event (only need the id back).
+ */
+const GraphEventMutationResponseSchema = z.object({
+  id: z.string(),
+});
+
+/**
+ * Schema for a created Microsoft Graph Calendar.
+ */
+const GraphCalendarMutationResponseSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+});
+
+/**
  * Outlook Calendar provider implementation using Microsoft Graph SDK.
  * Handles OAuth 2.0 flow, calendar listing, and event fetching.
  */
@@ -173,14 +193,17 @@ export class OutlookCalendarProvider implements CalendarProviderService {
    * Generate the Microsoft OAuth consent URL.
    * The `state` parameter encodes the userId so we can associate tokens
    * with the correct user when Microsoft redirects back.
+   * Pass `includeExportScope: true` to request Calendars.ReadWrite for exporting events.
    */
-  getAuthUrl(userId: string): string {
+  getAuthUrl(userId: string, options?: AuthUrlOptions): string {
+    const scopes = options?.includeExportScope ? EXPORT_SCOPES : READ_SCOPES;
+
     const params = new URLSearchParams({
       client_id: OUTLOOK_CLIENT_ID,
       response_type: 'code',
       redirect_uri: OUTLOOK_REDIRECT_URI,
       response_mode: 'query',
-      scope: SCOPES.join(' '),
+      scope: scopes.join(' '),
       state: userId,
     });
 
@@ -227,6 +250,7 @@ export class OutlookCalendarProvider implements CalendarProviderService {
       accessToken: data.access_token,
       refreshToken: data.refresh_token,
       tokenExpiresAt: new Date(Date.now() + data.expires_in * 1000),
+      grantedScopes: data.scope ? data.scope.split(' ') : undefined,
     };
   }
 
@@ -356,5 +380,120 @@ export class OutlookCalendarProvider implements CalendarProviderService {
     } while (nextLink);
 
     return events;
+  }
+
+  /**
+   * Create a new secondary Outlook calendar with the given name.
+   * Requires the `Calendars.ReadWrite` scope.
+   */
+  // Outlook calendar creation does not support setting a calendar timezone via the API
+  async createCalendar(
+    accessToken: string,
+    name: string,
+    timeZone: string,
+  ): Promise<ExternalCalendar> {
+    void timeZone;
+    const client = this.createGraphClient(accessToken);
+
+    const response = await client.api('/me/calendars').post({ name });
+    const validated = GraphCalendarMutationResponseSchema.parse(response);
+
+    return {
+      externalCalendarId: validated.id ?? '',
+      calendarName: validated.name ?? name,
+    };
+  }
+
+  /**
+   * Create an event in a specific Outlook calendar.
+   * Returns the provider's event ID.
+   */
+  async createEvent(
+    accessToken: string,
+    calendarId: string,
+    event: ExportableEvent,
+  ): Promise<string> {
+    const client = this.createGraphClient(accessToken);
+
+    const body = {
+      subject: event.title,
+      body: event.description
+        ? { contentType: 'text', content: event.description }
+        : undefined,
+      location: event.locationString
+        ? { displayName: event.locationString }
+        : undefined,
+      start: {
+        dateTime: event.startTime.toISOString(),
+        timeZone: event.timeZone,
+      },
+      end: {
+        dateTime: event.endTime.toISOString(),
+        timeZone: event.timeZone,
+      },
+      isReminderOn: true,
+      reminderMinutesBeforeStart: 60,
+    };
+
+    const response = await client
+      .api(`/me/calendars/${calendarId}/events`)
+      .post(body);
+
+    const validated = GraphEventMutationResponseSchema.parse(response);
+    return validated.id;
+  }
+
+  /**
+   * Update an existing Outlook event.
+   */
+  async updateEvent(
+    accessToken: string,
+    _calendarId: string,
+    externalEventId: string,
+    event: ExportableEvent,
+  ): Promise<void> {
+    const client = this.createGraphClient(accessToken);
+
+    const body = {
+      subject: event.title,
+      body: event.description
+        ? { contentType: 'text', content: event.description }
+        : undefined,
+      location: event.locationString
+        ? { displayName: event.locationString }
+        : undefined,
+      start: {
+        dateTime: event.startTime.toISOString(),
+        timeZone: event.timeZone,
+      },
+      end: {
+        dateTime: event.endTime.toISOString(),
+        timeZone: event.timeZone,
+      },
+      isReminderOn: true,
+      reminderMinutesBeforeStart: 60,
+    };
+
+    await client.api(`/me/events/${externalEventId}`).patch(body);
+  }
+
+  /**
+   * Delete an Outlook event.
+   */
+  async deleteEvent(
+    accessToken: string,
+    _calendarId: string,
+    externalEventId: string,
+  ): Promise<void> {
+    const client = this.createGraphClient(accessToken);
+    await client.api(`/me/events/${externalEventId}`).delete();
+  }
+
+  /**
+   * Delete an entire Outlook calendar (e.g. the "Gather" export calendar).
+   */
+  async deleteCalendar(accessToken: string, calendarId: string): Promise<void> {
+    const client = this.createGraphClient(accessToken);
+    await client.api(`/me/calendars/${calendarId}`).delete();
   }
 }

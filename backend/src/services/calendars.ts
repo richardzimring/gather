@@ -24,6 +24,7 @@ const dbConnectionToCalendarConnection = (
     color: dbConn.color ?? undefined,
     importEnabled: dbConn.importEnabled,
     exportEnabled: dbConn.exportEnabled,
+    hasExportScope: dbConn.hasExportScope,
     lastSyncAt: dbConn.lastSyncAt?.toISOString(),
     createdAt: dbConn.createdAt.toISOString(),
   };
@@ -464,6 +465,11 @@ export const syncServerProviderConnections = async (
  * Exchanges the code for tokens, fetches the user's calendars,
  * creates connections for each calendar, and triggers an initial sync.
  */
+const EXPORT_SCOPE_BY_PROVIDER: Record<'google' | 'outlook', string> = {
+  google: 'https://www.googleapis.com/auth/calendar.app.created',
+  outlook: 'Calendars.ReadWrite',
+};
+
 export const handleProviderOAuthCallback = async (
   userId: string,
   provider: 'google' | 'outlook',
@@ -473,6 +479,12 @@ export const handleProviderOAuthCallback = async (
 
   // 1. Exchange code for tokens
   const tokens = await providerService.exchangeCode(code);
+
+  // Detect whether the user actually granted the export scope. Providers return
+  // the granted scopes in the token response, so we can check without a
+  // separate API call. Fall back to false if scope info is unavailable.
+  const exportScopeGranted =
+    tokens.grantedScopes?.includes(EXPORT_SCOPE_BY_PROVIDER[provider]) ?? false;
 
   // 2. Fetch the user's calendars from the provider
   const calendars = await providerService.fetchCalendars(tokens.accessToken);
@@ -493,7 +505,9 @@ export const handleProviderOAuthCallback = async (
 
     const existingConnection = existing[0];
     if (existingConnection) {
-      // Update tokens and metadata on existing connection
+      // Update tokens, metadata, and export scope status.
+      // Only promote hasExportScope to true — never demote it on a re-auth
+      // that didn't request export scope (the user may have granted it before).
       await db
         .update(calendarConnections)
         .set({
@@ -502,6 +516,7 @@ export const handleProviderOAuthCallback = async (
           tokenExpiresAt: tokens.tokenExpiresAt,
           calendarName: cal.calendarName,
           color: cal.color ?? existingConnection.color,
+          ...(exportScopeGranted ? { hasExportScope: true } : {}),
         })
         .where(eq(calendarConnections.id, existingConnection.id));
     } else {
@@ -515,6 +530,7 @@ export const handleProviderOAuthCallback = async (
         color: cal.color,
         importEnabled: false,
         exportEnabled: false,
+        hasExportScope: exportScopeGranted,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
         tokenExpiresAt: tokens.tokenExpiresAt,

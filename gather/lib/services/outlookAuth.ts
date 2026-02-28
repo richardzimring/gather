@@ -16,9 +16,15 @@ import { getCalendarsOutlookAuthUrl } from '../api/client';
  * The authorization code never touches the client — it goes directly
  * from Microsoft to the backend for maximum security.
  */
-export async function connectOutlookCalendar(): Promise<void> {
+export async function connectOutlookCalendar(options?: {
+  includeExportScope?: boolean;
+}): Promise<void> {
   // 1. Get the OAuth URL from our backend
-  const authUrlResponse = await getCalendarsOutlookAuthUrl();
+  const authUrlResponse = await getCalendarsOutlookAuthUrl({
+    query: options?.includeExportScope
+      ? { includeExportScope: true }
+      : undefined,
+  });
   if (!authUrlResponse.data?.success || !authUrlResponse.data.data?.authUrl) {
     throw new Error('Failed to get Outlook OAuth URL');
   }

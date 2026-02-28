@@ -1,17 +1,22 @@
 import { eq, and } from 'drizzle-orm';
 import { db, calendarConnections } from '../src/db';
 import { syncProviderConnection } from '../src/services/calendars';
+import { runPeriodicExportSync } from '../src/services/calendar-export';
 
 /**
- * Scheduled Lambda handler for periodic Google Calendar sync.
- * Runs on a cron schedule (e.g., every 15 minutes) and re-syncs
- * events for all server-side calendar provider connections.
- *
- * This ensures that changes made in Google Calendar (outside of the app)
- * are reflected in the user's availability within Gather.
+ * Scheduled Lambda handler for periodic calendar sync.
+ * Runs on a cron schedule (e.g., every 15 minutes) and:
+ * 1. Re-syncs import events for all server-side connections (Google/Outlook)
+ *    so that availability changes are reflected in Gather.
+ * 2. Runs export sync as a safety net to ensure any missed or stale Gather
+ *    events are pushed back out to users' external calendars.
  */
 export const handler = async (): Promise<void> => {
   console.log('Starting scheduled calendar sync...');
+
+  // -------------------------------------------------------
+  // Phase 1: Import sync (availability → Gather)
+  // -------------------------------------------------------
 
   // Fetch all import-enabled non-Apple connections
   const connections = await db
@@ -30,26 +35,43 @@ export const handler = async (): Promise<void> => {
   );
 
   console.log(
-    `Found ${serverConnections.length} server-side calendar connections to sync`,
+    `Found ${serverConnections.length} server-side calendar connections to import-sync`,
   );
 
-  let successCount = 0;
-  let errorCount = 0;
+  let importSuccessCount = 0;
+  let importErrorCount = 0;
 
   for (const connection of serverConnections) {
     try {
       await syncProviderConnection(connection);
-      successCount++;
+      importSuccessCount++;
     } catch (error) {
-      errorCount++;
+      importErrorCount++;
       console.error(
-        `Failed to sync connection ${connection.id} (${connection.provider}/${connection.calendarName} for user ${connection.userId}):`,
+        `Failed to import-sync connection ${connection.id} (${connection.provider}/${connection.calendarName} for user ${connection.userId}):`,
         error,
       );
     }
   }
 
   console.log(
-    `Scheduled calendar sync complete: ${successCount} succeeded, ${errorCount} failed out of ${serverConnections.length} total`,
+    `Import sync complete: ${importSuccessCount} succeeded, ${importErrorCount} failed out of ${serverConnections.length} total`,
   );
+
+  // -------------------------------------------------------
+  // Phase 2: Export sync (Gather events → external calendar)
+  // -------------------------------------------------------
+
+  console.log('Starting periodic export sync...');
+
+  try {
+    const { processed, errors } = await runPeriodicExportSync();
+    console.log(
+      `Export sync complete: ${processed} users processed, ${errors} errors`,
+    );
+  } catch (error) {
+    console.error('Periodic export sync failed:', error);
+  }
+
+  console.log('Scheduled calendar sync complete.');
 };

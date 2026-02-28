@@ -5,6 +5,7 @@ import { TamaguiProvider, Theme } from 'tamagui';
 
 import { config } from '../tamagui.config';
 import { AuthProvider } from './hooks/useAuth';
+import { AppleExportProvider } from './contexts/appleExport';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -33,7 +34,9 @@ export function AppProviders({ children }: AppProvidersProps) {
       <TamaguiProvider config={config} defaultTheme={theme}>
         <Theme name={theme}>
           <KeyboardProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <AppleExportProvider>{children}</AppleExportProvider>
+            </AuthProvider>
           </KeyboardProvider>
         </Theme>
       </TamaguiProvider>

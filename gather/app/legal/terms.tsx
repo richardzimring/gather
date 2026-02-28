@@ -20,7 +20,7 @@ export default function TermsOfServiceScreen() {
 
         <YStack gap="$4">
           <Text color="$colorMuted" fontSize={13}>
-            Last updated: February 19, 2026
+            Last updated: February 28, 2026
           </Text>
 
           <YStack gap="$2">
@@ -64,19 +64,24 @@ export default function TermsOfServiceScreen() {
             <Text color="$color" fontSize={14} lineHeight={22}>
               Gather offers optional integrations with Google Calendar,
               Microsoft Outlook Calendar, and Apple Calendar. These integrations
-              are used solely to display your availability to friends within the
-              app.
+              are used to display your availability to friends within the app,
+              and optionally to sync your Gather events back to your connected
+              calendar account.
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
               By connecting a third-party calendar, you authorize Gather to
-              access your calendar data as described in our Privacy Policy. You
-              may disconnect any calendar integration at any time from the app
-              settings. Disconnecting immediately removes all associated
-              calendar data from our servers.
+              access your calendar data as described in our Privacy Policy. If
+              you enable the optional calendar export feature, you additionally
+              authorize Gather to create a dedicated &quot;Gather&quot; calendar
+              in your account and write your Gather events into it. You may
+              disable export or disconnect any calendar integration at any time
+              from the app settings. Disconnecting immediately removes all
+              associated calendar data from our servers and deletes any exported
+              events.
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
               {
-                "Your use of connected third-party services (Google, Microsoft) is also subject to those services' own terms of service and privacy policies. Gather's access is read-only and limited to availability data."
+                "Your use of connected third-party services (Google, Microsoft) is also subject to those services' own terms of service and privacy policies."
               }
             </Text>
           </YStack>

@@ -3,7 +3,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Alert } from 'react-native';
 import {
   Circle,
-  H1,
   ScrollView,
   Separator,
   Text,

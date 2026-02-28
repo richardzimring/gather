@@ -18,6 +18,12 @@ import {
   notifyCounterProposalRetracted,
 } from './notifications';
 import { generateEmoji } from './emoji';
+import {
+  exportEventForUser,
+  exportEventForAllUsers,
+  removeExportedEventForUser,
+  removeExportedEventForAllUsers,
+} from './calendar-export';
 
 // ============================================
 // Helpers
@@ -275,6 +281,14 @@ export const createEvent = async (
     }
   }
 
+  // Fire-and-forget: export to host's calendar sync destinations
+  exportEventForUser(hostId, newEvent.id).catch((err) =>
+    console.error(
+      `[calendar-export] Failed to export event ${newEvent.id} for host:`,
+      err,
+    ),
+  );
+
   return event;
 };
 
@@ -431,6 +445,14 @@ export const updateEvent = async (
     }
   }
 
+  // Fire-and-forget: update exported calendar events for all users who have this synced
+  exportEventForAllUsers(eventId).catch((err) =>
+    console.error(
+      `[calendar-export] Failed to update exports for event ${eventId}:`,
+      err,
+    ),
+  );
+
   return { success: true, event: updatedEvent ?? undefined };
 };
 
@@ -462,6 +484,14 @@ export const cancelEvent = async (
   if (inviteeIds.length > 0) {
     await notifyEventCancelled(inviteeIds, existing);
   }
+
+  // Fire-and-forget: remove this event from all users' exported calendars
+  removeExportedEventForAllUsers(eventId).catch((err) =>
+    console.error(
+      `[calendar-export] Failed to remove exports for cancelled event ${eventId}:`,
+      err,
+    ),
+  );
 
   return { success: true };
 };
@@ -542,6 +572,30 @@ export const respondToEvent = async (
         event.hostId,
         event,
         responder.fullName,
+      );
+    }
+  }
+
+  // Fire-and-forget: sync calendar export based on RSVP status change
+  if (invitee.status !== responseData.status) {
+    if (responseData.status === 'accepted') {
+      // User accepted — export event to their calendar
+      exportEventForUser(userId, eventId).catch((err) =>
+        console.error(
+          `[calendar-export] Failed to export event ${eventId} for invitee ${userId}:`,
+          err,
+        ),
+      );
+    } else if (
+      responseData.status === 'declined' &&
+      invitee.status === 'accepted'
+    ) {
+      // User declined after previously accepting — remove from their calendar
+      removeExportedEventForUser(userId, eventId).catch((err) =>
+        console.error(
+          `[calendar-export] Failed to remove export for event ${eventId} user ${userId}:`,
+          err,
+        ),
       );
     }
   }

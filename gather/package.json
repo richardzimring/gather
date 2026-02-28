@@ -11,13 +11,14 @@
     "prebuild:release": "expo prebuild --clean --platform ios",
     "build:development": "APP_ENV=development expo run:ios --device",
     "build:release": "expo run:ios --configuration Release --device",
-    "generate:api": "openapi-ts -i ../backend/openapi.json -o ./lib/api/generated -c @hey-api/client-fetch",
+    "generate:api": "openapi-ts",
     "android": "expo run:android",
     "ios": "expo run:ios"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
     "@hey-api/client-fetch": "^0.13.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "8.4.4",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/native": "^7.1.8",

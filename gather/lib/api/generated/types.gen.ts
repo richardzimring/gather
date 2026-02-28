@@ -121,6 +121,7 @@ export type CalendarConnection = {
     color?: string;
     importEnabled: boolean;
     exportEnabled: boolean;
+    hasExportScope: boolean;
     lastSyncAt?: string;
     createdAt: string;
 };
@@ -212,6 +213,54 @@ export type GoogleSelectCalendars = {
      * External calendar IDs to import. Unselected calendars will have importEnabled set to false.
      */
     calendarIds: string[];
+};
+
+export type ExportStatusListResponse = {
+    success: true;
+    data: {
+        statuses: CalendarExportStatus[];
+    };
+};
+
+export type CalendarExportStatus = {
+    provider: CalendarExportProvider;
+    enabled: boolean;
+    calendarName?: string;
+    externalCalendarId?: string;
+    eventCount?: number;
+    hasExportScope: boolean;
+    isConnected: boolean;
+};
+
+export type CalendarExportProvider = 'google' | 'outlook' | 'apple';
+
+export type ExportStatusResponse = {
+    success: true;
+    data: {
+        status: CalendarExportStatus;
+    };
+    message?: string;
+};
+
+export type EnableCalendarExport = {
+    provider: CalendarExportProvider;
+};
+
+export type ExportSyncResponse = {
+    success: true;
+    message?: string;
+};
+
+export type DisableCalendarExport = {
+    provider: CalendarExportProvider;
+    deleteCalendar?: boolean;
+};
+
+export type ExportAuthUrlResponse = {
+    success: true;
+    data: {
+        authUrl: string;
+    };
 };
 
 export type GenerateEmojiResponse = {
@@ -989,7 +1038,12 @@ export type DeleteCalendarsOutlookResponse = DeleteCalendarsOutlookResponses[key
 export type GetCalendarsGoogleAuthUrlData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Request export (write) scope in addition to read scopes
+         */
+        includeExportScope?: boolean | null;
+    };
     url: '/calendars/google/auth-url';
 };
 
@@ -1113,7 +1167,12 @@ export type PostCalendarsGoogleSyncResponse = PostCalendarsGoogleSyncResponses[k
 export type GetCalendarsOutlookAuthUrlData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Request export (write) scope in addition to read scopes
+         */
+        includeExportScope?: boolean | null;
+    };
     url: '/calendars/outlook/auth-url';
 };
 
@@ -1233,6 +1292,184 @@ export type PostCalendarsOutlookSyncResponses = {
 };
 
 export type PostCalendarsOutlookSyncResponse = PostCalendarsOutlookSyncResponses[keyof PostCalendarsOutlookSyncResponses];
+
+export type GetCalendarsExportStatusData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendars/export/status';
+};
+
+export type GetCalendarsExportStatusErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type GetCalendarsExportStatusError = GetCalendarsExportStatusErrors[keyof GetCalendarsExportStatusErrors];
+
+export type GetCalendarsExportStatusResponses = {
+    /**
+     * Export status per provider
+     */
+    200: ExportStatusListResponse;
+};
+
+export type GetCalendarsExportStatusResponse = GetCalendarsExportStatusResponses[keyof GetCalendarsExportStatusResponses];
+
+export type PostCalendarsExportEnableData = {
+    body: EnableCalendarExport;
+    path?: never;
+    query?: never;
+    url: '/calendars/export/enable';
+};
+
+export type PostCalendarsExportEnableErrors = {
+    /**
+     * Bad request — provider not connected or missing export scope
+     */
+    400: ErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostCalendarsExportEnableError = PostCalendarsExportEnableErrors[keyof PostCalendarsExportEnableErrors];
+
+export type PostCalendarsExportEnableResponses = {
+    /**
+     * Export enabled
+     */
+    200: ExportStatusResponse;
+};
+
+export type PostCalendarsExportEnableResponse = PostCalendarsExportEnableResponses[keyof PostCalendarsExportEnableResponses];
+
+export type PostCalendarsExportDisableData = {
+    body: DisableCalendarExport;
+    path?: never;
+    query?: never;
+    url: '/calendars/export/disable';
+};
+
+export type PostCalendarsExportDisableErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostCalendarsExportDisableError = PostCalendarsExportDisableErrors[keyof PostCalendarsExportDisableErrors];
+
+export type PostCalendarsExportDisableResponses = {
+    /**
+     * Export disabled
+     */
+    200: ExportSyncResponse;
+};
+
+export type PostCalendarsExportDisableResponse = PostCalendarsExportDisableResponses[keyof PostCalendarsExportDisableResponses];
+
+export type PostCalendarsExportSyncData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendars/export/sync';
+};
+
+export type PostCalendarsExportSyncErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostCalendarsExportSyncError = PostCalendarsExportSyncErrors[keyof PostCalendarsExportSyncErrors];
+
+export type PostCalendarsExportSyncResponses = {
+    /**
+     * Export sync triggered
+     */
+    200: ExportSyncResponse;
+};
+
+export type PostCalendarsExportSyncResponse = PostCalendarsExportSyncResponses[keyof PostCalendarsExportSyncResponses];
+
+export type GetCalendarsGoogleExportAuthUrlData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendars/google/export-auth-url';
+};
+
+export type GetCalendarsGoogleExportAuthUrlErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type GetCalendarsGoogleExportAuthUrlError = GetCalendarsGoogleExportAuthUrlErrors[keyof GetCalendarsGoogleExportAuthUrlErrors];
+
+export type GetCalendarsGoogleExportAuthUrlResponses = {
+    /**
+     * OAuth URL generated
+     */
+    200: ExportAuthUrlResponse;
+};
+
+export type GetCalendarsGoogleExportAuthUrlResponse = GetCalendarsGoogleExportAuthUrlResponses[keyof GetCalendarsGoogleExportAuthUrlResponses];
+
+export type GetCalendarsOutlookExportAuthUrlData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/calendars/outlook/export-auth-url';
+};
+
+export type GetCalendarsOutlookExportAuthUrlErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type GetCalendarsOutlookExportAuthUrlError = GetCalendarsOutlookExportAuthUrlErrors[keyof GetCalendarsOutlookExportAuthUrlErrors];
+
+export type GetCalendarsOutlookExportAuthUrlResponses = {
+    /**
+     * OAuth URL generated
+     */
+    200: ExportAuthUrlResponse;
+};
+
+export type GetCalendarsOutlookExportAuthUrlResponse = GetCalendarsOutlookExportAuthUrlResponses[keyof GetCalendarsOutlookExportAuthUrlResponses];
 
 export type PostEmojiGenerateData = {
     body?: GenerateEmojiRequest;

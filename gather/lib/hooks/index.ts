@@ -30,6 +30,14 @@ export {
   useOutlookCalendars,
   useSelectOutlookCalendars,
   useTriggerOutlookSync,
+  // Calendar Export hooks
+  exportKeys,
+  useExportStatus,
+  useEnableExport,
+  useDisableExport,
+  useTriggerExportSync,
+  useGoogleExportAuthUrl,
+  useOutlookExportAuthUrl,
 } from './useCalendars';
 
 // Notifications
@@ -43,6 +51,10 @@ export {
 
 // Calendar auto-sync
 export { useCalendarAutoSync } from './useCalendarSync';
+export { useAppleExportSync } from './useAppleExportSync';
+
+// Calendar provider connection flows
+export { useCalendarProviders } from './useCalendarProviders';
 
 // Utilities
 export * from './useRefresh';

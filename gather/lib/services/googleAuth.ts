@@ -16,9 +16,15 @@ import { getCalendarsGoogleAuthUrl } from '../api/client';
  * The authorization code never touches the client — it goes directly
  * from Google to the backend for maximum security.
  */
-export async function connectGoogleCalendar(): Promise<void> {
+export async function connectGoogleCalendar(options?: {
+  includeExportScope?: boolean;
+}): Promise<void> {
   // 1. Get the OAuth URL from our backend
-  const authUrlResponse = await getCalendarsGoogleAuthUrl();
+  const authUrlResponse = await getCalendarsGoogleAuthUrl({
+    query: options?.includeExportScope
+      ? { includeExportScope: true }
+      : undefined,
+  });
   if (!authUrlResponse.data?.success || !authUrlResponse.data.data?.authUrl) {
     throw new Error('Failed to get Google OAuth URL');
   }

@@ -1,0 +1,1 @@
+ALTER TABLE "calendar_connections" ADD COLUMN "has_export_scope" boolean DEFAULT false NOT NULL;

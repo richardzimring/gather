@@ -364,6 +364,8 @@ export const calendarConnections = pgTable(
     color: varchar('color', { length: 20 }),
     importEnabled: boolean('import_enabled').notNull().default(true),
     exportEnabled: boolean('export_enabled').notNull().default(false),
+    /** Whether the stored OAuth tokens include write/export scopes (google: calendar.app.created, outlook: Calendars.ReadWrite). */
+    hasExportScope: boolean('has_export_scope').notNull().default(false),
     accessToken: text('access_token'),
     refreshToken: text('refresh_token'),
     tokenExpiresAt: timestamp('token_expires_at', { withTimezone: true }),
@@ -429,6 +431,102 @@ export const calendarEventsCacheRelations = relations(
     connection: one(calendarConnections, {
       fields: [calendarEventsCache.connectionId],
       references: [calendarConnections.id],
+    }),
+  }),
+);
+
+// ============================================
+// Calendar Export Destinations Table
+// Tracks the "Gather" calendar created per user per provider for exporting events
+// ============================================
+
+export const calendarExportDestinations = pgTable(
+  'calendar_export_destinations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    provider: calendarProviderEnum('provider').notNull(),
+    externalCalendarId: varchar('external_calendar_id', {
+      length: 255,
+    }).notNull(),
+    calendarName: varchar('calendar_name', { length: 255 })
+      .notNull()
+      .default('Gather'),
+    enabled: boolean('enabled').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('calendar_export_destinations_user_provider_idx').on(
+      table.userId,
+      table.provider,
+    ),
+    index('calendar_export_destinations_user_id_idx').on(table.userId),
+  ],
+);
+
+export const calendarExportDestinationsRelations = relations(
+  calendarExportDestinations,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [calendarExportDestinations.userId],
+      references: [users.id],
+    }),
+    exports: many(calendarEventExports),
+  }),
+);
+
+// ============================================
+// Calendar Event Exports Table
+// Tracks which Gather events have been synced to which user's external "Gather" calendar
+// ============================================
+
+export const calendarEventExports = pgTable(
+  'calendar_event_exports',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    eventId: uuid('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    destinationId: uuid('destination_id')
+      .notNull()
+      .references(() => calendarExportDestinations.id, { onDelete: 'cascade' }),
+    externalEventId: varchar('external_event_id', { length: 255 }).notNull(),
+    lastSyncedAt: timestamp('last_synced_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('calendar_event_exports_event_destination_idx').on(
+      table.eventId,
+      table.destinationId,
+    ),
+    index('calendar_event_exports_user_id_idx').on(table.userId),
+    index('calendar_event_exports_event_id_idx').on(table.eventId),
+    index('calendar_event_exports_destination_id_idx').on(table.destinationId),
+  ],
+);
+
+export const calendarEventExportsRelations = relations(
+  calendarEventExports,
+  ({ one }) => ({
+    event: one(events, {
+      fields: [calendarEventExports.eventId],
+      references: [events.id],
+    }),
+    user: one(users, {
+      fields: [calendarEventExports.userId],
+      references: [users.id],
+    }),
+    destination: one(calendarExportDestinations, {
+      fields: [calendarEventExports.destinationId],
+      references: [calendarExportDestinations.id],
     }),
   }),
 );
@@ -524,3 +622,11 @@ export type NewEmojiCache = typeof emojiCache.$inferInsert;
 
 export type UserReport = typeof userReports.$inferSelect;
 export type NewUserReport = typeof userReports.$inferInsert;
+
+export type CalendarExportDestination =
+  typeof calendarExportDestinations.$inferSelect;
+export type NewCalendarExportDestination =
+  typeof calendarExportDestinations.$inferInsert;
+
+export type CalendarEventExport = typeof calendarEventExports.$inferSelect;
+export type NewCalendarEventExport = typeof calendarEventExports.$inferInsert;

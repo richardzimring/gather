@@ -20,6 +20,7 @@ import {
   useFriends,
   useNotifications,
   useCalendarAutoSync,
+  useAppleExportSync,
 } from '../../lib/hooks';
 import { haptic } from '../../lib/haptics';
 
@@ -64,6 +65,9 @@ export default function TabLayout() {
       }).length ?? 0
     );
   }, [events, user?.userId]);
+
+  // Sync Gather events to Apple Calendar when export is enabled
+  useAppleExportSync(events, user?.userId);
 
   // Pending friend requests received
   const { data: friendsData } = useFriends();

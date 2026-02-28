@@ -7,14 +7,11 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import { useQueryClient } from '@tanstack/react-query';
 import {
   Bell,
   Calendar,
   CalendarDays,
   Check,
-  CheckCircle2,
-  ChevronRight,
   Clock,
   Eye,
   Lock,
@@ -26,7 +23,6 @@ import {
   H1,
   Input,
   ScrollView,
-  Separator,
   Text,
   Theme,
   XStack,
@@ -38,24 +34,14 @@ import { Button } from '../../components/ui/Button';
 import { GradientBackground } from '../../components/ui/GradientBackground';
 import { Card } from '../../components/ui/Card';
 import { BlockedWindowsCard } from '../../components/ui/BlockedWindowsCard';
-import { CalendarProviderIcon } from '../../components/ui/CalendarProviderIcon';
-import { Spinner } from '../../components/ui/Spinner';
+import { CalendarProviderCard } from '../../components/ui/CalendarProviderCard';
 import { useAuth } from '../../lib/hooks/useAuth';
 import {
   useSendFriendRequest,
-  useCalendarConnections,
-  calendarConnectionKeys,
+  useCalendarProviders,
   useBlockedWindows,
   registerPushTokenAsync,
 } from '../../lib/hooks';
-import {
-  connectGoogleCalendar,
-  GoogleAuthCancelledError,
-} from '../../lib/services/googleAuth';
-import {
-  connectOutlookCalendar,
-  OutlookAuthCancelledError,
-} from '../../lib/services/outlookAuth';
 import { putUsersMeNotificationPreferences } from '../../lib/api/generated';
 import { haptic } from '../../lib/haptics';
 
@@ -218,7 +204,7 @@ function HowItWorksStep({ onNext }: { onNext: () => void }) {
     },
     {
       icon: <Eye size={20} color="$primary" />,
-      text: 'Friends can only see your availability, not your full calendar and event details. ',
+      text: 'Friends can only see your availability, not your full calendar or event details.',
     },
   ];
 
@@ -306,89 +292,7 @@ function HowItWorksStep({ onNext }: { onNext: () => void }) {
 // ============================================
 
 function ConnectCalendarStep({ onNext }: { onNext: () => void }) {
-  const queryClient = useQueryClient();
-  const { data: connections, isLoading } = useCalendarConnections();
-  const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
-  const [isConnectingOutlook, setIsConnectingOutlook] = useState(false);
-
-  const hasAppleConnection = connections?.some(
-    (c) => c.provider === 'apple' && c.importEnabled,
-  );
-  const hasGoogleConnection = connections?.some(
-    (c) => c.provider === 'google' && c.importEnabled,
-  );
-  const hasOutlookConnection = connections?.some(
-    (c) => c.provider === 'outlook' && c.importEnabled,
-  );
-
-  const handleApple = () => {
-    haptic.light();
-    router.push({
-      pathname: '/calendars/[provider]',
-      params: { provider: 'apple' },
-    });
-  };
-
-  const handleGoogle = async () => {
-    if (hasGoogleConnection) return;
-    setIsConnectingGoogle(true);
-    try {
-      await connectGoogleCalendar();
-      await queryClient.invalidateQueries({
-        queryKey: calendarConnectionKeys.connections(),
-      });
-      haptic.success();
-    } catch (error) {
-      if (error instanceof GoogleAuthCancelledError) return;
-      haptic.error();
-    } finally {
-      setIsConnectingGoogle(false);
-    }
-  };
-
-  const handleOutlook = async () => {
-    if (hasOutlookConnection) return;
-    setIsConnectingOutlook(true);
-    try {
-      await connectOutlookCalendar();
-      await queryClient.invalidateQueries({
-        queryKey: calendarConnectionKeys.connections(),
-      });
-      haptic.success();
-    } catch (error) {
-      if (error instanceof OutlookAuthCancelledError) return;
-      haptic.error();
-    } finally {
-      setIsConnectingOutlook(false);
-    }
-  };
-
-  const providers = [
-    {
-      id: 'apple' as const,
-      name: 'Apple Calendar',
-      isConnected: !!hasAppleConnection,
-      isConnecting: false,
-      onPress: handleApple,
-    },
-    {
-      id: 'google' as const,
-      name: 'Google Calendar',
-      isConnected: !!hasGoogleConnection,
-      isConnecting: isConnectingGoogle,
-      onPress: handleGoogle,
-    },
-    {
-      id: 'outlook' as const,
-      name: 'Outlook',
-      isConnected: !!hasOutlookConnection,
-      isConnecting: isConnectingOutlook,
-      onPress: handleOutlook,
-    },
-  ];
-
-  const anyConnected =
-    hasAppleConnection || hasGoogleConnection || hasOutlookConnection;
+  const { isLoading, providers, hasAnyConnection } = useCalendarProviders();
 
   return (
     <YStack flex={1} paddingHorizontal="$5">
@@ -425,96 +329,13 @@ function ConnectCalendarStep({ onNext }: { onNext: () => void }) {
             </Text>
           </YStack>
 
-          {/* Provider list */}
-          <Theme name="Card">
-            <Card width="100%">
-              {isLoading ? (
-                <YStack
-                  alignItems="center"
-                  justifyContent="center"
-                  paddingVertical="$4"
-                >
-                  <Spinner size="small" color="$colorMuted" />
-                </YStack>
-              ) : (
-                providers.map((provider, index) => (
-                  <YStack key={provider.id}>
-                    {index > 0 && <Separator />}
-                    <XStack
-                      alignItems="center"
-                      paddingVertical="$3"
-                      gap="$3"
-                      opacity={
-                        provider.isConnected
-                          ? 1
-                          : provider.isConnecting
-                            ? 0.6
-                            : 1
-                      }
-                      pressStyle={
-                        !provider.isConnected && !provider.isConnecting
-                          ? { opacity: 0.7 }
-                          : undefined
-                      }
-                      onPress={
-                        !provider.isConnected && !provider.isConnecting
-                          ? provider.onPress
-                          : undefined
-                      }
-                    >
-                      <YStack
-                        width={36}
-                        height={36}
-                        borderRadius={8}
-                        backgroundColor="$backgroundHover"
-                        alignItems="center"
-                        justifyContent="center"
-                      >
-                        {provider.isConnecting ? (
-                          <Spinner size="small" color="$colorMuted" />
-                        ) : (
-                          <CalendarProviderIcon
-                            provider={provider.id}
-                            size={20}
-                          />
-                        )}
-                      </YStack>
-
-                      <Text
-                        flex={1}
-                        fontWeight="500"
-                        fontSize={15}
-                        color="$color"
-                      >
-                        {provider.isConnecting
-                          ? 'Connecting...'
-                          : provider.name}
-                      </Text>
-
-                      {provider.isConnected ? (
-                        <XStack alignItems="center" gap="$2">
-                          <Text fontSize={13} color="$success" fontWeight="500">
-                            Connected
-                          </Text>
-                          <CheckCircle2 size={15} color="$success" />
-                        </XStack>
-                      ) : (
-                        !provider.isConnecting && (
-                          <ChevronRight size={18} color="$colorMuted" />
-                        )
-                      )}
-                    </XStack>
-                  </YStack>
-                ))
-              )}
-            </Card>
-          </Theme>
+          <CalendarProviderCard isLoading={isLoading} providers={providers} />
         </YStack>
       </ScrollView>
 
       {/* Bottom action */}
       <YStack paddingVertical="$3" gap="$2" paddingHorizontal={8}>
-        {anyConnected && (
+        {hasAnyConnection && (
           <Button
             variant="primary"
             buttonSize="lg"
@@ -535,7 +356,7 @@ function ConnectCalendarStep({ onNext }: { onNext: () => void }) {
             onNext();
           }}
         >
-          {anyConnected ? 'Skip for now' : "I'll do this later"}
+          {hasAnyConnection ? 'Skip for now' : "I'll do this later"}
         </Button>
       </YStack>
     </YStack>

@@ -47,7 +47,6 @@ backend/
 - Drizzle ORM for type-safe queries with JOINs
 - Schema defined in `backend/src/db/schema.ts`
 - Database scripts:
-  - `npm run db:push` - Push schema changes to database
   - `npm run db:generate` - Generate migrations
   - `npm run db:migrate` - Run migrations
 

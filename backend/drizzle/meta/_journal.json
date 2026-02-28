@@ -8,6 +8,20 @@
       "when": 1772065098512,
       "tag": "0000_legal_flatman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772180013199,
+      "tag": "0001_small_the_anarchist",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772180125001,
+      "tag": "0002_luxuriant_bloodaxe",
+      "breakpoints": true
     }
   ]
 }

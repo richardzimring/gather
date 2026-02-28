@@ -2,7 +2,10 @@ import { createRoute, z } from '@hono/zod-openapi';
 import { createApp, authMiddleware } from '../middleware/hono';
 import {
   CalendarConnectionSchema,
+  CalendarExportStatusSchema,
   CreateCalendarConnectionSchema,
+  DisableCalendarExportSchema,
+  EnableCalendarExportSchema,
   UpdateCalendarConnectionSchema,
   SyncCalendarsSchema,
   GoogleCalendarSchema,
@@ -26,6 +29,13 @@ import {
   getCalendarProvider,
   OAuthRevokedError,
 } from '../services/calendar-providers';
+import {
+  getExportStatus,
+  enableExportForProvider,
+  disableExportForProvider,
+  fullExportSync,
+} from '../services/calendar-export';
+import { STAGE } from '../constants';
 
 export const app = createApp();
 
@@ -34,7 +44,8 @@ export const app = createApp();
 // Must be registered BEFORE the auth middleware.
 // ============================================
 
-const APP_SCHEME_CALLBACK = 'gather://calendars/google/callback';
+const APP_SCHEME = STAGE === 'prod' ? 'gather' : 'gather-dev';
+const APP_SCHEME_CALLBACK = `${APP_SCHEME}://calendars/google/callback`;
 
 app.get('/calendars/google/callback', async (c) => {
   const code = c.req.query('code');
@@ -65,7 +76,7 @@ app.get('/calendars/google/callback', async (c) => {
 // Must be registered BEFORE the auth middleware.
 // ============================================
 
-const OUTLOOK_APP_SCHEME_CALLBACK = 'gather://calendars/outlook/callback';
+const OUTLOOK_APP_SCHEME_CALLBACK = `${APP_SCHEME}://calendars/outlook/callback`;
 
 app.get('/calendars/outlook/callback', async (c) => {
   const code = c.req.query('code');
@@ -638,6 +649,12 @@ const registerProviderDisconnectHandler = (
   app.openapi(route, async (c) => {
     const user = c.get('user');
     try {
+      // Delete the "Gather" export calendar and all exported events BEFORE
+      // removing connections — we still need the provider tokens to authenticate
+      // the calendar deletion with Google/Outlook.
+      if (provider !== 'apple') {
+        await disableExportForProvider(user.userId, provider, true);
+      }
       await deleteProviderConnections(user.userId, provider);
       return c.json(
         {
@@ -733,6 +750,13 @@ const googleAuthUrlRoute = createRoute({
   description:
     'Get the Google OAuth consent URL for the current user to authorize calendar access',
   security: [{ BearerAuth: [] }],
+  request: {
+    query: z.object({
+      includeExportScope: z.coerce.boolean().optional().openapi({
+        description: 'Request export (write) scope in addition to read scopes',
+      }),
+    }),
+  },
   responses: {
     200: {
       description: 'OAuth URL generated',
@@ -866,8 +890,12 @@ app.openapi(googleAuthUrlRoute, async (c) => {
   const user = c.get('user');
 
   try {
+    const { includeExportScope } = c.req.valid('query');
     const provider = getCalendarProvider('google');
-    const authUrl = provider.getAuthUrl(user.userId);
+    const authUrl = provider.getAuthUrl(
+      user.userId,
+      includeExportScope ? { includeExportScope: true } : undefined,
+    );
     return c.json({ success: true as const, data: { authUrl } }, 200);
   } catch (error) {
     console.error('Error in GET /calendars/google/auth-url:', error);
@@ -1009,6 +1037,13 @@ const outlookAuthUrlRoute = createRoute({
   description:
     'Get the Outlook OAuth consent URL for the current user to authorize calendar access',
   security: [{ BearerAuth: [] }],
+  request: {
+    query: z.object({
+      includeExportScope: z.coerce.boolean().optional().openapi({
+        description: 'Request export (write) scope in addition to read scopes',
+      }),
+    }),
+  },
   responses: {
     200: {
       description: 'OAuth URL generated',
@@ -1142,8 +1177,12 @@ app.openapi(outlookAuthUrlRoute, async (c) => {
   const user = c.get('user');
 
   try {
+    const { includeExportScope } = c.req.valid('query');
     const provider = getCalendarProvider('outlook');
-    const authUrl = provider.getAuthUrl(user.userId);
+    const authUrl = provider.getAuthUrl(
+      user.userId,
+      includeExportScope ? { includeExportScope: true } : undefined,
+    );
     return c.json({ success: true as const, data: { authUrl } }, 200);
   } catch (error) {
     console.error('Error in GET /calendars/outlook/auth-url:', error);
@@ -1266,6 +1305,374 @@ app.openapi(outlookSyncRoute, async (c) => {
         success: false as const,
         error: 'Internal Server Error',
         message: 'Failed to sync Outlook calendars',
+      },
+      500,
+    );
+  }
+});
+
+// ============================================
+// Calendar Export Response Schemas
+// ============================================
+
+const ExportStatusListResponseSchema = z
+  .object({
+    success: z.literal(true),
+    data: z.object({
+      statuses: z.array(CalendarExportStatusSchema),
+    }),
+  })
+  .openapi('ExportStatusListResponse');
+
+const ExportStatusResponseSchema = z
+  .object({
+    success: z.literal(true),
+    data: z.object({
+      status: CalendarExportStatusSchema,
+    }),
+    message: z.string().optional(),
+  })
+  .openapi('ExportStatusResponse');
+
+const ExportAuthUrlResponseSchema = z
+  .object({
+    success: z.literal(true),
+    data: z.object({
+      authUrl: z.string(),
+    }),
+  })
+  .openapi('ExportAuthUrlResponse');
+
+const ExportSyncResponseSchema = z
+  .object({
+    success: z.literal(true),
+    message: z.string().optional(),
+  })
+  .openapi('ExportSyncResponse');
+
+// ============================================
+// Calendar Export Route Definitions
+// ============================================
+
+// GET /calendars/export/status
+const exportStatusRoute = createRoute({
+  method: 'get',
+  path: '/calendars/export/status',
+  tags: ['Calendars', 'CalendarExport'],
+  summary: 'Get calendar export status',
+  description:
+    'Get the export sync status for each calendar provider (google, outlook, apple)',
+  security: [{ BearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Export status per provider',
+      content: {
+        'application/json': { schema: ExportStatusListResponseSchema },
+      },
+    },
+    401: {
+      description: 'Unauthorized',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+  },
+});
+
+// POST /calendars/export/enable
+const enableExportRoute = createRoute({
+  method: 'post',
+  path: '/calendars/export/enable',
+  tags: ['Calendars', 'CalendarExport'],
+  summary: 'Enable calendar export',
+  description:
+    'Enable syncing Gather events to the user\'s calendar. Creates a "Gather" secondary calendar if needed.',
+  security: [{ BearerAuth: [] }],
+  request: {
+    body: {
+      content: { 'application/json': { schema: EnableCalendarExportSchema } },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      description: 'Export enabled',
+      content: { 'application/json': { schema: ExportStatusResponseSchema } },
+    },
+    400: {
+      description:
+        'Bad request — provider not connected or missing export scope',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+  },
+});
+
+// POST /calendars/export/disable
+const disableExportRoute = createRoute({
+  method: 'post',
+  path: '/calendars/export/disable',
+  tags: ['Calendars', 'CalendarExport'],
+  summary: 'Disable calendar export',
+  description: "Disable syncing Gather events to the user's calendar.",
+  security: [{ BearerAuth: [] }],
+  request: {
+    body: {
+      content: { 'application/json': { schema: DisableCalendarExportSchema } },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      description: 'Export disabled',
+      content: { 'application/json': { schema: ExportSyncResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+  },
+});
+
+// POST /calendars/export/sync
+const exportSyncRoute = createRoute({
+  method: 'post',
+  path: '/calendars/export/sync',
+  tags: ['Calendars', 'CalendarExport'],
+  summary: 'Trigger full export sync',
+  description:
+    "Re-sync all active Gather events to the user's export calendars.",
+  security: [{ BearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'Export sync triggered',
+      content: { 'application/json': { schema: ExportSyncResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+  },
+});
+
+// GET /calendars/google/export-auth-url
+const googleExportAuthUrlRoute = createRoute({
+  method: 'get',
+  path: '/calendars/google/export-auth-url',
+  tags: ['Calendars', 'Google', 'CalendarExport'],
+  summary: 'Get Google OAuth URL with export scope',
+  description:
+    'Get the Google OAuth consent URL including the calendar.app.created write scope for enabling event export',
+  security: [{ BearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'OAuth URL generated',
+      content: { 'application/json': { schema: ExportAuthUrlResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+  },
+});
+
+// GET /calendars/outlook/export-auth-url
+const outlookExportAuthUrlRoute = createRoute({
+  method: 'get',
+  path: '/calendars/outlook/export-auth-url',
+  tags: ['Calendars', 'Outlook', 'CalendarExport'],
+  summary: 'Get Outlook OAuth URL with export scope',
+  description:
+    'Get the Outlook OAuth consent URL with Calendars.ReadWrite scope for enabling event export',
+  security: [{ BearerAuth: [] }],
+  responses: {
+    200: {
+      description: 'OAuth URL generated',
+      content: { 'application/json': { schema: ExportAuthUrlResponseSchema } },
+    },
+    401: {
+      description: 'Unauthorized',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+    500: {
+      description: 'Internal server error',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+  },
+});
+
+// ============================================
+// Calendar Export Route Handlers
+// ============================================
+
+app.openapi(exportStatusRoute, async (c) => {
+  const user = c.get('user');
+  try {
+    const statuses = await getExportStatus(user.userId);
+    return c.json({ success: true as const, data: { statuses } }, 200);
+  } catch (error) {
+    console.error('Error in GET /calendars/export/status:', error);
+    return c.json(
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to get export status',
+      },
+      500,
+    );
+  }
+});
+
+app.openapi(enableExportRoute, async (c) => {
+  const user = c.get('user');
+  const { provider } = c.req.valid('json');
+
+  if (provider === 'apple') {
+    return c.json(
+      {
+        success: false as const,
+        error: 'Bad Request',
+        message:
+          'Apple export is managed on device. Use the apple export toggle in the app.',
+      },
+      400,
+    );
+  }
+
+  try {
+    const status = await enableExportForProvider(
+      user.userId,
+      provider,
+      user.timezone ?? 'UTC',
+    );
+    return c.json(
+      {
+        success: true as const,
+        data: { status },
+        message: 'Calendar export enabled',
+      },
+      200,
+    );
+  } catch (error) {
+    console.error('Error in POST /calendars/export/enable:', error);
+    const message =
+      error instanceof Error ? error.message : 'Failed to enable export';
+    return c.json(
+      { success: false as const, error: 'Bad Request', message },
+      400,
+    );
+  }
+});
+
+app.openapi(disableExportRoute, async (c) => {
+  const user = c.get('user');
+  const { provider, deleteCalendar } = c.req.valid('json');
+
+  // Apple export is managed device-side; no server-side action needed
+  if (provider === 'apple') {
+    return c.json(
+      { success: true as const, message: 'Apple export is managed on device' },
+      200,
+    );
+  }
+
+  try {
+    await disableExportForProvider(user.userId, provider, deleteCalendar);
+    return c.json(
+      { success: true as const, message: 'Calendar export disabled' },
+      200,
+    );
+  } catch (error) {
+    console.error('Error in POST /calendars/export/disable:', error);
+    return c.json(
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to disable export',
+      },
+      500,
+    );
+  }
+});
+
+app.openapi(exportSyncRoute, async (c) => {
+  const user = c.get('user');
+  try {
+    await fullExportSync(user.userId);
+    return c.json(
+      { success: true as const, message: 'Export sync triggered' },
+      200,
+    );
+  } catch (error) {
+    console.error('Error in POST /calendars/export/sync:', error);
+    return c.json(
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to trigger export sync',
+      },
+      500,
+    );
+  }
+});
+
+app.openapi(googleExportAuthUrlRoute, async (c) => {
+  const user = c.get('user');
+  try {
+    const provider = getCalendarProvider('google');
+    const authUrl = provider.getAuthUrl(user.userId, {
+      includeExportScope: true,
+    });
+    return c.json({ success: true as const, data: { authUrl } }, 200);
+  } catch (error) {
+    console.error('Error in GET /calendars/google/export-auth-url:', error);
+    return c.json(
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to generate Google export auth URL',
+      },
+      500,
+    );
+  }
+});
+
+app.openapi(outlookExportAuthUrlRoute, async (c) => {
+  const user = c.get('user');
+  try {
+    const provider = getCalendarProvider('outlook');
+    const authUrl = provider.getAuthUrl(user.userId, {
+      includeExportScope: true,
+    });
+    return c.json({ success: true as const, data: { authUrl } }, 200);
+  } catch (error) {
+    console.error('Error in GET /calendars/outlook/export-auth-url:', error);
+    return c.json(
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to generate Outlook export auth URL',
       },
       500,
     );

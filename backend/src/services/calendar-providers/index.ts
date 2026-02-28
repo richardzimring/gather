@@ -33,6 +33,8 @@ export interface OAuthTokens {
   refreshToken: string;
   tokenExpiresAt: Date;
   accountEmail?: string;
+  /** Scopes actually granted by the user during this authorization. */
+  grantedScopes?: string[];
 }
 
 /**
@@ -46,13 +48,38 @@ export interface ProviderEvent {
 }
 
 /**
+ * Event data used when exporting a Gather event to an external calendar.
+ */
+export interface ExportableEvent {
+  title: string;
+  description?: string;
+  /**
+   * Combined location string formatted as "Display Name, Full Address" (or
+   * just one of those if the other is absent). Calendar apps use this to
+   * render a tappable map link.
+   */
+  locationString?: string;
+  startTime: Date;
+  endTime: Date;
+  timeZone: string;
+}
+
+/**
+ * Options for generating the OAuth consent URL.
+ */
+export interface AuthUrlOptions {
+  /** Whether to include write/export scopes in addition to the read scopes. */
+  includeExportScope?: boolean;
+}
+
+/**
  * Strategy interface for calendar providers (Google, Outlook, etc.).
  * Each provider implements this interface to handle OAuth, calendar listing,
  * and event syncing in a provider-specific way.
  */
 export interface CalendarProviderService {
   /** Generate the OAuth consent URL for the user to authorize access. */
-  getAuthUrl(userId: string): string;
+  getAuthUrl(userId: string, options?: AuthUrlOptions): string;
 
   /** Exchange an authorization code for OAuth tokens. */
   exchangeCode(code: string): Promise<OAuthTokens>;
@@ -70,6 +97,38 @@ export interface CalendarProviderService {
     timeMin: Date,
     timeMax: Date,
   ): Promise<ProviderEvent[]>;
+
+  /** Create a new secondary calendar in the provider. Returns the created calendar. */
+  createCalendar(
+    accessToken: string,
+    name: string,
+    timeZone: string,
+  ): Promise<ExternalCalendar>;
+
+  /** Create an event in a specific calendar. Returns the external event ID. */
+  createEvent(
+    accessToken: string,
+    calendarId: string,
+    event: ExportableEvent,
+  ): Promise<string>;
+
+  /** Update an existing exported event. */
+  updateEvent(
+    accessToken: string,
+    calendarId: string,
+    externalEventId: string,
+    event: ExportableEvent,
+  ): Promise<void>;
+
+  /** Delete an exported event from a calendar. */
+  deleteEvent(
+    accessToken: string,
+    calendarId: string,
+    externalEventId: string,
+  ): Promise<void>;
+
+  /** Delete an entire calendar created by this app (e.g. the "Gather" export calendar). */
+  deleteCalendar(accessToken: string, calendarId: string): Promise<void>;
 }
 
 // ============================================

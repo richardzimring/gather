@@ -350,7 +350,7 @@ export default function LoginScreen() {
               letterSpacing={0.08}
               color={isDark ? 'rgba(255,255,255,0.38)' : 'rgba(20,15,40,0.42)'}
             >
-              Find the time to see the people you love.
+              See the people you love.
             </Text>
           </YStack>
         </YStack>

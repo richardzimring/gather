@@ -20,7 +20,7 @@ export default function PrivacyPolicyScreen() {
 
         <YStack gap="$4">
           <Text color="$colorMuted" fontSize={13}>
-            Last updated: February 19, 2026
+            Last updated: February 28, 2026
           </Text>
 
           <YStack gap="$2">
@@ -94,18 +94,36 @@ export default function PrivacyPolicyScreen() {
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
               Gather offers an optional integration with Google Calendar. If you
-              choose to connect your Google account, we request two narrow
-              read-only scopes: calendar.calendarlist.readonly (to list your
-              calendars) and calendar.freebusy (to read free/busy availability).
+              choose to connect your Google account, we request the following
+              OAuth scopes for calendar availability:
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
               {
-                'Using this access, we read:\n\u2022 Your calendar names and colors — so you can select which calendars to include.\n\u2022 Free/busy time intervals — to show your availability to friends. We do not read or store event titles, descriptions, locations, or attendees.'
+                '\u2022 calendar.calendarlist.readonly — read-only access to your list of Google calendars.\n\u2022 calendar.freebusy — read-only access to free/busy availability on your calendars.'
               }
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
               {
-                'Your Google data is used only for availability. We do not sell or share it with third parties. OAuth tokens are stored securely on our servers. You can disconnect at any time from app settings.\n\nOur use of Google data adheres to the Google API Services User Data Policy, including the Limited Use requirements.'
+                'Using these scopes, we read your calendar names and colors (so you can select which to include) and free/busy time intervals (to show your availability to friends). We do not read or store event titles, descriptions, locations, or attendees.'
+              }
+            </Text>
+            <Text color="$color" fontSize={14} lineHeight={22}>
+              If you additionally enable the optional Google Calendar export
+              feature, we also request:
+            </Text>
+            <Text color="$color" fontSize={14} lineHeight={22}>
+              {
+                '\u2022 calendar.app.created — allows Gather to create and manage a dedicated secondary calendar named "Gather" in your Google account, and to create, update, and delete events within that calendar.'
+              }
+            </Text>
+            <Text color="$color" fontSize={14} lineHeight={22}>
+              {
+                'When export is enabled, Gather writes your Gather event details — including title, date and time, location, notes, and the names of other attendees — into your "Gather" Google calendar. This data is written solely to keep your Google calendar in sync with your Gather events. We do not read events from your existing Google calendars beyond the free/busy data described above.'
+              }
+            </Text>
+            <Text color="$color" fontSize={14} lineHeight={22}>
+              {
+                'We do not sell or share your Google data with third parties. OAuth tokens are stored securely on our servers. You can disconnect at any time from app settings, which permanently revokes our access and removes all exported events.\n\nOur use and transfer of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements.'
               }
             </Text>
           </YStack>
@@ -116,18 +134,36 @@ export default function PrivacyPolicyScreen() {
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
               Gather offers an optional integration with Microsoft Outlook
-              Calendar. If you choose to connect your Outlook account, we
-              request Calendars.Read (read-only) and offline_access scopes.
+              Calendar. If you choose to connect your Outlook account for
+              calendar availability, we request the following OAuth scopes:
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
               {
-                'Using this access, we read:\n\u2022 Your Microsoft account name and email — to identify which account is connected.\n\u2022 Your calendar names and colors — so you can select which calendars to include.\n\u2022 Event start/end times and free/busy status — to show your availability. We do not read or store event titles, descriptions, locations, or attendees.'
+                '\u2022 Calendars.Read — read-only access to your Outlook calendar data.\n\u2022 offline_access — allows us to refresh your calendar data in the background without requiring you to re-authorize.'
               }
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              Your Microsoft data is used only for availability. We do not sell
-              or share it with third parties. OAuth tokens are stored securely
-              on our servers. You can disconnect at any time from app settings.
+              {
+                'Using these scopes, we read your Microsoft account name and email (to identify which account is connected), your calendar names and colors (so you can select which to include), and event start/end times and free/busy status (to show your availability). We do not read or store event titles, descriptions, locations, or attendees.'
+              }
+            </Text>
+            <Text color="$color" fontSize={14} lineHeight={22}>
+              If you additionally enable the optional Outlook Calendar export
+              feature, we request Calendars.ReadWrite instead of Calendars.Read.
+              This allows Gather to create a dedicated secondary calendar named
+              &quot;Gather&quot; in your Outlook account, and to create, update,
+              and delete events within that calendar.
+            </Text>
+            <Text color="$color" fontSize={14} lineHeight={22}>
+              {
+                'When export is enabled, Gather writes your Gather event details — including title, date and time, location, notes, and the names of other attendees — into your "Gather" Outlook calendar. This data is written solely to keep your Outlook calendar in sync with your Gather events.'
+              }
+            </Text>
+            <Text color="$color" fontSize={14} lineHeight={22}>
+              We do not sell or share your Microsoft data with third parties.
+              OAuth tokens are stored securely on our servers. You can
+              disconnect at any time from app settings, which permanently
+              revokes our access and removes all exported events.
             </Text>
           </YStack>
 
@@ -137,7 +173,7 @@ export default function PrivacyPolicyScreen() {
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
               Gather offers an optional integration with Apple Calendar on your
-              iOS device using native calendar permissions — no OAuth or
+              iOS device using native iOS calendar permissions — no OAuth or
               third-party account connection is required.
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
@@ -146,10 +182,19 @@ export default function PrivacyPolicyScreen() {
               }
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
-              With your permission, Gather can also add events to your Apple
-              Calendar (for example, to save a Gather event to your device).
-              This action is always initiated by you. You can revoke access at
-              any time in iOS Settings under Privacy &amp; Security → Calendars.
+              If you enable the optional Apple Calendar export feature, Gather
+              will create a dedicated calendar named &quot;Gather&quot; on your
+              device and automatically sync your Gather events into it. Events
+              written to this calendar include the event title, date and time,
+              location, notes, and the names of other attendees. This sync runs
+              automatically in the background whenever your events change. You
+              can disable export at any time from the calendar settings screen,
+              which will delete the &quot;Gather&quot; calendar and all its
+              events from your device.
+            </Text>
+            <Text color="$color" fontSize={14} lineHeight={22}>
+              You can revoke Apple Calendar access entirely at any time in iOS
+              Settings under Privacy &amp; Security → Calendars.
             </Text>
           </YStack>
 
@@ -159,8 +204,15 @@ export default function PrivacyPolicyScreen() {
             </Text>
             <Text color="$color" fontSize={14} lineHeight={22}>
               {
-                "We do not sell your personal information. We share your information only with other Gather users as part of the app's core functionality (e.g., your name and availability with friends you've connected with). Calendar data is used only to compute your free/busy availability — individual event details are never shared with other users."
+                "We do not sell your personal information. We share your information only with other Gather users as part of the app's core functionality (e.g., your name and availability with friends you've connected with). Calendar data imported from your connected calendars is used only to compute your free/busy availability — individual event details from your external calendars are never shared with other users."
               }
+            </Text>
+            <Text color="$color" fontSize={14} lineHeight={22}>
+              If you enable calendar export, your Gather event details (title,
+              time, location, notes, and attendee names) are written to your
+              connected calendar account. This data is sent to Google or
+              Microsoft solely on your behalf to populate your personal calendar
+              — it is not shared with any other third party.
             </Text>
           </YStack>
 
