@@ -12,7 +12,7 @@ import {
 } from '@tamagui/lucide-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { LayoutAnimation, RefreshControl } from 'react-native';
+import { LayoutAnimation, RefreshControl, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import {
   H1,
@@ -217,6 +217,8 @@ export default function PlanScreen() {
   );
   const [filterUngodlyHours, setFilterUngodlyHours] = useState(true);
 
+  const [showAllFriends, setShowAllFriends] = useState(false);
+
   // --- Inline event creation state ---
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [timeSlotsExpanded, setTimeSlotsExpanded] = useState(true);
@@ -231,7 +233,9 @@ export default function PlanScreen() {
   const scrollViewRef = useRef<any>(null);
 
   const detailsRef = useRef<any>(null);
-  const timeSlotsRef = useRef<any>(null);
+  const timeSlotsRef = useRef<View>(null);
+  const timeSlotsScrollY = useRef<number>(0);
+  const selectedSlotScrollY = useRef<number>(0);
 
   const createEvent = useCreateEvent();
 
@@ -573,6 +577,7 @@ export default function PlanScreen() {
   }, []);
 
   const selectSlot = (slot: TimeSlot) => {
+    haptic.selection();
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setSelectedSlot(slot);
     setTimeSlotsExpanded(false);
@@ -697,7 +702,10 @@ export default function PlanScreen() {
                 <Button
                   variant="secondary"
                   buttonSize="sm"
-                  onPress={() => router.push('/friends/add')}
+                  onPress={() => {
+                    haptic.light();
+                    router.push('/friends/add');
+                  }}
                 >
                   Add Friends
                 </Button>
@@ -710,15 +718,23 @@ export default function PlanScreen() {
                   selectedIds={selectedFriends}
                   onToggle={toggleFriend}
                   onToggleGroup={toggleGroup}
-                  maxVisible={MAX_VISIBLE_FRIENDS}
+                  maxVisible={showAllFriends ? undefined : MAX_VISIBLE_FRIENDS}
                 />
                 {friends.length > MAX_VISIBLE_FRIENDS && (
                   <Button
                     variant="ghost"
                     buttonSize="sm"
-                    onPress={() => router.push('/(tabs)/friends')}
+                    onPress={() => {
+                      haptic.light();
+                      LayoutAnimation.configureNext(
+                        LayoutAnimation.Presets.easeInEaseOut,
+                      );
+                      setShowAllFriends((prev) => !prev);
+                    }}
                   >
-                    View all {friends.length} friends
+                    {showAllFriends
+                      ? 'Show less'
+                      : `Show all ${friends.length} friends`}
                   </Button>
                 )}
               </YStack>
@@ -753,384 +769,404 @@ export default function PlanScreen() {
 
         {/* ==================== Step 3: Time Filters ==================== */}
         {showResults && (
-          <YStack ref={timeSlotsRef}>
-            {/* Time filter card */}
-            <Theme name="Card">
-              <Card marginBottom="$4">
-                <XStack alignItems="center" gap="$2" marginBottom="$3">
-                  <Clock size={16} color="$colorMuted" />
-                  <Text fontWeight="500" fontSize={14}>
-                    Time
-                  </Text>
-                </XStack>
-
-                {/* Start around */}
-                {visibleStartTimeOptions.length > 0 ? (
-                  <TimeChipPicker
-                    label="Start around"
-                    options={visibleStartTimeOptions}
-                    selectedValue={preferredStartTime}
-                    onSelect={handleStartTimeToggle}
-                    allowDeselect
-                  />
-                ) : (
-                  <YStack gap="$2">
-                    <Text fontSize={13} color="$colorMuted" fontWeight="500">
-                      Start around
-                    </Text>
-                    <YStack
-                      backgroundColor="$backgroundHover"
-                      padding="$3"
-                      borderRadius="$2"
-                    >
-                      <Text
-                        fontSize={13}
-                        color="$colorMuted"
-                        textAlign="center"
-                      >
-                        No times remaining for today.{' '}
-                        {filterUngodlyHours
-                          ? 'Try selecting a different day or turning off the late nights filter.'
-                          : 'Try selecting a different day.'}
-                      </Text>
-                    </YStack>
-                  </YStack>
-                )}
-
-                {/* Duration selection */}
-                <Separator marginVertical="$3" />
-
-                <TimeChipPicker
-                  label="How long"
-                  options={DURATION_OPTIONS}
-                  selectedValue={duration}
-                  onSelect={handleDurationChange}
-                />
-
-                {/* Ungodly hours toggle */}
-                <Separator marginVertical="$3" />
-
-                <XStack alignItems="center" justifyContent="space-between">
-                  <XStack alignItems="center" gap="$2" flex={1}>
-                    <MoonStar size={14} color="$colorMuted" />
-                    <Text fontSize={13} color="$colorMuted">
-                      Hide late nights & early mornings
+          <View
+            ref={timeSlotsRef}
+            onLayout={(e) => {
+              timeSlotsScrollY.current = e.nativeEvent.layout.y;
+            }}
+          >
+            <YStack>
+              {/* Time filter card */}
+              <Theme name="Card">
+                <Card marginBottom="$4">
+                  <XStack alignItems="center" gap="$2" marginBottom="$3">
+                    <Clock size={16} color="$colorMuted" />
+                    <Text fontWeight="500" fontSize={14}>
+                      Time
                     </Text>
                   </XStack>
-                  <Toggle
-                    size="$2"
-                    checked={filterUngodlyHours}
-                    onCheckedChange={(checked) => {
-                      haptic.selection();
-                      setFilterUngodlyHours(checked);
-                      // If turning on and preferred time is in ungodly range, clear it
-                      if (
-                        checked &&
-                        preferredStartTime !== null &&
-                        (preferredStartTime < UNGODLY_EARLY ||
-                          preferredStartTime >= UNGODLY_LATE)
-                      ) {
-                        setPreferredStartTime(null);
-                      }
-                    }}
-                  />
-                </XStack>
-              </Card>
-            </Theme>
 
-            {/* ==================== Step 4: Time Slots ==================== */}
-            <XStack
-              alignItems="center"
-              justifyContent="space-between"
-              marginBottom={timeSlotsExpanded ? '$3' : '$0'}
-              {...(selectedSlot
-                ? {
-                    pressStyle: { opacity: 0.7 },
-                    onPress: () => {
-                      LayoutAnimation.configureNext(
-                        LayoutAnimation.Presets.easeInEaseOut,
-                      );
-                      const willExpand = !timeSlotsExpanded;
-                      setTimeSlotsExpanded(willExpand);
-                      if (willExpand) {
-                        // Scroll back to show the time slots
-                        setTimeout(() => {
-                          timeSlotsRef.current?.measureLayout(
-                            scrollViewRef.current?.getInnerViewNode?.() ??
-                              scrollViewRef.current,
-                            (_x: number, y: number) => {
-                              scrollViewRef.current?.scrollTo({
-                                y: y - 16,
-                                animated: true,
-                              });
-                            },
-                            () => {},
-                          );
-                        }, 300);
-                      }
-                    },
-                  }
-                : {})}
-            >
-              <YStack>
-                <Text fontSize={18} fontWeight="600">
-                  {selectedFriends.length === 0
-                    ? 'Select friends to find times'
-                    : 'Times'}
-                </Text>
-                {activeDay && (
-                  <Text
-                    color="$colorMuted"
-                    fontSize={13}
-                    fontWeight="500"
-                    marginTop={2}
-                  >
-                    {formatDate(activeDay)}
-                    {isBusyTimesLoading
-                      ? ' \u00B7 Loading\u2026'
-                      : filteredSlots.length > 0
-                        ? (() => {
-                            const freeCount = filteredSlots.filter(
-                              (s) =>
-                                s.userIds.length === selectedFriends.length + 1,
-                            ).length;
-                            return freeCount > 0
-                              ? ` \u00B7 ${freeCount} available`
-                              : ` \u00B7 No times available`;
-                          })()
-                        : ''}
-                  </Text>
-                )}
-              </YStack>
-              {selectedSlot && (
-                <XStack alignItems="center" gap="$1">
-                  <Text fontSize={13} color="$colorMuted">
-                    {timeSlotsExpanded ? 'Collapse' : 'Change'}
-                  </Text>
-                  {timeSlotsExpanded ? (
-                    <ChevronUp size={16} color="$colorMuted" />
-                  ) : (
-                    <ChevronDown size={16} color="$colorMuted" />
-                  )}
-                </XStack>
-              )}
-            </XStack>
-
-            {/* Collapsible time slots content */}
-            {timeSlotsExpanded && (
-              <YStack>
-                {/* Day tab bar (when a range is selected with multiple days) */}
-                {isDateRange && daysInRange.length > 1 && (
-                  <YStack marginBottom="$3">
-                    <DayTabBar
-                      days={daysInRange}
-                      selectedDay={activeDay!}
-                      onSelectDay={handleDayTabSelect}
-                      disabledDays={disabledDays}
+                  {/* Start around */}
+                  {visibleStartTimeOptions.length > 0 ? (
+                    <TimeChipPicker
+                      label="Start around"
+                      options={visibleStartTimeOptions}
+                      selectedValue={preferredStartTime}
+                      onSelect={handleStartTimeToggle}
+                      allowDeselect
                     />
-                  </YStack>
-                )}
-
-                {/* Loading skeleton */}
-                {isBusyTimesLoading && filteredSlots.length === 0 && (
-                  <YStack gap="$2">
-                    <SkeletonBar width={60} height={12} />
-                    <TimeSlotSkeleton />
-                    <TimeSlotSkeleton />
-                    <TimeSlotSkeleton />
-                  </YStack>
-                )}
-
-                {/* Empty state — only when filters exclude all slots and not loading */}
-                {!isBusyTimesLoading && filteredSlots.length === 0 && (
-                  <Theme name="Card">
-                    <Card>
-                      <YStack alignItems="center" padding="$2" gap="$2">
-                        <Clock size={32} color="$colorMuted" />
-                        <Text color="$colorMuted" textAlign="center">
-                          No times match your filters
-                        </Text>
+                  ) : (
+                    <YStack gap="$2">
+                      <Text fontSize={13} color="$colorMuted" fontWeight="500">
+                        Start around
+                      </Text>
+                      <YStack
+                        backgroundColor="$backgroundHover"
+                        padding="$3"
+                        borderRadius="$2"
+                      >
                         <Text
-                          color="$colorSubtle"
-                          textAlign="center"
                           fontSize={13}
+                          color="$colorMuted"
+                          textAlign="center"
                         >
-                          Try adjusting the start time or toggling the filter
+                          No times remaining for today.{' '}
+                          {filterUngodlyHours
+                            ? 'Try selecting a different day or turning off the late nights filter.'
+                            : 'Try selecting a different day.'}
                         </Text>
                       </YStack>
-                    </Card>
-                  </Theme>
-                )}
+                    </YStack>
+                  )}
 
-                {/* Time slot list */}
-                {filteredSlots.length > 0 && (
-                  <YStack gap="$2">
-                    {filteredSlots.map((slot, index) => {
-                      // Separate the current user from friends in this slot's availability
-                      const isCurrentUserFree = user
-                        ? slot.userIds.includes(user.userId)
-                        : true;
-                      const freeFriendIds = user
-                        ? slot.userIds.filter((id) => id !== user.userId)
-                        : slot.userIds;
-                      const freeFriendsSubtitle = (() => {
-                        const names = freeFriendIds.map(
-                          (id) => friendNameMap.get(id) ?? 'Friend',
+                  {/* Duration selection */}
+                  <Separator marginVertical="$3" />
+
+                  <TimeChipPicker
+                    label="How long"
+                    options={DURATION_OPTIONS}
+                    selectedValue={duration}
+                    onSelect={handleDurationChange}
+                  />
+
+                  {/* Ungodly hours toggle */}
+                  <Separator marginVertical="$3" />
+
+                  <XStack alignItems="center" justifyContent="space-between">
+                    <XStack alignItems="center" gap="$2" flex={1}>
+                      <MoonStar size={14} color="$colorMuted" />
+                      <Text fontSize={13} color="$colorMuted">
+                        Hide late nights & early mornings
+                      </Text>
+                    </XStack>
+                    <Toggle
+                      size="$2"
+                      checked={filterUngodlyHours}
+                      onCheckedChange={(checked) => {
+                        haptic.selection();
+                        setFilterUngodlyHours(checked);
+                        // If turning on and preferred time is in ungodly range, clear it
+                        if (
+                          checked &&
+                          preferredStartTime !== null &&
+                          (preferredStartTime < UNGODLY_EARLY ||
+                            preferredStartTime >= UNGODLY_LATE)
+                        ) {
+                          setPreferredStartTime(null);
+                        }
+                      }}
+                    />
+                  </XStack>
+                </Card>
+              </Theme>
+
+              {/* ==================== Step 4: Time Slots ==================== */}
+              <XStack
+                alignItems="center"
+                justifyContent="space-between"
+                marginBottom={timeSlotsExpanded ? '$3' : '$0'}
+                {...(selectedSlot
+                  ? {
+                      pressStyle: { opacity: 0.7 },
+                      onPress: () => {
+                        haptic.selection();
+                        LayoutAnimation.configureNext(
+                          LayoutAnimation.Presets.easeInEaseOut,
                         );
-                        if (names.length === 1) return `${names[0]} is free`;
-                        if (names.length <= 2)
-                          return `${names.join(' and ')} are free`;
-                        return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]} are free`;
-                      })();
-                      const allFriendsFree =
-                        freeFriendIds.length === selectedFriends.length;
-                      const allFriendsBusy = freeFriendIds.length === 0;
-                      const isEveryoneAvailable =
-                        allFriendsFree && isCurrentUserFree;
-                      const isEveryoneBusy = slot.userIds.length === 0;
-
-                      const isSelected =
-                        selectedSlot?.startTime.getTime() ===
-                          slot.startTime.getTime() &&
-                        selectedSlot?.endTime.getTime() ===
-                          slot.endTime.getTime();
-
-                      // Show period headers (Morning/Afternoon/Evening)
-                      const period = getTimePeriod(slot.startTime);
-                      const prevPeriod =
-                        index > 0
-                          ? getTimePeriod(filteredSlots[index - 1].startTime)
-                          : null;
-                      const showPeriodHeader = period !== prevPeriod;
-
-                      // Status badge
-                      let badgeBg = '';
-                      let badgeColor = '';
-                      let badgeLabel = '';
-                      if (isEveryoneAvailable) {
-                        badgeBg = '$successSubtle';
-                        badgeColor = '$success';
-                        badgeLabel = 'All free';
-                      } else if (allFriendsBusy) {
-                        badgeBg = '$backgroundHover';
-                        badgeColor = '$colorMuted';
-                        badgeLabel = 'All busy';
-                      } else if (!isCurrentUserFree) {
-                        badgeBg = '$backgroundHover';
-                        badgeColor = '$colorMuted';
-                        badgeLabel = 'You\u2019re busy';
-                      } else {
-                        badgeBg = '$backgroundHover';
-                        badgeColor = '$colorMuted';
-                        badgeLabel = `${freeFriendIds.length} busy`;
-                      }
-
-                      // Subtitle text
-                      let subtitle = '';
-                      if (isEveryoneBusy) {
-                        subtitle = 'No one is available';
-                      } else if (isEveryoneAvailable) {
-                        subtitle = 'Everyone is available';
-                      } else if (isCurrentUserFree && allFriendsBusy) {
-                        subtitle = 'You\u2019re free, but all friends are busy';
-                      } else if (!isCurrentUserFree && allFriendsFree) {
-                        subtitle =
-                          'All friends are free, but you have a conflict';
-                      } else if (!isCurrentUserFree) {
-                        subtitle = `${freeFriendsSubtitle}, but you have a conflict`;
-                      } else {
-                        subtitle = freeFriendsSubtitle;
-                      }
-
-                      return (
-                        <YStack
-                          key={`${toDateKey(slot.date)}-${slot.startTime.getTime()}`}
-                        >
-                          {showPeriodHeader && (
-                            <Text
-                              fontSize={12}
-                              fontWeight="600"
-                              color="$colorMuted"
-                              textTransform="uppercase"
-                              letterSpacing={0.5}
-                              marginTop={index > 0 ? '$2' : 0}
-                              marginBottom="$1"
-                            >
-                              {period === 'morning'
-                                ? 'Morning'
-                                : period === 'afternoon'
-                                  ? 'Afternoon'
-                                  : 'Evening'}
-                            </Text>
-                          )}
-                          <Theme name="Card">
-                            <Card
-                              pressable
-                              onPress={() => selectSlot(slot)}
-                              borderWidth={isSelected ? 2 : undefined}
-                              borderColor={isSelected ? '$primary' : undefined}
-                              opacity={
-                                allFriendsBusy || !isCurrentUserFree ? 0.5 : 1
-                              }
-                            >
-                              <XStack
-                                alignItems="center"
-                                justifyContent="space-between"
-                              >
-                                <YStack flex={1} gap="$1">
-                                  <XStack
-                                    alignItems="center"
-                                    justifyContent="space-between"
-                                  >
-                                    <Text fontWeight="600" fontSize={15}>
-                                      {formatTime(slot.startTime)} –{' '}
-                                      {formatTime(slot.endTime)}
-                                    </Text>
-                                    {badgeLabel !== '' && (
-                                      <XStack
-                                        backgroundColor={badgeBg}
-                                        paddingHorizontal="$2"
-                                        paddingVertical={2}
-                                        borderRadius="$2"
-                                      >
-                                        <Text
-                                          fontSize={11}
-                                          color={badgeColor}
-                                          fontWeight="600"
-                                        >
-                                          {badgeLabel}
-                                        </Text>
-                                      </XStack>
-                                    )}
-                                  </XStack>
-                                  <Text color="$colorMuted" fontSize={13}>
-                                    {subtitle}
-                                  </Text>
-                                </YStack>
-                                {isSelected ? (
-                                  <Check
-                                    size={16}
-                                    color="$primary"
-                                    marginLeft="$2"
-                                  />
-                                ) : (
-                                  <ChevronRight
-                                    size={16}
-                                    color="$colorMuted"
-                                    marginLeft="$2"
-                                  />
-                                )}
-                              </XStack>
-                            </Card>
-                          </Theme>
-                        </YStack>
-                      );
-                    })}
-                  </YStack>
+                        const willExpand = !timeSlotsExpanded;
+                        setTimeSlotsExpanded(willExpand);
+                        if (willExpand) {
+                          // Scroll to the selected slot using Y positions
+                          // captured via onLayout (avoids measureLayout which
+                          // requires a native component ancestor ref)
+                          setTimeout(() => {
+                            const y =
+                              selectedSlotScrollY.current > 0
+                                ? selectedSlotScrollY.current - 16
+                                : timeSlotsScrollY.current - 16;
+                            scrollViewRef.current?.scrollTo({
+                              y,
+                              animated: true,
+                            });
+                          }, 300);
+                        }
+                      },
+                    }
+                  : {})}
+              >
+                <YStack>
+                  <Text fontSize={18} fontWeight="600">
+                    {selectedFriends.length === 0
+                      ? 'Select friends to find times'
+                      : 'Times'}
+                  </Text>
+                  {activeDay && (
+                    <Text
+                      color="$colorMuted"
+                      fontSize={13}
+                      fontWeight="500"
+                      marginTop={2}
+                    >
+                      {formatDate(activeDay)}
+                      {isBusyTimesLoading
+                        ? ' \u00B7 Loading\u2026'
+                        : filteredSlots.length > 0
+                          ? (() => {
+                              const freeCount = filteredSlots.filter(
+                                (s) =>
+                                  s.userIds.length ===
+                                  selectedFriends.length + 1,
+                              ).length;
+                              return freeCount > 0
+                                ? ` \u00B7 ${freeCount} available`
+                                : ` \u00B7 No times available`;
+                            })()
+                          : ''}
+                    </Text>
+                  )}
+                </YStack>
+                {selectedSlot && (
+                  <XStack alignItems="center" gap="$1">
+                    <Text fontSize={13} color="$colorMuted">
+                      {timeSlotsExpanded ? 'Collapse' : 'Change'}
+                    </Text>
+                    {timeSlotsExpanded ? (
+                      <ChevronUp size={16} color="$colorMuted" />
+                    ) : (
+                      <ChevronDown size={16} color="$colorMuted" />
+                    )}
+                  </XStack>
                 )}
-              </YStack>
-            )}
-          </YStack>
+              </XStack>
+
+              {/* Collapsible time slots content */}
+              {timeSlotsExpanded && (
+                <YStack>
+                  {/* Day tab bar (when a range is selected with multiple days) */}
+                  {isDateRange && daysInRange.length > 1 && (
+                    <YStack marginBottom="$3">
+                      <DayTabBar
+                        days={daysInRange}
+                        selectedDay={activeDay!}
+                        onSelectDay={handleDayTabSelect}
+                        disabledDays={disabledDays}
+                      />
+                    </YStack>
+                  )}
+
+                  {/* Loading skeleton */}
+                  {isBusyTimesLoading && filteredSlots.length === 0 && (
+                    <YStack gap="$2">
+                      <SkeletonBar width={60} height={12} />
+                      <TimeSlotSkeleton />
+                      <TimeSlotSkeleton />
+                      <TimeSlotSkeleton />
+                    </YStack>
+                  )}
+
+                  {/* Empty state — only when filters exclude all slots and not loading */}
+                  {!isBusyTimesLoading && filteredSlots.length === 0 && (
+                    <Theme name="Card">
+                      <Card>
+                        <YStack alignItems="center" padding="$2" gap="$2">
+                          <Clock size={32} color="$colorMuted" />
+                          <Text color="$colorMuted" textAlign="center">
+                            No times match your filters
+                          </Text>
+                          <Text
+                            color="$colorSubtle"
+                            textAlign="center"
+                            fontSize={13}
+                          >
+                            Try adjusting the start time or toggling the filter
+                          </Text>
+                        </YStack>
+                      </Card>
+                    </Theme>
+                  )}
+
+                  {/* Time slot list */}
+                  {filteredSlots.length > 0 && (
+                    <YStack gap="$2">
+                      {filteredSlots.map((slot, index) => {
+                        // Separate the current user from friends in this slot's availability
+                        const isCurrentUserFree = user
+                          ? slot.userIds.includes(user.userId)
+                          : true;
+                        const freeFriendIds = user
+                          ? slot.userIds.filter((id) => id !== user.userId)
+                          : slot.userIds;
+                        const freeFriendsSubtitle = (() => {
+                          const names = freeFriendIds.map(
+                            (id) => friendNameMap.get(id) ?? 'Friend',
+                          );
+                          if (names.length === 1) return `${names[0]} is free`;
+                          if (names.length <= 2)
+                            return `${names.join(' and ')} are free`;
+                          return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]} are free`;
+                        })();
+                        const allFriendsFree =
+                          freeFriendIds.length === selectedFriends.length;
+                        const allFriendsBusy = freeFriendIds.length === 0;
+                        const isEveryoneAvailable =
+                          allFriendsFree && isCurrentUserFree;
+                        const isEveryoneBusy = slot.userIds.length === 0;
+
+                        const isSelected =
+                          selectedSlot?.startTime.getTime() ===
+                            slot.startTime.getTime() &&
+                          selectedSlot?.endTime.getTime() ===
+                            slot.endTime.getTime();
+
+                        // Show period headers (Morning/Afternoon/Evening)
+                        const period = getTimePeriod(slot.startTime);
+                        const prevPeriod =
+                          index > 0
+                            ? getTimePeriod(filteredSlots[index - 1].startTime)
+                            : null;
+                        const showPeriodHeader = period !== prevPeriod;
+
+                        // Status badge
+                        let badgeBg = '';
+                        let badgeColor = '';
+                        let badgeLabel = '';
+                        if (isEveryoneAvailable) {
+                          badgeBg = '$successSubtle';
+                          badgeColor = '$success';
+                          badgeLabel = 'All free';
+                        } else if (allFriendsBusy) {
+                          badgeBg = '$backgroundHover';
+                          badgeColor = '$colorMuted';
+                          badgeLabel = 'All busy';
+                        } else if (!isCurrentUserFree) {
+                          badgeBg = '$backgroundHover';
+                          badgeColor = '$colorMuted';
+                          badgeLabel = 'You\u2019re busy';
+                        } else {
+                          badgeBg = '$backgroundHover';
+                          badgeColor = '$colorMuted';
+                          badgeLabel = `${freeFriendIds.length} busy`;
+                        }
+
+                        // Subtitle text
+                        let subtitle = '';
+                        if (isEveryoneBusy) {
+                          subtitle = 'No one is available';
+                        } else if (isEveryoneAvailable) {
+                          subtitle = 'Everyone is available';
+                        } else if (isCurrentUserFree && allFriendsBusy) {
+                          subtitle =
+                            'You\u2019re free, but all friends are busy';
+                        } else if (!isCurrentUserFree && allFriendsFree) {
+                          subtitle =
+                            'All friends are free, but you have a conflict';
+                        } else if (!isCurrentUserFree) {
+                          subtitle = `${freeFriendsSubtitle}, but you have a conflict`;
+                        } else {
+                          subtitle = freeFriendsSubtitle;
+                        }
+
+                        return (
+                          <YStack
+                            key={`${toDateKey(slot.date)}-${slot.startTime.getTime()}`}
+                            onLayout={
+                              isSelected
+                                ? (e) => {
+                                    selectedSlotScrollY.current =
+                                      timeSlotsScrollY.current +
+                                      e.nativeEvent.layout.y;
+                                  }
+                                : undefined
+                            }
+                          >
+                            {showPeriodHeader && (
+                              <Text
+                                fontSize={12}
+                                fontWeight="600"
+                                color="$colorMuted"
+                                textTransform="uppercase"
+                                letterSpacing={0.5}
+                                marginTop={index > 0 ? '$2' : 0}
+                                marginBottom="$1"
+                              >
+                                {period === 'morning'
+                                  ? 'Morning'
+                                  : period === 'afternoon'
+                                    ? 'Afternoon'
+                                    : 'Evening'}
+                              </Text>
+                            )}
+                            <Theme name="Card">
+                              <Card
+                                pressable
+                                onPress={() => selectSlot(slot)}
+                                borderWidth={isSelected ? 2 : undefined}
+                                borderColor={
+                                  isSelected ? '$primary' : undefined
+                                }
+                                opacity={
+                                  allFriendsBusy || !isCurrentUserFree ? 0.5 : 1
+                                }
+                              >
+                                <XStack
+                                  alignItems="center"
+                                  justifyContent="space-between"
+                                >
+                                  <YStack flex={1} gap="$1">
+                                    <XStack
+                                      alignItems="center"
+                                      justifyContent="space-between"
+                                    >
+                                      <Text fontWeight="600" fontSize={15}>
+                                        {formatTime(slot.startTime)} –{' '}
+                                        {formatTime(slot.endTime)}
+                                      </Text>
+                                      {badgeLabel !== '' && (
+                                        <XStack
+                                          backgroundColor={badgeBg}
+                                          paddingHorizontal="$2"
+                                          paddingVertical={2}
+                                          borderRadius="$2"
+                                        >
+                                          <Text
+                                            fontSize={11}
+                                            color={badgeColor}
+                                            fontWeight="600"
+                                          >
+                                            {badgeLabel}
+                                          </Text>
+                                        </XStack>
+                                      )}
+                                    </XStack>
+                                    <Text color="$colorMuted" fontSize={13}>
+                                      {subtitle}
+                                    </Text>
+                                  </YStack>
+                                  {isSelected ? (
+                                    <Check
+                                      size={16}
+                                      color="$primary"
+                                      marginLeft="$2"
+                                    />
+                                  ) : (
+                                    <ChevronRight
+                                      size={16}
+                                      color="$colorMuted"
+                                      marginLeft="$2"
+                                    />
+                                  )}
+                                </XStack>
+                              </Card>
+                            </Theme>
+                          </YStack>
+                        );
+                      })}
+                    </YStack>
+                  )}
+                </YStack>
+              )}
+            </YStack>
+          </View>
         )}
 
         {/* ==================== Step 5: Event Details ==================== */}

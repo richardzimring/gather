@@ -5,7 +5,7 @@ alwaysApply: false
 
 # Frontend Stack
 
-- React Native + Expo (SDK 54)
+- React Native + Expo (SDK 55)
 - **iOS only** — no Android or web support. Do not add platform conditionals for Android/web.
 - Tanstack Query
 - Hey API for integration with OpenAPI docs from backend

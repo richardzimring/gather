@@ -2,6 +2,7 @@ import { Check } from '@tamagui/lucide-icons';
 import { ScrollView, Circle, Text, XStack, YStack, Separator } from 'tamagui';
 
 import type { FriendWithUser, Group } from '../../lib/api/generated/types.gen';
+import { haptic } from '../../lib/haptics';
 
 // ============================================
 // Types
@@ -118,7 +119,10 @@ export function FriendPicker({
                     }
                     borderRadius="$2"
                     pressStyle={{ scale: 0.98 }}
-                    onPress={() => handleToggleGroup(group.memberIds)}
+                    onPress={() => {
+                      haptic.selection();
+                      handleToggleGroup(group.memberIds);
+                    }}
                   >
                     <XStack alignItems="center" gap="$2">
                       <Text fontSize={14}>{group.emoji ?? '👥'}</Text>
@@ -148,7 +152,10 @@ export function FriendPicker({
               gap="$3"
               paddingVertical="$2"
               pressStyle={{ opacity: 0.7 }}
-              onPress={() => onToggle(friendship.friendId)}
+              onPress={() => {
+                haptic.selection();
+                onToggle(friendship.friendId);
+              }}
             >
               <Checkbox checked={selectedIds.includes(friendship.friendId)} />
               <Circle size={36} backgroundColor="$backgroundHover">

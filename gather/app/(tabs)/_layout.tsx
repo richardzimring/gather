@@ -1,9 +1,4 @@
-import {
-  NativeTabs,
-  Icon,
-  Label,
-  Badge,
-} from 'expo-router/unstable-native-tabs';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import {
   ThemeProvider,
   DarkTheme,
@@ -102,13 +97,17 @@ export default function TabLayout() {
         })}
       >
         <NativeTabs.Trigger name="index">
-          <Label>Home</Label>
-          <Icon sf={{ default: 'house', selected: 'house.fill' }} />
-          {pendingEventCount > 0 && <Badge>{String(pendingEventCount)}</Badge>}
+          <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            sf={{ default: 'house', selected: 'house.fill' }}
+          />
+          <NativeTabs.Trigger.Badge hidden={pendingEventCount === 0}>
+            {String(pendingEventCount)}
+          </NativeTabs.Trigger.Badge>
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name="plan">
-          <Label>Plan</Label>
-          <Icon
+          <NativeTabs.Trigger.Label>Plan</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
             sf={{
               default: 'calendar.badge.plus',
               selected: 'calendar.badge.plus',
@@ -116,15 +115,19 @@ export default function TabLayout() {
           />
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name="friends">
-          <Label>Friends</Label>
-          <Icon sf={{ default: 'person.2', selected: 'person.2.fill' }} />
-          {pendingFriendCount > 0 && (
-            <Badge>{String(pendingFriendCount)}</Badge>
-          )}
+          <NativeTabs.Trigger.Label>Friends</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            sf={{ default: 'person.2', selected: 'person.2.fill' }}
+          />
+          <NativeTabs.Trigger.Badge hidden={pendingFriendCount === 0}>
+            {String(pendingFriendCount)}
+          </NativeTabs.Trigger.Badge>
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name="profile">
-          <Label>Profile</Label>
-          <Icon sf={{ default: 'person', selected: 'person.fill' }} />
+          <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            sf={{ default: 'person', selected: 'person.fill' }}
+          />
         </NativeTabs.Trigger>
       </NativeTabs>
     </ThemeProvider>

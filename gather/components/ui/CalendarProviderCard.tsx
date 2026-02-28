@@ -4,7 +4,7 @@ import { CheckCircle2, ChevronRight } from '@tamagui/lucide-icons';
 import { CalendarProviderIcon } from './CalendarProviderIcon';
 import { Card } from './Card';
 import { Spinner } from './Spinner';
-import { SkeletonBar, SkeletonCircle } from './Skeleton';
+import { SkeletonBar } from './Skeleton';
 
 export type CalendarProviderId = 'apple' | 'google' | 'outlook';
 
@@ -35,20 +35,11 @@ export function CalendarProviderCard({
               <YStack key={i}>
                 {index > 0 && <Separator />}
                 <XStack alignItems="center" paddingVertical="$3" gap="$3">
-                  <YStack
-                    width={36}
-                    height={36}
-                    borderRadius={8}
-                    backgroundColor="$backgroundHover"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <SkeletonCircle size={20} />
-                  </YStack>
+                  <SkeletonBar width={36} height={36} borderRadius={8} />
                   <YStack flex={1}>
-                    <SkeletonBar width={130} height={14} />
+                    <SkeletonBar width={120} height={15} />
                   </YStack>
-                  <SkeletonBar width={20} height={20} borderRadius={4} />
+                  <SkeletonBar width={20} height={20} borderRadius={10} />
                 </XStack>
               </YStack>
             ))}
