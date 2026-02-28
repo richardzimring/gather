@@ -1,3 +1,4 @@
+import { useColorScheme } from 'react-native';
 import { Switch } from 'tamagui';
 
 export interface ToggleProps {
@@ -13,18 +14,25 @@ export function Toggle({
   disabled,
   size = '$3',
 }: ToggleProps) {
+  const colorScheme = useColorScheme();
+  const isLightMode = colorScheme === 'light';
+
   return (
     <Switch
       size={size}
       checked={checked}
       onCheckedChange={onCheckedChange}
       disabled={disabled}
-      backgroundColor={checked ? '$primary' : '$backgroundHover'}
+      backgroundColor={
+        checked ? '$primary' : isLightMode ? '$borderColor' : '$backgroundHover'
+      }
       borderColor="transparent"
     >
       <Switch.Thumb
         animation="quick"
-        backgroundColor={checked ? '$primaryForeground' : '$color'}
+        backgroundColor={
+          !isLightMode && checked ? '$primaryForeground' : '$white'
+        }
       />
     </Switch>
   );
