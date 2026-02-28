@@ -1,8 +1,8 @@
-import { createAnimations } from '@tamagui/animations-react-native'
-import { createInterFont } from '@tamagui/font-inter'
-import { shorthands } from '@tamagui/shorthands'
-import { tokens as defaultTokens } from '@tamagui/themes'
-import { createTamagui, createTokens } from 'tamagui'
+import { createAnimations } from '@tamagui/animations-react-native';
+import { createInterFont } from '@tamagui/font-inter';
+import { shorthands } from '@tamagui/shorthands';
+import { tokens as defaultTokens } from '@tamagui/themes';
+import { createTamagui, createTokens } from 'tamagui';
 
 // ============================================================================
 // ANIMATIONS
@@ -35,7 +35,7 @@ const animations = createAnimations({
     damping: 20,
     stiffness: 60,
   },
-})
+});
 
 // ============================================================================
 // FONTS
@@ -70,7 +70,7 @@ const displayFont = createInterFont({
     600: { normal: 'System' },
     700: { normal: 'System' },
   },
-})
+});
 
 const headingFont = createInterFont({
   size: {
@@ -97,7 +97,7 @@ const headingFont = createInterFont({
     600: { normal: 'System' },
     700: { normal: 'System' },
   },
-})
+});
 
 const bodyFont = createInterFont({
   face: {
@@ -106,7 +106,7 @@ const bodyFont = createInterFont({
     600: { normal: 'System' },
     700: { normal: 'System' },
   },
-})
+});
 
 // ============================================================================
 // TOKENS (Static Design Values)
@@ -116,29 +116,29 @@ const tokens = createTokens({
   ...defaultTokens,
   color: {
     // Stone palette - Dark mode (12-step scale)
-    gray1: '#0c0a09',   // background - deepest
-    gray2: '#1c1917',   // card background
-    gray3: '#292524',   // elevated/popover
-    gray4: '#44403c',   // border
-    gray5: '#57534e',   // border hover
-    gray6: '#78716c',   // muted elements
-    gray7: '#a8a29e',   // disabled/placeholder
-    gray8: '#d6d3d1',   // secondary text
-    gray9: '#e7e5e4',   // primary text
-    gray10: '#f5f5f4',  // bright text
-    gray11: '#fafaf9',  // brightest
-    gray12: '#ffffff',  // white
+    gray1: '#0c0a09', // background - deepest
+    gray2: '#1c1917', // card background
+    gray3: '#292524', // elevated/popover
+    gray4: '#44403c', // border
+    gray5: '#57534e', // border hover
+    gray6: '#78716c', // muted elements
+    gray7: '#a8a29e', // disabled/placeholder
+    gray8: '#d6d3d1', // secondary text
+    gray9: '#e7e5e4', // primary text
+    gray10: '#f5f5f4', // bright text
+    gray11: '#fafaf9', // brightest
+    gray12: '#ffffff', // white
 
     // Stone palette - Light mode (12-step scale)
-    lightGray1: '#fafaf9',  // background
-    lightGray2: '#f5f5f4',  // card
-    lightGray3: '#e7e5e4',  // elevated
-    lightGray4: '#d6d3d1',  // border
-    lightGray5: '#a8a29e',  // border hover
-    lightGray6: '#78716c',  // muted
-    lightGray7: '#57534e',  // disabled
-    lightGray8: '#44403c',  // placeholder
-    lightGray9: '#292524',  // secondary text
+    lightGray1: '#f0ece6', // background - warm stone (not white)
+    lightGray2: '#f8f5f2', // card hover / elevated
+    lightGray3: '#e6e1db', // press / secondary backgrounds
+    lightGray4: '#d6d3d1', // border
+    lightGray5: '#a8a29e', // border hover
+    lightGray6: '#78716c', // muted
+    lightGray7: '#57534e', // disabled
+    lightGray8: '#44403c', // placeholder
+    lightGray9: '#292524', // secondary text
     lightGray10: '#1c1917', // primary text
     lightGray11: '#0c0a09', // darkest text
     lightGray12: '#000000', // black
@@ -179,7 +179,7 @@ const tokens = createTokens({
     white: '#ffffff',
     black: '#000000',
   },
-})
+});
 
 // ============================================================================
 // THEMES (shadcn Mira / Stone style)
@@ -245,7 +245,7 @@ const dark = {
 
   // Ring (focus indicator)
   ring: tokens.color.gray6,
-}
+};
 
 // Dark Card sub-theme
 const dark_Card = {
@@ -254,7 +254,7 @@ const dark_Card = {
   backgroundHover: tokens.color.gray3,
   backgroundPress: tokens.color.gray4,
   borderColor: tokens.color.gray4,
-}
+};
 
 // Dark Button sub-theme (primary style - inverted colors)
 const dark_Button = {
@@ -265,7 +265,7 @@ const dark_Button = {
   color: tokens.color.gray1,
   colorHover: tokens.color.gray1,
   colorPress: tokens.color.gray2,
-}
+};
 
 // Dark secondary/muted theme
 const dark_secondary = {
@@ -275,7 +275,7 @@ const dark_secondary = {
   backgroundPress: tokens.color.gray5,
   color: tokens.color.gray11,
   borderColor: tokens.color.gray4,
-}
+};
 
 // ===== LIGHT THEME =====
 const light = {
@@ -284,7 +284,7 @@ const light = {
   backgroundPress: tokens.color.lightGray3,
   backgroundFocus: tokens.color.lightGray3,
   backgroundStrong: tokens.color.lightGray2,
-  backgroundTransparent: 'rgba(250, 250, 249, 0)',
+  backgroundTransparent: 'rgba(240, 236, 230, 0)',
 
   color: tokens.color.lightGray11,
   colorHover: tokens.color.lightGray12,
@@ -337,16 +337,16 @@ const light = {
 
   // Ring (focus indicator)
   ring: tokens.color.lightGray5,
-}
+};
 
-// Light Card sub-theme
+// Light Card sub-theme - white cards on warm stone background
 const light_Card = {
   ...light,
-  background: tokens.color.lightGray1,
+  background: tokens.color.white,
   backgroundHover: tokens.color.lightGray2,
   backgroundPress: tokens.color.lightGray3,
   borderColor: tokens.color.lightGray4,
-}
+};
 
 // Light Button sub-theme (primary style - inverted colors)
 const light_Button = {
@@ -357,7 +357,7 @@ const light_Button = {
   color: tokens.color.lightGray1,
   colorHover: tokens.color.lightGray1,
   colorPress: tokens.color.lightGray2,
-}
+};
 
 // Light secondary/muted theme
 const light_secondary = {
@@ -367,7 +367,7 @@ const light_secondary = {
   backgroundPress: tokens.color.lightGray5,
   color: tokens.color.lightGray11,
   borderColor: tokens.color.lightGray4,
-}
+};
 
 // ============================================================================
 // TAMAGUI CONFIG
@@ -409,16 +409,15 @@ export const config = createTamagui({
     hoverNone: { hover: 'none' },
     pointerCoarse: { pointer: 'coarse' },
   },
-})
+});
 
 // ============================================================================
 // TYPE EXPORTS
 // ============================================================================
-export { tokens }
-export type AppConfig = typeof config
+export { tokens };
+export type AppConfig = typeof config;
 
 declare module 'tamagui' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
   interface TamaguiCustomConfig extends AppConfig {}
 }
 
@@ -429,10 +428,10 @@ declare module 'tamagui' {
 export const THEME_CONSTANTS = {
   // Border radius (Mira style - smaller, more compact)
   radiusNone: 0,
-  radiusSmall: 4,    // compact corners
-  radiusMedium: 6,   // default for most components
-  radiusLarge: 8,    // larger elements like cards
-  radiusFull: 9999,  // pills/circles
+  radiusSmall: 4, // compact corners
+  radiusMedium: 6, // default for most components
+  radiusLarge: 8, // larger elements like cards
+  radiusFull: 9999, // pills/circles
 
   // Component sizing (compact)
   buttonHeightSm: 32,
@@ -444,4 +443,4 @@ export const THEME_CONSTANTS = {
   durationFast: 150,
   durationMedium: 200,
   durationSlow: 300,
-} as const
+} as const;

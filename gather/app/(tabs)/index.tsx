@@ -331,7 +331,7 @@ export default function HomeScreen() {
 
           {/* Header */}
           <XStack justifyContent="space-between" alignItems="center">
-            <H1 fontSize={28} fontWeight="700">
+            <H1 fontSize={32} fontWeight="700">
               Events
             </H1>
             <GlassButton

@@ -1,7 +1,7 @@
 {
   "name": "gather",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "scripts": {
     "lint": "expo lint && tsc --noEmit",
     "format": "npx prettier --write \"{app,components,lib}/**/*.{ts,tsx,js,json}\"",

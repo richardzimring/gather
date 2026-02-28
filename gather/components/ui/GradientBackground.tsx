@@ -22,9 +22,9 @@ export function GradientBackground({ style }: GradientBackgroundProps = {}) {
           isDark
             ? ['rgba(130,80,220,0.22)', 'rgba(80,60,200,0.10)', 'rgba(0,0,0,0)']
             : [
-                'rgba(130,80,220,0.13)',
-                'rgba(80,60,200,0.06)',
-                'rgba(255,255,255,0)',
+                'rgba(240,236,230,0)',
+                'rgba(240,236,230,0)',
+                'rgba(240,236,230,0)',
               ]
         }
         style={{ flex: 1 }}

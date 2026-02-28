@@ -668,7 +668,7 @@ export default function PlanScreen() {
         {/* Header */}
         <YStack paddingBottom="$3">
           <XStack justifyContent="space-between" alignItems="center">
-            <H1 fontSize={28} fontWeight="700">
+            <H1 fontSize={32} fontWeight="700">
               Plan
             </H1>
           </XStack>

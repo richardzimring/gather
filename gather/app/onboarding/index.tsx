@@ -391,7 +391,7 @@ function BlockedTimesStep({ onNext }: { onNext: () => void }) {
               </Text>
             </XStack>
             <H1 fontSize={28} fontWeight="700" textAlign="center">
-              Protect your personal time
+              Protect your time
             </H1>
             <Text
               color="$colorMuted"
@@ -400,9 +400,8 @@ function BlockedTimesStep({ onNext }: { onNext: () => void }) {
               lineHeight={24}
               maxWidth={300}
             >
-              Some windows are always off-limits — work hours, Sunday mornings,
-              whatever keeps you sane. Block them and Gather will show you as
-              busy.
+              Some windows are always off-limits. Block them and Gather will
+              show you as busy.
             </Text>
           </YStack>
 

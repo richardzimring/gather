@@ -16,6 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Defs, RadialGradient, Stop, Path } from 'react-native-svg';
 
 import { useAuth } from '../../lib/hooks/useAuth';
+import { haptic } from '../../lib/haptics';
 
 const { width: W, height: H } = Dimensions.get('window');
 
@@ -256,6 +257,7 @@ export default function LoginScreen() {
   }, [contentOpacity, contentTranslateY]);
 
   const handleAppleSignIn = async () => {
+    haptic.medium();
     setError(null);
     try {
       const result = await signInWithApple();
@@ -279,7 +281,7 @@ export default function LoginScreen() {
         colors={
           isDark
             ? ['#08060e', '#0d0a18', '#060410']
-            : ['#f4f2fb', '#ede9f8', '#f0eef9']
+            : ['#f0ece6', '#eae5df', '#ede8e2']
         }
         locations={[0, 0.5, 1]}
         style={StyleSheet.absoluteFill}
@@ -299,10 +301,10 @@ export default function LoginScreen() {
                 'rgba(8,6,14,0.7)',
               ]
             : [
-                'rgba(244,242,251,0.5)',
-                'rgba(244,242,251,0.0)',
-                'rgba(244,242,251,0.0)',
-                'rgba(244,242,251,0.6)',
+                'rgba(240,236,230,0.5)',
+                'rgba(240,236,230,0.0)',
+                'rgba(240,236,230,0.0)',
+                'rgba(240,236,230,0.6)',
               ]
         }
         locations={[0, 0.25, 0.75, 1]}

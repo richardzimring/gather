@@ -258,7 +258,7 @@ export default function ProfileScreen() {
       >
         {/* Header */}
         <YStack paddingBottom="$3">
-          <H1 fontSize={28} fontWeight="700">
+          <H1 fontSize={32} fontWeight="700">
             Profile
           </H1>
         </YStack>
@@ -594,7 +594,7 @@ export default function ProfileScreen() {
           textAlign="center"
           marginTop="$4"
         >
-          Gather v1.0.0
+          Gather v1.1.0
         </Text>
       </ScrollView>
     </YStack>
