@@ -21,6 +21,8 @@ import {
 import {
   Circle,
   H1,
+  H2,
+  H3,
   Input,
   ScrollView,
   Text,
@@ -235,9 +237,9 @@ function HowItWorksStep({ onNext }: { onNext: () => void }) {
             PRIVACY
           </Text>
         </XStack>
-        <H1 fontSize={28} fontWeight="700" textAlign="center" marginBottom="$2">
+        <H2 fontSize={28} fontWeight="700" textAlign="center" marginBottom="$2">
           Your data, respected.
-        </H1>
+        </H2>
         <Text
           color="$colorMuted"
           fontSize={16}
@@ -314,9 +316,9 @@ function ConnectCalendarStep({ onNext }: { onNext: () => void }) {
                 CALENDARS
               </Text>
             </XStack>
-            <H1 fontSize={28} fontWeight="700" textAlign="center">
+            <H2 fontSize={28} fontWeight="700" textAlign="center">
               Let&apos;s get connected
-            </H1>
+            </H2>
             <Text
               color="$colorMuted"
               fontSize={16}
@@ -390,15 +392,15 @@ function BlockedTimesStep({ onNext }: { onNext: () => void }) {
                 AVAILABILITY
               </Text>
             </XStack>
-            <H1 fontSize={28} fontWeight="700" textAlign="center">
+            <H2 fontSize={28} fontWeight="700" textAlign="center">
               Protect your time
-            </H1>
+            </H2>
             <Text
               color="$colorMuted"
               fontSize={16}
               textAlign="center"
               lineHeight={24}
-              maxWidth={300}
+              maxWidth={310}
             >
               Some windows are always off-limits. Block them and Gather will
               show you as busy.
@@ -474,9 +476,9 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
                 FRIENDS
               </Text>
             </XStack>
-            <H1 fontSize={28} fontWeight="700" textAlign="center">
+            <H2 fontSize={28} fontWeight="700" textAlign="center">
               Got a code?
-            </H1>
+            </H2>
             <Text
               color="$colorMuted"
               fontSize={16}
@@ -624,9 +626,9 @@ function NotificationsStep({ onComplete }: { onComplete: () => void }) {
             NOTIFICATIONS
           </Text>
         </XStack>
-        <H1 fontSize={28} fontWeight="700" textAlign="center">
+        <H3 fontSize={28} fontWeight="700" textAlign="center">
           Don&apos;t miss a plan
-        </H1>
+        </H3>
         <Text
           color="$colorMuted"
           fontSize={16}
