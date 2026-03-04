@@ -594,7 +594,7 @@ export default function ProfileScreen() {
           textAlign="center"
           marginTop="$4"
         >
-          Gather v1.1.0
+          Gather v1.1.1
         </Text>
       </ScrollView>
     </YStack>

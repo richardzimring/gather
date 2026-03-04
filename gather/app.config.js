@@ -4,7 +4,7 @@ const IS_DEV = process.env.APP_ENV === 'development';
 const config = {
   name: IS_DEV ? 'Gather (Dev)' : 'Gather',
   slug: 'gather',
-  version: '1.1.0',
+  version: '1.1.1',
   orientation: 'portrait',
   scheme: IS_DEV ? 'gather-dev' : 'gather',
   userInterfaceStyle: 'automatic',
