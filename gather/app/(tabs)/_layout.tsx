@@ -102,7 +102,7 @@ export default function TabLayout() {
             sf={{ default: 'house', selected: 'house.fill' }}
           />
           <NativeTabs.Trigger.Badge hidden={pendingEventCount === 0}>
-            {String(pendingEventCount)}
+            {pendingEventCount > 0 ? String(pendingEventCount) : undefined}
           </NativeTabs.Trigger.Badge>
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name="plan">
@@ -120,7 +120,7 @@ export default function TabLayout() {
             sf={{ default: 'person.2', selected: 'person.2.fill' }}
           />
           <NativeTabs.Trigger.Badge hidden={pendingFriendCount === 0}>
-            {String(pendingFriendCount)}
+            {pendingFriendCount > 0 ? String(pendingFriendCount) : undefined}
           </NativeTabs.Trigger.Badge>
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name="profile">
