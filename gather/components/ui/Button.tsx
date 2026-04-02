@@ -175,6 +175,3 @@ export function Button({
     </StyledButton>
   );
 }
-
-// Export styled version for cases where you don't need haptic
-export { StyledButton as ButtonStyled };

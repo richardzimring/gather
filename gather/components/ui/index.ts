@@ -5,7 +5,7 @@ export {
   type AvatarStackPerson,
 } from './AttendeeAvatarStack';
 export { Badge, BadgeLabel, type BadgeProps } from './Badge';
-export { Button, ButtonStyled, type ButtonProps } from './Button';
+export { Button, type ButtonProps } from './Button';
 export { Card, type CardProps } from './Card';
 export { DayTabBar, type DayTabBarProps } from './DayTabBar';
 export { EventCard, type EventCardProps } from './EventCard';

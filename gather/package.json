@@ -12,7 +12,6 @@
     "build:development": "APP_ENV=development expo run:ios --device",
     "build:release": "expo run:ios --configuration Release --device",
     "generate:api": "openapi-ts",
-    "android": "expo run:android",
     "ios": "expo run:ios"
   },
   "dependencies": {
