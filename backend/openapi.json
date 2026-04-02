@@ -21,7 +21,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT",
-        "description": "Cognito JWT token"
+        "description": "Apple identity token"
       }
     },
     "schemas": {

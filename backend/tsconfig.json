@@ -65,7 +65,7 @@
     ],
     
     // Type definitions
-    "types": ["node", "vitest/globals"],
+    "types": ["node"],
     
     // // Path mapping (useful for Lambda layers or shared code)
     // "baseUrl": "./",

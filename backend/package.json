@@ -8,9 +8,6 @@
     "lint:fix": "npx eslint . --fix",
     "format": "npx prettier --write \"lambdas/**/*.{ts,json}\" \"src/**/*.{ts,json}\"",
     "check": "npx prettier --check \"lambdas/**/*.{ts,json}\" \"src/**/*.{ts,json}\"",
-    "test": "vitest --coverage",
-    "test:w": "npm run test -- --watch",
-    "test:ci": "vitest --coverage --silent false --verbose",
     "deploy": "serverless deploy --stage dev",
     "deploy:prod": "serverless deploy --stage prod",
     "offline": "serverless offline start",
@@ -37,11 +34,9 @@
     "prettier": "^3.8.0",
     "serverless": "^4.31.0",
     "serverless-offline": "^14.4.0",
-    "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.1",
-    "vitest": "^4.0.17"
+    "typescript-eslint": "^8.53.1"
   },
   "lint-staged": {
     "*.ts": [

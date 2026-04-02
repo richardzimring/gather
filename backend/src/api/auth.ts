@@ -188,8 +188,6 @@ app.openapi(appleCallbackRoute, async (c) => {
     const appleUserId = payload.sub;
     const userEmail = payload.email;
 
-    console.log('Apple token verified:', { appleUserId, userEmail });
-
     if (!userEmail) {
       return c.json(
         {
@@ -211,14 +209,12 @@ app.openapi(appleCallbackRoute, async (c) => {
         firstTimeUser?.name?.firstName ?? userEmail.split('@')[0] ?? 'User';
       const lastName = firstTimeUser?.name?.lastName ?? '';
 
-      console.log('Creating new user...');
       user = await userService.createUser({
         appleUserId,
         email: userEmail,
         firstName,
         lastName,
       });
-      console.log('User created successfully:', user.userId);
       isNewUser = true;
     }
 

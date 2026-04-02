@@ -29,7 +29,7 @@ mainApp.openAPIRegistry.registerComponent('securitySchemes', 'BearerAuth', {
   type: 'http',
   scheme: 'bearer',
   bearerFormat: 'JWT',
-  description: 'Cognito JWT token',
+  description: 'Apple identity token',
 });
 
 // Mount all sub-apps with their base paths
@@ -72,4 +72,6 @@ fs.writeFileSync(outputPath, JSON.stringify(doc, null, 2));
 
 console.log(`OpenAPI spec generated successfully at ${outputPath}`);
 console.log(`Total paths: ${Object.keys(doc.paths || {}).length}`);
-console.log(`Total schemas: ${Object.keys(doc.components?.schemas || {}).length}`);
+console.log(
+  `Total schemas: ${Object.keys(doc.components?.schemas || {}).length}`,
+);
