@@ -9,6 +9,9 @@ custom:
   pgConnectionString:
     prod: ${env:PG_CONNECTION_STRING_PROD}
     dev: ${env:PG_CONNECTION_STRING_DEV}
+  backgroundCalendarSyncEnabled:
+    prod: true
+    dev: false
   domain:
     prod: api.gather.rzimring.com
     dev: dev-api.gather.rzimring.com
@@ -80,5 +83,5 @@ functions:
     timeout: 120
     events:
       - schedule:
-          rate: rate(15 minutes)
-          enabled: true
+          rate: rate(1 hour)
+          enabled: ${self:custom.backgroundCalendarSyncEnabled.${self:provider.stage}}
