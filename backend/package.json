@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.24",
+    "@aws-sdk/client-ses": "^3.1041.0",
     "@googleapis/calendar": "^14.2.0",
     "@hono/zod-openapi": "^1.2.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",

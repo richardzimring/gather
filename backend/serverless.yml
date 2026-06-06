@@ -44,6 +44,14 @@ provider:
     OUTLOOK_CLIENT_ID: ${env:OUTLOOK_CLIENT_ID}
     OUTLOOK_CLIENT_SECRET: ${env:OUTLOOK_CLIENT_SECRET}
     OUTLOOK_REDIRECT_URI: https://${self:custom.domain.${self:provider.stage}}/calendars/outlook/callback
+    OWNER_EMAIL: ${env:OWNER_EMAIL}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+          Resource: '*'
   httpApi:
     cors:
       allowedOrigins:

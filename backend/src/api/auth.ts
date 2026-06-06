@@ -6,6 +6,7 @@ import {
 } from '../middleware/hono';
 import { UserSchema, ErrorResponseSchema } from '../types';
 import * as userService from '../services/users';
+import { notifyOwnerOfNewSignup } from '../services/owner-notify';
 
 export const app = createApp();
 
@@ -216,6 +217,7 @@ app.openapi(appleCallbackRoute, async (c) => {
         lastName,
       });
       isNewUser = true;
+      void notifyOwnerOfNewSignup(user);
     }
 
     // Return the identity token as the session token
