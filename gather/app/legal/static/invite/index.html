@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Join me on Gather</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #f0ece6;
+        --bg-card: #ffffff;
+        --text: #1c1917;
+        --text-muted: #78716c;
+        --border-subtle: #e6e1db;
+        --accent: #a855f7;
+        --accent-subtle: rgba(168, 85, 247, 0.12);
+        --accent-text: #9333ea;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0c0a09;
+          --bg-card: #1c1917;
+          --text: #fafaf9;
+          --text-muted: #a8a29e;
+          --border-subtle: #292524;
+          --accent: #c084fc;
+          --accent-subtle: rgba(192, 132, 252, 0.12);
+          --accent-text: #c084fc;
+        }
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: 16px;
+        padding: 40px 28px;
+        max-width: 380px;
+        width: 100%;
+        text-align: center;
+      }
+      .logo {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        margin: 0 auto 20px;
+        display: block;
+      }
+      .badge {
+        display: inline-block;
+        background: var(--accent-subtle);
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--accent-text);
+        padding: 4px 10px;
+        margin-bottom: 16px;
+      }
+      h1 {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.4px;
+        margin-bottom: 10px;
+      }
+      p {
+        font-size: 15px;
+        color: var(--text-muted);
+        margin-bottom: 24px;
+      }
+      .code {
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: 3px;
+        background: var(--accent-subtle);
+        color: var(--accent-text);
+        padding: 10px 16px;
+        border-radius: 8px;
+        display: inline-block;
+        margin-bottom: 24px;
+      }
+      .btn {
+        display: block;
+        background: var(--text);
+        color: var(--bg);
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+        padding: 14px 20px;
+        border-radius: 10px;
+        transition: opacity 0.15s;
+      }
+      .btn:hover {
+        opacity: 0.85;
+      }
+      .hint {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 16px;
+        margin-bottom: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <img class="logo" src="/icon-dark.png" alt="Gather" />
+      <div class="badge">Friend invite</div>
+      <h1>Add me on Gather</h1>
+      <p>
+        Gather makes it easy to find times that work and plan with the people
+        you care about.
+      </p>
+      <div class="code" id="code" style="display: none"></div>
+      <a
+        class="btn"
+        href="https://apps.apple.com/us/app/gather-plan-with-friends/id6759443297"
+        >Get Gather on the App Store</a
+      >
+      <p class="hint">
+        Already have the app? Open this link on your iPhone to add me
+        automatically.
+      </p>
+    </div>
+    <script>
+      // Pull the friend code out of the path (/invite/<code>) and show it so the
+      // recipient can enter it manually if needed.
+      var parts = window.location.pathname.split('/').filter(Boolean);
+      var code = parts[parts.length - 1];
+      if (code && code.toLowerCase() !== 'invite') {
+        var el = document.getElementById('code');
+        el.textContent = decodeURIComponent(code).toUpperCase();
+        el.style.display = 'inline-block';
+      }
+    </script>
+  </body>
+</html>

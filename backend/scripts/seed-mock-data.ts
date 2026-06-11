@@ -8,10 +8,12 @@
  *
  * This script:
  * 1. Clears all data except your user
- * 2. Creates mock users
+ * 2. Creates mock users (some with phone numbers for contact matching)
  * 3. Creates friendships (accepted + pending requests to you)
  * 4. Creates groups with members
  * 5. Creates events in various states (hosted by you and others)
+ * 6. Creates pending invites (event "waiting to join" row + a friend invite
+ *    addressed to your phone to test the claim-on-phone-save flow)
  */
 
 import * as crypto from 'crypto';
@@ -24,6 +26,7 @@ import {
   events,
   eventInvitees,
   blockedWindows,
+  pendingInvites,
 } from '../src/db';
 import { DEFAULT_GROUPS, INVITE_CODE_LENGTH } from '../src/constants';
 import { eq, and, inArray, or } from 'drizzle-orm';
@@ -47,11 +50,27 @@ const generateInviteCode = (): string => {
   return bytes.toString('base64url').slice(0, INVITE_CODE_LENGTH).toUpperCase();
 };
 
+// Same shape as the pending-invites service tokens
+const generateInviteToken = (): string => {
+  return crypto.randomBytes(16).toString('base64url').slice(0, 32);
+};
+
 // ============================================
 // Mock Data Definitions
 // ============================================
 
-const MOCK_USERS = [
+// Phones are stored as E.164 (matching is an exact string comparison against
+// the server-normalized number). Grace and Henry carry real numbers from your
+// contacts and have NO friendship with you, so they show up in
+// "Find Friends from Contacts" with an Add button.
+const MOCK_USERS: {
+  appleUserId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  timezone: string;
+  phone?: string;
+}[] = [
   {
     appleUserId: 'apple-mock-alice',
     email: 'alice@example.com',
@@ -93,6 +112,22 @@ const MOCK_USERS = [
     firstName: 'Fiona',
     lastName: 'Green',
     timezone: 'America/Chicago',
+  },
+  {
+    appleUserId: 'apple-mock-grace',
+    email: 'grace@example.com',
+    firstName: 'Grace',
+    lastName: 'Lee',
+    timezone: 'America/Chicago',
+    phone: '+13202661355',
+  },
+  {
+    appleUserId: 'apple-mock-henry',
+    email: 'henry@example.com',
+    firstName: 'Henry',
+    lastName: 'Park',
+    timezone: 'America/Chicago',
+    phone: '+13202661771',
   },
 ];
 
@@ -203,6 +238,13 @@ async function cleanupDatabase(myUserId: string | null): Promise<void> {
     await db.delete(blockedWindows).where(eq(blockedWindows.userId, myUserId));
   }
 
+  // Delete pending invites I created (mock users' invites cascade with them)
+  if (myUserId) {
+    await db
+      .delete(pendingInvites)
+      .where(eq(pendingInvites.inviterUserId, myUserId));
+  }
+
   console.log('✅ Cleanup complete');
 }
 
@@ -224,6 +266,7 @@ async function createMockUsers(): Promise<Map<string, string>> {
         firstName: userData.firstName,
         lastName: userData.lastName,
         timezone: userData.timezone,
+        phone: userData.phone ?? null,
         inviteCode: generateInviteCode(),
         calendarSyncEnabled: false,
       })
@@ -390,6 +433,17 @@ async function createEvents(
   await respondToEvent(event2.eventId, charlieId, { status: 'declined' });
   // Diana hasn't responded (stays pending)
   console.log('  ✅ Dinner Party (mixed responses, no location)');
+
+  // Pending invite to someone not on Gather yet — renders the anonymous
+  // "1 person invited · Waiting to join Gather" row on the event detail.
+  await db.insert(pendingInvites).values({
+    type: 'event',
+    inviterUserId: myUserId,
+    eventId: event2.eventId,
+    phone: '+13202669999',
+    token: generateInviteToken(),
+  });
+  console.log('  ✅ Dinner Party pending invite (waiting to join Gather)');
 
   // Event 3: Counter proposal received
   const event3Start = addDays(7, 15);
@@ -584,6 +638,47 @@ async function createEvents(
   }
 }
 
+/**
+ * A friend-type pending invite from Grace addressed to YOUR phone. Saving your
+ * phone in Edit Profile (or the onboarding phone step) triggers the claim and
+ * auto-sends you a friend request from Grace. No-ops if you befriend Grace via
+ * Find Friends first — both paths are idempotent.
+ */
+async function createPendingFriendInvite(
+  myUserId: string,
+  userMap: Map<string, string>,
+): Promise<void> {
+  console.log('💌 Creating pending friend invite to your phone...');
+
+  const [me] = await db
+    .select({ phone: users.phone })
+    .from(users)
+    .where(eq(users.id, myUserId))
+    .limit(1);
+
+  if (!me?.phone) {
+    console.log('  ⏭️  Skipped: your user has no phone set yet.');
+    console.log(
+      '     Set one in Edit Profile, then re-run the seed to test the claim flow.',
+    );
+    return;
+  }
+
+  const graceId = userMap.get('Grace');
+  if (!graceId) return;
+
+  await db.insert(pendingInvites).values({
+    type: 'friend',
+    inviterUserId: graceId,
+    phone: me.phone,
+    token: generateInviteToken(),
+  });
+  console.log(`  ✅ Grace invited your number (${me.phone}).`);
+  console.log(
+    '     Re-save your phone in Edit Profile to trigger the claim → friend request from Grace.',
+  );
+}
+
 // ============================================
 // Main
 // ============================================
@@ -621,11 +716,18 @@ async function main() {
   await createEvents(myUserId, userMap);
   console.log('');
 
+  // Create the claimable friend invite addressed to your phone
+  await createPendingFriendInvite(myUserId, userMap);
+  console.log('');
+
   console.log('🎉 Seed complete!\n');
   console.log('Summary:');
   console.log(`  - ${MOCK_USERS.length} mock users created`);
   console.log('  - 4 accepted friendships (with notifications)');
   console.log('  - 2 pending friend requests (with notifications)');
+  console.log(
+    '  - 2 contact-matchable users with no friendship (Grace +13202661355, Henry +13202661771)',
+  );
   console.log('  - 3 custom groups with members');
   console.log('  - 10 events in various states');
   console.log('    • 4 events you are hosting');
@@ -644,6 +746,21 @@ async function main() {
   );
   console.log('  - 9 event response notifications (as host of your events)');
   console.log('  - 1 counter proposal notification (from Charlie)');
+  console.log('');
+  console.log('🧪 Testing the invite features:');
+  console.log(
+    '  - Find Friends from Contacts → Grace and Henry should appear (their',
+  );
+  console.log(
+    '    numbers must be in your device contacts: 320-266-1355 / 320-266-1771)',
+  );
+  console.log(
+    '  - Dinner Party event detail → "1 person invited · Waiting to join Gather"',
+  );
+  console.log(
+    '  - Save your phone in Edit Profile → claims the invite from Grace and',
+  );
+  console.log('    a friend request from her appears under Requests');
 }
 
 main()

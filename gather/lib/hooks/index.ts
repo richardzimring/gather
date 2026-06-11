@@ -56,6 +56,16 @@ export { useAppleExportSync } from './useAppleExportSync';
 // Calendar provider connection flows
 export { useCalendarProviders } from './useCalendarProviders';
 
+// Invites (invite people not yet on Gather)
+export { useCreateInvite, useRedeemInvite } from './useInvites';
+
+// User profile updates and public profiles
+export { useUpdateUser } from './useUser';
+export { usersKeys, useUserProfile } from './useUsers';
+
+// Pending invites (deep links opened while signed out)
+export { usePendingInvite } from './usePendingInvite';
+
 // Utilities
 export * from './useRefresh';
 export { useScrollGradient } from './useScrollGradient';

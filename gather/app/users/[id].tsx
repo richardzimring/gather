@@ -1,9 +1,11 @@
 import {
   AlertTriangle,
   Calendar,
+  Check,
   MoreHorizontal,
   ShieldBan,
   UserMinus,
+  UserPlus,
 } from '@tamagui/lucide-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Alert } from 'react-native';
@@ -22,6 +24,7 @@ import { useMemo, useState } from 'react';
 
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
+import { BadgeLabel } from '../../components/ui/Badge';
 import { BackHeader } from '../../components/ui/ScreenHeader';
 import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton';
 import {
@@ -30,57 +33,82 @@ import {
   useBlockFriend,
   useReportUser,
   useEvents,
+  useUserProfile,
+  useSendFriendRequest,
+  useAcceptFriendRequest,
 } from '../../lib/hooks';
+import { haptic } from '../../lib/haptics';
+import { formatDate, formatTime } from '../../lib/utils';
 
-/**
- * Format date for display
- */
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
-/**
- * Format time for display
- */
-function formatTime(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
-export default function FriendProfileScreen() {
+export default function UserProfileScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const userId = id ?? '';
   const [showActionSheet, setShowActionSheet] = useState(false);
 
-  const { data: friendsData, isLoading } = useFriends();
+  const { data: friendsData } = useFriends();
   const { data: events } = useEvents();
+  const { data: profile, isLoading, isError, refetch } = useUserProfile(userId);
   const removeFriend = useRemoveFriend();
   const blockFriend = useBlockFriend();
   const reportUser = useReportUser();
+  const sendFriendRequest = useSendFriendRequest();
+  const acceptFriendRequest = useAcceptFriendRequest();
 
-  // Find the specific friend
+  const relationship = profile?.relationship ?? 'none';
+  const isFriend = relationship === 'friends';
+
+  // Friend record (only present when already friends) — used for the
+  // "Friends since" date and the friend-management actions.
   const friend = useMemo(() => {
-    if (!friendsData?.friends || !id) return null;
-    return friendsData.friends.find((f) => f.friendId === id) ?? null;
-  }, [friendsData, id]);
+    if (!friendsData?.friends || !userId) return null;
+    return friendsData.friends.find((f) => f.friendId === userId) ?? null;
+  }, [friendsData, userId]);
 
-  // Get shared events with this friend
+  // Shared events (as host or invitee), excluding cancelled.
   const sharedEvents = useMemo(() => {
-    if (!events || !id) return [];
+    if (!events || !userId) return [];
     return events.filter(
       (event) =>
-        event.invitees.some((i) => i.userId === id) &&
+        (event.hostId === userId ||
+          event.invitees.some((i) => i.userId === userId)) &&
         event.status !== 'cancelled',
     );
-  }, [events, id]);
+  }, [events, userId]);
+
+  const handleAddFriend = async () => {
+    haptic.medium();
+    try {
+      await sendFriendRequest.mutateAsync({ friendUserId: userId });
+      haptic.success();
+      await refetch();
+    } catch (err) {
+      haptic.error();
+      Alert.alert(
+        'Could Not Send Request',
+        err instanceof Error && err.message
+          ? err.message
+          : 'Something went wrong. Please try again.',
+      );
+    }
+  };
+
+  const handleAcceptRequest = async () => {
+    haptic.medium();
+    try {
+      await acceptFriendRequest.mutateAsync(userId);
+      haptic.success();
+      await refetch();
+    } catch (err) {
+      haptic.error();
+      Alert.alert(
+        'Could Not Accept Request',
+        err instanceof Error && err.message
+          ? err.message
+          : 'Something went wrong. Please try again.',
+      );
+    }
+  };
 
   const handleRemoveFriend = () => {
     Alert.alert(
@@ -141,7 +169,7 @@ export default function FriendProfileScreen() {
 
   const handleReportUser = () => {
     setShowActionSheet(false);
-    const displayName = friend?.friend.fullName ?? 'this user';
+    const displayName = profile?.fullName ?? 'this user';
     Alert.alert(
       'Report User',
       `Report ${displayName} for inappropriate behavior? This will send a report to our team for review.`,
@@ -222,7 +250,7 @@ export default function FriendProfileScreen() {
     );
   }
 
-  if (!friend) {
+  if (isError || !profile) {
     return (
       <YStack
         flex={1}
@@ -235,10 +263,7 @@ export default function FriendProfileScreen() {
           😕
         </Text>
         <Text fontSize={18} fontWeight="600" textAlign="center">
-          Friend not found
-        </Text>
-        <Text color="$colorMuted" textAlign="center" marginTop="$2">
-          This person may no longer be in your friends list.
+          {isError ? 'Could not load profile' : 'User not found'}
         </Text>
         <Button
           variant="secondary"
@@ -251,8 +276,8 @@ export default function FriendProfileScreen() {
     );
   }
 
-  const displayName = friend.friend.fullName;
-  const initials = friend.friend.initials;
+  const displayName = profile.fullName;
+  const initials = profile.initials;
 
   return (
     <YStack flex={1} backgroundColor="$background">
@@ -263,18 +288,20 @@ export default function FriendProfileScreen() {
           paddingHorizontal: 16,
         }}
       >
-        {/* Header */}
+        {/* Header — overflow menu for anyone except yourself */}
         <BackHeader
           title=""
           marginBottom="$1"
           rightAction={
-            <Button
-              variant="ghost"
-              buttonSize="sm"
-              circular
-              icon={<MoreHorizontal size={20} />}
-              onPress={() => setShowActionSheet(true)}
-            />
+            relationship !== 'self' ? (
+              <Button
+                variant="ghost"
+                buttonSize="sm"
+                circular
+                icon={<MoreHorizontal size={20} />}
+                onPress={() => setShowActionSheet(true)}
+              />
+            ) : undefined
           }
         />
 
@@ -288,21 +315,53 @@ export default function FriendProfileScreen() {
           <H1 fontSize={20} fontWeight="600" textAlign="center">
             {displayName}
           </H1>
-          <Text color="$colorMuted" fontSize={13}>
-            Friends since {formatDate(friend.acceptedAt ?? friend.createdAt)}
-          </Text>
+          {isFriend && friend && (
+            <Text color="$colorMuted" fontSize={13}>
+              Friends since {formatDate(friend.acceptedAt ?? friend.createdAt)}
+            </Text>
+          )}
         </YStack>
 
-        {/* Quick Actions */}
+        {/* Quick Actions — depend on relationship to this user */}
         <XStack gap="$2" marginBottom="$4">
-          <Button
-            variant="primary"
-            flex={1}
-            icon={<Calendar size={16} color="$primaryForeground" />}
-            onPress={handleInviteToEvent}
-          >
-            Invite to Event
-          </Button>
+          {relationship === 'self' ? null : isFriend ? (
+            <Button
+              variant="primary"
+              flex={1}
+              icon={<Calendar size={16} color="$primaryForeground" />}
+              onPress={handleInviteToEvent}
+            >
+              Invite to Event
+            </Button>
+          ) : relationship === 'request_sent' ? (
+            <Button variant="secondary" flex={1} disabled>
+              Friend Request Sent
+            </Button>
+          ) : relationship === 'request_received' ? (
+            <Button
+              variant="primary"
+              flex={1}
+              icon={<Check size={16} color="$primaryForeground" />}
+              onPress={handleAcceptRequest}
+              loading={acceptFriendRequest.isPending}
+              loadingText="Accepting..."
+            >
+              Accept Friend Request
+            </Button>
+          ) : relationship === 'blocked' ? (
+            <BadgeLabel variant="error">Blocked</BadgeLabel>
+          ) : (
+            <Button
+              variant="primary"
+              flex={1}
+              icon={<UserPlus size={16} color="$primaryForeground" />}
+              onPress={handleAddFriend}
+              loading={sendFriendRequest.isPending}
+              loadingText="Sending..."
+            >
+              Add Friend
+            </Button>
+          )}
         </XStack>
 
         {/* Shared Events Section */}
@@ -359,34 +418,40 @@ export default function FriendProfileScreen() {
         <Sheet.Frame padding="$4" backgroundColor="$background">
           <Sheet.Handle />
           <YStack gap="$3" marginTop="$4">
-            <Button
-              variant="secondary"
-              fullWidth
-              icon={<Calendar size={18} />}
-              onPress={handleInviteToEvent}
-            >
-              Invite to Event
-            </Button>
-            <Button
-              variant="destructive"
-              fullWidth
-              icon={<UserMinus size={16} color="$destructiveForeground" />}
-              onPress={handleRemoveFriend}
-              loading={removeFriend.isPending}
-              loadingText="Removing..."
-            >
-              Remove Friend
-            </Button>
-            <Button
-              variant="destructive"
-              fullWidth
-              icon={<ShieldBan size={16} color="$destructiveForeground" />}
-              onPress={handleBlockUser}
-              loading={blockFriend.isPending}
-              loadingText="Blocking..."
-            >
-              Block User
-            </Button>
+            {isFriend && (
+              <>
+                <Button
+                  variant="secondary"
+                  fullWidth
+                  icon={<Calendar size={18} />}
+                  onPress={handleInviteToEvent}
+                >
+                  Invite to Event
+                </Button>
+                <Button
+                  variant="destructive"
+                  fullWidth
+                  icon={<UserMinus size={16} color="$destructiveForeground" />}
+                  onPress={handleRemoveFriend}
+                  loading={removeFriend.isPending}
+                  loadingText="Removing..."
+                >
+                  Remove Friend
+                </Button>
+              </>
+            )}
+            {relationship !== 'blocked' && (
+              <Button
+                variant="destructive"
+                fullWidth
+                icon={<ShieldBan size={16} color="$destructiveForeground" />}
+                onPress={handleBlockUser}
+                loading={blockFriend.isPending}
+                loadingText="Blocking..."
+              >
+                Block User
+              </Button>
+            )}
             <Button
               variant="destructive"
               fullWidth

@@ -7,6 +7,8 @@ import {
   UserPlus,
   ChevronDown,
   ChevronUp,
+  Send,
+  Clock,
 } from '@tamagui/lucide-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Alert, LayoutAnimation } from 'react-native';
@@ -231,6 +233,7 @@ function InviteeItem({
   onCancelPress,
   onRetractProposal,
   onApplyProposal,
+  onPressProfile,
 }: {
   invitee: EventInvitee;
   isCurrentUser?: boolean;
@@ -243,29 +246,46 @@ function InviteeItem({
   onCancelPress?: () => void;
   onApplyProposal?: (proposal: CounterProposal) => void;
   onRetractProposal?: () => void;
+  onPressProfile?: () => void;
 }) {
   return (
     <YStack paddingVertical="$2" gap="$2">
       <XStack alignItems="center" gap="$3">
-        <Circle size={40} backgroundColor="$backgroundHover">
-          <Text fontSize={16}>{invitee.initials}</Text>
-        </Circle>
-        <YStack flex={1}>
-          <XStack alignItems="center" gap="$2">
-            <Text fontWeight="500">{invitee.fullName}</Text>
-            {isCurrentUser && (
-              <Text fontSize={11} color="$colorMuted">
-                (You)
+        <XStack
+          flex={1}
+          alignItems="center"
+          gap="$3"
+          onPress={onPressProfile}
+          pressStyle={onPressProfile ? { opacity: 0.6 } : undefined}
+          disabled={!onPressProfile}
+        >
+          <Circle size={40} backgroundColor="$backgroundHover">
+            <Text fontSize={16}>{invitee.initials}</Text>
+          </Circle>
+          <YStack flex={1}>
+            <XStack alignItems="center" gap="$2">
+              <Text fontWeight="500">{invitee.fullName}</Text>
+              {isCurrentUser && (
+                <Text fontSize={11} color="$colorMuted">
+                  (You)
+                </Text>
+              )}
+            </XStack>
+            <XStack alignItems="center" gap="$2">
+              <Circle
+                size={8}
+                backgroundColor={getStatusColor(invitee.status)}
+              />
+              <Text
+                fontSize={13}
+                color="$colorMuted"
+                textTransform="capitalize"
+              >
+                {invitee.status}
               </Text>
-            )}
-          </XStack>
-          <XStack alignItems="center" gap="$2">
-            <Circle size={8} backgroundColor={getStatusColor(invitee.status)} />
-            <Text fontSize={13} color="$colorMuted" textTransform="capitalize">
-              {invitee.status}
-            </Text>
-          </XStack>
-        </YStack>
+            </XStack>
+          </YStack>
+        </XStack>
         {isCurrentUser &&
           canChange &&
           (isEditing ? (
@@ -1021,7 +1041,21 @@ export default function EventDetailScreen() {
               <YStack>
                 {/* Host */}
                 <YStack>
-                  <XStack alignItems="center" gap="$3" paddingVertical="$2">
+                  <XStack
+                    alignItems="center"
+                    gap="$3"
+                    paddingVertical="$2"
+                    onPress={
+                      isHost
+                        ? undefined
+                        : () => {
+                            haptic.selection();
+                            router.push(`/users/${event.hostId}`);
+                          }
+                    }
+                    pressStyle={isHost ? undefined : { opacity: 0.6 }}
+                    disabled={isHost}
+                  >
                     <Circle size={40} backgroundColor="$backgroundHover">
                       <Text fontSize={16}>{event.hostInitials}</Text>
                     </Circle>
@@ -1040,7 +1074,8 @@ export default function EventDetailScreen() {
                       </XStack>
                     </YStack>
                   </XStack>
-                  {event.invitees.length > 0 && (
+                  {(event.invitees.length > 0 ||
+                    (event.pendingInvitees?.length ?? 0) > 0) && (
                     <Separator marginVertical="$2" />
                   )}
                 </YStack>
@@ -1076,6 +1111,14 @@ export default function EventDetailScreen() {
                         onRetractProposal={
                           isCurrentUser ? handleRetractProposal : undefined
                         }
+                        onPressProfile={
+                          isCurrentUser
+                            ? undefined
+                            : () => {
+                                haptic.selection();
+                                router.push(`/users/${invitee.userId}`);
+                              }
+                        }
                       />
                       {index < event.invitees.length - 1 && (
                         <Separator marginVertical="$2" />
@@ -1083,6 +1126,30 @@ export default function EventDetailScreen() {
                     </YStack>
                   );
                 })}
+
+                {/* Pending invites to people who aren't on Gather yet */}
+                {(event.pendingInvitees?.length ?? 0) > 0 && (
+                  <YStack>
+                    {event.invitees.length > 0 && (
+                      <Separator marginVertical="$2" />
+                    )}
+                    <XStack alignItems="center" gap="$3" paddingVertical="$2">
+                      <Circle size={40} backgroundColor="$backgroundHover">
+                        <Clock size={18} color="$colorMuted" />
+                      </Circle>
+                      <YStack flex={1}>
+                        <Text fontWeight="500" fontSize={14}>
+                          {(event.pendingInvitees?.length ?? 0) === 1
+                            ? '1 person invited'
+                            : `${event.pendingInvitees?.length} people invited`}
+                        </Text>
+                        <Text fontSize={13} color="$colorMuted">
+                          Waiting to join Gather
+                        </Text>
+                      </YStack>
+                    </XStack>
+                  </YStack>
+                )}
 
                 {/* Add people (host edit mode only) */}
                 {isEditing && isHost && (
@@ -1142,6 +1209,31 @@ export default function EventDetailScreen() {
                         />
                       </YStack>
                     )}
+
+                    {/* Invite someone who isn't on Gather yet */}
+                    <Separator marginVertical="$2" />
+                    <XStack
+                      alignItems="center"
+                      gap="$2"
+                      paddingVertical="$2"
+                      pressStyle={{ opacity: 0.7 }}
+                      onPress={() => {
+                        haptic.light();
+                        router.push({
+                          pathname: '/invite-contact',
+                          params: {
+                            type: 'event',
+                            eventId: event.eventId,
+                            title: event.title,
+                          },
+                        });
+                      }}
+                    >
+                      <Send size={16} color="$primary" />
+                      <Text fontWeight="500" fontSize={14} color="$primary">
+                        Invite someone not on Gather
+                      </Text>
+                    </XStack>
                   </YStack>
                 )}
               </YStack>

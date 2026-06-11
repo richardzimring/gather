@@ -25,6 +25,7 @@ export {
   CancelHeader,
   type ScreenHeaderProps,
 } from './ScreenHeader';
+export { SearchBar, type SearchBarProps } from './SearchBar';
 export {
   TimeChipPicker,
   type TimeChipPickerProps,

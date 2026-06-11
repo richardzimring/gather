@@ -1,10 +1,9 @@
-import { Search, UserPlus, Users as UsersIcon } from '@tamagui/lucide-icons';
+import { UserPlus, Users as UsersIcon } from '@tamagui/lucide-icons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { RefreshControl, StyleSheet } from 'react-native';
+import { RefreshControl } from 'react-native';
 import {
   H1,
-  Input,
   ScrollView,
   Text,
   XStack,
@@ -14,16 +13,12 @@ import {
   useTheme,
 } from 'tamagui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  GlassView,
-  isLiquidGlassAvailable,
-  isGlassEffectAPIAvailable,
-} from 'expo-glass-effect';
 
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { GradientBackground } from '../../components/ui/GradientBackground';
 import { GlassButton } from '../../components/ui/GlassFAB';
+import { SearchBar } from '../../components/ui/SearchBar';
 import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton';
 import {
   useFriends,
@@ -44,8 +39,6 @@ export default function FriendsScreen() {
   const [pendingAction, setPendingAction] = useState<
     'accept' | 'decline' | null
   >(null);
-
-  const useGlass = isLiquidGlassAvailable() && isGlassEffectAPIAvailable();
 
   const friendsQuery = useFriends();
   const groupsQuery = useGroups();
@@ -105,29 +98,13 @@ export default function FriendsScreen() {
     }
   };
 
-  const navigateToFriend = (friendId: string) => {
-    router.push(`/friends/${friendId}` as const);
+  const navigateToProfile = (userId: string) => {
+    router.push(`/users/${userId}` as const);
   };
 
   const navigateToGroup = (groupId: string) => {
     router.push(`/groups/${groupId}` as const);
   };
-
-  const searchBar = (
-    <XStack alignItems="center" paddingHorizontal="$3" height={36}>
-      <Search size={16} color="$colorMuted" />
-      <Input
-        flex={1}
-        placeholder={`Search ${activeTab}...`}
-        placeholderTextColor="$colorMuted"
-        backgroundColor="transparent"
-        borderWidth={0}
-        fontSize={14}
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-      />
-    </XStack>
-  );
 
   const { gradientOpacity, scrollProps } = useScrollGradient();
 
@@ -163,18 +140,11 @@ export default function FriendsScreen() {
             />
           </XStack>
 
-          {/* Glass search bar */}
-          {useGlass ? (
-            <GlassView style={glassStyles.searchBar}>{searchBar}</GlassView>
-          ) : (
-            <XStack
-              backgroundColor="$backgroundHover"
-              borderRadius="$2"
-              overflow="hidden"
-            >
-              {searchBar}
-            </XStack>
-          )}
+          <SearchBar
+            placeholder={`Search ${activeTab}...`}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
 
           {/* Tab Bar */}
           <XStack gap="$1">
@@ -282,7 +252,7 @@ export default function FriendsScreen() {
                 <Theme key={friendship.friendId} name="Card">
                   <Card
                     pressable
-                    onPress={() => navigateToFriend(friendship.friendId)}
+                    onPress={() => navigateToProfile(friendship.friendId)}
                   >
                     <XStack alignItems="center" gap="$3">
                       <Circle size={48} backgroundColor="$backgroundHover">
@@ -481,10 +451,3 @@ export default function FriendsScreen() {
     </YStack>
   );
 }
-
-const glassStyles = StyleSheet.create({
-  searchBar: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-});

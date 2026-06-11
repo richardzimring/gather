@@ -1,0 +1,23 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": [
+          "RHCS4LNWL7.com.richardzimring.gather",
+          "RHCS4LNWL7.com.richardzimring.gather.dev"
+        ],
+        "components": [
+          {
+            "/": "/invite/*",
+            "comment": "Friend invite links open directly in the app"
+          },
+          {
+            "/": "/e/*",
+            "comment": "Event invite links open directly in the app"
+          }
+        ]
+      }
+    ]
+  }
+}

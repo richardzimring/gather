@@ -16,6 +16,7 @@ import {
   useNotifications,
   useCalendarAutoSync,
   useAppleExportSync,
+  usePendingInvite,
 } from '../../lib/hooks';
 import { haptic } from '../../lib/haptics';
 
@@ -44,6 +45,9 @@ export default function TabLayout() {
 
   // Register push token and set up notification listeners
   useNotifications();
+
+  // Redeem any invite that was opened while signed out
+  usePendingInvite();
 
   // Auto-sync connected calendars on app foreground
   useCalendarAutoSync();

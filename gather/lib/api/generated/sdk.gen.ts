@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteBlockedByWindowIdData, DeleteBlockedByWindowIdErrors, DeleteBlockedByWindowIdResponses, DeleteCalendarsAppleData, DeleteCalendarsAppleErrors, DeleteCalendarsAppleResponses, DeleteCalendarsByConnectionIdData, DeleteCalendarsByConnectionIdErrors, DeleteCalendarsByConnectionIdResponses, DeleteCalendarsGoogleData, DeleteCalendarsGoogleErrors, DeleteCalendarsGoogleResponses, DeleteCalendarsOutlookData, DeleteCalendarsOutlookErrors, DeleteCalendarsOutlookResponses, DeleteEventsByEventIdData, DeleteEventsByEventIdErrors, DeleteEventsByEventIdResponses, DeleteFriendsByFriendIdData, DeleteFriendsByFriendIdErrors, DeleteFriendsByFriendIdResponses, DeleteGroupsByGroupIdData, DeleteGroupsByGroupIdErrors, DeleteGroupsByGroupIdResponses, DeleteUsersMeData, DeleteUsersMeErrors, DeleteUsersMeResponses, GetAuthMeData, GetAuthMeErrors, GetAuthMeResponses, GetBlockedData, GetBlockedErrors, GetBlockedResponses, GetCalendarsByConnectionIdData, GetCalendarsByConnectionIdErrors, GetCalendarsByConnectionIdResponses, GetCalendarsData, GetCalendarsErrors, GetCalendarsExportStatusData, GetCalendarsExportStatusErrors, GetCalendarsExportStatusResponses, GetCalendarsGoogleAuthUrlData, GetCalendarsGoogleAuthUrlErrors, GetCalendarsGoogleAuthUrlResponses, GetCalendarsGoogleCalendarsData, GetCalendarsGoogleCalendarsErrors, GetCalendarsGoogleCalendarsResponses, GetCalendarsGoogleExportAuthUrlData, GetCalendarsGoogleExportAuthUrlErrors, GetCalendarsGoogleExportAuthUrlResponses, GetCalendarsOutlookAuthUrlData, GetCalendarsOutlookAuthUrlErrors, GetCalendarsOutlookAuthUrlResponses, GetCalendarsOutlookCalendarsData, GetCalendarsOutlookCalendarsErrors, GetCalendarsOutlookCalendarsResponses, GetCalendarsOutlookExportAuthUrlData, GetCalendarsOutlookExportAuthUrlErrors, GetCalendarsOutlookExportAuthUrlResponses, GetCalendarsResponses, GetEventsByEventIdData, GetEventsByEventIdErrors, GetEventsByEventIdResponses, GetEventsData, GetEventsErrors, GetEventsResponses, GetFriendsData, GetFriendsErrors, GetFriendsInviteCodeData, GetFriendsInviteCodeErrors, GetFriendsInviteCodeResponses, GetFriendsResponses, GetFriendsSearchData, GetFriendsSearchErrors, GetFriendsSearchResponses, GetGroupsData, GetGroupsErrors, GetGroupsResponses, GetUsersMeData, GetUsersMeErrors, GetUsersMeNotificationPreferencesData, GetUsersMeNotificationPreferencesErrors, GetUsersMeNotificationPreferencesResponses, GetUsersMeResponses, PatchBlockedByWindowIdData, PatchBlockedByWindowIdErrors, PatchBlockedByWindowIdResponses, PatchCalendarsByConnectionIdData, PatchCalendarsByConnectionIdErrors, PatchCalendarsByConnectionIdResponses, PatchEventsByEventIdData, PatchEventsByEventIdErrors, PatchEventsByEventIdResponses, PatchGroupsByGroupIdData, PatchGroupsByGroupIdErrors, PatchGroupsByGroupIdResponses, PatchUsersMeData, PatchUsersMeErrors, PatchUsersMeResponses, PostAuthAppleCallbackData, PostAuthAppleCallbackErrors, PostAuthAppleCallbackResponses, PostBlockedData, PostBlockedErrors, PostBlockedResponses, PostBusyTimesData, PostBusyTimesErrors, PostBusyTimesResponses, PostCalendarsData, PostCalendarsErrors, PostCalendarsExportDisableData, PostCalendarsExportDisableErrors, PostCalendarsExportDisableResponses, PostCalendarsExportEnableData, PostCalendarsExportEnableErrors, PostCalendarsExportEnableResponses, PostCalendarsExportSyncData, PostCalendarsExportSyncErrors, PostCalendarsExportSyncResponses, PostCalendarsGoogleSelectData, PostCalendarsGoogleSelectErrors, PostCalendarsGoogleSelectResponses, PostCalendarsGoogleSyncData, PostCalendarsGoogleSyncErrors, PostCalendarsGoogleSyncResponses, PostCalendarsOutlookSelectData, PostCalendarsOutlookSelectErrors, PostCalendarsOutlookSelectResponses, PostCalendarsOutlookSyncData, PostCalendarsOutlookSyncErrors, PostCalendarsOutlookSyncResponses, PostCalendarsResponses, PostCalendarsSyncData, PostCalendarsSyncErrors, PostCalendarsSyncResponses, PostEmojiGenerateData, PostEmojiGenerateErrors, PostEmojiGenerateResponses, PostEventsByEventIdRespondData, PostEventsByEventIdRespondErrors, PostEventsByEventIdRespondResponses, PostEventsData, PostEventsErrors, PostEventsResponses, PostFriendsByFriendIdAcceptData, PostFriendsByFriendIdAcceptErrors, PostFriendsByFriendIdAcceptResponses, PostFriendsByFriendIdBlockData, PostFriendsByFriendIdBlockErrors, PostFriendsByFriendIdBlockResponses, PostFriendsByFriendIdDeclineData, PostFriendsByFriendIdDeclineErrors, PostFriendsByFriendIdDeclineResponses, PostFriendsByFriendIdReportData, PostFriendsByFriendIdReportErrors, PostFriendsByFriendIdReportResponses, PostFriendsInviteCodeRegenerateData, PostFriendsInviteCodeRegenerateErrors, PostFriendsInviteCodeRegenerateResponses, PostFriendsRequestData, PostFriendsRequestErrors, PostFriendsRequestResponses, PostGroupsData, PostGroupsErrors, PostGroupsResponses, PostUsersMePushTokenData, PostUsersMePushTokenErrors, PostUsersMePushTokenResponses, PutUsersMeNotificationPreferencesData, PutUsersMeNotificationPreferencesErrors, PutUsersMeNotificationPreferencesResponses } from './types.gen';
+import type { DeleteBlockedByWindowIdData, DeleteBlockedByWindowIdErrors, DeleteBlockedByWindowIdResponses, DeleteCalendarsAppleData, DeleteCalendarsAppleErrors, DeleteCalendarsAppleResponses, DeleteCalendarsByConnectionIdData, DeleteCalendarsByConnectionIdErrors, DeleteCalendarsByConnectionIdResponses, DeleteCalendarsGoogleData, DeleteCalendarsGoogleErrors, DeleteCalendarsGoogleResponses, DeleteCalendarsOutlookData, DeleteCalendarsOutlookErrors, DeleteCalendarsOutlookResponses, DeleteEventsByEventIdData, DeleteEventsByEventIdErrors, DeleteEventsByEventIdResponses, DeleteFriendsByFriendIdData, DeleteFriendsByFriendIdErrors, DeleteFriendsByFriendIdResponses, DeleteGroupsByGroupIdData, DeleteGroupsByGroupIdErrors, DeleteGroupsByGroupIdResponses, DeleteUsersMeData, DeleteUsersMeErrors, DeleteUsersMeResponses, GetAuthMeData, GetAuthMeErrors, GetAuthMeResponses, GetBlockedData, GetBlockedErrors, GetBlockedResponses, GetCalendarsByConnectionIdData, GetCalendarsByConnectionIdErrors, GetCalendarsByConnectionIdResponses, GetCalendarsData, GetCalendarsErrors, GetCalendarsExportStatusData, GetCalendarsExportStatusErrors, GetCalendarsExportStatusResponses, GetCalendarsGoogleAuthUrlData, GetCalendarsGoogleAuthUrlErrors, GetCalendarsGoogleAuthUrlResponses, GetCalendarsGoogleCalendarsData, GetCalendarsGoogleCalendarsErrors, GetCalendarsGoogleCalendarsResponses, GetCalendarsGoogleExportAuthUrlData, GetCalendarsGoogleExportAuthUrlErrors, GetCalendarsGoogleExportAuthUrlResponses, GetCalendarsOutlookAuthUrlData, GetCalendarsOutlookAuthUrlErrors, GetCalendarsOutlookAuthUrlResponses, GetCalendarsOutlookCalendarsData, GetCalendarsOutlookCalendarsErrors, GetCalendarsOutlookCalendarsResponses, GetCalendarsOutlookExportAuthUrlData, GetCalendarsOutlookExportAuthUrlErrors, GetCalendarsOutlookExportAuthUrlResponses, GetCalendarsResponses, GetEventsByEventIdData, GetEventsByEventIdErrors, GetEventsByEventIdResponses, GetEventsData, GetEventsErrors, GetEventsResponses, GetFriendsData, GetFriendsErrors, GetFriendsInviteCodeData, GetFriendsInviteCodeErrors, GetFriendsInviteCodeResponses, GetFriendsResponses, GetFriendsSearchData, GetFriendsSearchErrors, GetFriendsSearchResponses, GetGroupsData, GetGroupsErrors, GetGroupsResponses, GetUsersByUserIdProfileData, GetUsersByUserIdProfileErrors, GetUsersByUserIdProfileResponses, GetUsersMeData, GetUsersMeErrors, GetUsersMeNotificationPreferencesData, GetUsersMeNotificationPreferencesErrors, GetUsersMeNotificationPreferencesResponses, GetUsersMeResponses, PatchBlockedByWindowIdData, PatchBlockedByWindowIdErrors, PatchBlockedByWindowIdResponses, PatchCalendarsByConnectionIdData, PatchCalendarsByConnectionIdErrors, PatchCalendarsByConnectionIdResponses, PatchEventsByEventIdData, PatchEventsByEventIdErrors, PatchEventsByEventIdResponses, PatchGroupsByGroupIdData, PatchGroupsByGroupIdErrors, PatchGroupsByGroupIdResponses, PatchUsersMeData, PatchUsersMeErrors, PatchUsersMeResponses, PostAuthAppleCallbackData, PostAuthAppleCallbackErrors, PostAuthAppleCallbackResponses, PostBlockedData, PostBlockedErrors, PostBlockedResponses, PostBusyTimesData, PostBusyTimesErrors, PostBusyTimesResponses, PostCalendarsData, PostCalendarsErrors, PostCalendarsExportDisableData, PostCalendarsExportDisableErrors, PostCalendarsExportDisableResponses, PostCalendarsExportEnableData, PostCalendarsExportEnableErrors, PostCalendarsExportEnableResponses, PostCalendarsExportSyncData, PostCalendarsExportSyncErrors, PostCalendarsExportSyncResponses, PostCalendarsGoogleSelectData, PostCalendarsGoogleSelectErrors, PostCalendarsGoogleSelectResponses, PostCalendarsGoogleSyncData, PostCalendarsGoogleSyncErrors, PostCalendarsGoogleSyncResponses, PostCalendarsOutlookSelectData, PostCalendarsOutlookSelectErrors, PostCalendarsOutlookSelectResponses, PostCalendarsOutlookSyncData, PostCalendarsOutlookSyncErrors, PostCalendarsOutlookSyncResponses, PostCalendarsResponses, PostCalendarsSyncData, PostCalendarsSyncErrors, PostCalendarsSyncResponses, PostEmojiGenerateData, PostEmojiGenerateErrors, PostEmojiGenerateResponses, PostEventsByEventIdRespondData, PostEventsByEventIdRespondErrors, PostEventsByEventIdRespondResponses, PostEventsData, PostEventsErrors, PostEventsResponses, PostFriendsByFriendIdAcceptData, PostFriendsByFriendIdAcceptErrors, PostFriendsByFriendIdAcceptResponses, PostFriendsByFriendIdBlockData, PostFriendsByFriendIdBlockErrors, PostFriendsByFriendIdBlockResponses, PostFriendsByFriendIdDeclineData, PostFriendsByFriendIdDeclineErrors, PostFriendsByFriendIdDeclineResponses, PostFriendsByFriendIdReportData, PostFriendsByFriendIdReportErrors, PostFriendsByFriendIdReportResponses, PostFriendsInviteCodeRegenerateData, PostFriendsInviteCodeRegenerateErrors, PostFriendsInviteCodeRegenerateResponses, PostFriendsMatchContactsData, PostFriendsMatchContactsErrors, PostFriendsMatchContactsResponses, PostFriendsRequestData, PostFriendsRequestErrors, PostFriendsRequestResponses, PostGroupsData, PostGroupsErrors, PostGroupsResponses, PostInvitesByTokenRedeemData, PostInvitesByTokenRedeemErrors, PostInvitesByTokenRedeemResponses, PostInvitesData, PostInvitesErrors, PostInvitesResponses, PostUsersMePushTokenData, PostUsersMePushTokenErrors, PostUsersMePushTokenResponses, PutUsersMeNotificationPreferencesData, PutUsersMeNotificationPreferencesErrors, PutUsersMeNotificationPreferencesResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -507,6 +507,21 @@ export const getFriendsSearch = <ThrowOnError extends boolean = false>(options: 
 });
 
 /**
+ * Match contacts
+ *
+ * Find which of your phone contacts are already on Gather (excludes you and current friends)
+ */
+export const postFriendsMatchContacts = <ThrowOnError extends boolean = false>(options: Options<PostFriendsMatchContactsData, ThrowOnError>) => (options.client ?? client).post<PostFriendsMatchContactsResponses, PostFriendsMatchContactsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/friends/match-contacts',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Get invite code
  *
  * Get your unique invite code
@@ -688,6 +703,17 @@ export const patchUsersMe = <ThrowOnError extends boolean = false>(options: Opti
 });
 
 /**
+ * Get a public user profile
+ *
+ * Get another user's public profile (name, avatar, and your relationship to them). Used e.g. when tapping an attendee in a shared event.
+ */
+export const getUsersByUserIdProfile = <ThrowOnError extends boolean = false>(options: Options<GetUsersByUserIdProfileData, ThrowOnError>) => (options.client ?? client).get<GetUsersByUserIdProfileResponses, GetUsersByUserIdProfileErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/users/{userId}/profile',
+    ...options
+});
+
+/**
  * Register push notification token
  *
  * Register a push notification token for the current user
@@ -726,4 +752,30 @@ export const putUsersMeNotificationPreferences = <ThrowOnError extends boolean =
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Create a pending invite
+ *
+ * Create an invite for someone not yet on Gather. Returns a shareable link and prefilled message to send from your own device.
+ */
+export const postInvites = <ThrowOnError extends boolean = false>(options: Options<PostInvitesData, ThrowOnError>) => (options.client ?? client).post<PostInvitesResponses, PostInvitesErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/invites',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Redeem an invite by token
+ *
+ * Redeem a pending invite by its token (e.g. when the recipient taps the link after installing).
+ */
+export const postInvitesByTokenRedeem = <ThrowOnError extends boolean = false>(options: Options<PostInvitesByTokenRedeemData, ThrowOnError>) => (options.client ?? client).post<PostInvitesByTokenRedeemResponses, PostInvitesByTokenRedeemErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/invites/{token}/redeem',
+    ...options
 });

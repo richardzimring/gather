@@ -5,6 +5,7 @@ import {
   getFriendsSearch,
   getFriendsInviteCode,
   postFriendsRequest,
+  postFriendsMatchContacts,
   postFriendsByFriendIdAccept,
   postFriendsByFriendIdDecline,
   deleteFriendsByFriendId,
@@ -70,6 +71,25 @@ export function useFriendCode() {
 }
 
 /**
+ * Hook to match device contacts against Gather users by phone number.
+ */
+const MAX_CONTACT_PHONES = 10000;
+
+export function useMatchContacts() {
+  return useMutation({
+    mutationFn: async (phones: string[]) => {
+      const response = await postFriendsMatchContacts({
+        body: { phones: phones.slice(0, MAX_CONTACT_PHONES) },
+      });
+      if (!response.data?.success) {
+        throw new Error('Failed to match contacts');
+      }
+      return response.data.data.users;
+    },
+  });
+}
+
+/**
  * Hook to send a friend request.
  */
 export function useSendFriendRequest() {
@@ -82,9 +102,11 @@ export function useSendFriendRequest() {
     }) => {
       const response = await postFriendsRequest({ body: data });
       if (!response.data?.success) {
-        throw new Error('Failed to send friend request');
+        throw new Error(
+          response.data?.message ?? 'Failed to send friend request',
+        );
       }
-      return response.data.data;
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendsKeys.list() });

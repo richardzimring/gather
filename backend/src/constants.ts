@@ -42,5 +42,11 @@ export const OWNER_EMAIL = getEnvironmentVariable('OWNER_EMAIL');
 // Invite Code Configuration
 export const INVITE_CODE_LENGTH = 8;
 
+// Base URL used to build shareable invite links (friend + event invites).
+// Points at the Cloudflare Pages site that hosts the apple-app-site-association
+// file and the invite landing pages.
+export const INVITE_BASE_URL =
+  process.env.INVITE_BASE_URL ?? 'https://gather.rzimring.com';
+
 // Default Groups
 export const DEFAULT_GROUPS = [{ name: 'All Friends', emoji: '👥' }] as const;

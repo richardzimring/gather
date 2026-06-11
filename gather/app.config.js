@@ -15,6 +15,7 @@ const config = {
       ? 'com.richardzimring.gather.dev'
       : 'com.richardzimring.gather',
     buildNumber: '1',
+    associatedDomains: ['applinks:gather.rzimring.com'],
     infoPlist: {
       NSLocationWhenInUseUsageDescription:
         'We need your location to help you find nearby places for events.',
@@ -49,6 +50,20 @@ const config = {
     'expo-calendar',
     'expo-font',
     'expo-web-browser',
+    [
+      'expo-contacts',
+      {
+        contactsPermission:
+          'Gather uses your contacts to help you find friends who are already on Gather and invite the ones who are not.',
+      },
+    ],
+    [
+      'expo-camera',
+      {
+        cameraPermission:
+          'Gather uses the camera to scan a friend\u2019s QR code so you can add them.',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

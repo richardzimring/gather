@@ -115,6 +115,11 @@
             "default": false,
             "example": false
           },
+          "phone": {
+            "type": "string",
+            "example": "+14155550123",
+            "description": "E.164 phone number"
+          },
           "pushToken": {
             "type": "string",
             "example": "ExponentPushToken[xxxxxx]"
@@ -1177,6 +1182,14 @@
               "$ref": "#/components/schemas/EventInvitee"
             }
           },
+          "pendingInvitees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PendingInvitee"
+            },
+            "default": [],
+            "example": []
+          },
           "showInviteList": {
             "type": "boolean",
             "default": true,
@@ -1287,6 +1300,19 @@
             "example": "Can we do an hour later?"
           }
         }
+      },
+      "PendingInvitee": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        },
+        "required": [
+          "id"
+        ]
       },
       "EventStatus": {
         "type": "string",
@@ -1730,23 +1756,7 @@
               "users": {
                 "type": "array",
                 "items": {
-                  "type": "object",
-                  "properties": {
-                    "userId": {
-                      "type": "string",
-                      "format": "uuid"
-                    },
-                    "fullName": {
-                      "type": "string"
-                    },
-                    "avatarUrl": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "userId",
-                    "fullName"
-                  ]
+                  "$ref": "#/components/schemas/UserSearchResult"
                 }
               }
             },
@@ -1758,6 +1768,49 @@
         "required": [
           "success",
           "data"
+        ]
+      },
+      "UserSearchResult": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "initials": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId",
+          "fullName",
+          "initials"
+        ]
+      },
+      "MatchContacts": {
+        "type": "object",
+        "properties": {
+          "phones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10000,
+            "example": [
+              "+14155550123",
+              "(415) 555-0124"
+            ],
+            "description": "Raw phone numbers from the device address book. Normalized to E.164 server-side before matching."
+          }
+        },
+        "required": [
+          "phones"
         ]
       },
       "InviteCodeResponse": {
@@ -2101,8 +2154,74 @@
           "calendarSyncEnabled": {
             "type": "boolean",
             "example": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "+14155550123"
           }
         }
+      },
+      "PublicUserProfileResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/PublicUserProfile"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "PublicUserProfile": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "Jane Smith"
+          },
+          "initials": {
+            "type": "string",
+            "example": "JS"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://example.com/avatar.jpg"
+          },
+          "relationship": {
+            "$ref": "#/components/schemas/RelationshipStatus"
+          }
+        },
+        "required": [
+          "userId",
+          "fullName",
+          "initials",
+          "relationship"
+        ]
+      },
+      "RelationshipStatus": {
+        "type": "string",
+        "enum": [
+          "none",
+          "request_sent",
+          "request_received",
+          "friends",
+          "blocked",
+          "self"
+        ]
       },
       "PushTokenResponse": {
         "type": "object",
@@ -2212,6 +2331,116 @@
             "example": true
           }
         }
+      },
+      "CreateInviteResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreateInviteResult"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "CreateInviteResult": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "example": "aBcD1234"
+          },
+          "inviteUrl": {
+            "type": "string",
+            "example": "https://gather.rzimring.com/e/aBcD1234"
+          },
+          "prefilledMessage": {
+            "type": "string",
+            "example": "Alex invited you to \"Dinner\" on Gather. Join here: ..."
+          }
+        },
+        "required": [
+          "token",
+          "inviteUrl",
+          "prefilledMessage"
+        ]
+      },
+      "CreateInvite": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/InviteType"
+          },
+          "phone": {
+            "type": "string",
+            "minLength": 1,
+            "example": "(415) 555-0123"
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "description": "Required for event invites"
+          }
+        },
+        "required": [
+          "type",
+          "phone"
+        ]
+      },
+      "InviteType": {
+        "type": "string",
+        "enum": [
+          "friend",
+          "event"
+        ]
+      },
+      "RedeemInviteResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/RedeemInviteResult"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "RedeemInviteResult": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/InviteType"
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        },
+        "required": [
+          "type"
+        ]
       }
     },
     "parameters": {}
@@ -4544,6 +4773,72 @@
         }
       }
     },
+    "/friends/match-contacts": {
+      "post": {
+        "tags": [
+          "Friends"
+        ],
+        "summary": "Match contacts",
+        "description": "Find which of your phone contacts are already on Gather (excludes you and current friends)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MatchContacts"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Matched users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/friends/invite-code": {
       "get": {
         "tags": [
@@ -5379,6 +5674,16 @@
               }
             }
           },
+          "409": {
+            "description": "Phone number already linked to another account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -5408,6 +5713,73 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userId}/profile": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get a public user profile",
+        "description": "Get another user's public profile (name, avatar, and your relationship to them). Used e.g. when tapping an attendee in a shared event.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "userId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicUserProfileResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -5584,6 +5956,139 @@
           },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invites": {
+      "post": {
+        "tags": [
+          "Invites"
+        ],
+        "summary": "Create a pending invite",
+        "description": "Create an invite for someone not yet on Gather. Returns a shareable link and prefilled message to send from your own device.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInvite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Invite created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateInviteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invites/{token}/redeem": {
+      "post": {
+        "tags": [
+          "Invites"
+        ],
+        "summary": "Redeem an invite by token",
+        "description": "Redeem a pending invite by its token (e.g. when the recipient taps the link after installing).",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "aBcD1234"
+            },
+            "required": true,
+            "name": "token",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invite redeemed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedeemInviteResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invite not found",
             "content": {
               "application/json": {
                 "schema": {

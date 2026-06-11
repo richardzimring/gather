@@ -5,11 +5,14 @@ import {
   FriendWithUserSchema,
   FriendRequestSchema,
   UserSearchSchema,
+  MatchContactsSchema,
   ErrorResponseSchema,
 } from '../types';
+import type { User } from '../types';
 import * as friendsService from '../services/friends';
 import * as userService from '../services/users';
 import * as reportsService from '../services/reports';
+import { INVITE_BASE_URL } from '../constants';
 
 export const app = createApp();
 
@@ -52,20 +55,30 @@ const InviteCodeResponseSchema = z
   })
   .openapi('InviteCodeResponse');
 
+const UserSearchResultSchema = z
+  .object({
+    userId: z.string().uuid(),
+    fullName: z.string(),
+    initials: z.string(),
+    avatarUrl: z.string().optional(),
+  })
+  .openapi('UserSearchResult');
+
 const UserSearchResponseSchema = z
   .object({
     success: z.literal(true),
     data: z.object({
-      users: z.array(
-        z.object({
-          userId: z.string().uuid(),
-          fullName: z.string(),
-          avatarUrl: z.string().optional(),
-        }),
-      ),
+      users: z.array(UserSearchResultSchema),
     }),
   })
   .openapi('UserSearchResponse');
+
+const toUserSearchResult = (user: User) => ({
+  userId: user.userId,
+  fullName: user.fullName,
+  initials: user.initials,
+  avatarUrl: user.avatarUrl,
+});
 
 const SimpleSuccessSchema = z
   .object({
@@ -132,6 +145,60 @@ const searchUsersRoute = createRoute({
         },
       },
       description: 'Search results',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Validation error',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+const matchContactsRoute = createRoute({
+  method: 'post',
+  path: '/friends/match-contacts',
+  tags: ['Friends'],
+  summary: 'Match contacts',
+  description:
+    'Find which of your phone contacts are already on Gather (excludes you and current friends)',
+  security: [{ BearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: MatchContactsSchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: UserSearchResponseSchema,
+        },
+      },
+      description: 'Matched users',
     },
     400: {
       content: {
@@ -586,7 +653,7 @@ app.openapi(searchUsersRoute, async (c) => {
     return c.json(
       {
         success: true as const,
-        data: { users },
+        data: { users: users.map(toUserSearchResult) },
       },
       200,
     );
@@ -603,6 +670,35 @@ app.openapi(searchUsersRoute, async (c) => {
   }
 });
 
+app.openapi(matchContactsRoute, async (c) => {
+  const user = c.get('user');
+  const { phones } = c.req.valid('json');
+
+  try {
+    const matched = await friendsService.matchContacts(user.userId, phones);
+
+    return c.json(
+      {
+        success: true as const,
+        data: {
+          users: matched.map(toUserSearchResult),
+        },
+      },
+      200,
+    );
+  } catch (error) {
+    console.error('Error in POST /friends/match-contacts:', error);
+    return c.json(
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to match contacts',
+      },
+      500,
+    );
+  }
+});
+
 app.openapi(getInviteCodeRoute, (c) => {
   const user = c.get('user');
 
@@ -611,7 +707,7 @@ app.openapi(getInviteCodeRoute, (c) => {
       success: true as const,
       data: {
         inviteCode: user.inviteCode,
-        inviteLink: `https://gather.app/invite/${user.inviteCode}`,
+        inviteLink: `${INVITE_BASE_URL}/invite/${user.inviteCode}`,
       },
     },
     200,
@@ -640,7 +736,7 @@ app.openapi(regenerateInviteCodeRoute, async (c) => {
         success: true as const,
         data: {
           inviteCode: newInviteCode,
-          inviteLink: `https://gather.app/invite/${newInviteCode}`,
+          inviteLink: `${INVITE_BASE_URL}/invite/${newInviteCode}`,
         },
         message: 'Invite code regenerated successfully',
       },

@@ -20,6 +20,7 @@ import { app as busyTimesApp } from '../src/api/busy-times';
 import { app as friendsApp } from '../src/api/friends';
 import { app as groupsApp } from '../src/api/groups';
 import { app as usersApp } from '../src/api/users';
+import { app as invitesApp } from '../src/api/invites';
 
 // Create the main app that combines all routes
 const mainApp = new OpenAPIHono();
@@ -44,6 +45,7 @@ mainApp.route('/', busyTimesApp);
 mainApp.route('/', friendsApp);
 mainApp.route('/', groupsApp);
 mainApp.route('/', usersApp);
+mainApp.route('/', invitesApp);
 
 // Generate the OpenAPI document
 const doc = mainApp.getOpenAPIDocument({

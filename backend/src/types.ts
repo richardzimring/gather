@@ -29,6 +29,10 @@ export const UserSchema = z
       .openapi({ example: 'https://example.com/avatar.jpg' }),
     createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
     calendarSyncEnabled: z.boolean().default(false).openapi({ example: false }),
+    phone: z
+      .string()
+      .optional()
+      .openapi({ example: '+14155550123', description: 'E.164 phone number' }),
     pushToken: z
       .string()
       .optional()
@@ -69,6 +73,13 @@ export const UpdateUserSchema = z
       .openapi({ example: 'https://example.com/avatar.jpg' }),
     timezone: z.string().optional().openapi({ example: 'America/New_York' }),
     calendarSyncEnabled: z.boolean().optional().openapi({ example: true }),
+    // Self-reported phone number. Pass a string to set it (normalized to E.164
+    // server-side) or null to clear it.
+    phone: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ example: '+14155550123' }),
   })
   .openapi('UpdateUser');
 
@@ -305,6 +316,14 @@ export const EventInviteeSchema = z
   })
   .openapi('EventInvitee');
 
+// An invite to a non-user that is still pending (not yet claimed). Intentionally
+// carries no identifying information beyond an opaque id.
+export const PendingInviteeSchema = z
+  .object({
+    id: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
+  })
+  .openapi('PendingInvitee');
+
 export const EventSchema = z
   .object({
     eventId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
@@ -347,6 +366,13 @@ export const EventSchema = z
       .optional()
       .openapi({ example: 'Looking forward to catching up!' }),
     invitees: z.array(EventInviteeSchema),
+    // Unclaimed invites sent to people who aren't on Gather yet. No identifying
+    // info (phone) is exposed; the client renders these as anonymous "Invited"
+    // placeholder rows. Optional for backwards compatibility with older clients.
+    pendingInvitees: z
+      .array(PendingInviteeSchema)
+      .default([])
+      .openapi({ example: [] }),
     showInviteList: z.boolean().default(true).openapi({ example: true }),
     status: EventStatusSchema,
     calendarEventId: z
@@ -488,6 +514,84 @@ export const UserSearchSchema = z
   })
   .openapi('UserSearch');
 
+// Relationship of the viewer to another user, used to decide which action to
+// show on a public profile (add friend / accept / already friends / blocked).
+export const RelationshipStatusSchema = z
+  .enum([
+    'none',
+    'request_sent',
+    'request_received',
+    'friends',
+    'blocked',
+    'self',
+  ])
+  .openapi('RelationshipStatus');
+
+// Minimal public-facing profile any signed-in user can view (e.g. by tapping an
+// attendee in a shared event). Deliberately excludes email/phone.
+export const PublicUserProfileSchema = z
+  .object({
+    userId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
+    fullName: z.string().openapi({ example: 'Jane Smith' }),
+    initials: z.string().openapi({ example: 'JS' }),
+    avatarUrl: z
+      .string()
+      .url()
+      .optional()
+      .openapi({ example: 'https://example.com/avatar.jpg' }),
+    relationship: RelationshipStatusSchema,
+  })
+  .openapi('PublicUserProfile');
+
+// Pending invite schemas (invite people who are not yet on Gather)
+export const InviteTypeSchema = z
+  .enum(['friend', 'event'])
+  .openapi('InviteType');
+
+export const CreateInviteSchema = z
+  .object({
+    type: InviteTypeSchema,
+    phone: z.string().min(1).openapi({ example: '(415) 555-0123' }),
+    eventId: z.string().uuid().optional().openapi({
+      example: EXAMPLE_UUID,
+      description: 'Required for event invites',
+    }),
+  })
+  .openapi('CreateInvite');
+
+export const CreateInviteResultSchema = z
+  .object({
+    token: z.string().openapi({ example: 'aBcD1234' }),
+    inviteUrl: z
+      .string()
+      .openapi({ example: 'https://gather.rzimring.com/e/aBcD1234' }),
+    prefilledMessage: z.string().openapi({
+      example: 'Alex invited you to "Dinner" on Gather. Join here: ...',
+    }),
+  })
+  .openapi('CreateInviteResult');
+
+export const RedeemInviteResultSchema = z
+  .object({
+    type: InviteTypeSchema,
+    eventId: z.string().uuid().optional().openapi({ example: EXAMPLE_UUID }),
+  })
+  .openapi('RedeemInviteResult');
+
+// Contacts matching schema (find friends already on Gather by phone number)
+export const MatchContactsSchema = z
+  .object({
+    phones: z
+      .array(z.string())
+      .max(10000)
+      .openapi({
+        example: ['+14155550123', '(415) 555-0124'],
+        description:
+          'Raw phone numbers from the device address book. Normalized to E.164 server-side before matching.',
+      }),
+  })
+  .openapi('MatchContacts');
+
 // ============================================
 // API Response Schemas for OpenAPI
 // ============================================
@@ -545,6 +649,7 @@ export type CounterProposal = z.infer<typeof CounterProposalSchema>;
 export type LocationData = z.infer<typeof LocationDataSchema>;
 export type EventRecurring = z.infer<typeof EventRecurringSchema>;
 export type EventInvitee = z.infer<typeof EventInviteeSchema>;
+export type PendingInvitee = z.infer<typeof PendingInviteeSchema>;
 export type Event = z.infer<typeof EventSchema>;
 export type CreateEvent = z.infer<typeof CreateEventSchema>;
 export type UpdateEvent = z.infer<typeof UpdateEventSchema>;
@@ -558,6 +663,13 @@ export type UpdateNotificationPreferences = z.infer<
   typeof UpdateNotificationPreferencesSchema
 >;
 export type UserSearch = z.infer<typeof UserSearchSchema>;
+export type RelationshipStatus = z.infer<typeof RelationshipStatusSchema>;
+export type PublicUserProfile = z.infer<typeof PublicUserProfileSchema>;
+export type MatchContacts = z.infer<typeof MatchContactsSchema>;
+export type InviteType = z.infer<typeof InviteTypeSchema>;
+export type CreateInvite = z.infer<typeof CreateInviteSchema>;
+export type CreateInviteResult = z.infer<typeof CreateInviteResultSchema>;
+export type RedeemInviteResult = z.infer<typeof RedeemInviteResultSchema>;
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
 
 // Calendar schemas

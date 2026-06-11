@@ -1,8 +1,9 @@
-import { eq, and, or, ne, inArray } from 'drizzle-orm';
-import { db, events, eventInvitees, users } from '../db';
+import { eq, and, or, ne, inArray, isNull } from 'drizzle-orm';
+import { db, events, eventInvitees, users, pendingInvites } from '../db';
 import type {
   Event,
   EventInvitee,
+  PendingInvitee,
   CreateEvent,
   UpdateEvent,
   EventResponse,
@@ -74,6 +75,7 @@ const dbEventToEvent = (
   dbEvent: typeof events.$inferSelect,
   invitees: EventInvitee[],
   host: HostInfo,
+  pendingInvitees: PendingInvitee[] = [],
 ): Event => {
   return {
     eventId: dbEvent.id,
@@ -92,6 +94,7 @@ const dbEventToEvent = (
     longitude: dbEvent.longitude ?? undefined,
     notes: dbEvent.notes ?? undefined,
     invitees,
+    pendingInvitees,
     showInviteList: dbEvent.showInviteList,
     status: dbEvent.status,
     calendarEventId: dbEvent.calendarEventId ?? undefined,
@@ -110,6 +113,37 @@ const getHostInfo = (hostUser: typeof users.$inferSelect | null): HostInfo => {
       `${hostUser.firstName.charAt(0)}${hostUser.lastName.charAt(0)}`.toUpperCase(),
     hostAvatarUrl: hostUser.avatarUrl ?? undefined,
   };
+};
+
+/**
+ * Fetch unclaimed (still-pending) non-user invites for the given events,
+ * grouped by event id. These are people the host invited via SMS who have not
+ * yet joined Gather. Only an opaque id is returned (no phone).
+ */
+const getPendingInviteesByEvent = async (
+  eventIds: string[],
+): Promise<Map<string, PendingInvitee[]>> => {
+  const byEvent = new Map<string, PendingInvitee[]>();
+  if (eventIds.length === 0) return byEvent;
+
+  const rows = await db
+    .select({ id: pendingInvites.id, eventId: pendingInvites.eventId })
+    .from(pendingInvites)
+    .where(
+      and(
+        inArray(pendingInvites.eventId, eventIds),
+        eq(pendingInvites.type, 'event'),
+        isNull(pendingInvites.claimedByUserId),
+      ),
+    );
+
+  for (const row of rows) {
+    if (!row.eventId) continue;
+    const existing = byEvent.get(row.eventId) ?? [];
+    existing.push({ id: row.id });
+    byEvent.set(row.eventId, existing);
+  }
+  return byEvent;
 };
 
 // ============================================
@@ -150,7 +184,13 @@ export const getEvent = async (eventId: string): Promise<Event | null> => {
 
   const invitees = inviteeRecords.map(dbInviteeToEventInvitee);
   const hostInfo = getHostInfo(row.host);
-  return dbEventToEvent(row.event, invitees, hostInfo);
+  const pendingByEvent = await getPendingInviteesByEvent([eventId]);
+  return dbEventToEvent(
+    row.event,
+    invitees,
+    hostInfo,
+    pendingByEvent.get(eventId) ?? [],
+  );
 };
 
 export const getEventsForUser = async (userId: string): Promise<Event[]> => {
@@ -209,12 +249,15 @@ export const getEventsForUser = async (userId: string): Promise<Event[]> => {
     inviteesByEvent.set(invitee.eventId, existing);
   }
 
+  const pendingByEvent = await getPendingInviteesByEvent(eventIds);
+
   return eventResults.map((r) => {
     const hostInfo = getHostInfo(r.host);
     return dbEventToEvent(
       r.event,
       inviteesByEvent.get(r.event.id) ?? [],
       hostInfo,
+      pendingByEvent.get(r.event.id) ?? [],
     );
   });
 };

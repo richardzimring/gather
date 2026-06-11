@@ -25,6 +25,10 @@ export type User = {
     avatarUrl?: string;
     createdAt: string;
     calendarSyncEnabled?: boolean;
+    /**
+     * E.164 phone number
+     */
+    phone?: string;
     pushToken?: string;
     timezone?: string;
     inviteCode?: string;
@@ -298,6 +302,7 @@ export type Event = {
     longitude?: string;
     notes?: string;
     invitees: EventInvitee[];
+    pendingInvitees?: PendingInvitee[];
     showInviteList?: boolean;
     status: EventStatus;
     calendarEventId?: string;
@@ -322,6 +327,10 @@ export type CounterProposal = {
     endTime?: string;
     location?: string;
     message?: string;
+};
+
+export type PendingInvitee = {
+    id: string;
 };
 
 export type EventStatus = 'draft' | 'active' | 'cancelled';
@@ -426,12 +435,22 @@ export type FriendshipStatus = 'pending' | 'accepted' | 'blocked';
 export type UserSearchResponse = {
     success: true;
     data: {
-        users: {
-            userId: string;
-            fullName: string;
-            avatarUrl?: string;
-        }[];
+        users: UserSearchResult[];
     };
+};
+
+export type UserSearchResult = {
+    userId: string;
+    fullName: string;
+    initials: string;
+    avatarUrl?: string;
+};
+
+export type MatchContacts = {
+    /**
+     * Raw phone numbers from the device address book. Normalized to E.164 server-side before matching.
+     */
+    phones: string[];
 };
 
 export type InviteCodeResponse = {
@@ -520,7 +539,23 @@ export type UpdateUser = {
     avatarUrl?: string | null;
     timezone?: string;
     calendarSyncEnabled?: boolean;
+    phone?: string | null;
 };
+
+export type PublicUserProfileResponse = {
+    success: true;
+    data: PublicUserProfile;
+};
+
+export type PublicUserProfile = {
+    userId: string;
+    fullName: string;
+    initials: string;
+    avatarUrl?: string;
+    relationship: RelationshipStatus;
+};
+
+export type RelationshipStatus = 'none' | 'request_sent' | 'request_received' | 'friends' | 'blocked' | 'self';
 
 export type PushTokenResponse = {
     success: true;
@@ -552,6 +587,40 @@ export type UpdateNotificationPreferences = {
     eventUpdates?: boolean;
     friendRequests?: boolean;
     messages?: boolean;
+};
+
+export type CreateInviteResponse = {
+    success: true;
+    data: CreateInviteResult;
+    message?: string;
+};
+
+export type CreateInviteResult = {
+    token: string;
+    inviteUrl: string;
+    prefilledMessage: string;
+};
+
+export type CreateInvite = {
+    type: InviteType;
+    phone: string;
+    /**
+     * Required for event invites
+     */
+    eventId?: string;
+};
+
+export type InviteType = 'friend' | 'event';
+
+export type RedeemInviteResponse = {
+    success: true;
+    data: RedeemInviteResult;
+    message?: string;
+};
+
+export type RedeemInviteResult = {
+    type: InviteType;
+    eventId?: string;
 };
 
 export type PostAuthAppleCallbackData = {
@@ -1813,6 +1882,39 @@ export type GetFriendsSearchResponses = {
 
 export type GetFriendsSearchResponse = GetFriendsSearchResponses[keyof GetFriendsSearchResponses];
 
+export type PostFriendsMatchContactsData = {
+    body: MatchContacts;
+    path?: never;
+    query?: never;
+    url: '/friends/match-contacts';
+};
+
+export type PostFriendsMatchContactsErrors = {
+    /**
+     * Validation error
+     */
+    400: ErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostFriendsMatchContactsError = PostFriendsMatchContactsErrors[keyof PostFriendsMatchContactsErrors];
+
+export type PostFriendsMatchContactsResponses = {
+    /**
+     * Matched users
+     */
+    200: UserSearchResponse;
+};
+
+export type PostFriendsMatchContactsResponse = PostFriendsMatchContactsResponses[keyof PostFriendsMatchContactsResponses];
+
 export type GetFriendsInviteCodeData = {
     body?: never;
     path?: never;
@@ -2286,6 +2388,10 @@ export type PatchUsersMeErrors = {
      */
     404: ErrorResponse;
     /**
+     * Phone number already linked to another account
+     */
+    409: ErrorResponse;
+    /**
      * Internal server error
      */
     500: ErrorResponse;
@@ -2301,6 +2407,41 @@ export type PatchUsersMeResponses = {
 };
 
 export type PatchUsersMeResponse = PatchUsersMeResponses[keyof PatchUsersMeResponses];
+
+export type GetUsersByUserIdProfileData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/users/{userId}/profile';
+};
+
+export type GetUsersByUserIdProfileErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * User not found
+     */
+    404: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type GetUsersByUserIdProfileError = GetUsersByUserIdProfileErrors[keyof GetUsersByUserIdProfileErrors];
+
+export type GetUsersByUserIdProfileResponses = {
+    /**
+     * Public profile retrieved successfully
+     */
+    200: PublicUserProfileResponse;
+};
+
+export type GetUsersByUserIdProfileResponse = GetUsersByUserIdProfileResponses[keyof GetUsersByUserIdProfileResponses];
 
 export type PostUsersMePushTokenData = {
     body: RegisterPushToken;
@@ -2396,3 +2537,71 @@ export type PutUsersMeNotificationPreferencesResponses = {
 };
 
 export type PutUsersMeNotificationPreferencesResponse = PutUsersMeNotificationPreferencesResponses[keyof PutUsersMeNotificationPreferencesResponses];
+
+export type PostInvitesData = {
+    body: CreateInvite;
+    path?: never;
+    query?: never;
+    url: '/invites';
+};
+
+export type PostInvitesErrors = {
+    /**
+     * Validation error
+     */
+    400: ErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostInvitesError = PostInvitesErrors[keyof PostInvitesErrors];
+
+export type PostInvitesResponses = {
+    /**
+     * Invite created
+     */
+    201: CreateInviteResponse;
+};
+
+export type PostInvitesResponse = PostInvitesResponses[keyof PostInvitesResponses];
+
+export type PostInvitesByTokenRedeemData = {
+    body?: never;
+    path: {
+        token: string;
+    };
+    query?: never;
+    url: '/invites/{token}/redeem';
+};
+
+export type PostInvitesByTokenRedeemErrors = {
+    /**
+     * Unauthorized
+     */
+    401: ErrorResponse;
+    /**
+     * Invite not found
+     */
+    404: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export type PostInvitesByTokenRedeemError = PostInvitesByTokenRedeemErrors[keyof PostInvitesByTokenRedeemErrors];
+
+export type PostInvitesByTokenRedeemResponses = {
+    /**
+     * Invite redeemed
+     */
+    200: RedeemInviteResponse;
+};
+
+export type PostInvitesByTokenRedeemResponse = PostInvitesByTokenRedeemResponses[keyof PostInvitesByTokenRedeemResponses];

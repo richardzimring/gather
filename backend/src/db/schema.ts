@@ -12,7 +12,7 @@ import {
   uniqueIndex,
   jsonb,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 
 // ============================================
 // Enums
@@ -50,6 +50,11 @@ export const calendarProviderEnum = pgEnum('calendar_provider', [
   'outlook',
 ]);
 
+export const pendingInviteTypeEnum = pgEnum('pending_invite_type', [
+  'friend',
+  'event',
+]);
+
 // ============================================
 // Users Table
 // ============================================
@@ -63,6 +68,9 @@ export const users = pgTable(
     firstName: varchar('first_name', { length: 50 }).notNull(),
     lastName: varchar('last_name', { length: 50 }).notNull(),
     avatarUrl: text('avatar_url'),
+    // Self-reported E.164 phone; optional, unverified. Nullable for backwards
+    // compatibility (Postgres allows multiple NULLs on the unique index).
+    phone: varchar('phone', { length: 32 }),
     inviteCode: varchar('invite_code', { length: 8 }),
     calendarSyncEnabled: boolean('calendar_sync_enabled')
       .notNull()
@@ -80,6 +88,9 @@ export const users = pgTable(
     uniqueIndex('users_apple_user_id_idx').on(table.appleUserId),
     uniqueIndex('users_invite_code_idx').on(table.inviteCode),
     index('users_email_idx').on(table.email),
+    // Unique so a phone number maps to at most one account. Numbers are
+    // self-reported/unverified, so conflicts are surfaced to the user (409).
+    uniqueIndex('users_phone_idx').on(table.phone),
   ],
 );
 
@@ -342,6 +353,68 @@ export const eventInviteesRelations = relations(eventInvitees, ({ one }) => ({
   user: one(users, {
     fields: [eventInvitees.userId],
     references: [users.id],
+  }),
+}));
+
+// ============================================
+// Pending Invites Table
+// ============================================
+// Invites sent to people who are not yet on Gather, keyed by phone number.
+// Claimed when a matching phone is set on a user account (deferred), or directly
+// via the invite token when the recipient taps the link after installing.
+
+export const pendingInvites = pgTable(
+  'pending_invites',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    type: pendingInviteTypeEnum('type').notNull(),
+    inviterUserId: uuid('inviter_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    // Only set for event invites.
+    eventId: uuid('event_id').references(() => events.id, {
+      onDelete: 'cascade',
+    }),
+    // Normalized E.164 phone of the invitee.
+    phone: varchar('phone', { length: 32 }).notNull(),
+    // Opaque token embedded in the invite link.
+    token: varchar('token', { length: 32 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    claimedByUserId: uuid('claimed_by_user_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    claimedAt: timestamp('claimed_at', { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex('pending_invites_token_idx').on(table.token),
+    index('pending_invites_phone_idx').on(table.phone),
+    index('pending_invites_inviter_id_idx').on(table.inviterUserId),
+    // At most one unclaimed invite per (inviter, phone) for friend invites and
+    // per (inviter, phone, event) for event invites — closes the
+    // select-then-insert race in createPendingInvite.
+    uniqueIndex('pending_invites_friend_dedupe_idx')
+      .on(table.inviterUserId, table.phone)
+      .where(
+        sql`${table.claimedByUserId} is null and ${table.eventId} is null`,
+      ),
+    uniqueIndex('pending_invites_event_dedupe_idx')
+      .on(table.inviterUserId, table.phone, table.eventId)
+      .where(
+        sql`${table.claimedByUserId} is null and ${table.eventId} is not null`,
+      ),
+  ],
+);
+
+export const pendingInvitesRelations = relations(pendingInvites, ({ one }) => ({
+  inviter: one(users, {
+    fields: [pendingInvites.inviterUserId],
+    references: [users.id],
+  }),
+  event: one(events, {
+    fields: [pendingInvites.eventId],
+    references: [events.id],
   }),
 }));
 

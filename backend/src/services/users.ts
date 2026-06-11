@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { eq, ilike, or, and, ne } from 'drizzle-orm';
+import { eq, ilike, or, and, ne, inArray } from 'drizzle-orm';
 import { db, users, groups } from '../db';
 import type {
   User,
@@ -41,6 +41,7 @@ const dbUserToUser = (dbUser: typeof users.$inferSelect): User => {
     avatarUrl: dbUser.avatarUrl ?? undefined,
     createdAt: dbUser.createdAt.toISOString(),
     calendarSyncEnabled: dbUser.calendarSyncEnabled,
+    phone: dbUser.phone ?? undefined,
     pushToken: dbUser.pushToken ?? undefined,
     timezone: dbUser.timezone,
     inviteCode: dbUser.inviteCode ?? undefined,
@@ -112,6 +113,29 @@ export const searchUsersByName = async (
   return result.map(dbUserToUser);
 };
 
+/**
+ * Find users whose self-reported phone matches any in the (already normalized,
+ * E.164) list. Used for contacts-based friend discovery.
+ */
+export const getUsersByPhones = async (
+  phones: string[],
+  excludeUserId?: string,
+): Promise<User[]> => {
+  if (phones.length === 0) return [];
+
+  const conditions = [inArray(users.phone, phones)];
+  if (excludeUserId) {
+    conditions.push(ne(users.id, excludeUserId));
+  }
+
+  const result = await db
+    .select()
+    .from(users)
+    .where(and(...conditions));
+
+  return result.map(dbUserToUser);
+};
+
 export const createUser = async (input: CreateUser): Promise<User> => {
   const inviteCode = generateInviteCode();
 
@@ -154,6 +178,9 @@ export const updateUser = async (
   }
   if (updates.calendarSyncEnabled !== undefined) {
     updateData.calendarSyncEnabled = updates.calendarSyncEnabled;
+  }
+  if (updates.phone !== undefined) {
+    updateData.phone = updates.phone;
   }
 
   if (Object.keys(updateData).length === 0) {

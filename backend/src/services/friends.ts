@@ -1,8 +1,9 @@
 import { eq, and, or, inArray } from 'drizzle-orm';
 import { db, users, friendships, groups, groupMembers } from '../db';
-import type { Friendship, User } from '../types';
-import { getUserById, getUserByInviteCode } from './users';
+import type { Friendship, RelationshipStatus, User } from '../types';
+import { getUserById, getUserByInviteCode, getUsersByPhones } from './users';
 import { notifyFriendRequest, notifyFriendAccepted } from './notifications';
+import { normalizePhones } from '../utils/phone';
 
 // Auto-accepts all incoming friend requests (used during App Store review)
 const AUTO_ACCEPT_USER_ID = 'b3fb7b13-fe6e-4295-87d6-689fe3d0a881';
@@ -108,6 +109,31 @@ export const getFriendship = async (
 
   const friendship = result[0];
   return friendship ? dbFriendshipToFriendship(friendship) : null;
+};
+
+export const getRelationship = async (
+  viewerId: string,
+  targetId: string,
+): Promise<RelationshipStatus> => {
+  if (viewerId === targetId) return 'self';
+
+  const friendship = await getFriendship(viewerId, targetId);
+  if (friendship?.status === 'accepted') return 'friends';
+  if (friendship?.status === 'blocked') return 'blocked';
+  if (friendship?.status === 'pending') {
+    return friendship.initiatedBy === viewerId
+      ? 'request_sent'
+      : 'request_received';
+  }
+
+  // Blocking deletes the blocked user's own row, so a reverse-only blocked
+  // row means the target blocked the viewer. Report 'none' rather than reveal
+  // it; sendFriendRequest already rejects these quietly.
+  const reverse = await getFriendship(targetId, viewerId);
+  if (reverse?.status === 'blocked') return 'none';
+  if (reverse?.status === 'pending') return 'request_received';
+
+  return 'none';
 };
 
 /**
@@ -438,6 +464,67 @@ export const blockUser = async (
   }
 
   return { success: true, message: 'User blocked' };
+};
+
+/**
+ * Among candidateIds, the users with a blocked relationship to userId in
+ * either direction. Blocking deletes the blocked user's own row, so both
+ * directions must be checked.
+ */
+const getBlockedUserIds = async (
+  userId: string,
+  candidateIds: string[],
+): Promise<string[]> => {
+  if (candidateIds.length === 0) return [];
+
+  const rows = await db
+    .select({
+      userId: friendships.userId,
+      friendId: friendships.friendId,
+    })
+    .from(friendships)
+    .where(
+      and(
+        eq(friendships.status, 'blocked'),
+        or(
+          and(
+            eq(friendships.userId, userId),
+            inArray(friendships.friendId, candidateIds),
+          ),
+          and(
+            eq(friendships.friendId, userId),
+            inArray(friendships.userId, candidateIds),
+          ),
+        ),
+      ),
+    );
+
+  return rows.map((r) => (r.userId === userId ? r.friendId : r.userId));
+};
+
+/**
+ * Match a list of raw contact phone numbers against Gather users. Returns users
+ * who are on Gather, excluding the requester, anyone they're already friends
+ * with (accepted), and blocked relationships in either direction. Phone numbers
+ * are normalized to E.164 before matching.
+ */
+export const matchContacts = async (
+  userId: string,
+  rawPhones: string[],
+): Promise<User[]> => {
+  const normalized = normalizePhones(rawPhones);
+  if (normalized.length === 0) return [];
+
+  const matches = await getUsersByPhones(normalized, userId);
+  if (matches.length === 0) return [];
+
+  const matchedIds = matches.map((u) => u.userId);
+  const [acceptedFriendIds, blockedIds] = await Promise.all([
+    getAcceptedFriendIds(userId),
+    getBlockedUserIds(userId, matchedIds),
+  ]);
+  const excluded = new Set([...acceptedFriendIds, ...blockedIds]);
+  return matches.filter((u) => !excluded.has(u.userId));
 };
 
 export const getAcceptedFriendIds = async (

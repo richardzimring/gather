@@ -6,9 +6,14 @@ import {
   RegisterPushTokenSchema,
   NotificationPreferencesSchema,
   UpdateNotificationPreferencesSchema,
+  PublicUserProfileSchema,
   ErrorResponseSchema,
 } from '../types';
 import * as userService from '../services/users';
+import * as friendsService from '../services/friends';
+import { claimPendingInvitesForPhone } from '../services/pending-invites';
+import { normalizePhone } from '../utils/phone';
+import { isUniqueViolation } from '../utils/pg';
 
 export const app = createApp();
 
@@ -109,6 +114,70 @@ const updateMeRoute = createRoute({
         },
       },
       description: 'Validation error',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'User not found',
+    },
+    409: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Phone number already linked to another account',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+const PublicUserProfileResponseSchema = z
+  .object({
+    success: z.literal(true),
+    data: PublicUserProfileSchema,
+  })
+  .openapi('PublicUserProfileResponse');
+
+const getUserProfileRoute = createRoute({
+  method: 'get',
+  path: '/users/{userId}/profile',
+  tags: ['Users'],
+  summary: 'Get a public user profile',
+  description:
+    "Get another user's public profile (name, avatar, and your relationship to them). Used e.g. when tapping an attendee in a shared event.",
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: z.object({
+      userId: z.string().uuid(),
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: PublicUserProfileResponseSchema,
+        },
+      },
+      description: 'Public profile retrieved successfully',
     },
     401: {
       content: {
@@ -327,6 +396,28 @@ app.openapi(updateMeRoute, async (c) => {
   const user = c.get('user');
   const data = c.req.valid('json');
 
+  // Normalize/validate phone before persisting. Empty string clears it.
+  let normalizedPhone: string | null = null;
+  if (data.phone !== undefined) {
+    if (data.phone === null || data.phone.trim() === '') {
+      data.phone = null;
+    } else {
+      const normalized = normalizePhone(data.phone);
+      if (!normalized) {
+        return c.json(
+          {
+            success: false as const,
+            error: 'Validation Error',
+            message: 'Please enter a valid phone number.',
+          },
+          400,
+        );
+      }
+      data.phone = normalized;
+      normalizedPhone = normalized;
+    }
+  }
+
   try {
     const updatedUser = await userService.updateUser(user.userId, data);
     if (!updatedUser) {
@@ -340,6 +431,13 @@ app.openapi(updateMeRoute, async (c) => {
       );
     }
 
+    // A phone was just set: claim any pending invites addressed to it.
+    if (normalizedPhone) {
+      await claimPendingInvitesForPhone(user.userId, normalizedPhone).catch(
+        (err) => console.error('Failed to claim pending invites:', err),
+      );
+    }
+
     return c.json(
       {
         success: true as const,
@@ -349,12 +447,72 @@ app.openapi(updateMeRoute, async (c) => {
       200,
     );
   } catch (error) {
+    // A unique-violation on the phone column means another account already
+    // claimed this (unverified, self-reported) number.
+    if (isUniqueViolation(error)) {
+      return c.json(
+        {
+          success: false as const,
+          error: 'Conflict',
+          message: 'That phone number is already linked to another account.',
+        },
+        409,
+      );
+    }
     console.error('Error in PATCH /users/me:', error);
     return c.json(
       {
         success: false as const,
         error: 'Internal Server Error',
         message: 'Failed to update profile',
+      },
+      500,
+    );
+  }
+});
+
+app.openapi(getUserProfileRoute, async (c) => {
+  const viewer = c.get('user');
+  const { userId } = c.req.valid('param');
+
+  try {
+    const target = await userService.getUserById(userId);
+    if (!target) {
+      return c.json(
+        {
+          success: false as const,
+          error: 'Not Found',
+          message: 'User not found',
+        },
+        404,
+      );
+    }
+
+    const relationship = await friendsService.getRelationship(
+      viewer.userId,
+      target.userId,
+    );
+
+    return c.json(
+      {
+        success: true as const,
+        data: {
+          userId: target.userId,
+          fullName: target.fullName,
+          initials: target.initials,
+          avatarUrl: target.avatarUrl,
+          relationship,
+        },
+      },
+      200,
+    );
+  } catch (error) {
+    console.error('Error in GET /users/:userId/profile:', error);
+    return c.json(
+      {
+        success: false as const,
+        error: 'Internal Server Error',
+        message: 'Failed to load profile',
       },
       500,
     );

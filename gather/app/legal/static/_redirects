@@ -1,0 +1,5 @@
+# Serve the invite landing pages for any code/token (status 200 = rewrite, not
+# redirect). When the app is installed, iOS opens these paths directly via
+# universal links and these rules are never hit.
+/invite/* /invite/index.html 200
+/e/* /e/index.html 200

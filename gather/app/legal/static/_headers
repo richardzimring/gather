@@ -1,0 +1,5 @@
+# Apple requires the AASA file to be served as application/json over HTTPS
+# with no redirects. Cloudflare Pages otherwise serves extensionless files as
+# application/octet-stream.
+/.well-known/apple-app-site-association
+  Content-Type: application/json

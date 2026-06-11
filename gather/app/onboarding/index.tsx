@@ -16,6 +16,7 @@ import {
   Eye,
   Lock,
   MapPin,
+  Phone,
   UserPlus,
 } from '@tamagui/lucide-icons';
 import {
@@ -42,12 +43,14 @@ import {
   useSendFriendRequest,
   useCalendarProviders,
   useBlockedWindows,
+  useUpdateUser,
   registerPushTokenAsync,
 } from '../../lib/hooks';
+import { isPlausiblePhone } from '../../lib/phone';
 import { putUsersMeNotificationPreferences } from '../../lib/api/generated';
 import { haptic } from '../../lib/haptics';
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 // ============================================
 // Progress Indicator
@@ -428,7 +431,133 @@ function BlockedTimesStep({ onNext }: { onNext: () => void }) {
 }
 
 // ============================================
-// Step 4: Friends
+// Step 4: Phone Number
+// ============================================
+
+function PhoneNumberStep({ onNext }: { onNext: () => void }) {
+  const { user, refreshUser } = useAuth();
+  const updateUser = useUpdateUser();
+  const [phone, setPhone] = useState(user?.phone ?? '');
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSave = async () => {
+    const trimmed = phone.trim();
+    if (!isPlausiblePhone(trimmed)) {
+      setError('Please enter a valid phone number.');
+      return;
+    }
+    setError(null);
+    try {
+      await updateUser.mutateAsync({ phone: trimmed });
+      await refreshUser();
+      haptic.success();
+      onNext();
+    } catch (err) {
+      haptic.error();
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : "That number doesn't look right. Please try again.",
+      );
+    }
+  };
+
+  return (
+    <YStack flex={1} paddingHorizontal="$5">
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <YStack alignItems="center" gap="$5">
+          <YStack alignItems="center" gap="$3">
+            <XStack alignItems="center" gap="$2">
+              <Phone size={18} color="$primary" />
+              <Text
+                fontSize={13}
+                fontWeight="600"
+                color="$primary"
+                letterSpacing={0.5}
+              >
+                YOUR NUMBER
+              </Text>
+            </XStack>
+            <H2 fontSize={28} fontWeight="700" textAlign="center">
+              Find friends easily
+            </H2>
+            <Text
+              color="$colorMuted"
+              fontSize={16}
+              textAlign="center"
+              lineHeight={24}
+              maxWidth={300}
+            >
+              Add your phone number so friends can connect with you and invite
+              you to events. It&apos;s never shown publicly.
+            </Text>
+          </YStack>
+
+          <Theme name="Card">
+            <Card width="100%">
+              <YStack gap="$3">
+                <Input
+                  placeholder="(555) 123-4567"
+                  placeholderTextColor="$colorMuted"
+                  value={phone}
+                  onChangeText={(text) => {
+                    setPhone(text);
+                    setError(null);
+                  }}
+                  keyboardType="phone-pad"
+                  autoComplete="tel"
+                  textContentType="telephoneNumber"
+                  backgroundColor="$backgroundHover"
+                  borderColor={error ? '$destructive' : '$borderColor'}
+                  borderWidth={1}
+                  borderRadius="$2"
+                  paddingHorizontal="$3"
+                  height={44}
+                  fontSize={16}
+                  fontWeight="600"
+                  textAlign="center"
+                />
+                {error && (
+                  <Text color="$destructive" fontSize={13}>
+                    {error}
+                  </Text>
+                )}
+                <Button
+                  variant="primary"
+                  onPress={handleSave}
+                  loading={updateUser.isPending}
+                  disabled={!phone.trim()}
+                >
+                  Save
+                </Button>
+              </YStack>
+            </Card>
+          </Theme>
+        </YStack>
+      </ScrollView>
+
+      <YStack alignItems="center">
+        <Button
+          variant="ghost"
+          buttonSize="sm"
+          onPress={() => {
+            haptic.light();
+            onNext();
+          }}
+        >
+          Skip for now
+        </Button>
+      </YStack>
+    </YStack>
+  );
+}
+
+// ============================================
+// Step 5: Friends
 // ============================================
 
 function InviteFriendsStep({ onNext }: { onNext: () => void }) {
@@ -567,7 +696,7 @@ function InviteFriendsStep({ onNext }: { onNext: () => void }) {
 }
 
 // ============================================
-// Step 5: Notifications (Final Step)
+// Step 6: Notifications (Final Step)
 // ============================================
 
 function NotificationsStep({ onComplete }: { onComplete: () => void }) {
@@ -786,8 +915,10 @@ export default function OnboardingScreen() {
       case 3:
         return <BlockedTimesStep onNext={goToNext} />;
       case 4:
-        return <InviteFriendsStep onNext={goToNext} />;
+        return <PhoneNumberStep onNext={goToNext} />;
       case 5:
+        return <InviteFriendsStep onNext={goToNext} />;
+      case 6:
         return <NotificationsStep onComplete={handleComplete} />;
       default:
         return null;

@@ -9,6 +9,7 @@ import { app as blockedApp } from '../src/api/blocked';
 import { app as busyTimesApp } from '../src/api/busy-times';
 import { app as eventsApp } from '../src/api/events';
 import { app as calendarsApp } from '../src/api/calendars';
+import { app as invitesApp } from '../src/api/invites';
 import { app as wellKnownApp } from '../src/api/well-known';
 
 const app = new OpenAPIHono();
@@ -26,5 +27,6 @@ app.route('', emojiApp);
 app.route('', blockedApp);
 app.route('', busyTimesApp);
 app.route('', eventsApp);
+app.route('', invitesApp);
 
 export const handler = handle(app);

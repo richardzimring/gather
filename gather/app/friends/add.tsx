@@ -1,8 +1,16 @@
-import { Copy, Share2, UserPlus } from '@tamagui/lucide-icons';
+import {
+  Copy,
+  QrCode,
+  Send,
+  Share2,
+  UserPlus,
+  Users,
+} from '@tamagui/lucide-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Share } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
+import QRCode from 'react-native-qrcode-svg';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Circle, Input, Text, Theme, XStack, YStack } from 'tamagui';
 import { Spinner } from '../../components/ui/Spinner';
@@ -14,6 +22,14 @@ import { BackHeader } from '../../components/ui/ScreenHeader';
 import { useFriendCode, useSendFriendRequest } from '../../lib/hooks';
 import { haptic } from '../../lib/haptics';
 
+function SectionHeader({ children }: { children: string }) {
+  return (
+    <Text fontWeight="600" fontSize={16} marginTop="$2" marginBottom="$3">
+      {children}
+    </Text>
+  );
+}
+
 export default function AddFriendScreen() {
   const insets = useSafeAreaInsets();
   const { data: friendCodeData, isLoading: isLoadingCode } = useFriendCode();
@@ -24,6 +40,7 @@ export default function AddFriendScreen() {
   const [copied, setCopied] = useState(false);
 
   const myFriendCode = friendCodeData?.inviteCode ?? '';
+  const myInviteLink = friendCodeData?.inviteLink ?? '';
 
   const handleCopyCode = async () => {
     if (!myFriendCode) return;
@@ -35,10 +52,10 @@ export default function AddFriendScreen() {
   };
 
   const handleShare = async () => {
+    if (!myInviteLink) return;
     try {
       await Share.share({
-        url: 'https://apps.apple.com/us/app/gather-plan-with-friends/id6759443297',
-        message: `Hey, add me on Gather! My friend code is: ${friendCode}`,
+        message: `Add me on Gather! Tap to connect: ${myInviteLink}`,
       });
     } catch (err) {
       console.error('Failed to share:', err);
@@ -86,10 +103,84 @@ export default function AddFriendScreen() {
         }}
         bottomOffset={16}
       >
-        {/* Header */}
         <BackHeader title="Add Friend" />
 
-        {/* Enter Friend Code Section */}
+        <SectionHeader>Find People</SectionHeader>
+        <YStack gap="$3" marginBottom="$4">
+          <Theme name="Card">
+            <Card
+              pressable
+              onPress={() => {
+                haptic.light();
+                router.push('/friends/discover');
+              }}
+            >
+              <XStack alignItems="center" gap="$3">
+                <Circle size={40} backgroundColor="$secondary">
+                  <Users size={18} color="$color" />
+                </Circle>
+                <YStack flex={1}>
+                  <Text fontWeight="600" fontSize={16}>
+                    Find Friends from Contacts
+                  </Text>
+                  <Text color="$colorMuted" fontSize={13}>
+                    See who you know that&apos;s already on Gather
+                  </Text>
+                </YStack>
+              </XStack>
+            </Card>
+          </Theme>
+
+          <Theme name="Card">
+            <Card
+              pressable
+              onPress={() => {
+                haptic.light();
+                router.push('/invite-contact?type=friend');
+              }}
+            >
+              <XStack alignItems="center" gap="$3">
+                <Circle size={40} backgroundColor="$secondary">
+                  <Send size={18} color="$color" />
+                </Circle>
+                <YStack flex={1}>
+                  <Text fontWeight="600" fontSize={16}>
+                    Invite Someone New
+                  </Text>
+                  <Text color="$colorMuted" fontSize={13}>
+                    Text a friend an invite to join you on Gather
+                  </Text>
+                </YStack>
+              </XStack>
+            </Card>
+          </Theme>
+
+          <Theme name="Card">
+            <Card
+              pressable
+              onPress={() => {
+                haptic.light();
+                router.push('/friends/scan');
+              }}
+            >
+              <XStack alignItems="center" gap="$3">
+                <Circle size={40} backgroundColor="$secondary">
+                  <QrCode size={18} color="$color" />
+                </Circle>
+                <YStack flex={1}>
+                  <Text fontWeight="600" fontSize={16}>
+                    Scan a Friend&apos;s Code
+                  </Text>
+                  <Text color="$colorMuted" fontSize={13}>
+                    Point your camera at their Gather QR code
+                  </Text>
+                </YStack>
+              </XStack>
+            </Card>
+          </Theme>
+        </YStack>
+
+        <SectionHeader>Have a Code?</SectionHeader>
         <Theme name="Card">
           <Card marginBottom="$4">
             <YStack gap="$3">
@@ -150,7 +241,7 @@ export default function AddFriendScreen() {
           </Card>
         </Theme>
 
-        {/* Your Friend Code Section */}
+        <SectionHeader>Your Invite</SectionHeader>
         <Theme name="Card">
           <Card>
             <YStack gap="$3">
@@ -185,6 +276,39 @@ export default function AddFriendScreen() {
                     </Text>
                   </YStack>
 
+                  {myInviteLink ? (
+                    <YStack alignItems="center" paddingVertical="$2">
+                      <YStack
+                        backgroundColor="$background"
+                        borderWidth={1}
+                        borderColor="$borderColor"
+                        padding="$3"
+                        borderRadius="$3"
+                      >
+                        <YStack
+                          backgroundColor="#ffffff"
+                          padding="$2"
+                          borderRadius="$2"
+                        >
+                          <QRCode
+                            value={myInviteLink}
+                            size={160}
+                            color="#000000"
+                            backgroundColor="#ffffff"
+                          />
+                        </YStack>
+                      </YStack>
+                      <Text
+                        color="$colorMuted"
+                        fontSize={12}
+                        marginTop="$2"
+                        textAlign="center"
+                      >
+                        Have a friend scan this to add you
+                      </Text>
+                    </YStack>
+                  ) : null}
+
                   <XStack gap="$2">
                     <Button
                       variant="outline"
@@ -211,7 +335,6 @@ export default function AddFriendScreen() {
           </Card>
         </Theme>
 
-        {/* Help Text */}
         <YStack marginTop="$4" alignItems="center">
           <Text color="$colorMuted" fontSize={12} textAlign="center">
             Friend requests must be accepted before you can see each
