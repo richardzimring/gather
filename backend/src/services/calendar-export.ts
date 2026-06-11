@@ -160,11 +160,8 @@ export const enableExportForProvider = async (
     )
     .limit(1);
 
-  let externalCalendarId: string;
-
   if (existing) {
     // Verify the calendar still exists by attempting to re-enable
-    externalCalendarId = existing.externalCalendarId;
     await db
       .update(calendarExportDestinations)
       .set({ enabled: true })
@@ -176,12 +173,11 @@ export const enableExportForProvider = async (
       GATHER_CALENDAR_NAME,
       userTimezone,
     );
-    externalCalendarId = created.externalCalendarId;
 
     await db.insert(calendarExportDestinations).values({
       userId,
       provider,
-      externalCalendarId,
+      externalCalendarId: created.externalCalendarId,
       calendarName: GATHER_CALENDAR_NAME,
       enabled: true,
     });
@@ -533,43 +529,39 @@ export const removeExportedEventForUser = async (
     .where(inArray(calendarExportDestinations.id, destinationIds));
 
   await Promise.allSettled(
-    exportRecords
-      .filter(
-        (record): record is typeof calendarEventExports.$inferSelect => true,
+    exportRecords.map(async (record) => {
+      const destination = destinations.find(
+        (d) => d.id === record.destinationId,
+      );
+      if (!destination) return;
+      if (
+        destination.provider !== 'google' &&
+        destination.provider !== 'outlook'
       )
-      .map(async (record) => {
-        const destination = destinations.find(
-          (d) => d.id === record.destinationId,
+        return;
+
+      const connection = await getProviderConnection(
+        userId,
+        destination.provider as 'google' | 'outlook',
+      );
+      if (!connection) return;
+
+      try {
+        const accessToken = await ensureValidAccessToken(connection);
+        const providerService = getCalendarProvider(destination.provider);
+        await providerService.deleteEvent(
+          accessToken,
+          destination.externalCalendarId,
+          record.externalEventId,
         );
-        if (!destination) return;
-        if (
-          destination.provider !== 'google' &&
-          destination.provider !== 'outlook'
-        )
-          return;
+      } catch {
+        // Best-effort deletion
+      }
 
-        const connection = await getProviderConnection(
-          userId,
-          destination.provider as 'google' | 'outlook',
-        );
-        if (!connection) return;
-
-        try {
-          const accessToken = await ensureValidAccessToken(connection);
-          const providerService = getCalendarProvider(destination.provider);
-          await providerService.deleteEvent(
-            accessToken,
-            destination.externalCalendarId,
-            record.externalEventId,
-          );
-        } catch {
-          // Best-effort deletion
-        }
-
-        await db
-          .delete(calendarEventExports)
-          .where(eq(calendarEventExports.id, record.id));
-      }),
+      await db
+        .delete(calendarEventExports)
+        .where(eq(calendarEventExports.id, record.id));
+    }),
   );
 };
 

@@ -144,7 +144,7 @@ export const sendFriendRequest = async (
   targetUserId?: string,
   inviteCode?: string,
 ): Promise<{ success: boolean; message: string; friendship?: Friendship }> => {
-  let targetUser: User | null = null;
+  let targetUser: User | null;
 
   // Find target user by userId or invite code
   if (targetUserId) {

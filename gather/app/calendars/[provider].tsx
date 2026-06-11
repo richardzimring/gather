@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Alert, Animated } from 'react-native';
+import { Alert, Animated, useAnimatedValue } from 'react-native';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -216,7 +216,7 @@ export default function CalendarSelectScreen() {
     boolean | null
   >(null);
 
-  const saveShakeAnim = useRef(new Animated.Value(0)).current;
+  const saveShakeAnim = useAnimatedValue(0);
   const triggerSaveShake = useCallback(() => {
     saveShakeAnim.setValue(0);
     Animated.sequence([
@@ -303,11 +303,12 @@ export default function CalendarSelectScreen() {
     );
   }, [connections, provider]);
 
-  // Apple: Load device calendars
+  // Apple: Load device calendars. `isLoading` starts true for Apple, and
+  // retries flip it back on in the event handler below, so this never needs
+  // to set state synchronously.
   const loadCalendars = useCallback(async () => {
     if (provider !== 'apple') return;
 
-    setIsLoading(true);
     try {
       const granted = await ensureCalendarPermissions();
       setHasPermission(granted);
@@ -329,37 +330,37 @@ export default function CalendarSelectScreen() {
     }
   }, [connectedIds, provider]);
 
-  // Load device calendars on mount (Apple only)
+  // Retry after a permission denial; loading is flipped here, in the event
+  // handler, rather than synchronously inside loadCalendars
+  const retryLoadCalendars = () => {
+    setIsLoading(true);
+    void loadCalendars();
+  };
+
+  // Load device calendars on mount (Apple only). The async IIFE marks this as
+  // asynchronous work for the set-state-in-effect rule.
   useEffect(() => {
     if (provider === 'apple') {
-      loadCalendars();
+      void (async () => {
+        await loadCalendars();
+      })();
     }
   }, [loadCalendars, provider]);
 
-  // Apple: Pre-select already-connected calendars once we have both data sources
-  useEffect(() => {
-    if (
-      provider === 'apple' &&
-      deviceCalendars.length > 0 &&
-      connectedIds.size > 0
-    ) {
-      setSelectedIds((prev) => {
-        // Only set if we haven't already touched selection
-        if (prev.size === 0) {
-          return new Set(connectedIds);
-        }
-        return prev;
-      });
+  // Pre-select already-connected calendars once the data is available, applied
+  // during render (React's "adjusting state when a prop changes" pattern);
+  // `initialized` makes each branch one-shot.
+  if (provider === 'apple') {
+    if (!initialized && deviceCalendars.length > 0 && connectedIds.size > 0) {
+      // Only set if we haven't already touched selection
+      setSelectedIds((prev) =>
+        prev.size === 0 ? new Set(connectedIds) : prev,
+      );
+      setInitialized(true);
     }
-  }, [deviceCalendars, connectedIds, provider]);
-
-  // Google/Outlook: Pre-select currently connected calendars once data is loaded
-  useEffect(() => {
-    if (provider === 'apple') return;
-
+  } else {
     const calendars =
       provider === 'google' ? googleCalendars : outlookCalendars;
-
     if (calendars && !initialized) {
       if (connectedIds.size > 0) {
         // Re-visiting: pre-select already connected calendars
@@ -367,7 +368,7 @@ export default function CalendarSelectScreen() {
       }
       setInitialized(true);
     }
-  }, [googleCalendars, outlookCalendars, connectedIds, initialized, provider]);
+  }
 
   // Normalize calendars from different sources
   const normalizedCalendars = useMemo((): NormalizedCalendar[] => {
@@ -647,7 +648,11 @@ export default function CalendarSelectScreen() {
               Gather needs access to your calendars to check your availability
               and help find times when you and your friends are free.
             </Text>
-            <Button variant="primary" onPress={loadCalendars} marginTop="$2">
+            <Button
+              variant="primary"
+              onPress={retryLoadCalendars}
+              marginTop="$2"
+            >
               Grant Calendar Access
             </Button>
           </YStack>

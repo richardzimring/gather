@@ -1,5 +1,5 @@
-import { useRef } from 'react';
-import { Animated } from 'react-native';
+import { useMemo } from 'react';
+import { Animated, useAnimatedValue } from 'react-native';
 
 interface ScrollGradientResult {
   gradientOpacity: Animated.AnimatedInterpolation<number>;
@@ -15,14 +15,16 @@ interface ScrollGradientResult {
  * and remains fully visible when the user pulls to refresh.
  */
 export function useScrollGradient(): ScrollGradientResult {
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const gradientOpacity = useRef(
-    scrollY.interpolate({
-      inputRange: [0, 200],
-      outputRange: [1, 0],
-      extrapolate: 'clamp',
-    }),
-  ).current;
+  const scrollY = useAnimatedValue(0);
+  const gradientOpacity = useMemo(
+    () =>
+      scrollY.interpolate({
+        inputRange: [0, 200],
+        outputRange: [1, 0],
+        extrapolate: 'clamp',
+      }),
+    [scrollY],
+  );
 
   return {
     gradientOpacity,

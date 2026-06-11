@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ScrollView, Text, XStack, YStack, Theme } from 'tamagui';
@@ -97,21 +97,22 @@ export default function BlockedWindowScreen() {
     useState<PatternOption>('weekly');
   const [initialized, setInitialized] = useState(isNew);
 
-  useEffect(() => {
-    if (win && !initialized) {
-      setStartTime(new Date(win.startTime));
-      setEndTime(new Date(win.endTime));
-      if (win.recurring) {
-        setIsRecurring(true);
-        setRecurringPattern(
-          inferPatternOption(win.recurring.pattern, win.recurring.daysOfWeek),
-        );
-      } else {
-        setIsRecurring(false);
-      }
-      setInitialized(true);
+  // Initialize the form from the loaded window during render (React's
+  // "adjusting state when a prop changes" pattern); `initialized` flips true
+  // so this runs exactly once.
+  if (win && !initialized) {
+    setStartTime(new Date(win.startTime));
+    setEndTime(new Date(win.endTime));
+    if (win.recurring) {
+      setIsRecurring(true);
+      setRecurringPattern(
+        inferPatternOption(win.recurring.pattern, win.recurring.daysOfWeek),
+      );
+    } else {
+      setIsRecurring(false);
     }
-  }, [win, initialized]);
+    setInitialized(true);
+  }
 
   const isValidRange = endTime > startTime;
 

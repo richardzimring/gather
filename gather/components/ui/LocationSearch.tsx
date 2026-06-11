@@ -108,66 +108,71 @@ export function LocationSearch({
     [],
   );
 
-  // Search places using Google Places Autocomplete API
+  // Search places using Google Places Autocomplete API. The user location is
+  // passed in at call time (from an event handler) rather than read from the
+  // ref here, so this closure stays free of render-scope ref access.
   const searchPlaces = useMemo(
     () =>
-      debounce(async (searchQuery: string) => {
-        if (!searchQuery || searchQuery.length < 2) {
-          setResults([]);
-          setIsSearching(false);
-          return;
-        }
-
-        if (!GOOGLE_PLACES_API_KEY) {
-          console.warn('Google Places API key not configured');
-          setResults([]);
-          setIsSearching(false);
-          return;
-        }
-
-        setIsSearching(true);
-
-        try {
-          // Build the API URL with optional location bias
-          let apiUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(searchQuery)}&key=${GOOGLE_PLACES_API_KEY}`;
-
-          // Add location bias if user location is available
-          if (userLocationRef.current) {
-            const { latitude, longitude } = userLocationRef.current;
-            apiUrl += `&location=${latitude},${longitude}&radius=${DEFAULT_SEARCH_RADIUS}`;
-          }
-
-          const response = await fetch(apiUrl);
-          const data = await response.json();
-
-          if (data.status === 'OK' && data.predictions) {
-            const places: PlaceResult[] = data.predictions.map(
-              (prediction: AutocompletePrediction) => ({
-                placeId: prediction.place_id,
-                name: prediction.structured_formatting.main_text,
-                address:
-                  prediction.structured_formatting.secondary_text ||
-                  prediction.description,
-              }),
-            );
-            setResults(places);
-          } else {
+      debounce(
+        async (searchQuery: string, userLocation: UserLocation | null) => {
+          if (!searchQuery || searchQuery.length < 2) {
             setResults([]);
+            setIsSearching(false);
+            return;
           }
-        } catch (error) {
-          console.error('Error searching places:', error);
-          setResults([]);
-        } finally {
-          setIsSearching(false);
-        }
-      }, 300),
+
+          if (!GOOGLE_PLACES_API_KEY) {
+            console.warn('Google Places API key not configured');
+            setResults([]);
+            setIsSearching(false);
+            return;
+          }
+
+          setIsSearching(true);
+
+          try {
+            // Build the API URL with optional location bias
+            let apiUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(searchQuery)}&key=${GOOGLE_PLACES_API_KEY}`;
+
+            // Add location bias if user location is available
+            if (userLocation) {
+              const { latitude, longitude } = userLocation;
+              apiUrl += `&location=${latitude},${longitude}&radius=${DEFAULT_SEARCH_RADIUS}`;
+            }
+
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            if (data.status === 'OK' && data.predictions) {
+              const places: PlaceResult[] = data.predictions.map(
+                (prediction: AutocompletePrediction) => ({
+                  placeId: prediction.place_id,
+                  name: prediction.structured_formatting.main_text,
+                  address:
+                    prediction.structured_formatting.secondary_text ||
+                    prediction.description,
+                }),
+              );
+              setResults(places);
+            } else {
+              setResults([]);
+            }
+          } catch (error) {
+            console.error('Error searching places:', error);
+            setResults([]);
+          } finally {
+            setIsSearching(false);
+          }
+        },
+        300,
+      ),
     [],
   );
 
   const handleQueryChange = (text: string) => {
     setQuery(text);
     setShowResults(true);
-    searchPlaces(text);
+    searchPlaces(text, userLocationRef.current);
   };
 
   const handleSelectPlace = async (place: PlaceResult) => {

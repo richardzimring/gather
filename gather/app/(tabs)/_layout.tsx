@@ -3,7 +3,7 @@ import {
   ThemeProvider,
   DarkTheme,
   DefaultTheme,
-} from '@react-navigation/native';
+} from 'expo-router/react-navigation';
 import { useMemo, useRef, useEffect } from 'react';
 import { DynamicColorIOS, useColorScheme } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';

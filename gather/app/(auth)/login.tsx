@@ -9,6 +9,7 @@ import {
   StyleSheet,
   View,
   Image,
+  useAnimatedValue,
 } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useRouter, Link } from 'expo-router';
@@ -234,8 +235,8 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isAppleAuthAvailable, setIsAppleAuthAvailable] = useState(false);
 
-  const contentOpacity = useRef(new Animated.Value(0)).current;
-  const contentTranslateY = useRef(new Animated.Value(16)).current;
+  const contentOpacity = useAnimatedValue(0);
+  const contentTranslateY = useAnimatedValue(16);
 
   useEffect(() => {
     AppleAuthentication.isAvailableAsync().then(setIsAppleAuthAvailable);

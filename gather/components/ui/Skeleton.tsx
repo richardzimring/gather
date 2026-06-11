@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Easing, ViewStyle } from 'react-native';
+import { useEffect } from 'react';
+import { Animated, Easing, ViewStyle, useAnimatedValue } from 'react-native';
 
 /**
  * Pulsing skeleton bar used as a loading placeholder.
@@ -16,7 +16,7 @@ export function SkeletonBar({
   borderRadius?: number;
   style?: ViewStyle;
 }) {
-  const opacity = useRef(new Animated.Value(0.3)).current;
+  const opacity = useAnimatedValue(0.3);
 
   useEffect(() => {
     const animation = Animated.loop(
@@ -65,7 +65,7 @@ export function SkeletonCircle({
   size: number;
   style?: ViewStyle;
 }) {
-  const opacity = useRef(new Animated.Value(0.3)).current;
+  const opacity = useAnimatedValue(0.3);
 
   useEffect(() => {
     const animation = Animated.loop(

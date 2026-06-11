@@ -1,4 +1,4 @@
-import * as Calendar from 'expo-calendar';
+import * as Calendar from 'expo-calendar/legacy';
 
 import { requestCalendarPermissions, hasCalendarPermissions } from './calendar';
 import { postCalendarsSync } from '../api/client';

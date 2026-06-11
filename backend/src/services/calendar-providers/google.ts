@@ -126,7 +126,9 @@ export class GoogleCalendarProvider implements CalendarProviderService {
         throw new OAuthRevokedError('Google OAuth access has been revoked');
       }
 
-      throw new Error('Failed to refresh Google access token');
+      throw new Error('Failed to refresh Google access token', {
+        cause: error,
+      });
     }
   }
 

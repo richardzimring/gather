@@ -18,20 +18,22 @@ export default function InviteScreen() {
   const { isLoading, isAuthenticated } = useAuth();
   const sendFriendRequest = useSendFriendRequest();
 
-  const [status, setStatus] = useState<Status>('loading');
-  const [message, setMessage] = useState('Sending friend request...');
+  // Set only from the request's async callbacks; the empty-code error and the
+  // initial loading state are derived below.
+  const [result, setResult] = useState<{
+    status: Status;
+    message: string;
+  } | null>(null);
   const hasProcessed = useRef(false);
 
-  useEffect(() => {
-    if (isLoading || hasProcessed.current) return;
+  const cleanCode = (code ?? '').trim().toUpperCase();
+  const status: Status = !cleanCode ? 'error' : (result?.status ?? 'loading');
+  const message = !cleanCode
+    ? 'This invite link looks invalid.'
+    : (result?.message ?? 'Sending friend request...');
 
-    const cleanCode = (code ?? '').trim().toUpperCase();
-    if (!cleanCode) {
-      hasProcessed.current = true;
-      setStatus('error');
-      setMessage('This invite link looks invalid.');
-      return;
-    }
+  useEffect(() => {
+    if (isLoading || hasProcessed.current || !cleanCode) return;
 
     if (!isAuthenticated) {
       hasProcessed.current = true;
@@ -46,22 +48,24 @@ export default function InviteScreen() {
       .mutateAsync({ inviteCode: cleanCode })
       .then((response) => {
         haptic.success();
-        setStatus('success');
-        setMessage(
-          response.message ??
+        setResult({
+          status: 'success',
+          message:
+            response.message ??
             'Friend request sent! They will see it in their requests.',
-        );
+        });
       })
       .catch((error) => {
         haptic.error();
-        setStatus('error');
-        setMessage(
-          error instanceof Error && error.message
-            ? error.message
-            : "We couldn't send this friend request. The invite may be invalid.",
-        );
+        setResult({
+          status: 'error',
+          message:
+            error instanceof Error && error.message
+              ? error.message
+              : "We couldn't send this friend request. The invite may be invalid.",
+        });
       });
-  }, [code, isAuthenticated, isLoading, sendFriendRequest]);
+  }, [cleanCode, isAuthenticated, isLoading, sendFriendRequest]);
 
   return (
     <YStack flex={1} backgroundColor="$background">

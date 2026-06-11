@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { router } from 'expo-router';
 import {
   Animated,
   Dimensions,
   Platform,
   KeyboardAvoidingView,
+  useAnimatedValue,
 } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import {
@@ -78,10 +79,10 @@ function ProgressDots({ current, total }: { current: number; total: number }) {
 
 function WelcomeStep({ onNext }: { onNext: () => void }) {
   const { user } = useAuth();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(32)).current;
-  const slide2Anim = useRef(new Animated.Value(32)).current;
-  const slide3Anim = useRef(new Animated.Value(32)).current;
+  const fadeAnim = useAnimatedValue(0);
+  const slideAnim = useAnimatedValue(32);
+  const slide2Anim = useAnimatedValue(32);
+  const slide3Anim = useAnimatedValue(32);
 
   useEffect(() => {
     Animated.stagger(120, [
@@ -184,8 +185,8 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
 // ============================================
 
 function HowItWorksStep({ onNext }: { onNext: () => void }) {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
+  const fadeAnim = useAnimatedValue(0);
+  const slideAnim = useAnimatedValue(20);
 
   useEffect(() => {
     Animated.parallel([
@@ -855,8 +856,8 @@ export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const [currentStep, setCurrentStep] = useState(0);
   const [displayedStep, setDisplayedStep] = useState(0);
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  const opacityAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useAnimatedValue(0);
+  const opacityAnim = useAnimatedValue(1);
 
   const animateTransition = useCallback(
     (nextStep: number) => {

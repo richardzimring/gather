@@ -16,18 +16,15 @@ export default function EventInviteScreen() {
   const { isLoading, isAuthenticated } = useAuth();
   const redeemInvite = useRedeemInvite();
 
-  const [error, setError] = useState<string | null>(null);
+  const [redeemError, setRedeemError] = useState<string | null>(null);
   const hasProcessed = useRef(false);
 
-  useEffect(() => {
-    if (isLoading || hasProcessed.current) return;
+  // An empty token is derivable directly from the route param — no state needed
+  const cleanToken = (token ?? '').trim();
+  const error = cleanToken ? redeemError : 'This invite link looks invalid.';
 
-    const cleanToken = (token ?? '').trim();
-    if (!cleanToken) {
-      hasProcessed.current = true;
-      setError('This invite link looks invalid.');
-      return;
-    }
+  useEffect(() => {
+    if (isLoading || hasProcessed.current || !cleanToken) return;
 
     if (!isAuthenticated) {
       hasProcessed.current = true;
@@ -52,13 +49,13 @@ export default function EventInviteScreen() {
         }
       })
       .catch((err) => {
-        setError(
+        setRedeemError(
           err instanceof Error && err.message
             ? err.message
             : 'Something went wrong opening this invite.',
         );
       });
-  }, [token, isAuthenticated, isLoading, redeemInvite]);
+  }, [cleanToken, isAuthenticated, isLoading, redeemInvite]);
 
   return (
     <YStack flex={1} backgroundColor="$background">

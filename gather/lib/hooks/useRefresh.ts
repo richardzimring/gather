@@ -1,4 +1,3 @@
-import { useCallback, useMemo } from 'react';
 import type { UseQueryResult } from '@tanstack/react-query';
 
 /**
@@ -15,16 +14,13 @@ import type { UseQueryResult } from '@tanstack/react-query';
  * const { isRefreshing, onRefresh } = useRefresh(friendsQuery, groupsQuery)
  */
 export function useRefresh(...queries: UseQueryResult<any, any>[]) {
-  const isRefreshing = useMemo(
-    () => queries.some((q) => q.isRefetching),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [queries.map((q) => q.isRefetching).join(',')],
-  );
+  // Plain derivations — `queries` is a fresh array each render, so manual
+  // memoization is pointless; the React Compiler memoizes these as needed.
+  const isRefreshing = queries.some((q) => q.isRefetching);
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = () => {
     queries.forEach((q) => q.refetch());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queries.length]);
+  };
 
   return { isRefreshing, onRefresh };
 }

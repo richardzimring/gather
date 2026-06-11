@@ -26,14 +26,18 @@ export function useCalendarPermissions() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isRequesting, setIsRequesting] = useState(false);
 
-  useEffect(() => {
-    checkPermissions();
-  }, []);
-
-  const checkPermissions = async () => {
+  const checkPermissions = useCallback(async () => {
     const granted = await hasCalendarPermissions();
     setHasPermission(granted);
-  };
+  }, []);
+
+  // The async IIFE marks this as asynchronous work for the
+  // set-state-in-effect rule.
+  useEffect(() => {
+    void (async () => {
+      await checkPermissions();
+    })();
+  }, [checkPermissions]);
 
   const requestPermission = useCallback(async () => {
     setIsRequesting(true);

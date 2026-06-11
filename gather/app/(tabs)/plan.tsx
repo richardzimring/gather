@@ -11,7 +11,7 @@ import {
   FileText,
 } from '@tamagui/lucide-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { LayoutAnimation, RefreshControl, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import {
@@ -253,17 +253,21 @@ export default function PlanScreen() {
   );
 
   // --- Pre-select friends if passed via navigation params ---
-  useEffect(() => {
-    if (selectedFriendIds) {
-      const friendIdsArray = selectedFriendIds.split(',').filter(Boolean);
-      const validFriendIds = friendIdsArray.filter((id) =>
-        friends.some((f) => f.friendId === id),
-      );
-      if (validFriendIds.length > 0) {
-        setSelectedFriends(validFriendIds);
-      }
+  // Applied during render (React's "adjusting state when a prop changes"
+  // pattern) once the friends list has loaded.
+  const [appliedFriendIdsParam, setAppliedFriendIdsParam] = useState<
+    string | undefined
+  >(undefined);
+  if (selectedFriendIds !== appliedFriendIdsParam && friends.length > 0) {
+    setAppliedFriendIdsParam(selectedFriendIds);
+    const validFriendIds = (selectedFriendIds ?? '')
+      .split(',')
+      .filter(Boolean)
+      .filter((id) => friends.some((f) => f.friendId === id));
+    if (validFriendIds.length > 0) {
+      setSelectedFriends(validFriendIds);
     }
-  }, [selectedFriendIds, friends]);
+  }
 
   // --- Computed date range for slot queries ---
   const isSingleDate = rangeStart !== null && rangeEnd === null;

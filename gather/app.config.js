@@ -49,6 +49,7 @@ const config = {
     'expo-notifications',
     'expo-calendar',
     'expo-font',
+    'expo-status-bar',
     'expo-web-browser',
     [
       'expo-contacts',

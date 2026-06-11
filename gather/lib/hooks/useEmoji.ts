@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import debounce from 'lodash.debounce';
 import { apple } from '@react-native-ai/apple';
 import { generateText } from 'ai';
@@ -39,64 +39,71 @@ Rules:
  * Returns null when text is empty (for placeholder state).
  */
 export function useGenerateEmoji(text: string) {
-  const [emoji, setEmoji] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // Latest completed generation; emoji/isLoading are derived from it below so
+  // the effect never needs to set state synchronously.
+  const [generated, setGenerated] = useState<{
+    text: string;
+    emoji: string | null;
+  } | null>(null);
 
   // Client-side cache to avoid redundant generation calls
   const cacheRef = useRef<Map<string, string>>(new Map());
 
   // Debounced function to generate emoji
-  const generateEmojiDebounced = useRef(
-    debounce(async (trimmedText: string, cache: Map<string, string>) => {
-      // Check cache first
-      if (cache.has(trimmedText)) {
-        setEmoji(cache.get(trimmedText)!);
-        setIsLoading(false);
-        return;
-      }
+  const generateEmojiDebounced = useMemo(
+    () =>
+      debounce(async (trimmedText: string, cache: Map<string, string>) => {
+        // Check cache first
+        const cached = cache.get(trimmedText);
+        if (cached !== undefined) {
+          setGenerated({ text: trimmedText, emoji: cached });
+          return;
+        }
 
-      setIsLoading(true);
-      try {
-        const generatedEmoji = await generateEmojiForText(trimmedText);
-        cache.set(trimmedText, generatedEmoji);
-        setEmoji(generatedEmoji);
-      } catch (error) {
-        console.error('Failed to generate emoji:', error);
-        // Keep previous emoji on error
-      } finally {
-        setIsLoading(false);
-      }
-    }, 500),
-  ).current;
+        try {
+          const generatedEmoji = await generateEmojiForText(trimmedText);
+          cache.set(trimmedText, generatedEmoji);
+          setGenerated({ text: trimmedText, emoji: generatedEmoji });
+        } catch (error) {
+          console.error('Failed to generate emoji:', error);
+          // Keep the previous emoji on error, but mark this text as done
+          setGenerated((prev) => ({
+            text: trimmedText,
+            emoji: prev?.emoji ?? null,
+          }));
+        }
+      }, 500),
+    [],
+  );
 
   useEffect(() => {
     const trimmedText = text.trim();
 
-    // If text is empty, show no emoji (placeholder state)
+    // Empty text needs no generation; emoji/isLoading derive to the
+    // placeholder state below
     if (!trimmedText) {
-      setEmoji(null);
-      setIsLoading(false);
       generateEmojiDebounced.cancel();
       return;
     }
 
-    // Check cache immediately for instant response
-    if (cacheRef.current.has(trimmedText)) {
-      setEmoji(cacheRef.current.get(trimmedText)!);
-      setIsLoading(false);
-      generateEmojiDebounced.cancel();
-      return;
-    }
-
-    // Otherwise, debounce the generation call
-    setIsLoading(true);
     generateEmojiDebounced(trimmedText, cacheRef.current);
+    // Cached results don't need the debounce delay — resolve them immediately
+    if (cacheRef.current.has(trimmedText)) {
+      generateEmojiDebounced.flush();
+    }
 
     // Cleanup on unmount or when text changes
     return () => {
       generateEmojiDebounced.cancel();
     };
   }, [text, generateEmojiDebounced]);
+
+  // Derived state: empty text shows the placeholder; otherwise show the most
+  // recently generated emoji and report loading until the current text's
+  // generation has completed.
+  const trimmedText = text.trim();
+  const emoji = trimmedText ? (generated?.emoji ?? null) : null;
+  const isLoading = trimmedText !== '' && generated?.text !== trimmedText;
 
   return { emoji, isLoading };
 }

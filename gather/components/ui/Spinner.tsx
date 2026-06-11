@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Easing } from 'react-native';
+import { useEffect } from 'react';
+import { Animated, Easing, useAnimatedValue } from 'react-native';
 import { LoaderCircle } from '@tamagui/lucide-icons';
 import { useTheme } from 'tamagui';
 
@@ -13,7 +13,7 @@ type SpinnerProps = {
  * Drop-in replacement for Tamagui's Spinner with the same size/color API.
  */
 export function Spinner({ size = 'small', color }: SpinnerProps) {
-  const rotate = useRef(new Animated.Value(0)).current;
+  const rotate = useAnimatedValue(0);
   const theme = useTheme();
 
   useEffect(() => {

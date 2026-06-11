@@ -51,11 +51,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
   const queryClient = useQueryClient();
 
-  // Load stored auth on mount
-  useEffect(() => {
-    loadStoredAuth();
-  }, []);
-
   const handleUnauthorized = useCallback(async () => {
     setup401Interceptor(null);
     await Promise.all([
@@ -67,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setState({ user: null, status: 'unauthenticated' });
   }, [queryClient]);
 
-  const loadStoredAuth = async () => {
+  const loadStoredAuth = useCallback(async () => {
     try {
       // Check for stored token
       let token = await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
@@ -114,7 +109,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         status: 'unauthenticated',
       });
     }
-  };
+  }, [handleUnauthorized]);
+
+  // Load stored auth on mount. The async IIFE marks this as asynchronous work
+  // for the set-state-in-effect rule.
+  useEffect(() => {
+    void (async () => {
+      await loadStoredAuth();
+    })();
+  }, [loadStoredAuth]);
 
   const refreshUser = useCallback(async () => {
     try {
@@ -203,7 +206,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setState((prev) => ({ ...prev, status: 'unauthenticated' }));
       throw error;
     }
-  }, []);
+  }, [handleUnauthorized]);
 
   /**
    * Sign out the current user

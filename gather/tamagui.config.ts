@@ -421,6 +421,8 @@ export { tokens };
 export type AppConfig = typeof config;
 
 declare module 'tamagui' {
+  // The empty interface is Tamagui's documented declaration-merging pattern
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface TamaguiCustomConfig extends AppConfig {}
 }
 
