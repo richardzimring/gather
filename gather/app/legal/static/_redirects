@@ -3,3 +3,6 @@
 # universal links and these rules are never hit.
 /invite/* /invite/index.html 200
 /e/* /e/index.html 200
+
+# Resolve the browser's implicit /favicon.ico request to the PNG favicon.
+/favicon.ico /favicon-32.png 200
