@@ -3,7 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Join me on Gather</title>
+    <title>Add me on Gather</title>
+    <meta
+      name="description"
+      content="Plan time with the people you care about — effortlessly."
+    />
+    <meta name="theme-color" content="#0c0a09" />
+
+    <!-- Open Graph / iMessage / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Gather" />
+    <meta property="og:url" content="https://gather.rzimring.com/invite" />
+    <meta property="og:title" content="You're invited on Gather" />
+    <meta
+      property="og:description"
+      content="Plan time with the people you care about — effortlessly."
+    />
+    <meta
+      property="og:image"
+      content="https://gather.rzimring.com/og-default.png"
+    />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Gather — See the people you love." />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="You're invited on Gather" />
+    <meta
+      name="twitter:description"
+      content="Plan time with the people you care about — effortlessly."
+    />
+    <meta
+      name="twitter:image"
+      content="https://gather.rzimring.com/og-default.png"
+    />
     <style>
       *,
       *::before,
@@ -140,14 +175,19 @@
     </div>
     <script>
       // Pull the friend code out of the path (/invite/<code>) and show it so the
-      // recipient can enter it manually if needed.
-      var parts = window.location.pathname.split('/').filter(Boolean);
-      var code = parts[parts.length - 1];
-      if (code && code.toLowerCase() !== 'invite') {
-        var el = document.getElementById('code');
-        el.textContent = decodeURIComponent(code).toUpperCase();
-        el.style.display = 'inline-block';
-      }
+      // recipient can enter it manually if needed. Codes are 8 chars of
+      // [A-Z0-9_-]; only render the badge when the last path segment actually
+      // looks like a code, so opening this file outside the /invite/<code>
+      // route (e.g. a local preview) never dumps the URL into the page.
+      try {
+        var parts = window.location.pathname.split('/').filter(Boolean);
+        var raw = decodeURIComponent(parts[parts.length - 1] || '');
+        if (/^[A-Za-z0-9_-]{6,16}$/.test(raw) && raw.toLowerCase() !== 'invite') {
+          var el = document.getElementById('code');
+          el.textContent = raw.toUpperCase();
+          el.style.display = 'inline-block';
+        }
+      } catch (e) {}
     </script>
   </body>
 </html>
