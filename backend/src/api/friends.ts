@@ -6,7 +6,9 @@ import {
   FriendRequestSchema,
   UserSearchSchema,
   MatchContactsSchema,
-  ErrorResponseSchema,
+  jsonContent,
+  errorResponses,
+  jsonBody,
 } from '../types';
 import type { User } from '../types';
 import * as friendsService from '../services/friends';
@@ -57,7 +59,7 @@ const InviteCodeResponseSchema = z
 
 const UserSearchResultSchema = z
   .object({
-    userId: z.string().uuid(),
+    userId: z.uuid(),
     fullName: z.string(),
     initials: z.string(),
     avatarUrl: z.string().optional(),
@@ -100,30 +102,8 @@ const getFriendsRoute = createRoute({
   description: 'Get all friends of the current user',
   security: [{ BearerAuth: [] }],
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: FriendsResponseSchema,
-        },
-      },
-      description: 'Friends retrieved successfully',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(FriendsResponseSchema, 'Friends retrieved successfully'),
+    ...errorResponses(401, 500),
   },
 });
 
@@ -138,38 +118,8 @@ const searchUsersRoute = createRoute({
     query: UserSearchSchema,
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: UserSearchResponseSchema,
-        },
-      },
-      description: 'Search results',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Validation error',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(UserSearchResponseSchema, 'Search results'),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -182,48 +132,11 @@ const matchContactsRoute = createRoute({
     'Find which of your phone contacts are already on Gather (excludes you and current friends)',
   security: [{ BearerAuth: [] }],
   request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: MatchContactsSchema,
-        },
-      },
-      required: true,
-    },
+    body: jsonBody(MatchContactsSchema),
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: UserSearchResponseSchema,
-        },
-      },
-      description: 'Matched users',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Validation error',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(UserSearchResponseSchema, 'Matched users'),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -235,22 +148,8 @@ const getInviteCodeRoute = createRoute({
   description: 'Get your unique invite code',
   security: [{ BearerAuth: [] }],
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: InviteCodeResponseSchema,
-        },
-      },
-      description: 'Invite code retrieved',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
+    200: jsonContent(InviteCodeResponseSchema, 'Invite code retrieved'),
+    ...errorResponses(401),
   },
 });
 
@@ -262,38 +161,8 @@ const regenerateInviteCodeRoute = createRoute({
   description: 'Generate a new invite code',
   security: [{ BearerAuth: [] }],
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: InviteCodeResponseSchema,
-        },
-      },
-      description: 'Invite code regenerated',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'User not found',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(InviteCodeResponseSchema, 'Invite code regenerated'),
+    ...errorResponses(401, 404, 500),
   },
 });
 
@@ -305,48 +174,11 @@ const sendFriendRequestRoute = createRoute({
   description: 'Send a friend request to another user',
   security: [{ BearerAuth: [] }],
   request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: FriendRequestSchema,
-        },
-      },
-      required: true,
-    },
+    body: jsonBody(FriendRequestSchema),
   },
   responses: {
-    201: {
-      content: {
-        'application/json': {
-          schema: FriendshipResponseSchema,
-        },
-      },
-      description: 'Friend request sent',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Friend request failed',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    201: jsonContent(FriendshipResponseSchema, 'Friend request sent'),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -360,44 +192,13 @@ const acceptFriendRequestRoute = createRoute({
   request: {
     params: z.object({
       friendId: z
-        .string()
         .uuid()
         .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: FriendshipResponseSchema,
-        },
-      },
-      description: 'Friend request accepted',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Accept failed',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(FriendshipResponseSchema, 'Friend request accepted'),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -411,44 +212,13 @@ const declineFriendRequestRoute = createRoute({
   request: {
     params: z.object({
       friendId: z
-        .string()
         .uuid()
         .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: SimpleSuccessSchema,
-        },
-      },
-      description: 'Friend request declined',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Decline failed',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(SimpleSuccessSchema, 'Friend request declined'),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -462,44 +232,13 @@ const blockUserRoute = createRoute({
   request: {
     params: z.object({
       friendId: z
-        .string()
         .uuid()
         .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: SimpleSuccessSchema,
-        },
-      },
-      description: 'User blocked',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Block failed',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(SimpleSuccessSchema, 'User blocked'),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -513,44 +252,13 @@ const reportUserRoute = createRoute({
   request: {
     params: z.object({
       friendId: z
-        .string()
         .uuid()
         .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: SimpleSuccessSchema,
-        },
-      },
-      description: 'User reported',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Report failed',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(SimpleSuccessSchema, 'User reported'),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -564,39 +272,13 @@ const removeFriendRoute = createRoute({
   request: {
     params: z.object({
       friendId: z
-        .string()
         .uuid()
         .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
-    204: {
-      description: 'Friend removed',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Remove failed',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    204: { description: 'Friend removed' },
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -607,96 +289,60 @@ const removeFriendRoute = createRoute({
 app.openapi(getFriendsRoute, async (c) => {
   const user = c.get('user');
 
-  try {
-    const friendships = await friendsService.getFriendships(user.userId);
+  const friendships = await friendsService.getFriendships(user.userId);
 
-    // Separate into categories
-    const friends = friendships.filter((f) => f.status === 'accepted');
-    const pendingReceived = friendships.filter(
-      (f) => f.status === 'pending' && f.initiatedBy !== user.userId,
-    );
-    const pendingSent = friendships.filter(
-      (f) => f.status === 'pending' && f.initiatedBy === user.userId,
-    );
+  // Separate into categories
+  const friends = friendships.filter((f) => f.status === 'accepted');
+  const pendingReceived = friendships.filter(
+    (f) => f.status === 'pending' && f.initiatedBy !== user.userId,
+  );
+  const pendingSent = friendships.filter(
+    (f) => f.status === 'pending' && f.initiatedBy === user.userId,
+  );
 
-    return c.json(
-      {
-        success: true as const,
-        data: {
-          friends,
-          pendingReceived,
-          pendingSent,
-        },
+  return c.json(
+    {
+      success: true as const,
+      data: {
+        friends,
+        pendingReceived,
+        pendingSent,
       },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in GET /friends:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to fetch friends',
-      },
-      500,
-    );
-  }
+    },
+    200,
+  );
 });
 
 app.openapi(searchUsersRoute, async (c) => {
   const user = c.get('user');
   const { query } = c.req.valid('query');
 
-  try {
-    const users = await userService.searchUsersByName(query, user.userId);
+  const users = await userService.searchUsersByName(query, user.userId);
 
-    return c.json(
-      {
-        success: true as const,
-        data: { users: users.map(toUserSearchResult) },
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in GET /friends/search:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to search users',
-      },
-      500,
-    );
-  }
+  return c.json(
+    {
+      success: true as const,
+      data: { users: users.map(toUserSearchResult) },
+    },
+    200,
+  );
 });
 
 app.openapi(matchContactsRoute, async (c) => {
   const user = c.get('user');
   const { phones } = c.req.valid('json');
 
-  try {
-    const matched = await friendsService.matchContacts(user.userId, phones);
+  const matched = await friendsService.matchContacts(user.userId, phones);
 
-    return c.json(
-      {
-        success: true as const,
-        data: {
-          users: matched.map(toUserSearchResult),
-        },
+  return c.json(
+    {
+      success: true as const,
+      data: {
+        users: matched.map(toUserSearchResult),
       },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in POST /friends/match-contacts:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to match contacts',
-      },
-      500,
-    );
-  }
+    },
+    200,
+  );
 });
 
 app.openapi(getInviteCodeRoute, (c) => {
@@ -717,272 +363,188 @@ app.openapi(getInviteCodeRoute, (c) => {
 app.openapi(regenerateInviteCodeRoute, async (c) => {
   const user = c.get('user');
 
-  try {
-    const newInviteCode = await userService.regenerateInviteCode(user.userId);
+  const newInviteCode = await userService.regenerateInviteCode(user.userId);
 
-    if (!newInviteCode) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Failed to regenerate invite code',
-          message: 'User not found',
-        },
-        404,
-      );
-    }
-
-    return c.json(
-      {
-        success: true as const,
-        data: {
-          inviteCode: newInviteCode,
-          inviteLink: `${INVITE_BASE_URL}/invite/${newInviteCode}`,
-        },
-        message: 'Invite code regenerated successfully',
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error regenerating invite code:', error);
+  if (!newInviteCode) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to regenerate invite code',
+        error: 'Failed to regenerate invite code',
+        message: 'User not found',
       },
-      500,
+      404,
     );
   }
+
+  return c.json(
+    {
+      success: true as const,
+      data: {
+        inviteCode: newInviteCode,
+        inviteLink: `${INVITE_BASE_URL}/invite/${newInviteCode}`,
+      },
+      message: 'Invite code regenerated successfully',
+    },
+    200,
+  );
 });
 
 app.openapi(sendFriendRequestRoute, async (c) => {
   const user = c.get('user');
   const { friendUserId, inviteCode } = c.req.valid('json');
 
-  try {
-    const result = await friendsService.sendFriendRequest(
-      user.userId,
-      friendUserId,
-      inviteCode,
-    );
+  const result = await friendsService.sendFriendRequest(
+    user.userId,
+    friendUserId,
+    inviteCode,
+  );
 
-    if (!result.success || !result.friendship) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Friend Request Failed',
-          message: result.message ?? 'Failed to send friend request',
-        },
-        400,
-      );
-    }
-
-    return c.json(
-      {
-        success: true as const,
-        data: { friendship: result.friendship },
-        message: result.message ?? 'Friend request sent',
-      },
-      201,
-    );
-  } catch (error) {
-    console.error('Error in POST /friends/request:', error);
+  if (!result.success || !result.friendship) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to send friend request',
+        error: 'Friend Request Failed',
+        message: result.message ?? 'Failed to send friend request',
       },
-      500,
+      400,
     );
   }
+
+  return c.json(
+    {
+      success: true as const,
+      data: { friendship: result.friendship },
+      message: result.message ?? 'Friend request sent',
+    },
+    201,
+  );
 });
 
 app.openapi(acceptFriendRequestRoute, async (c) => {
   const user = c.get('user');
   const { friendId } = c.req.valid('param');
 
-  try {
-    const result = await friendsService.acceptFriendRequest(
-      user.userId,
-      friendId,
-    );
-    if (!result.success || !result.friendship) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Accept Failed',
-          message: result.message ?? 'Failed to accept friend request',
-        },
-        400,
-      );
-    }
-
-    return c.json(
-      {
-        success: true as const,
-        data: { friendship: result.friendship },
-        message: result.message ?? 'Friend request accepted',
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in POST /friends/:friendId/accept:', error);
+  const result = await friendsService.acceptFriendRequest(
+    user.userId,
+    friendId,
+  );
+  if (!result.success || !result.friendship) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to accept friend request',
+        error: 'Accept Failed',
+        message: result.message ?? 'Failed to accept friend request',
       },
-      500,
+      400,
     );
   }
+
+  return c.json(
+    {
+      success: true as const,
+      data: { friendship: result.friendship },
+      message: result.message ?? 'Friend request accepted',
+    },
+    200,
+  );
 });
 
 app.openapi(declineFriendRequestRoute, async (c) => {
   const user = c.get('user');
   const { friendId } = c.req.valid('param');
 
-  try {
-    const result = await friendsService.declineFriendRequest(
-      user.userId,
-      friendId,
-    );
-    if (!result.success) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Decline Failed',
-          message: result.message ?? 'Failed to decline friend request',
-        },
-        400,
-      );
-    }
-
-    return c.json(
-      {
-        success: true as const,
-        data: {},
-        message: result.message ?? 'Friend request declined',
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in POST /friends/:friendId/decline:', error);
+  const result = await friendsService.declineFriendRequest(
+    user.userId,
+    friendId,
+  );
+  if (!result.success) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to decline friend request',
+        error: 'Decline Failed',
+        message: result.message ?? 'Failed to decline friend request',
       },
-      500,
+      400,
     );
   }
+
+  return c.json(
+    {
+      success: true as const,
+      data: {},
+      message: result.message ?? 'Friend request declined',
+    },
+    200,
+  );
 });
 
 app.openapi(blockUserRoute, async (c) => {
   const user = c.get('user');
   const { friendId } = c.req.valid('param');
 
-  try {
-    const result = await friendsService.blockUser(user.userId, friendId);
-    if (!result.success) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Block Failed',
-          message: result.message ?? 'Failed to block user',
-        },
-        400,
-      );
-    }
-
-    return c.json(
-      {
-        success: true as const,
-        data: {},
-        message: result.message ?? 'User blocked',
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in POST /friends/:friendId/block:', error);
+  const result = await friendsService.blockUser(user.userId, friendId);
+  if (!result.success) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to block user',
+        error: 'Block Failed',
+        message: result.message ?? 'Failed to block user',
       },
-      500,
+      400,
     );
   }
+
+  return c.json(
+    {
+      success: true as const,
+      data: {},
+      message: result.message ?? 'User blocked',
+    },
+    200,
+  );
 });
 
 app.openapi(reportUserRoute, async (c) => {
   const user = c.get('user');
   const { friendId } = c.req.valid('param');
 
-  try {
-    const result = await reportsService.reportUser(user.userId, friendId);
-    if (!result.success) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Report Failed',
-          message: result.message ?? 'Failed to report user',
-        },
-        400,
-      );
-    }
-
-    return c.json(
-      {
-        success: true as const,
-        data: {},
-        message: result.message ?? 'User reported',
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in POST /friends/:friendId/report:', error);
+  const result = await reportsService.reportUser(user.userId, friendId);
+  if (!result.success) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to report user',
+        error: 'Report Failed',
+        message: result.message ?? 'Failed to report user',
       },
-      500,
+      400,
     );
   }
+
+  return c.json(
+    {
+      success: true as const,
+      data: {},
+      message: result.message ?? 'User reported',
+    },
+    200,
+  );
 });
 
 app.openapi(removeFriendRoute, async (c) => {
   const user = c.get('user');
   const { friendId } = c.req.valid('param');
 
-  try {
-    const result = await friendsService.removeFriend(user.userId, friendId);
-    if (!result.success) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Remove Failed',
-          message: result.message ?? 'Failed to remove friend',
-        },
-        400,
-      );
-    }
-
-    return c.body(null, 204);
-  } catch (error) {
-    console.error('Error in DELETE /friends/:friendId:', error);
+  const result = await friendsService.removeFriend(user.userId, friendId);
+  if (!result.success) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to remove friend',
+        error: 'Remove Failed',
+        message: result.message ?? 'Failed to remove friend',
       },
-      500,
+      400,
     );
   }
+
+  return c.body(null, 204);
 });

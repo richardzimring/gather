@@ -15,11 +15,8 @@ export function useUserProfile(userId: string) {
   return useQuery({
     queryKey: usersKeys.profile(userId),
     queryFn: async () => {
-      const response = await getUsersByUserIdProfile({ path: { userId } });
-      if (!response.data?.success) {
-        throw new Error('Failed to load profile');
-      }
-      return response.data.data;
+      const { data } = await getUsersByUserIdProfile({ path: { userId } });
+      return data.data;
     },
     enabled: userId.length > 0,
   });

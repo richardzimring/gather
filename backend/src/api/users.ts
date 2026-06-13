@@ -7,7 +7,9 @@ import {
   NotificationPreferencesSchema,
   UpdateNotificationPreferencesSchema,
   PublicUserProfileSchema,
-  ErrorResponseSchema,
+  jsonContent,
+  errorResponses,
+  jsonBody,
 } from '../types';
 import * as userService from '../services/users';
 import * as friendsService from '../services/friends';
@@ -62,22 +64,8 @@ const getMeRoute = createRoute({
   description: 'Get the profile of the currently authenticated user',
   security: [{ BearerAuth: [] }],
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: UserResponseSchema,
-        },
-      },
-      description: 'User profile retrieved successfully',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
+    200: jsonContent(UserResponseSchema, 'User profile retrieved successfully'),
+    ...errorResponses(401),
   },
 });
 
@@ -89,64 +77,11 @@ const updateMeRoute = createRoute({
   description: 'Update the profile of the currently authenticated user',
   security: [{ BearerAuth: [] }],
   request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: UpdateUserSchema,
-        },
-      },
-      required: true,
-    },
+    body: jsonBody(UpdateUserSchema),
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: UserResponseSchema,
-        },
-      },
-      description: 'User profile updated successfully',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Validation error',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'User not found',
-    },
-    409: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Phone number already linked to another account',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(UserResponseSchema, 'User profile updated successfully'),
+    ...errorResponses(400, 401, 404, 409, 500),
   },
 });
 
@@ -167,42 +102,15 @@ const getUserProfileRoute = createRoute({
   security: [{ BearerAuth: [] }],
   request: {
     params: z.object({
-      userId: z.string().uuid(),
+      userId: z.uuid(),
     }),
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: PublicUserProfileResponseSchema,
-        },
-      },
-      description: 'Public profile retrieved successfully',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'User not found',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(
+      PublicUserProfileResponseSchema,
+      'Public profile retrieved successfully',
+    ),
+    ...errorResponses(401, 404, 500),
   },
 });
 
@@ -214,25 +122,8 @@ const deleteMeRoute = createRoute({
   description: 'Delete the currently authenticated user account',
   security: [{ BearerAuth: [] }],
   responses: {
-    204: {
-      description: 'User deleted successfully',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    204: { description: 'User deleted successfully' },
+    ...errorResponses(401, 500),
   },
 });
 
@@ -244,48 +135,14 @@ const registerPushTokenRoute = createRoute({
   description: 'Register a push notification token for the current user',
   security: [{ BearerAuth: [] }],
   request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: RegisterPushTokenSchema,
-        },
-      },
-      required: true,
-    },
+    body: jsonBody(RegisterPushTokenSchema),
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: PushTokenResponseSchema,
-        },
-      },
-      description: 'Push token registered successfully',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Validation error',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(
+      PushTokenResponseSchema,
+      'Push token registered successfully',
+    ),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -297,30 +154,11 @@ const getNotificationPreferencesRoute = createRoute({
   description: 'Get the notification preferences for the current user',
   security: [{ BearerAuth: [] }],
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: NotificationPreferencesResponseSchema,
-        },
-      },
-      description: 'Notification preferences retrieved successfully',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(
+      NotificationPreferencesResponseSchema,
+      'Notification preferences retrieved successfully',
+    ),
+    ...errorResponses(401, 500),
   },
 });
 
@@ -332,48 +170,14 @@ const updateNotificationPreferencesRoute = createRoute({
   description: 'Update the notification preferences for the current user',
   security: [{ BearerAuth: [] }],
   request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: UpdateNotificationPreferencesSchema,
-        },
-      },
-      required: true,
-    },
+    body: jsonBody(UpdateNotificationPreferencesSchema),
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: NotificationPreferencesResponseSchema,
-        },
-      },
-      description: 'Notification preferences updated successfully',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Validation error',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(
+      NotificationPreferencesResponseSchema,
+      'Notification preferences updated successfully',
+    ),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -459,15 +263,7 @@ app.openapi(updateMeRoute, async (c) => {
         409,
       );
     }
-    console.error('Error in PATCH /users/me:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to update profile',
-      },
-      500,
-    );
+    throw error;
   }
 });
 
@@ -475,149 +271,87 @@ app.openapi(getUserProfileRoute, async (c) => {
   const viewer = c.get('user');
   const { userId } = c.req.valid('param');
 
-  try {
-    const target = await userService.getUserById(userId);
-    if (!target) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Not Found',
-          message: 'User not found',
-        },
-        404,
-      );
-    }
-
-    const relationship = await friendsService.getRelationship(
-      viewer.userId,
-      target.userId,
-    );
-
-    return c.json(
-      {
-        success: true as const,
-        data: {
-          userId: target.userId,
-          fullName: target.fullName,
-          initials: target.initials,
-          avatarUrl: target.avatarUrl,
-          relationship,
-        },
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in GET /users/:userId/profile:', error);
+  const target = await userService.getUserById(userId);
+  if (!target) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to load profile',
+        error: 'Not Found',
+        message: 'User not found',
       },
-      500,
+      404,
     );
   }
+
+  const relationship = await friendsService.getRelationship(
+    viewer.userId,
+    target.userId,
+  );
+
+  return c.json(
+    {
+      success: true as const,
+      data: {
+        userId: target.userId,
+        fullName: target.fullName,
+        initials: target.initials,
+        avatarUrl: target.avatarUrl,
+        relationship,
+      },
+    },
+    200,
+  );
 });
 
 app.openapi(deleteMeRoute, async (c) => {
   const user = c.get('user');
 
-  try {
-    await userService.deleteUser(user.userId);
-    return c.body(null, 204);
-  } catch (error) {
-    console.error('Error in DELETE /users/me:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to delete user',
-      },
-      500,
-    );
-  }
+  await userService.deleteUser(user.userId);
+  return c.body(null, 204);
 });
 
 app.openapi(registerPushTokenRoute, async (c) => {
   const user = c.get('user');
   const { pushToken } = c.req.valid('json');
 
-  try {
-    await userService.updatePushToken(user.userId, pushToken);
-    return c.json(
-      {
-        success: true as const,
-        data: { registered: true },
-        message: 'Push token registered successfully',
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in POST /users/me/push-token:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to register push token',
-      },
-      500,
-    );
-  }
+  await userService.updatePushToken(user.userId, pushToken);
+  return c.json(
+    {
+      success: true as const,
+      data: { registered: true },
+      message: 'Push token registered successfully',
+    },
+    200,
+  );
 });
 
 app.openapi(getNotificationPreferencesRoute, async (c) => {
   const user = c.get('user');
 
-  try {
-    const preferences = await userService.getNotificationPreferences(
-      user.userId,
-    );
-    return c.json(
-      {
-        success: true as const,
-        data: preferences,
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in GET /users/me/notification-preferences:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to get notification preferences',
-      },
-      500,
-    );
-  }
+  const preferences = await userService.getNotificationPreferences(user.userId);
+  return c.json(
+    {
+      success: true as const,
+      data: preferences,
+    },
+    200,
+  );
 });
 
 app.openapi(updateNotificationPreferencesRoute, async (c) => {
   const user = c.get('user');
   const updates = c.req.valid('json');
 
-  try {
-    const preferences = await userService.updateNotificationPreferences(
-      user.userId,
-      updates,
-    );
-    return c.json(
-      {
-        success: true as const,
-        data: preferences,
-        message: 'Notification preferences updated successfully',
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in PUT /users/me/notification-preferences:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to update notification preferences',
-      },
-      500,
-    );
-  }
+  const preferences = await userService.updateNotificationPreferences(
+    user.userId,
+    updates,
+  );
+  return c.json(
+    {
+      success: true as const,
+      data: preferences,
+      message: 'Notification preferences updated successfully',
+    },
+    200,
+  );
 });

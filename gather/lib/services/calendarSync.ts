@@ -1,8 +1,12 @@
 import * as Calendar from 'expo-calendar/legacy';
 
 import { requestCalendarPermissions, hasCalendarPermissions } from './calendar';
-import { postCalendarsSync } from '../api/client';
-import type { SyncCalendarEntry } from '../api/client';
+import {
+  postCalendarsSync,
+  postCalendarsGoogleSync,
+  postCalendarsOutlookSync,
+} from '../api/client';
+import type { CalendarConnection, SyncCalendarEntry } from '../api/client';
 
 /** How far into the future to sync calendar events (3 months) */
 const SYNC_RANGE_MS = 3 * 30 * 24 * 60 * 60 * 1000;
@@ -115,13 +119,7 @@ export async function syncSelectedCalendars(
   });
 
   // Send to backend
-  const response = await postCalendarsSync({
-    body: { calendars },
-  });
-
-  if (!response.data?.success) {
-    throw new Error('Failed to sync calendars');
-  }
+  await postCalendarsSync({ body: { calendars } });
 }
 
 /**
@@ -140,4 +138,29 @@ export async function resyncConnectedCalendars(
   if (!hasPermission) return;
 
   await syncSelectedCalendars(connectedCalendarIds);
+}
+
+/**
+ * Re-sync every connected, import-enabled calendar: Apple calendars are
+ * re-read from the device; Google/Outlook are synced server-side.
+ */
+export async function syncAllConnectedCalendars(
+  connections: CalendarConnection[],
+): Promise<void> {
+  const enabled = connections.filter((c) => c.importEnabled);
+
+  const appleCalendarIds = enabled
+    .filter((c) => c.provider === 'apple')
+    .map((c) => c.externalCalendarId);
+  if (appleCalendarIds.length > 0) {
+    await resyncConnectedCalendars(appleCalendarIds);
+  }
+
+  if (enabled.some((c) => c.provider === 'google')) {
+    await postCalendarsGoogleSync();
+  }
+
+  if (enabled.some((c) => c.provider === 'outlook')) {
+    await postCalendarsOutlookSync();
+  }
 }

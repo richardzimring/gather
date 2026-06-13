@@ -48,7 +48,6 @@ const config = {
     'expo-apple-authentication',
     'expo-notifications',
     'expo-calendar',
-    'expo-font',
     'expo-status-bar',
     'expo-web-browser',
     [

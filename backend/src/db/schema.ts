@@ -279,7 +279,7 @@ export const events = pgTable(
     notes: text('notes'),
     showInviteList: boolean('show_invite_list').notNull().default(true),
     status: eventStatusEnum('status').notNull().default('active'),
-    // Recurring event fields
+    // Recurring event fields, not in use yet
     isRecurring: boolean('is_recurring').notNull().default(false),
     recurringPattern: recurringPatternEnum('event_recurring_pattern'),
     recurringDaysOfWeek: integer('event_recurring_days_of_week').array(),

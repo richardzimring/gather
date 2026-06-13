@@ -4,7 +4,9 @@ import {
   GroupSchema,
   CreateGroupSchema,
   UpdateGroupSchema,
-  ErrorResponseSchema,
+  jsonContent,
+  errorResponses,
+  jsonBody,
 } from '../types';
 import * as groupsService from '../services/groups';
 
@@ -48,30 +50,8 @@ const getGroupsRoute = createRoute({
   description: 'Get all groups owned by the current user',
   security: [{ BearerAuth: [] }],
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: GroupsResponseSchema,
-        },
-      },
-      description: 'Groups retrieved successfully',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(GroupsResponseSchema, 'Groups retrieved successfully'),
+    ...errorResponses(401, 500),
   },
 });
 
@@ -83,48 +63,11 @@ const createGroupRoute = createRoute({
   description: 'Create a new group',
   security: [{ BearerAuth: [] }],
   request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: CreateGroupSchema,
-        },
-      },
-      required: true,
-    },
+    body: jsonBody(CreateGroupSchema),
   },
   responses: {
-    201: {
-      content: {
-        'application/json': {
-          schema: GroupResponseSchema,
-        },
-      },
-      description: 'Group created successfully',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Validation error',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    201: jsonContent(GroupResponseSchema, 'Group created successfully'),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -138,52 +81,14 @@ const updateGroupRoute = createRoute({
   request: {
     params: z.object({
       groupId: z
-        .string()
         .uuid()
         .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
-    body: {
-      content: {
-        'application/json': {
-          schema: UpdateGroupSchema,
-        },
-      },
-      required: true,
-    },
+    body: jsonBody(UpdateGroupSchema),
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: GroupResponseSchema,
-        },
-      },
-      description: 'Group updated successfully',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Validation error or update failed',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(GroupResponseSchema, 'Group updated successfully'),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -197,39 +102,13 @@ const deleteGroupRoute = createRoute({
   request: {
     params: z.object({
       groupId: z
-        .string()
         .uuid()
         .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
-    204: {
-      description: 'Group deleted successfully',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Delete failed',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    204: { description: 'Group deleted successfully' },
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -240,53 +119,29 @@ const deleteGroupRoute = createRoute({
 app.openapi(getGroupsRoute, async (c) => {
   const user = c.get('user');
 
-  try {
-    const groups = await groupsService.getGroups(user.userId);
-    return c.json(
-      {
-        success: true as const,
-        data: { groups },
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in GET /groups:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to fetch groups',
-      },
-      500,
-    );
-  }
+  const groups = await groupsService.getGroups(user.userId);
+  return c.json(
+    {
+      success: true as const,
+      data: { groups },
+    },
+    200,
+  );
 });
 
 app.openapi(createGroupRoute, async (c) => {
   const user = c.get('user');
   const data = c.req.valid('json');
 
-  try {
-    const group = await groupsService.createGroup(user.userId, data);
-    return c.json(
-      {
-        success: true as const,
-        data: { group },
-        message: 'Group created successfully',
-      },
-      201,
-    );
-  } catch (error) {
-    console.error('Error in POST /groups:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to create group',
-      },
-      500,
-    );
-  }
+  const group = await groupsService.createGroup(user.userId, data);
+  return c.json(
+    {
+      success: true as const,
+      data: { group },
+      message: 'Group created successfully',
+    },
+    201,
+  );
 });
 
 app.openapi(updateGroupRoute, async (c) => {
@@ -294,67 +149,43 @@ app.openapi(updateGroupRoute, async (c) => {
   const { groupId } = c.req.valid('param');
   const data = c.req.valid('json');
 
-  try {
-    const result = await groupsService.updateGroup(groupId, user.userId, data);
-    if (!result.success || !result.group) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Update Failed',
-          message: result.message ?? 'Update failed',
-        },
-        400,
-      );
-    }
-
-    return c.json(
-      {
-        success: true as const,
-        data: { group: result.group },
-        message: 'Group updated successfully',
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in PATCH /groups/:groupId:', error);
+  const result = await groupsService.updateGroup(groupId, user.userId, data);
+  if (!result.success || !result.group) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to update group',
+        error: 'Update Failed',
+        message: result.message ?? 'Update failed',
       },
-      500,
+      400,
     );
   }
+
+  return c.json(
+    {
+      success: true as const,
+      data: { group: result.group },
+      message: 'Group updated successfully',
+    },
+    200,
+  );
 });
 
 app.openapi(deleteGroupRoute, async (c) => {
   const user = c.get('user');
   const { groupId } = c.req.valid('param');
 
-  try {
-    const result = await groupsService.deleteGroup(groupId, user.userId);
-    if (!result.success) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Delete Failed',
-          message: result.message ?? 'Delete failed',
-        },
-        400,
-      );
-    }
-
-    return c.body(null, 204);
-  } catch (error) {
-    console.error('Error in DELETE /groups/:groupId:', error);
+  const result = await groupsService.deleteGroup(groupId, user.userId);
+  if (!result.success) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to delete group',
+        error: 'Delete Failed',
+        message: result.message ?? 'Delete failed',
       },
-      500,
+      400,
     );
   }
+
+  return c.body(null, 204);
 });

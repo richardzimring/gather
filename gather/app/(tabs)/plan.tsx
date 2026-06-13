@@ -47,6 +47,7 @@ import {
   START_TIME_OPTIONS,
 } from '../../components/ui/TimeChipPicker';
 import { haptic } from '../../lib/haptics';
+import { formatRelativeDate, formatTimeOfDay } from '../../lib/utils';
 import {
   useCreateEvent,
   useFriends,
@@ -75,8 +76,6 @@ interface TimeSlot {
 // Constants
 // ============================================
 
-const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
 const MAX_VISIBLE_FRIENDS = 8;
 
 /** Ungodly hours boundary: before 8 AM or at/after 10 PM */
@@ -86,32 +85,6 @@ const UNGODLY_LATE = 1320; // 10:00 PM in minutes
 // ============================================
 // Utility Functions
 // ============================================
-
-function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
-function formatDate(date: Date): string {
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  today.setHours(0, 0, 0, 0);
-  tomorrow.setHours(0, 0, 0, 0);
-  const compareDate = new Date(date);
-  compareDate.setHours(0, 0, 0, 0);
-
-  if (compareDate.getTime() === today.getTime()) return 'Today';
-  if (compareDate.getTime() === tomorrow.getTime()) return 'Tomorrow';
-
-  return `${DAYS_SHORT[date.getDay()]}, ${date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  })}`;
-}
 
 /**
  * Get the time-of-day period for grouping slots.
@@ -911,7 +884,7 @@ export default function PlanScreen() {
                       fontWeight="500"
                       marginTop={2}
                     >
-                      {formatDate(activeDay)}
+                      {formatRelativeDate(activeDay)}
                       {isBusyTimesLoading
                         ? ' \u00B7 Loading\u2026'
                         : filteredSlots.length > 0
@@ -1122,8 +1095,8 @@ export default function PlanScreen() {
                                       justifyContent="space-between"
                                     >
                                       <Text fontWeight="600" fontSize={15}>
-                                        {formatTime(slot.startTime)} –{' '}
-                                        {formatTime(slot.endTime)}
+                                        {formatTimeOfDay(slot.startTime)} –{' '}
+                                        {formatTimeOfDay(slot.endTime)}
                                       </Text>
                                       {badgeLabel !== '' && (
                                         <XStack
@@ -1186,7 +1159,7 @@ export default function PlanScreen() {
                 title={title}
                 emoji={previewEmoji}
                 isEmojiLoading={isEmojiLoading}
-                timeLabel={`${formatDate(selectedSlot.date)}, ${formatTime(selectedSlot.startTime)} – ${formatTime(selectedSlot.endTime)}`}
+                timeLabel={`${formatRelativeDate(selectedSlot.date)}, ${formatTimeOfDay(selectedSlot.startTime)} – ${formatTimeOfDay(selectedSlot.endTime)}`}
                 location={locationData?.name}
                 isHost={true}
                 people={selectedSlotPeople}

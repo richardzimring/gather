@@ -25,11 +25,8 @@ export function useEvents() {
   return useQuery({
     queryKey: eventsKeys.list(),
     queryFn: async () => {
-      const response = await getEvents();
-      if (!response.data?.success) {
-        throw new Error('Failed to fetch events');
-      }
-      return response.data.data.events;
+      const { data } = await getEvents();
+      return data.data.events;
     },
   });
 }
@@ -41,11 +38,8 @@ export function useEvent(eventId: string) {
   return useQuery({
     queryKey: eventsKeys.detail(eventId),
     queryFn: async () => {
-      const response = await getEventsByEventId({ path: { eventId } });
-      if (!response.data?.success) {
-        throw new Error('Failed to fetch event');
-      }
-      return response.data.data.event;
+      const { data } = await getEventsByEventId({ path: { eventId } });
+      return data.data.event;
     },
     enabled: !!eventId,
   });
@@ -59,11 +53,8 @@ export function useCreateEvent() {
 
   return useMutation({
     mutationFn: async (data: CreateEvent) => {
-      const response = await postEvents({ body: data });
-      if (!response.data?.success) {
-        throw new Error('Failed to create event');
-      }
-      return response.data.data.event;
+      const { data: res } = await postEvents({ body: data });
+      return res.data.event;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: eventsKeys.list() });
@@ -85,14 +76,11 @@ export function useUpdateEvent() {
       eventId: string;
       data: UpdateEvent;
     }) => {
-      const response = await patchEventsByEventId({
+      const { data: res } = await patchEventsByEventId({
         path: { eventId },
         body: data,
       });
-      if (!response.data?.success) {
-        throw new Error('Failed to update event');
-      }
-      return response.data.data.event;
+      return res.data.event;
     },
     onSuccess: (_, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: eventsKeys.list() });
@@ -131,14 +119,11 @@ export function useRespondToEvent() {
       eventId: string;
       response: EventResponse;
     }) => {
-      const result = await postEventsByEventIdRespond({
+      const { data } = await postEventsByEventIdRespond({
         path: { eventId },
         body: response,
       });
-      if (!result.data?.success) {
-        throw new Error('Failed to respond to event');
-      }
-      return result.data.data.event;
+      return data.data.event;
     },
     onSuccess: (_, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: eventsKeys.list() });

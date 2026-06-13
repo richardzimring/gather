@@ -132,26 +132,6 @@ export type CalendarConnection = {
 
 export type CalendarProvider = 'apple' | 'google' | 'outlook';
 
-export type SingleCalendarResponse = {
-    success: true;
-    data: {
-        connection: CalendarConnection;
-    };
-    message?: string;
-};
-
-export type CreateCalendarConnection = {
-    provider: CalendarProvider;
-    externalCalendarId: string;
-    calendarName: string;
-    color?: string;
-    importEnabled?: boolean;
-    exportEnabled?: boolean;
-    accessToken?: string;
-    refreshToken?: string;
-    tokenExpiresAt?: string;
-};
-
 export type SyncCalendarsResponse = {
     success: true;
     data: {
@@ -176,14 +156,6 @@ export type SyncCalendarEvent = {
     startTime: string;
     endTime: string;
     isBusy: boolean;
-};
-
-export type UpdateCalendarConnection = {
-    importEnabled?: boolean;
-    exportEnabled?: boolean;
-    accessToken?: string;
-    refreshToken?: string;
-    tokenExpiresAt?: string;
 };
 
 export type DeleteCalendarResponse = {
@@ -353,7 +325,6 @@ export type CreateEvent = {
     notes?: string;
     inviteeIds: string[];
     showInviteList?: boolean;
-    recurring?: EventRecurring;
 };
 
 export type LocationData = {
@@ -362,13 +333,6 @@ export type LocationData = {
     placeId: string;
     latitude?: string;
     longitude?: string;
-};
-
-export type EventRecurring = {
-    isRecurring: boolean;
-    pattern?: 'weekly';
-    daysOfWeek?: number[];
-    endDate?: string;
 };
 
 export type UpdateEvent = {
@@ -579,14 +543,12 @@ export type NotificationPreferences = {
     eventInvites?: boolean;
     eventUpdates?: boolean;
     friendRequests?: boolean;
-    messages?: boolean;
 };
 
 export type UpdateNotificationPreferences = {
     eventInvites?: boolean;
     eventUpdates?: boolean;
     friendRequests?: boolean;
-    messages?: boolean;
 };
 
 export type CreateInviteResponse = {
@@ -598,7 +560,6 @@ export type CreateInviteResponse = {
 export type CreateInviteResult = {
     token: string;
     inviteUrl: string;
-    prefilledMessage: string;
 };
 
 export type CreateInvite = {
@@ -632,11 +593,11 @@ export type PostAuthAppleCallbackData = {
 
 export type PostAuthAppleCallbackErrors = {
     /**
-     * Invalid request
+     * Bad request
      */
     400: ErrorResponse;
     /**
-     * Invalid identity token
+     * Unauthorized
      */
     401: ErrorResponse;
     /**
@@ -669,7 +630,7 @@ export type GetAuthMeErrors = {
      */
     401: ErrorResponse;
     /**
-     * User not found
+     * Not found
      */
     404: ErrorResponse;
     /**
@@ -727,7 +688,7 @@ export type PostBlockedData = {
 
 export type PostBlockedErrors = {
     /**
-     * Validation error
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -762,7 +723,7 @@ export type DeleteBlockedByWindowIdData = {
 
 export type DeleteBlockedByWindowIdErrors = {
     /**
-     * Delete failed
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -797,7 +758,7 @@ export type PatchBlockedByWindowIdData = {
 
 export type PatchBlockedByWindowIdErrors = {
     /**
-     * Validation error or update failed
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -850,39 +811,6 @@ export type GetCalendarsResponses = {
 
 export type GetCalendarsResponse = GetCalendarsResponses[keyof GetCalendarsResponses];
 
-export type PostCalendarsData = {
-    body: CreateCalendarConnection;
-    path?: never;
-    query?: never;
-    url: '/calendars';
-};
-
-export type PostCalendarsErrors = {
-    /**
-     * Bad request
-     */
-    400: ErrorResponse;
-    /**
-     * Unauthorized
-     */
-    401: ErrorResponse;
-    /**
-     * Internal server error
-     */
-    500: ErrorResponse;
-};
-
-export type PostCalendarsError = PostCalendarsErrors[keyof PostCalendarsErrors];
-
-export type PostCalendarsResponses = {
-    /**
-     * Calendar connection created
-     */
-    201: SingleCalendarResponse;
-};
-
-export type PostCalendarsResponse = PostCalendarsResponses[keyof PostCalendarsResponses];
-
 export type PostCalendarsSyncData = {
     body: SyncCalendars;
     path?: never;
@@ -911,111 +839,6 @@ export type PostCalendarsSyncResponses = {
 };
 
 export type PostCalendarsSyncResponse = PostCalendarsSyncResponses[keyof PostCalendarsSyncResponses];
-
-export type DeleteCalendarsByConnectionIdData = {
-    body?: never;
-    path: {
-        connectionId: string;
-    };
-    query?: never;
-    url: '/calendars/{connectionId}';
-};
-
-export type DeleteCalendarsByConnectionIdErrors = {
-    /**
-     * Unauthorized
-     */
-    401: ErrorResponse;
-    /**
-     * Not found
-     */
-    404: ErrorResponse;
-    /**
-     * Internal server error
-     */
-    500: ErrorResponse;
-};
-
-export type DeleteCalendarsByConnectionIdError = DeleteCalendarsByConnectionIdErrors[keyof DeleteCalendarsByConnectionIdErrors];
-
-export type DeleteCalendarsByConnectionIdResponses = {
-    /**
-     * Calendar connection deleted
-     */
-    200: DeleteCalendarResponse;
-};
-
-export type DeleteCalendarsByConnectionIdResponse = DeleteCalendarsByConnectionIdResponses[keyof DeleteCalendarsByConnectionIdResponses];
-
-export type GetCalendarsByConnectionIdData = {
-    body?: never;
-    path: {
-        connectionId: string;
-    };
-    query?: never;
-    url: '/calendars/{connectionId}';
-};
-
-export type GetCalendarsByConnectionIdErrors = {
-    /**
-     * Unauthorized
-     */
-    401: ErrorResponse;
-    /**
-     * Not found
-     */
-    404: ErrorResponse;
-    /**
-     * Internal server error
-     */
-    500: ErrorResponse;
-};
-
-export type GetCalendarsByConnectionIdError = GetCalendarsByConnectionIdErrors[keyof GetCalendarsByConnectionIdErrors];
-
-export type GetCalendarsByConnectionIdResponses = {
-    /**
-     * Calendar connection details
-     */
-    200: SingleCalendarResponse;
-};
-
-export type GetCalendarsByConnectionIdResponse = GetCalendarsByConnectionIdResponses[keyof GetCalendarsByConnectionIdResponses];
-
-export type PatchCalendarsByConnectionIdData = {
-    body: UpdateCalendarConnection;
-    path: {
-        connectionId: string;
-    };
-    query?: never;
-    url: '/calendars/{connectionId}';
-};
-
-export type PatchCalendarsByConnectionIdErrors = {
-    /**
-     * Unauthorized
-     */
-    401: ErrorResponse;
-    /**
-     * Not found
-     */
-    404: ErrorResponse;
-    /**
-     * Internal server error
-     */
-    500: ErrorResponse;
-};
-
-export type PatchCalendarsByConnectionIdError = PatchCalendarsByConnectionIdErrors[keyof PatchCalendarsByConnectionIdErrors];
-
-export type PatchCalendarsByConnectionIdResponses = {
-    /**
-     * Calendar connection updated
-     */
-    200: SingleCalendarResponse;
-};
-
-export type PatchCalendarsByConnectionIdResponse = PatchCalendarsByConnectionIdResponses[keyof PatchCalendarsByConnectionIdResponses];
 
 export type DeleteCalendarsAppleData = {
     body?: never;
@@ -1151,11 +974,11 @@ export type GetCalendarsGoogleCalendarsErrors = {
      */
     401: ErrorResponse;
     /**
-     * OAuth access revoked — user must reconnect
+     * Forbidden
      */
     403: ErrorResponse;
     /**
-     * No Google connection found
+     * Not found
      */
     404: ErrorResponse;
     /**
@@ -1280,11 +1103,11 @@ export type GetCalendarsOutlookCalendarsErrors = {
      */
     401: ErrorResponse;
     /**
-     * OAuth access revoked — user must reconnect
+     * Forbidden
      */
     403: ErrorResponse;
     /**
-     * No Outlook connection found
+     * Not found
      */
     404: ErrorResponse;
     /**
@@ -1400,7 +1223,7 @@ export type PostCalendarsExportEnableData = {
 
 export type PostCalendarsExportEnableErrors = {
     /**
-     * Bad request — provider not connected or missing export scope
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -1549,7 +1372,7 @@ export type PostEmojiGenerateData = {
 
 export type PostEmojiGenerateErrors = {
     /**
-     * Invalid request
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -1611,7 +1434,7 @@ export type PostEventsData = {
 
 export type PostEventsErrors = {
     /**
-     * Validation error
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -1646,7 +1469,7 @@ export type DeleteEventsByEventIdData = {
 
 export type DeleteEventsByEventIdErrors = {
     /**
-     * Cancel failed
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -1695,7 +1518,7 @@ export type GetEventsByEventIdErrors = {
      */
     403: ErrorResponse;
     /**
-     * Event not found
+     * Not found
      */
     404: ErrorResponse;
     /**
@@ -1726,7 +1549,7 @@ export type PatchEventsByEventIdData = {
 
 export type PatchEventsByEventIdErrors = {
     /**
-     * Validation error or update failed
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -1761,7 +1584,7 @@ export type PostEventsByEventIdRespondData = {
 
 export type PostEventsByEventIdRespondErrors = {
     /**
-     * Response failed
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -1794,7 +1617,7 @@ export type PostBusyTimesData = {
 
 export type PostBusyTimesErrors = {
     /**
-     * Validation error or invalid user IDs
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -1858,7 +1681,7 @@ export type GetFriendsSearchData = {
 
 export type GetFriendsSearchErrors = {
     /**
-     * Validation error
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -1891,7 +1714,7 @@ export type PostFriendsMatchContactsData = {
 
 export type PostFriendsMatchContactsErrors = {
     /**
-     * Validation error
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -1953,7 +1776,7 @@ export type PostFriendsInviteCodeRegenerateErrors = {
      */
     401: ErrorResponse;
     /**
-     * User not found
+     * Not found
      */
     404: ErrorResponse;
     /**
@@ -1982,7 +1805,7 @@ export type PostFriendsRequestData = {
 
 export type PostFriendsRequestErrors = {
     /**
-     * Friend request failed
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -2017,7 +1840,7 @@ export type PostFriendsByFriendIdAcceptData = {
 
 export type PostFriendsByFriendIdAcceptErrors = {
     /**
-     * Accept failed
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -2052,7 +1875,7 @@ export type PostFriendsByFriendIdDeclineData = {
 
 export type PostFriendsByFriendIdDeclineErrors = {
     /**
-     * Decline failed
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -2087,7 +1910,7 @@ export type PostFriendsByFriendIdBlockData = {
 
 export type PostFriendsByFriendIdBlockErrors = {
     /**
-     * Block failed
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -2122,7 +1945,7 @@ export type PostFriendsByFriendIdReportData = {
 
 export type PostFriendsByFriendIdReportErrors = {
     /**
-     * Report failed
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -2157,7 +1980,7 @@ export type DeleteFriendsByFriendIdData = {
 
 export type DeleteFriendsByFriendIdErrors = {
     /**
-     * Remove failed
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -2219,7 +2042,7 @@ export type PostGroupsData = {
 
 export type PostGroupsErrors = {
     /**
-     * Validation error
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -2254,7 +2077,7 @@ export type DeleteGroupsByGroupIdData = {
 
 export type DeleteGroupsByGroupIdErrors = {
     /**
-     * Delete failed
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -2289,7 +2112,7 @@ export type PatchGroupsByGroupIdData = {
 
 export type PatchGroupsByGroupIdErrors = {
     /**
-     * Validation error or update failed
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -2376,7 +2199,7 @@ export type PatchUsersMeData = {
 
 export type PatchUsersMeErrors = {
     /**
-     * Validation error
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -2384,11 +2207,11 @@ export type PatchUsersMeErrors = {
      */
     401: ErrorResponse;
     /**
-     * User not found
+     * Not found
      */
     404: ErrorResponse;
     /**
-     * Phone number already linked to another account
+     * Conflict
      */
     409: ErrorResponse;
     /**
@@ -2423,7 +2246,7 @@ export type GetUsersByUserIdProfileErrors = {
      */
     401: ErrorResponse;
     /**
-     * User not found
+     * Not found
      */
     404: ErrorResponse;
     /**
@@ -2452,7 +2275,7 @@ export type PostUsersMePushTokenData = {
 
 export type PostUsersMePushTokenErrors = {
     /**
-     * Validation error
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -2514,7 +2337,7 @@ export type PutUsersMeNotificationPreferencesData = {
 
 export type PutUsersMeNotificationPreferencesErrors = {
     /**
-     * Validation error
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -2547,7 +2370,7 @@ export type PostInvitesData = {
 
 export type PostInvitesErrors = {
     /**
-     * Validation error
+     * Bad request
      */
     400: ErrorResponse;
     /**
@@ -2586,7 +2409,7 @@ export type PostInvitesByTokenRedeemErrors = {
      */
     401: ErrorResponse;
     /**
-     * Invite not found
+     * Not found
      */
     404: ErrorResponse;
     /**

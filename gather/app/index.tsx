@@ -19,7 +19,7 @@ export default function Index() {
         alignItems="center"
         justifyContent="center"
       >
-        <Spinner size="large" color="$accent" />
+        <Spinner size="large" color="$color" />
       </YStack>
     );
   }

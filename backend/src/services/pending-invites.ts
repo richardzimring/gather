@@ -23,7 +23,6 @@ interface CreatePendingInviteResult {
   message?: string;
   token?: string;
   inviteUrl?: string;
-  prefilledMessage?: string;
 }
 
 const generateInviteToken = (): string => {
@@ -34,29 +33,18 @@ const generateInviteToken = (): string => {
 // so tapping the link sends a friend request through the normal code flow. The
 // token on a friend invite is never embedded anywhere; the row is only claimed
 // by phone match when the recipient signs up. Event invites use the token URL.
-const buildInviteUrls = (
+const buildInviteUrl = (
   type: PendingInviteType,
-  inviter: { firstName: string; inviteCode?: string },
+  inviter: { inviteCode?: string },
   token: string,
-  eventTitle?: string,
-): Pick<CreatePendingInviteResult, 'inviteUrl' | 'prefilledMessage'> => {
-  const inviteUrl =
-    type === 'event'
-      ? `${INVITE_BASE_URL}/e/${token}`
-      : `${INVITE_BASE_URL}/invite/${inviter.inviteCode ?? token}`;
-
-  const prefilledMessage =
-    type === 'event'
-      ? `${inviter.firstName} invited you to "${eventTitle}" on Gather. Join here: ${inviteUrl}`
-      : `${inviter.firstName} invited you to join them on Gather. Join here: ${inviteUrl}`;
-
-  return { inviteUrl, prefilledMessage };
-};
+): string =>
+  type === 'event'
+    ? `${INVITE_BASE_URL}/e/${token}`
+    : `${INVITE_BASE_URL}/invite/${inviter.inviteCode ?? token}`;
 
 /**
  * Create a pending invite for someone who is not yet on Gather. Returns a
- * shareable link and a prefilled message the inviter can send from their own
- * device.
+ * shareable link the inviter can send from their own device.
  */
 export const createPendingInvite = async (
   params: CreatePendingInviteParams,
@@ -73,7 +61,6 @@ export const createPendingInvite = async (
     return { success: false, message: 'Inviter not found' };
   }
 
-  let eventTitle: string | undefined;
   if (type === 'event') {
     if (!eventId) {
       return {
@@ -91,7 +78,6 @@ export const createPendingInvite = async (
         message: 'Only the host can invite people to this event',
       };
     }
-    eventTitle = event.title;
   }
 
   const findUnclaimedInvite = async () => {
@@ -140,14 +126,9 @@ export const createPendingInvite = async (
     }
   }
 
-  const { inviteUrl, prefilledMessage } = buildInviteUrls(
-    type,
-    inviter,
-    token,
-    eventTitle,
-  );
+  const inviteUrl = buildInviteUrl(type, inviter, token);
 
-  return { success: true, token, inviteUrl, prefilledMessage };
+  return { success: true, token, inviteUrl };
 };
 
 /**

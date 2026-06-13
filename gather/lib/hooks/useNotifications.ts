@@ -139,11 +139,8 @@ export function useNotificationPreferences() {
   return useQuery({
     queryKey: notificationPreferencesKeys.detail(),
     queryFn: async () => {
-      const response = await getUsersMeNotificationPreferences();
-      if (!response.data?.success) {
-        throw new Error('Failed to fetch notification preferences');
-      }
-      return response.data.data;
+      const { data } = await getUsersMeNotificationPreferences();
+      return data.data;
     },
   });
 }
@@ -156,13 +153,10 @@ export function useUpdateNotificationPreferences() {
 
   return useMutation({
     mutationFn: async (updates: UpdateNotificationPreferences) => {
-      const response = await putUsersMeNotificationPreferences({
+      const { data } = await putUsersMeNotificationPreferences({
         body: updates,
       });
-      if (!response.data?.success) {
-        throw new Error('Failed to update notification preferences');
-      }
-      return response.data.data;
+      return data.data;
     },
     onSuccess: (data) => {
       queryClient.setQueryData(notificationPreferencesKeys.detail(), data);

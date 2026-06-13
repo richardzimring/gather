@@ -21,6 +21,7 @@ import { Card } from '../../components/ui/Card';
 import { BackHeader } from '../../components/ui/ScreenHeader';
 import { useFriendCode, useSendFriendRequest } from '../../lib/hooks';
 import { haptic } from '../../lib/haptics';
+import { FRIEND_INVITE_SHARE_MESSAGE } from '../../lib/inviteMessages';
 
 function SectionHeader({ children }: { children: string }) {
   return (
@@ -55,7 +56,8 @@ export default function AddFriendScreen() {
     if (!myInviteLink) return;
     try {
       await Share.share({
-        message: `Add me on Gather! Tap to connect: ${myInviteLink}`,
+        url: myInviteLink,
+        message: FRIEND_INVITE_SHARE_MESSAGE,
       });
     } catch (err) {
       console.error('Failed to share:', err);

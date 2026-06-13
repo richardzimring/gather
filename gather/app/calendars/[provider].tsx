@@ -32,16 +32,13 @@ import { SkeletonBar, SkeletonCircle } from '../../components/ui/Skeleton';
 import {
   useCalendarConnections,
   useDisconnectCalendar,
-  useGoogleCalendars,
-  useSelectGoogleCalendars,
-  useOutlookCalendars,
-  useSelectOutlookCalendars,
+  useProviderCalendars,
+  useSelectProviderCalendars,
+  useProviderExportAuthUrl,
   useSyncCalendars,
   useExportStatus,
   useEnableExport,
   useDisableExport,
-  useGoogleExportAuthUrl,
-  useOutlookExportAuthUrl,
   calendarConnectionKeys,
   exportKeys,
 } from '../../lib/hooks';
@@ -186,30 +183,25 @@ export default function CalendarSelectScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [deviceCalendars, setDeviceCalendars] = useState<DeviceCalendar[]>([]);
 
-  // API-based calendars (Google/Outlook)
+  // API-based calendars (Google/Outlook). The screen shows one provider at a
+  // time, so a single parameterized hook instance covers both.
+  const oauthProvider = provider === 'outlook' ? 'outlook' : 'google';
   const {
-    data: googleCalendars,
-    isLoading: isLoadingGoogle,
-    error: googleError,
-  } = useGoogleCalendars(provider === 'google');
-  const {
-    data: outlookCalendars,
-    isLoading: isLoadingOutlook,
-    error: outlookError,
-  } = useOutlookCalendars(provider === 'outlook');
+    data: providerCalendars,
+    isLoading: isLoadingProvider,
+    error: providerError,
+  } = useProviderCalendars(oauthProvider, provider !== 'apple');
 
   // Import mutations
   const syncCalendars = useSyncCalendars();
-  const selectGoogleCalendars = useSelectGoogleCalendars();
-  const selectOutlookCalendars = useSelectOutlookCalendars();
+  const selectProviderCalendars = useSelectProviderCalendars(oauthProvider);
   const disconnectCalendar = useDisconnectCalendar();
 
   // Export hooks
   const { data: exportStatuses } = useExportStatus();
   const enableExport = useEnableExport();
   const disableExport = useDisableExport();
-  const googleExportAuthUrl = useGoogleExportAuthUrl();
-  const outlookExportAuthUrl = useOutlookExportAuthUrl();
+  const providerExportAuthUrl = useProviderExportAuthUrl(oauthProvider);
   const appleExport = useAppleExport();
   // null = no pending change; true/false = user has toggled but not yet saved
   const [pendingExportEnabled, setPendingExportEnabled] = useState<
@@ -359,9 +351,7 @@ export default function CalendarSelectScreen() {
       setInitialized(true);
     }
   } else {
-    const calendars =
-      provider === 'google' ? googleCalendars : outlookCalendars;
-    if (calendars && !initialized) {
+    if (providerCalendars && !initialized) {
       if (connectedIds.size > 0) {
         // Re-visiting: pre-select already connected calendars
         setSelectedIds(new Set(connectedIds));
@@ -380,24 +370,13 @@ export default function CalendarSelectScreen() {
         source: cal.source,
       }));
     }
-    if (provider === 'google' && googleCalendars) {
-      return googleCalendars.map((cal) => ({
-        id: cal.externalCalendarId,
-        name: cal.calendarName,
-        color: cal.color,
-        isPrimary: cal.isPrimary,
-      }));
-    }
-    if (provider === 'outlook' && outlookCalendars) {
-      return outlookCalendars.map((cal) => ({
-        id: cal.externalCalendarId,
-        name: cal.calendarName,
-        color: cal.color,
-        isPrimary: cal.isPrimary,
-      }));
-    }
-    return [];
-  }, [provider, deviceCalendars, googleCalendars, outlookCalendars]);
+    return (providerCalendars ?? []).map((cal) => ({
+      id: cal.externalCalendarId,
+      name: cal.calendarName,
+      color: cal.color,
+      isPrimary: cal.isPrimary,
+    }));
+  }, [provider, deviceCalendars, providerCalendars]);
 
   // Filter out the Gather export calendar so it doesn't appear as an import option
   const filteredCalendars = useMemo((): NormalizedCalendar[] => {
@@ -484,14 +463,10 @@ export default function CalendarSelectScreen() {
 
     if (pendingExportEnabled) {
       if (!exportStatus?.hasExportScope) {
-        const urlQuery =
-          provider === 'google' ? googleExportAuthUrl : outlookExportAuthUrl;
-        const { data: authUrl } = await urlQuery.refetch();
+        const { data: authUrl } = await providerExportAuthUrl.refetch();
         if (!authUrl) throw new Error('No auth URL returned');
         const callbackUrl = Linking.createURL(
-          provider === 'google'
-            ? 'calendars/google/callback'
-            : 'calendars/outlook/callback',
+          `calendars/${oauthProvider}/callback`,
         );
         const result = await WebBrowser.openAuthSessionAsync(
           authUrl,
@@ -537,11 +512,8 @@ export default function CalendarSelectScreen() {
             await appleExport.disable();
           }
         }
-      } else if (provider === 'google') {
-        await selectGoogleCalendars.mutateAsync(calendarIds);
-        await applyPendingExport();
-      } else if (provider === 'outlook') {
-        await selectOutlookCalendars.mutateAsync(calendarIds);
+      } else {
+        await selectProviderCalendars.mutateAsync(calendarIds);
         await applyPendingExport();
       }
 
@@ -563,15 +535,11 @@ export default function CalendarSelectScreen() {
   const handleRequestExportScope = async () => {
     if (provider !== 'google' && provider !== 'outlook') return;
     try {
-      const urlQuery =
-        provider === 'google' ? googleExportAuthUrl : outlookExportAuthUrl;
-      const { data: authUrl } = await urlQuery.refetch();
+      const { data: authUrl } = await providerExportAuthUrl.refetch();
       if (!authUrl) throw new Error('No URL returned');
 
       const callbackUrl = Linking.createURL(
-        provider === 'google'
-          ? 'calendars/google/callback'
-          : 'calendars/outlook/callback',
+        `calendars/${oauthProvider}/callback`,
       );
       const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
@@ -597,29 +565,19 @@ export default function CalendarSelectScreen() {
 
   // Get loading and error states
   const isDataLoading =
-    (provider === 'apple' && isLoading) ||
-    (provider === 'google' && (isLoadingGoogle || !googleCalendars)) ||
-    (provider === 'outlook' && (isLoadingOutlook || !outlookCalendars));
+    provider === 'apple' ? isLoading : isLoadingProvider || !providerCalendars;
 
-  const hasError =
-    (provider === 'google' && googleError) ||
-    (provider === 'outlook' && outlookError);
+  const hasError = provider !== 'apple' && providerError;
 
   const isRevoked =
-    (provider === 'google' && googleError instanceof OAuthRevokedError) ||
-    (provider === 'outlook' && outlookError instanceof OAuthRevokedError);
+    provider !== 'apple' && providerError instanceof OAuthRevokedError;
 
   const isSaving =
-    (provider === 'apple' &&
-      (syncCalendars.isPending || appleExport.isLoading)) ||
-    (provider === 'google' &&
-      (selectGoogleCalendars.isPending ||
+    provider === 'apple'
+      ? syncCalendars.isPending || appleExport.isLoading
+      : selectProviderCalendars.isPending ||
         enableExport.isPending ||
-        disableExport.isPending)) ||
-    (provider === 'outlook' &&
-      (selectOutlookCalendars.isPending ||
-        enableExport.isPending ||
-        disableExport.isPending));
+        disableExport.isPending;
 
   // Apple: Permission not granted state
   if (provider === 'apple' && hasPermission === false) {

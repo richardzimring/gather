@@ -150,116 +150,58 @@ const getPendingInviteesByEvent = async (
 // Event Operations
 // ============================================
 
-export const getEvent = async (eventId: string): Promise<Event | null> => {
-  // Get event with host user data
-  const result = await db
-    .select({
-      event: events,
-      host: users,
-    })
-    .from(events)
-    .leftJoin(users, eq(events.hostId, users.id))
-    .where(eq(events.id, eventId))
-    .limit(1);
+/** Relations loaded for every event read. */
+const withEventRelations = {
+  host: true,
+  invitees: { with: { user: true } },
+} as const;
 
-  const row = result[0];
+type EventRow = typeof events.$inferSelect & {
+  host: typeof users.$inferSelect | null;
+  invitees: InviteeWithUser[];
+};
+
+const toEvent = (row: EventRow, pendingInvitees: PendingInvitee[]): Event =>
+  dbEventToEvent(
+    row,
+    row.invitees.map(dbInviteeToEventInvitee),
+    getHostInfo(row.host),
+    pendingInvitees,
+  );
+
+export const getEvent = async (eventId: string): Promise<Event | null> => {
+  const row = await db.query.events.findFirst({
+    where: eq(events.id, eventId),
+    with: withEventRelations,
+  });
   if (!row) return null;
 
-  // Get all invitees for this event with user data
-  const inviteeRecords = await db
-    .select({
-      eventId: eventInvitees.eventId,
-      userId: eventInvitees.userId,
-      status: eventInvitees.status,
-      respondedAt: eventInvitees.respondedAt,
-      counterProposalStartTime: eventInvitees.counterProposalStartTime,
-      counterProposalEndTime: eventInvitees.counterProposalEndTime,
-      counterProposalLocation: eventInvitees.counterProposalLocation,
-      counterProposalMessage: eventInvitees.counterProposalMessage,
-      user: users,
-    })
-    .from(eventInvitees)
-    .leftJoin(users, eq(eventInvitees.userId, users.id))
-    .where(eq(eventInvitees.eventId, eventId));
-
-  const invitees = inviteeRecords.map(dbInviteeToEventInvitee);
-  const hostInfo = getHostInfo(row.host);
   const pendingByEvent = await getPendingInviteesByEvent([eventId]);
-  return dbEventToEvent(
-    row.event,
-    invitees,
-    hostInfo,
-    pendingByEvent.get(eventId) ?? [],
-  );
+  return toEvent(row, pendingByEvent.get(eventId) ?? []);
 };
 
 export const getEventsForUser = async (userId: string): Promise<Event[]> => {
-  // Get all events where user is host OR invitee, excluding cancelled
-  // First, get event IDs where user is an invitee
-  const invitedEventIds = await db
-    .select({ eventId: eventInvitees.eventId })
-    .from(eventInvitees)
-    .where(eq(eventInvitees.userId, userId));
-
-  const invitedIds = invitedEventIds.map((r) => r.eventId);
-
-  // Get all events with host user data, excluding cancelled
-  const eventResults = await db
-    .select({
-      event: events,
-      host: users,
-    })
-    .from(events)
-    .leftJoin(users, eq(events.hostId, users.id))
-    .where(
-      and(
-        ne(events.status, 'cancelled'),
-        invitedIds.length > 0
-          ? or(eq(events.hostId, userId), inArray(events.id, invitedIds))
-          : eq(events.hostId, userId),
+  // All events where the user is host or invitee, excluding cancelled
+  const rows = await db.query.events.findMany({
+    where: and(
+      ne(events.status, 'cancelled'),
+      or(
+        eq(events.hostId, userId),
+        inArray(
+          events.id,
+          db
+            .select({ id: eventInvitees.eventId })
+            .from(eventInvitees)
+            .where(eq(eventInvitees.userId, userId)),
+        ),
       ),
-    )
-    .orderBy(events.startTime);
-
-  if (eventResults.length === 0) return [];
-
-  // Get all invitees for these events with user data in one query
-  const eventIds = eventResults.map((r) => r.event.id);
-  const allInvitees = await db
-    .select({
-      eventId: eventInvitees.eventId,
-      userId: eventInvitees.userId,
-      status: eventInvitees.status,
-      respondedAt: eventInvitees.respondedAt,
-      counterProposalStartTime: eventInvitees.counterProposalStartTime,
-      counterProposalEndTime: eventInvitees.counterProposalEndTime,
-      counterProposalLocation: eventInvitees.counterProposalLocation,
-      counterProposalMessage: eventInvitees.counterProposalMessage,
-      user: users,
-    })
-    .from(eventInvitees)
-    .leftJoin(users, eq(eventInvitees.userId, users.id))
-    .where(inArray(eventInvitees.eventId, eventIds));
-
-  // Group invitees by event
-  const inviteesByEvent = new Map<string, EventInvitee[]>();
-  for (const invitee of allInvitees) {
-    const existing = inviteesByEvent.get(invitee.eventId) ?? [];
-    existing.push(dbInviteeToEventInvitee(invitee));
-    inviteesByEvent.set(invitee.eventId, existing);
-  }
-
-  const pendingByEvent = await getPendingInviteesByEvent(eventIds);
-
-  return eventResults.map((r) => {
-    const hostInfo = getHostInfo(r.host);
-    return dbEventToEvent(
-      r.event,
-      inviteesByEvent.get(r.event.id) ?? [],
-      hostInfo,
-      pendingByEvent.get(r.event.id) ?? [],
-    );
+    ),
+    with: withEventRelations,
+    orderBy: events.startTime,
   });
+
+  const pendingByEvent = await getPendingInviteesByEvent(rows.map((r) => r.id));
+  return rows.map((row) => toEvent(row, pendingByEvent.get(row.id) ?? []));
 };
 
 export const createEvent = async (

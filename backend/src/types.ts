@@ -12,22 +12,21 @@ const EXAMPLE_DATETIME = '2024-01-15T10:30:00.000Z';
 // User schemas
 export const UserSchema = z
   .object({
-    userId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
+    userId: z.uuid().openapi({ example: EXAMPLE_UUID }),
     appleUserId: z
       .string()
       .min(1)
       .openapi({ example: '001234.abcdef1234567890.1234' }),
-    email: z.string().email().openapi({ example: 'john@example.com' }),
+    email: z.email().openapi({ example: 'john@example.com' }),
     firstName: z.string().min(1).max(50).openapi({ example: 'John' }),
     lastName: z.string().min(1).max(50).openapi({ example: 'Doe' }),
     fullName: z.string().openapi({ example: 'John Doe' }),
     initials: z.string().openapi({ example: 'JD' }),
     avatarUrl: z
-      .string()
       .url()
       .optional()
       .openapi({ example: 'https://example.com/avatar.jpg' }),
-    createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
+    createdAt: z.iso.datetime().openapi({ example: EXAMPLE_DATETIME }),
     calendarSyncEnabled: z.boolean().default(false).openapi({ example: false }),
     phone: z
       .string()
@@ -51,11 +50,10 @@ export const CreateUserSchema = z
       .string()
       .min(1)
       .openapi({ example: '001234.abcdef1234567890.1234' }),
-    email: z.string().email().openapi({ example: 'john@example.com' }),
+    email: z.email().openapi({ example: 'john@example.com' }),
     firstName: z.string().min(1).max(50).openapi({ example: 'John' }),
     lastName: z.string().min(1).max(50).openapi({ example: 'Doe' }),
     avatarUrl: z
-      .string()
       .url()
       .optional()
       .openapi({ example: 'https://example.com/avatar.jpg' }),
@@ -66,7 +64,6 @@ export const CreateUserSchema = z
 export const UpdateUserSchema = z
   .object({
     avatarUrl: z
-      .string()
       .url()
       .nullable()
       .optional()
@@ -90,13 +87,12 @@ export const FriendshipStatusSchema = z
 
 export const FriendshipSchema = z
   .object({
-    userId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
-    friendId: z.string().uuid().openapi({ example: EXAMPLE_UUID_2 }),
+    userId: z.uuid().openapi({ example: EXAMPLE_UUID }),
+    friendId: z.uuid().openapi({ example: EXAMPLE_UUID_2 }),
     status: FriendshipStatusSchema,
-    initiatedBy: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
-    createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
-    acceptedAt: z
-      .string()
+    initiatedBy: z.uuid().openapi({ example: EXAMPLE_UUID }),
+    createdAt: z.iso.datetime().openapi({ example: EXAMPLE_DATETIME }),
+    acceptedAt: z.iso
       .datetime()
       .optional()
       .openapi({ example: EXAMPLE_DATETIME }),
@@ -105,13 +101,12 @@ export const FriendshipSchema = z
 
 export const FriendWithUserSchema = z
   .object({
-    userId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
-    friendId: z.string().uuid().openapi({ example: EXAMPLE_UUID_2 }),
+    userId: z.uuid().openapi({ example: EXAMPLE_UUID }),
+    friendId: z.uuid().openapi({ example: EXAMPLE_UUID_2 }),
     status: FriendshipStatusSchema,
-    initiatedBy: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
-    createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
-    acceptedAt: z
-      .string()
+    initiatedBy: z.uuid().openapi({ example: EXAMPLE_UUID }),
+    createdAt: z.iso.datetime().openapi({ example: EXAMPLE_DATETIME }),
+    acceptedAt: z.iso
       .datetime()
       .optional()
       .openapi({ example: EXAMPLE_DATETIME }),
@@ -122,11 +117,7 @@ export const FriendWithUserSchema = z
 // Friend request can be by userId or inviteCode
 export const FriendRequestSchema = z
   .object({
-    friendUserId: z
-      .string()
-      .uuid()
-      .optional()
-      .openapi({ example: EXAMPLE_UUID_2 }),
+    friendUserId: z.uuid().optional().openapi({ example: EXAMPLE_UUID_2 }),
     inviteCode: z.string().optional().openapi({ example: 'ABC123' }),
   })
   .refine((data) => data.friendUserId || data.inviteCode, {
@@ -137,15 +128,15 @@ export const FriendRequestSchema = z
 // Group schemas
 export const GroupSchema = z
   .object({
-    groupId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
-    ownerId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
+    groupId: z.uuid().openapi({ example: EXAMPLE_UUID }),
+    ownerId: z.uuid().openapi({ example: EXAMPLE_UUID }),
     name: z.string().min(1).max(50).openapi({ example: 'Weekend Crew' }),
     emoji: z.string().optional().openapi({ example: '🎉' }),
     memberIds: z
-      .array(z.string().uuid())
+      .array(z.uuid())
       .openapi({ example: [EXAMPLE_UUID, EXAMPLE_UUID_2] }),
     isDefault: z.boolean().default(false).openapi({ example: false }),
-    createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
+    createdAt: z.iso.datetime().openapi({ example: EXAMPLE_DATETIME }),
   })
   .openapi('Group');
 
@@ -154,7 +145,7 @@ export const CreateGroupSchema = z
     name: z.string().min(1).max(50).openapi({ example: 'Weekend Crew' }),
     emoji: z.string().optional().openapi({ example: '🎉' }),
     memberIds: z
-      .array(z.string().uuid())
+      .array(z.uuid())
       .default([])
       .openapi({ example: [EXAMPLE_UUID_2] }),
   })
@@ -170,7 +161,7 @@ export const UpdateGroupSchema = z
       .openapi({ example: 'New Group Name' }),
     emoji: z.string().nullable().optional().openapi({ example: '🎊' }),
     memberIds: z
-      .array(z.string().uuid())
+      .array(z.uuid())
       .optional()
       .openapi({ example: [EXAMPLE_UUID, EXAMPLE_UUID_2] }),
   })
@@ -188,8 +179,7 @@ export const RecurringSchema = z
       .array(z.number().min(0).max(6))
       .optional()
       .openapi({ example: [1, 3, 5] }),
-    endDate: z
-      .string()
+    endDate: z.iso
       .datetime()
       .optional()
       .openapi({ example: '2024-12-31T23:59:59.000Z' }),
@@ -198,32 +188,24 @@ export const RecurringSchema = z
 
 export const BlockedWindowSchema = z
   .object({
-    userId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
-    windowId: z.string().uuid().openapi({ example: EXAMPLE_UUID_2 }),
-    startTime: z
-      .string()
+    userId: z.uuid().openapi({ example: EXAMPLE_UUID }),
+    windowId: z.uuid().openapi({ example: EXAMPLE_UUID_2 }),
+    startTime: z.iso
       .datetime()
       .openapi({ example: '2024-01-15T14:00:00.000Z' }),
-    endTime: z
-      .string()
-      .datetime()
-      .openapi({ example: '2024-01-15T18:00:00.000Z' }),
+    endTime: z.iso.datetime().openapi({ example: '2024-01-15T18:00:00.000Z' }),
     recurring: RecurringSchema.optional(),
     notes: z.string().max(500).optional().openapi({ example: 'Work meeting' }),
-    createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
+    createdAt: z.iso.datetime().openapi({ example: EXAMPLE_DATETIME }),
   })
   .openapi('BlockedWindow');
 
 export const CreateBlockedWindowSchema = z
   .object({
-    startTime: z
-      .string()
+    startTime: z.iso
       .datetime()
       .openapi({ example: '2024-01-15T14:00:00.000Z' }),
-    endTime: z
-      .string()
-      .datetime()
-      .openapi({ example: '2024-01-15T18:00:00.000Z' }),
+    endTime: z.iso.datetime().openapi({ example: '2024-01-15T18:00:00.000Z' }),
     recurring: RecurringSchema.optional(),
     notes: z.string().max(500).optional().openapi({ example: 'Work meeting' }),
   })
@@ -231,13 +213,11 @@ export const CreateBlockedWindowSchema = z
 
 export const UpdateBlockedWindowSchema = z
   .object({
-    startTime: z
-      .string()
+    startTime: z.iso
       .datetime()
       .optional()
       .openapi({ example: '2024-01-15T14:00:00.000Z' }),
-    endTime: z
-      .string()
+    endTime: z.iso
       .datetime()
       .optional()
       .openapi({ example: '2024-01-15T18:00:00.000Z' }),
@@ -273,13 +253,11 @@ export const LocationDataSchema = z
 
 export const CounterProposalSchema = z
   .object({
-    startTime: z
-      .string()
+    startTime: z.iso
       .datetime()
       .optional()
       .openapi({ example: '2024-01-15T15:00:00.000Z' }),
-    endTime: z
-      .string()
+    endTime: z.iso
       .datetime()
       .optional()
       .openapi({ example: '2024-01-15T17:00:00.000Z' }),
@@ -298,17 +276,15 @@ export const CounterProposalSchema = z
 
 export const EventInviteeSchema = z
   .object({
-    userId: z.string().uuid().openapi({ example: EXAMPLE_UUID_2 }),
+    userId: z.uuid().openapi({ example: EXAMPLE_UUID_2 }),
     fullName: z.string().openapi({ example: 'Jane Smith' }),
     initials: z.string().openapi({ example: 'JS' }),
     avatarUrl: z
-      .string()
       .url()
       .optional()
       .openapi({ example: 'https://example.com/avatar.jpg' }),
     status: InviteeStatusSchema,
-    respondedAt: z
-      .string()
+    respondedAt: z.iso
       .datetime()
       .optional()
       .openapi({ example: EXAMPLE_DATETIME }),
@@ -320,31 +296,26 @@ export const EventInviteeSchema = z
 // carries no identifying information beyond an opaque id.
 export const PendingInviteeSchema = z
   .object({
-    id: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
+    id: z.uuid().openapi({ example: EXAMPLE_UUID }),
   })
   .openapi('PendingInvitee');
 
 export const EventSchema = z
   .object({
-    eventId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
-    hostId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
+    eventId: z.uuid().openapi({ example: EXAMPLE_UUID }),
+    hostId: z.uuid().openapi({ example: EXAMPLE_UUID }),
     hostName: z.string().openapi({ example: 'John Doe' }),
     hostInitials: z.string().openapi({ example: 'JD' }),
     hostAvatarUrl: z
-      .string()
       .url()
       .optional()
       .openapi({ example: 'https://example.com/avatar.jpg' }),
     title: z.string().min(1).max(100).openapi({ example: 'Coffee Catch-up' }),
     emoji: z.string().optional().openapi({ example: '☕' }),
-    startTime: z
-      .string()
+    startTime: z.iso
       .datetime()
       .openapi({ example: '2024-01-15T14:00:00.000Z' }),
-    endTime: z
-      .string()
-      .datetime()
-      .openapi({ example: '2024-01-15T15:00:00.000Z' }),
+    endTime: z.iso.datetime().openapi({ example: '2024-01-15T15:00:00.000Z' }),
     location: z
       .string()
       .max(200)
@@ -379,39 +350,19 @@ export const EventSchema = z
       .string()
       .optional()
       .openapi({ example: 'google_calendar_event_123' }),
-    createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
-    updatedAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
+    createdAt: z.iso.datetime().openapi({ example: EXAMPLE_DATETIME }),
+    updatedAt: z.iso.datetime().openapi({ example: EXAMPLE_DATETIME }),
   })
   .openapi('Event');
-
-export const EventRecurringSchema = z
-  .object({
-    isRecurring: z.boolean().openapi({ example: true }),
-    pattern: z.enum(['weekly']).optional().openapi({ example: 'weekly' }),
-    daysOfWeek: z
-      .array(z.number().min(0).max(6))
-      .optional()
-      .openapi({ example: [1, 3, 5] }),
-    endDate: z
-      .string()
-      .datetime()
-      .optional()
-      .openapi({ example: '2024-03-15T23:59:59.000Z' }),
-  })
-  .openapi('EventRecurring');
 
 export const CreateEventSchema = z
   .object({
     title: z.string().min(1).max(100).openapi({ example: 'Coffee Catch-up' }),
     emoji: z.string().optional().openapi({ example: '☕' }),
-    startTime: z
-      .string()
+    startTime: z.iso
       .datetime()
       .openapi({ example: '2024-01-15T14:00:00.000Z' }),
-    endTime: z
-      .string()
-      .datetime()
-      .openapi({ example: '2024-01-15T15:00:00.000Z' }),
+    endTime: z.iso.datetime().openapi({ example: '2024-01-15T15:00:00.000Z' }),
     location: z
       .string()
       .max(200)
@@ -423,11 +374,8 @@ export const CreateEventSchema = z
       .max(500)
       .optional()
       .openapi({ example: 'Looking forward to catching up!' }),
-    inviteeIds: z
-      .array(z.string().uuid())
-      .openapi({ example: [EXAMPLE_UUID_2] }),
+    inviteeIds: z.array(z.uuid()).openapi({ example: [EXAMPLE_UUID_2] }),
     showInviteList: z.boolean().default(true).openapi({ example: true }),
-    recurring: EventRecurringSchema.optional(),
   })
   .openapi('CreateEvent');
 
@@ -440,13 +388,11 @@ export const UpdateEventSchema = z
       .optional()
       .openapi({ example: 'Updated Event Title' }),
     emoji: z.string().nullable().optional().openapi({ example: '🎉' }),
-    startTime: z
-      .string()
+    startTime: z.iso
       .datetime()
       .optional()
       .openapi({ example: '2024-01-15T14:00:00.000Z' }),
-    endTime: z
-      .string()
+    endTime: z.iso
       .datetime()
       .optional()
       .openapi({ example: '2024-01-15T15:00:00.000Z' }),
@@ -464,10 +410,7 @@ export const UpdateEventSchema = z
       .optional()
       .openapi({ example: 'Updated notes' }),
     showInviteList: z.boolean().optional().openapi({ example: false }),
-    addInviteeIds: z
-      .array(z.string().uuid())
-      .optional()
-      .openapi({ example: [] }),
+    addInviteeIds: z.array(z.uuid()).optional().openapi({ example: [] }),
   })
   .openapi('UpdateEvent');
 
@@ -494,7 +437,6 @@ export const NotificationPreferencesSchema = z
     eventInvites: z.boolean().default(true).openapi({ example: true }),
     eventUpdates: z.boolean().default(true).openapi({ example: true }),
     friendRequests: z.boolean().default(true).openapi({ example: true }),
-    messages: z.boolean().default(true).openapi({ example: true }),
   })
   .openapi('NotificationPreferences');
 
@@ -503,7 +445,6 @@ export const UpdateNotificationPreferencesSchema = z
     eventInvites: z.boolean().optional().openapi({ example: true }),
     eventUpdates: z.boolean().optional().openapi({ example: true }),
     friendRequests: z.boolean().optional().openapi({ example: false }),
-    messages: z.boolean().optional().openapi({ example: true }),
   })
   .openapi('UpdateNotificationPreferences');
 
@@ -531,11 +472,10 @@ export const RelationshipStatusSchema = z
 // attendee in a shared event). Deliberately excludes email/phone.
 export const PublicUserProfileSchema = z
   .object({
-    userId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
+    userId: z.uuid().openapi({ example: EXAMPLE_UUID }),
     fullName: z.string().openapi({ example: 'Jane Smith' }),
     initials: z.string().openapi({ example: 'JS' }),
     avatarUrl: z
-      .string()
       .url()
       .optional()
       .openapi({ example: 'https://example.com/avatar.jpg' }),
@@ -552,7 +492,7 @@ export const CreateInviteSchema = z
   .object({
     type: InviteTypeSchema,
     phone: z.string().min(1).openapi({ example: '(415) 555-0123' }),
-    eventId: z.string().uuid().optional().openapi({
+    eventId: z.uuid().optional().openapi({
       example: EXAMPLE_UUID,
       description: 'Required for event invites',
     }),
@@ -565,16 +505,13 @@ export const CreateInviteResultSchema = z
     inviteUrl: z
       .string()
       .openapi({ example: 'https://gather.rzimring.com/e/aBcD1234' }),
-    prefilledMessage: z.string().openapi({
-      example: 'Alex invited you to "Dinner" on Gather. Join here: ...',
-    }),
   })
   .openapi('CreateInviteResult');
 
 export const RedeemInviteResultSchema = z
   .object({
     type: InviteTypeSchema,
-    eventId: z.string().uuid().optional().openapi({ example: EXAMPLE_UUID }),
+    eventId: z.uuid().optional().openapi({ example: EXAMPLE_UUID }),
   })
   .openapi('RedeemInviteResult');
 
@@ -621,6 +558,51 @@ export const createSuccessResponseSchema = <T extends z.ZodTypeAny>(
     .openapi(name);
 
 // ============================================
+// Route Definition Helpers
+// ============================================
+
+/** Shorthand for an application/json response entry in a createRoute config. */
+export const jsonContent = <T extends z.ZodTypeAny>(
+  schema: T,
+  description: string,
+) => ({
+  description,
+  content: { 'application/json': { schema } },
+});
+
+/** Shorthand for a required application/json request body in a createRoute config. */
+export const jsonBody = <T extends z.ZodTypeAny>(schema: T) => ({
+  content: { 'application/json': { schema } },
+  required: true,
+});
+
+const ERROR_DESCRIPTIONS = {
+  400: 'Bad request',
+  401: 'Unauthorized',
+  403: 'Forbidden',
+  404: 'Not found',
+  409: 'Conflict',
+  500: 'Internal server error',
+} as const;
+
+type ErrorStatus = keyof typeof ERROR_DESCRIPTIONS;
+
+/**
+ * Error response entries for a createRoute config, e.g.
+ * `responses: { 200: jsonContent(...), ...errorResponses(401, 404, 500) }`.
+ */
+export const errorResponses = (...statuses: ErrorStatus[]) =>
+  Object.fromEntries(
+    statuses.map((status) => [
+      status,
+      jsonContent(ErrorResponseSchema, ERROR_DESCRIPTIONS[status]),
+    ]),
+  ) as unknown as Record<
+    ErrorStatus,
+    ReturnType<typeof jsonContent<typeof ErrorResponseSchema>>
+  >;
+
+// ============================================
 // TypeScript Types (inferred from schemas)
 // ============================================
 
@@ -647,7 +629,6 @@ export type InviteeStatus = z.infer<typeof InviteeStatusSchema>;
 export type EventStatus = z.infer<typeof EventStatusSchema>;
 export type CounterProposal = z.infer<typeof CounterProposalSchema>;
 export type LocationData = z.infer<typeof LocationDataSchema>;
-export type EventRecurring = z.infer<typeof EventRecurringSchema>;
 export type EventInvitee = z.infer<typeof EventInviteeSchema>;
 export type PendingInvitee = z.infer<typeof PendingInviteeSchema>;
 export type Event = z.infer<typeof EventSchema>;
@@ -679,8 +660,8 @@ export const CalendarProviderSchema = z
 
 export const CalendarConnectionSchema = z
   .object({
-    connectionId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
-    userId: z.string().uuid().openapi({ example: EXAMPLE_UUID }),
+    connectionId: z.uuid().openapi({ example: EXAMPLE_UUID }),
+    userId: z.uuid().openapi({ example: EXAMPLE_UUID }),
     provider: CalendarProviderSchema,
     externalCalendarId: z.string().openapi({ example: 'primary' }),
     calendarName: z.string().openapi({ example: 'Personal Calendar' }),
@@ -688,59 +669,22 @@ export const CalendarConnectionSchema = z
     importEnabled: z.boolean().openapi({ example: true }),
     exportEnabled: z.boolean().openapi({ example: false }),
     hasExportScope: z.boolean().openapi({ example: false }),
-    lastSyncAt: z
-      .string()
+    lastSyncAt: z.iso
       .datetime()
       .optional()
       .openapi({ example: EXAMPLE_DATETIME }),
-    createdAt: z.string().datetime().openapi({ example: EXAMPLE_DATETIME }),
+    createdAt: z.iso.datetime().openapi({ example: EXAMPLE_DATETIME }),
   })
   .openapi('CalendarConnection');
-
-export const CreateCalendarConnectionSchema = z
-  .object({
-    provider: CalendarProviderSchema,
-    externalCalendarId: z.string().openapi({ example: 'primary' }),
-    calendarName: z.string().openapi({ example: 'Personal Calendar' }),
-    color: z.string().optional().openapi({ example: '#4285F4' }),
-    importEnabled: z.boolean().default(true).openapi({ example: true }),
-    exportEnabled: z.boolean().default(false).openapi({ example: false }),
-    accessToken: z.string().optional().openapi({ example: 'ya29.xxx' }),
-    refreshToken: z.string().optional().openapi({ example: '1//xxx' }),
-    tokenExpiresAt: z
-      .string()
-      .datetime()
-      .optional()
-      .openapi({ example: EXAMPLE_DATETIME }),
-  })
-  .openapi('CreateCalendarConnection');
-
-export const UpdateCalendarConnectionSchema = z
-  .object({
-    importEnabled: z.boolean().optional().openapi({ example: true }),
-    exportEnabled: z.boolean().optional().openapi({ example: true }),
-    accessToken: z.string().optional().openapi({ example: 'ya29.xxx' }),
-    refreshToken: z.string().optional().openapi({ example: '1//xxx' }),
-    tokenExpiresAt: z
-      .string()
-      .datetime()
-      .optional()
-      .openapi({ example: EXAMPLE_DATETIME }),
-  })
-  .openapi('UpdateCalendarConnection');
 
 // Sync calendars schema (bulk sync from device)
 export const SyncCalendarEventSchema = z
   .object({
     externalEventId: z.string().openapi({ example: 'event_abc123' }),
-    startTime: z
-      .string()
+    startTime: z.iso
       .datetime()
       .openapi({ example: '2024-01-15T14:00:00.000Z' }),
-    endTime: z
-      .string()
-      .datetime()
-      .openapi({ example: '2024-01-15T15:00:00.000Z' }),
+    endTime: z.iso.datetime().openapi({ example: '2024-01-15T15:00:00.000Z' }),
     isBusy: z.boolean().openapi({ example: true }),
   })
   .openapi('SyncCalendarEvent');
@@ -762,12 +706,6 @@ export const SyncCalendarsSchema = z
 
 export type CalendarProvider = z.infer<typeof CalendarProviderSchema>;
 export type CalendarConnection = z.infer<typeof CalendarConnectionSchema>;
-export type CreateCalendarConnection = z.infer<
-  typeof CreateCalendarConnectionSchema
->;
-export type UpdateCalendarConnection = z.infer<
-  typeof UpdateCalendarConnectionSchema
->;
 export type SyncCalendarEvent = z.infer<typeof SyncCalendarEventSchema>;
 export type SyncCalendarEntry = z.infer<typeof SyncCalendarEntrySchema>;
 export type SyncCalendars = z.infer<typeof SyncCalendarsSchema>;
@@ -776,7 +714,6 @@ export type SyncCalendars = z.infer<typeof SyncCalendarsSchema>;
 export const GoogleAuthUrlResponseSchema = z
   .object({
     authUrl: z
-      .string()
       .url()
       .openapi({ example: 'https://accounts.google.com/o/oauth2/v2/auth?...' }),
   })
@@ -785,7 +722,7 @@ export const GoogleAuthUrlResponseSchema = z
 export const GoogleCallbackSchema = z
   .object({
     code: z.string().min(1).openapi({ example: '4/0AXxxxx' }),
-    state: z.string().uuid().optional().openapi({
+    state: z.uuid().optional().openapi({
       example: '550e8400-e29b-41d4-a716-446655440000',
       description: 'The userId passed as state during auth URL generation',
     }),
@@ -863,34 +800,26 @@ export type DisableCalendarExport = z.infer<typeof DisableCalendarExportSchema>;
 export const BusyTimesQuerySchema = z
   .object({
     userIds: z
-      .array(z.string().uuid())
+      .array(z.uuid())
       .min(1)
       .openapi({
         example: [EXAMPLE_UUID, EXAMPLE_UUID_2],
         description:
           'User IDs to query busy times for (must be the current user or accepted friends)',
       }),
-    startDate: z
-      .string()
+    startDate: z.iso
       .datetime()
       .openapi({ example: '2024-01-15T00:00:00.000Z' }),
-    endDate: z
-      .string()
-      .datetime()
-      .openapi({ example: '2024-01-22T23:59:59.000Z' }),
+    endDate: z.iso.datetime().openapi({ example: '2024-01-22T23:59:59.000Z' }),
   })
   .openapi('BusyTimesQuery');
 
 export const BusyTimeIntervalSchema = z
   .object({
-    startTime: z
-      .string()
+    startTime: z.iso
       .datetime()
       .openapi({ example: '2024-01-15T14:00:00.000Z' }),
-    endTime: z
-      .string()
-      .datetime()
-      .openapi({ example: '2024-01-15T15:00:00.000Z' }),
+    endTime: z.iso.datetime().openapi({ example: '2024-01-15T15:00:00.000Z' }),
   })
   .openapi('BusyTimeInterval');
 

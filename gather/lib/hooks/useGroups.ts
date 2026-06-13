@@ -22,11 +22,8 @@ export function useGroups() {
   return useQuery({
     queryKey: groupsKeys.list(),
     queryFn: async () => {
-      const response = await getGroups();
-      if (!response.data?.success) {
-        throw new Error('Failed to fetch groups');
-      }
-      return response.data.data.groups;
+      const { data } = await getGroups();
+      return data.data.groups;
     },
   });
 }
@@ -39,11 +36,8 @@ export function useCreateGroup() {
 
   return useMutation({
     mutationFn: async (data: CreateGroup) => {
-      const response = await postGroups({ body: data });
-      if (!response.data?.success) {
-        throw new Error('Failed to create group');
-      }
-      return response.data.data.group;
+      const { data: res } = await postGroups({ body: data });
+      return res.data.group;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: groupsKeys.list() });
@@ -65,14 +59,11 @@ export function useUpdateGroup() {
       groupId: string;
       data: UpdateGroup;
     }) => {
-      const response = await patchGroupsByGroupId({
+      const { data: res } = await patchGroupsByGroupId({
         path: { groupId },
         body: data,
       });
-      if (!response.data?.success) {
-        throw new Error('Failed to update group');
-      }
-      return response.data.data.group;
+      return res.data.group;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: groupsKeys.list() });

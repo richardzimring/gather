@@ -3,11 +3,7 @@ import { AppState, type AppStateStatus } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useCalendarConnections, calendarKeys } from './useCalendars';
-import { resyncConnectedCalendars } from '../services/calendarSync';
-import {
-  postCalendarsGoogleSync,
-  postCalendarsOutlookSync,
-} from '../api/client';
+import { syncAllConnectedCalendars } from '../services/calendarSync';
 
 /** Minimum interval between automatic re-syncs (15 minutes) */
 const RESYNC_INTERVAL_MS = 15 * 60 * 1000;
@@ -37,33 +33,7 @@ export function useCalendarAutoSync() {
 
     isSyncingRef.current = true;
     try {
-      // Sync Apple calendars from device
-      const appleCalendarIds = connections
-        .filter((c) => c.provider === 'apple' && c.importEnabled)
-        .map((c) => c.externalCalendarId);
-
-      if (appleCalendarIds.length > 0) {
-        await resyncConnectedCalendars(appleCalendarIds);
-      }
-
-      // Sync Google calendars server-side
-      const hasGoogleConnections = connections.some(
-        (c) => c.provider === 'google' && c.importEnabled,
-      );
-
-      if (hasGoogleConnections) {
-        await postCalendarsGoogleSync();
-      }
-
-      // Sync Outlook calendars server-side
-      const hasOutlookConnections = connections.some(
-        (c) => c.provider === 'outlook' && c.importEnabled,
-      );
-
-      if (hasOutlookConnections) {
-        await postCalendarsOutlookSync();
-      }
-
+      await syncAllConnectedCalendars(connections);
       lastSyncRef.current = Date.now();
       // Invalidate calendar queries so the UI refreshes
       queryClient.invalidateQueries({ queryKey: calendarKeys.all });

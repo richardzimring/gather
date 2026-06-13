@@ -21,11 +21,8 @@ export function useBlockedWindows() {
   return useQuery({
     queryKey: blockedKeys.list(),
     queryFn: async () => {
-      const response = await getBlocked();
-      if (!response.data?.success) {
-        throw new Error('Failed to fetch blocked windows');
-      }
-      return response.data.data.windows;
+      const { data } = await getBlocked();
+      return data.data.windows;
     },
   });
 }
@@ -38,11 +35,8 @@ export function useCreateBlockedWindow() {
 
   return useMutation({
     mutationFn: async (data: CreateBlockedWindow) => {
-      const response = await postBlocked({ body: data });
-      if (!response.data?.success) {
-        throw new Error('Failed to create blocked window');
-      }
-      return response.data.data.window;
+      const { data: res } = await postBlocked({ body: data });
+      return res.data.window;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: blockedKeys.all });
@@ -63,14 +57,11 @@ export function useUpdateBlockedWindow() {
       windowId: string;
       data: UpdateBlockedWindow;
     }) => {
-      const response = await patchBlockedByWindowId({
+      const { data: res } = await patchBlockedByWindowId({
         path: { windowId },
         body: data,
       });
-      if (!response.data?.success) {
-        throw new Error('Failed to update blocked window');
-      }
-      return response.data.data.window;
+      return res.data.window;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: blockedKeys.all });

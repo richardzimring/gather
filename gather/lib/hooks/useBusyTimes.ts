@@ -37,13 +37,10 @@ export function useBusyTimes(
   const query = useQuery<Record<string, BusyTimeInterval[]>>({
     queryKey: busyTimesKeys.query(userIds, startDate, endDate),
     queryFn: async () => {
-      const response = await postBusyTimes({
+      const { data } = await postBusyTimes({
         body: { userIds, startDate, endDate },
       });
-      if (!response.data?.success) {
-        throw new Error('Failed to fetch busy times');
-      }
-      return response.data.data.busyTimes;
+      return data.data.busyTimes;
     },
     enabled: enabled && userIds.length > 0 && !!startDate && !!endDate,
   });

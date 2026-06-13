@@ -2,7 +2,7 @@ import Expo, {
   type ExpoPushMessage,
   type ExpoPushTicket,
 } from 'expo-server-sdk';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { db, users } from '../db';
 import type { Event } from '../types';
 
@@ -50,64 +50,6 @@ interface NotificationPayload {
 // Send Push Notification
 // ============================================
 
-export const sendPushNotification = async (
-  userId: string,
-  payload: NotificationPayload,
-): Promise<void> => {
-  try {
-    // Get user's push token and notification preferences
-    const result = await db
-      .select({
-        pushToken: users.pushToken,
-        notificationPreferences: users.notificationPreferences,
-      })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-
-    const user = result[0];
-
-    if (!user?.pushToken) {
-      console.log(`No push token for user ${userId}`);
-      return;
-    }
-
-    // Check notification preferences
-    const prefKey = NOTIFICATION_TYPE_TO_PREFERENCE[payload.type];
-    if (prefKey && user.notificationPreferences) {
-      const prefs = user.notificationPreferences as Record<string, boolean>;
-      if (prefs[prefKey] === false) {
-        console.log(`User ${userId} has disabled ${prefKey} notifications`);
-        return;
-      }
-    }
-
-    if (!Expo.isExpoPushToken(user.pushToken)) {
-      console.error(
-        `Push token for user ${userId} is not a valid Expo push token`,
-      );
-      return;
-    }
-
-    const message: ExpoPushMessage = {
-      to: user.pushToken,
-      title: payload.title,
-      body: payload.body,
-      data: payload.data,
-      sound: 'default',
-    };
-
-    const chunks = expo.chunkPushNotifications([message]);
-
-    for (const chunk of chunks) {
-      const tickets = await expo.sendPushNotificationsAsync(chunk);
-      await handlePushTickets(tickets, [userId]);
-    }
-  } catch (error) {
-    console.error(`Failed to send push notification to ${userId}:`, error);
-  }
-};
-
 export const sendPushNotifications = async (
   userIds: string[],
   payload: NotificationPayload,
@@ -115,27 +57,21 @@ export const sendPushNotifications = async (
   if (userIds.length === 0) return;
 
   try {
-    // Get all users' push tokens and preferences
-    const results = await Promise.all(
-      userIds.map((userId) =>
-        db
-          .select({
-            id: users.id,
-            pushToken: users.pushToken,
-            notificationPreferences: users.notificationPreferences,
-          })
-          .from(users)
-          .where(eq(users.id, userId))
-          .limit(1),
-      ),
-    );
+    // Get all users' push tokens and preferences in one query
+    const recipients = await db
+      .select({
+        id: users.id,
+        pushToken: users.pushToken,
+        notificationPreferences: users.notificationPreferences,
+      })
+      .from(users)
+      .where(inArray(users.id, userIds));
 
     const messages: ExpoPushMessage[] = [];
     const messageUserIds: string[] = [];
 
-    for (const result of results) {
-      const user = result[0];
-      if (!user?.pushToken) continue;
+    for (const user of recipients) {
+      if (!user.pushToken) continue;
 
       // Check notification preferences
       const prefKey = NOTIFICATION_TYPE_TO_PREFERENCE[payload.type];
@@ -179,6 +115,11 @@ export const sendPushNotifications = async (
     console.error('Failed to send push notifications:', error);
   }
 };
+
+export const sendPushNotification = (
+  userId: string,
+  payload: NotificationPayload,
+): Promise<void> => sendPushNotifications([userId], payload);
 
 // ============================================
 // Ticket Error Handling

@@ -28,11 +28,8 @@ export function useFriends() {
   return useQuery({
     queryKey: friendsKeys.list(),
     queryFn: async () => {
-      const response = await getFriends();
-      if (!response.data?.success) {
-        throw new Error('Failed to fetch friends');
-      }
-      return response.data.data;
+      const { data } = await getFriends();
+      return data.data;
     },
   });
 }
@@ -44,11 +41,8 @@ export function useFriendsSearch(query: string) {
   return useQuery({
     queryKey: friendsKeys.search(query),
     queryFn: async () => {
-      const response = await getFriendsSearch({ query: { query } });
-      if (!response.data?.success) {
-        throw new Error('Failed to search users');
-      }
-      return response.data.data.users;
+      const { data } = await getFriendsSearch({ query: { query } });
+      return data.data.users;
     },
     enabled: query.length >= 2,
   });
@@ -61,11 +55,8 @@ export function useFriendCode() {
   return useQuery({
     queryKey: friendsKeys.friendCode(),
     queryFn: async () => {
-      const response = await getFriendsInviteCode();
-      if (!response.data?.success) {
-        throw new Error('Failed to get friend code');
-      }
-      return response.data.data;
+      const { data } = await getFriendsInviteCode();
+      return data.data;
     },
   });
 }
@@ -78,13 +69,10 @@ const MAX_CONTACT_PHONES = 10000;
 export function useMatchContacts() {
   return useMutation({
     mutationFn: async (phones: string[]) => {
-      const response = await postFriendsMatchContacts({
+      const { data } = await postFriendsMatchContacts({
         body: { phones: phones.slice(0, MAX_CONTACT_PHONES) },
       });
-      if (!response.data?.success) {
-        throw new Error('Failed to match contacts');
-      }
-      return response.data.data.users;
+      return data.data.users;
     },
   });
 }
@@ -100,13 +88,8 @@ export function useSendFriendRequest() {
       friendUserId?: string;
       inviteCode?: string;
     }) => {
-      const response = await postFriendsRequest({ body: data });
-      if (!response.data?.success) {
-        throw new Error(
-          response.data?.message ?? 'Failed to send friend request',
-        );
-      }
-      return response.data;
+      const { data: res } = await postFriendsRequest({ body: data });
+      return res;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendsKeys.list() });
@@ -122,13 +105,10 @@ export function useAcceptFriendRequest() {
 
   return useMutation({
     mutationFn: async (friendId: string) => {
-      const response = await postFriendsByFriendIdAccept({
+      const { data } = await postFriendsByFriendIdAccept({
         path: { friendId },
       });
-      if (!response.data?.success) {
-        throw new Error('Failed to accept friend request');
-      }
-      return response.data.data;
+      return data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendsKeys.list() });
@@ -144,13 +124,10 @@ export function useDeclineFriendRequest() {
 
   return useMutation({
     mutationFn: async (friendId: string) => {
-      const response = await postFriendsByFriendIdDecline({
+      const { data } = await postFriendsByFriendIdDecline({
         path: { friendId },
       });
-      if (!response.data?.success) {
-        throw new Error('Failed to decline friend request');
-      }
-      return response.data.data;
+      return data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendsKeys.list() });
@@ -182,11 +159,8 @@ export function useBlockFriend() {
 
   return useMutation({
     mutationFn: async (friendId: string) => {
-      const response = await postFriendsByFriendIdBlock({ path: { friendId } });
-      if (!response.data?.success) {
-        throw new Error('Failed to block user');
-      }
-      return response.data.data;
+      const { data } = await postFriendsByFriendIdBlock({ path: { friendId } });
+      return data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendsKeys.list() });
@@ -200,13 +174,10 @@ export function useBlockFriend() {
 export function useReportUser() {
   return useMutation({
     mutationFn: async (friendId: string) => {
-      const response = await postFriendsByFriendIdReport({
+      const { data } = await postFriendsByFriendIdReport({
         path: { friendId },
       });
-      if (!response.data?.success) {
-        throw new Error('Failed to report user');
-      }
-      return response.data.data;
+      return data.data;
     },
   });
 }

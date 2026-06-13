@@ -3,7 +3,7 @@ import { MapPin, X, Search } from '@tamagui/lucide-icons';
 import { Input, XStack, YStack, Text, ScrollView } from 'tamagui';
 import { Spinner } from './Spinner';
 import * as Location from 'expo-location';
-import debounce from 'lodash.debounce';
+import { debounce } from '../../lib/utils';
 
 const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY;
 

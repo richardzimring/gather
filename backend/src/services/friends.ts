@@ -1,7 +1,12 @@
 import { eq, and, or, inArray } from 'drizzle-orm';
 import { db, users, friendships, groups, groupMembers } from '../db';
 import type { Friendship, RelationshipStatus, User } from '../types';
-import { getUserById, getUserByInviteCode, getUsersByPhones } from './users';
+import {
+  getUserById,
+  getUserByInviteCode,
+  getUsersByPhones,
+  dbUserToUser as dbUserToFullUser,
+} from './users';
 import { notifyFriendRequest, notifyFriendAccepted } from './notifications';
 import { normalizePhones } from '../utils/phone';
 
@@ -12,29 +17,11 @@ const AUTO_ACCEPT_USER_ID = 'b3fb7b13-fe6e-4295-87d6-689fe3d0a881';
 // Helpers
 // ============================================
 
-const getInitials = (firstName: string, lastName: string): string => {
-  const first = firstName.trim()[0] ?? '';
-  const last = lastName.trim()[0] ?? '';
-  return `${first}${last}`.toUpperCase();
-};
-
-const dbUserToUser = (dbUser: typeof users.$inferSelect): User => {
-  return {
-    userId: dbUser.id,
-    appleUserId: dbUser.appleUserId,
-    email: dbUser.email,
-    firstName: dbUser.firstName,
-    lastName: dbUser.lastName,
-    fullName: `${dbUser.firstName} ${dbUser.lastName}`,
-    initials: getInitials(dbUser.firstName, dbUser.lastName),
-    avatarUrl: dbUser.avatarUrl ?? undefined,
-    createdAt: dbUser.createdAt.toISOString(),
-    calendarSyncEnabled: dbUser.calendarSyncEnabled,
-    pushToken: dbUser.pushToken ?? undefined,
-    timezone: dbUser.timezone,
-    inviteCode: dbUser.inviteCode ?? undefined,
-  };
-};
+// Friend payloads deliberately exclude the friend's phone number.
+const dbUserToUser = (dbUser: typeof users.$inferSelect): User => ({
+  ...dbUserToFullUser(dbUser),
+  phone: undefined,
+});
 
 const dbFriendshipToFriendship = (
   dbFriendship: typeof friendships.$inferSelect,

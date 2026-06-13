@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteBlockedByWindowIdData, DeleteBlockedByWindowIdErrors, DeleteBlockedByWindowIdResponses, DeleteCalendarsAppleData, DeleteCalendarsAppleErrors, DeleteCalendarsAppleResponses, DeleteCalendarsByConnectionIdData, DeleteCalendarsByConnectionIdErrors, DeleteCalendarsByConnectionIdResponses, DeleteCalendarsGoogleData, DeleteCalendarsGoogleErrors, DeleteCalendarsGoogleResponses, DeleteCalendarsOutlookData, DeleteCalendarsOutlookErrors, DeleteCalendarsOutlookResponses, DeleteEventsByEventIdData, DeleteEventsByEventIdErrors, DeleteEventsByEventIdResponses, DeleteFriendsByFriendIdData, DeleteFriendsByFriendIdErrors, DeleteFriendsByFriendIdResponses, DeleteGroupsByGroupIdData, DeleteGroupsByGroupIdErrors, DeleteGroupsByGroupIdResponses, DeleteUsersMeData, DeleteUsersMeErrors, DeleteUsersMeResponses, GetAuthMeData, GetAuthMeErrors, GetAuthMeResponses, GetBlockedData, GetBlockedErrors, GetBlockedResponses, GetCalendarsByConnectionIdData, GetCalendarsByConnectionIdErrors, GetCalendarsByConnectionIdResponses, GetCalendarsData, GetCalendarsErrors, GetCalendarsExportStatusData, GetCalendarsExportStatusErrors, GetCalendarsExportStatusResponses, GetCalendarsGoogleAuthUrlData, GetCalendarsGoogleAuthUrlErrors, GetCalendarsGoogleAuthUrlResponses, GetCalendarsGoogleCalendarsData, GetCalendarsGoogleCalendarsErrors, GetCalendarsGoogleCalendarsResponses, GetCalendarsGoogleExportAuthUrlData, GetCalendarsGoogleExportAuthUrlErrors, GetCalendarsGoogleExportAuthUrlResponses, GetCalendarsOutlookAuthUrlData, GetCalendarsOutlookAuthUrlErrors, GetCalendarsOutlookAuthUrlResponses, GetCalendarsOutlookCalendarsData, GetCalendarsOutlookCalendarsErrors, GetCalendarsOutlookCalendarsResponses, GetCalendarsOutlookExportAuthUrlData, GetCalendarsOutlookExportAuthUrlErrors, GetCalendarsOutlookExportAuthUrlResponses, GetCalendarsResponses, GetEventsByEventIdData, GetEventsByEventIdErrors, GetEventsByEventIdResponses, GetEventsData, GetEventsErrors, GetEventsResponses, GetFriendsData, GetFriendsErrors, GetFriendsInviteCodeData, GetFriendsInviteCodeErrors, GetFriendsInviteCodeResponses, GetFriendsResponses, GetFriendsSearchData, GetFriendsSearchErrors, GetFriendsSearchResponses, GetGroupsData, GetGroupsErrors, GetGroupsResponses, GetUsersByUserIdProfileData, GetUsersByUserIdProfileErrors, GetUsersByUserIdProfileResponses, GetUsersMeData, GetUsersMeErrors, GetUsersMeNotificationPreferencesData, GetUsersMeNotificationPreferencesErrors, GetUsersMeNotificationPreferencesResponses, GetUsersMeResponses, PatchBlockedByWindowIdData, PatchBlockedByWindowIdErrors, PatchBlockedByWindowIdResponses, PatchCalendarsByConnectionIdData, PatchCalendarsByConnectionIdErrors, PatchCalendarsByConnectionIdResponses, PatchEventsByEventIdData, PatchEventsByEventIdErrors, PatchEventsByEventIdResponses, PatchGroupsByGroupIdData, PatchGroupsByGroupIdErrors, PatchGroupsByGroupIdResponses, PatchUsersMeData, PatchUsersMeErrors, PatchUsersMeResponses, PostAuthAppleCallbackData, PostAuthAppleCallbackErrors, PostAuthAppleCallbackResponses, PostBlockedData, PostBlockedErrors, PostBlockedResponses, PostBusyTimesData, PostBusyTimesErrors, PostBusyTimesResponses, PostCalendarsData, PostCalendarsErrors, PostCalendarsExportDisableData, PostCalendarsExportDisableErrors, PostCalendarsExportDisableResponses, PostCalendarsExportEnableData, PostCalendarsExportEnableErrors, PostCalendarsExportEnableResponses, PostCalendarsExportSyncData, PostCalendarsExportSyncErrors, PostCalendarsExportSyncResponses, PostCalendarsGoogleSelectData, PostCalendarsGoogleSelectErrors, PostCalendarsGoogleSelectResponses, PostCalendarsGoogleSyncData, PostCalendarsGoogleSyncErrors, PostCalendarsGoogleSyncResponses, PostCalendarsOutlookSelectData, PostCalendarsOutlookSelectErrors, PostCalendarsOutlookSelectResponses, PostCalendarsOutlookSyncData, PostCalendarsOutlookSyncErrors, PostCalendarsOutlookSyncResponses, PostCalendarsResponses, PostCalendarsSyncData, PostCalendarsSyncErrors, PostCalendarsSyncResponses, PostEmojiGenerateData, PostEmojiGenerateErrors, PostEmojiGenerateResponses, PostEventsByEventIdRespondData, PostEventsByEventIdRespondErrors, PostEventsByEventIdRespondResponses, PostEventsData, PostEventsErrors, PostEventsResponses, PostFriendsByFriendIdAcceptData, PostFriendsByFriendIdAcceptErrors, PostFriendsByFriendIdAcceptResponses, PostFriendsByFriendIdBlockData, PostFriendsByFriendIdBlockErrors, PostFriendsByFriendIdBlockResponses, PostFriendsByFriendIdDeclineData, PostFriendsByFriendIdDeclineErrors, PostFriendsByFriendIdDeclineResponses, PostFriendsByFriendIdReportData, PostFriendsByFriendIdReportErrors, PostFriendsByFriendIdReportResponses, PostFriendsInviteCodeRegenerateData, PostFriendsInviteCodeRegenerateErrors, PostFriendsInviteCodeRegenerateResponses, PostFriendsMatchContactsData, PostFriendsMatchContactsErrors, PostFriendsMatchContactsResponses, PostFriendsRequestData, PostFriendsRequestErrors, PostFriendsRequestResponses, PostGroupsData, PostGroupsErrors, PostGroupsResponses, PostInvitesByTokenRedeemData, PostInvitesByTokenRedeemErrors, PostInvitesByTokenRedeemResponses, PostInvitesData, PostInvitesErrors, PostInvitesResponses, PostUsersMePushTokenData, PostUsersMePushTokenErrors, PostUsersMePushTokenResponses, PutUsersMeNotificationPreferencesData, PutUsersMeNotificationPreferencesErrors, PutUsersMeNotificationPreferencesResponses } from './types.gen';
+import type { DeleteBlockedByWindowIdData, DeleteBlockedByWindowIdErrors, DeleteBlockedByWindowIdResponses, DeleteCalendarsAppleData, DeleteCalendarsAppleErrors, DeleteCalendarsAppleResponses, DeleteCalendarsGoogleData, DeleteCalendarsGoogleErrors, DeleteCalendarsGoogleResponses, DeleteCalendarsOutlookData, DeleteCalendarsOutlookErrors, DeleteCalendarsOutlookResponses, DeleteEventsByEventIdData, DeleteEventsByEventIdErrors, DeleteEventsByEventIdResponses, DeleteFriendsByFriendIdData, DeleteFriendsByFriendIdErrors, DeleteFriendsByFriendIdResponses, DeleteGroupsByGroupIdData, DeleteGroupsByGroupIdErrors, DeleteGroupsByGroupIdResponses, DeleteUsersMeData, DeleteUsersMeErrors, DeleteUsersMeResponses, GetAuthMeData, GetAuthMeErrors, GetAuthMeResponses, GetBlockedData, GetBlockedErrors, GetBlockedResponses, GetCalendarsData, GetCalendarsErrors, GetCalendarsExportStatusData, GetCalendarsExportStatusErrors, GetCalendarsExportStatusResponses, GetCalendarsGoogleAuthUrlData, GetCalendarsGoogleAuthUrlErrors, GetCalendarsGoogleAuthUrlResponses, GetCalendarsGoogleCalendarsData, GetCalendarsGoogleCalendarsErrors, GetCalendarsGoogleCalendarsResponses, GetCalendarsGoogleExportAuthUrlData, GetCalendarsGoogleExportAuthUrlErrors, GetCalendarsGoogleExportAuthUrlResponses, GetCalendarsOutlookAuthUrlData, GetCalendarsOutlookAuthUrlErrors, GetCalendarsOutlookAuthUrlResponses, GetCalendarsOutlookCalendarsData, GetCalendarsOutlookCalendarsErrors, GetCalendarsOutlookCalendarsResponses, GetCalendarsOutlookExportAuthUrlData, GetCalendarsOutlookExportAuthUrlErrors, GetCalendarsOutlookExportAuthUrlResponses, GetCalendarsResponses, GetEventsByEventIdData, GetEventsByEventIdErrors, GetEventsByEventIdResponses, GetEventsData, GetEventsErrors, GetEventsResponses, GetFriendsData, GetFriendsErrors, GetFriendsInviteCodeData, GetFriendsInviteCodeErrors, GetFriendsInviteCodeResponses, GetFriendsResponses, GetFriendsSearchData, GetFriendsSearchErrors, GetFriendsSearchResponses, GetGroupsData, GetGroupsErrors, GetGroupsResponses, GetUsersByUserIdProfileData, GetUsersByUserIdProfileErrors, GetUsersByUserIdProfileResponses, GetUsersMeData, GetUsersMeErrors, GetUsersMeNotificationPreferencesData, GetUsersMeNotificationPreferencesErrors, GetUsersMeNotificationPreferencesResponses, GetUsersMeResponses, PatchBlockedByWindowIdData, PatchBlockedByWindowIdErrors, PatchBlockedByWindowIdResponses, PatchEventsByEventIdData, PatchEventsByEventIdErrors, PatchEventsByEventIdResponses, PatchGroupsByGroupIdData, PatchGroupsByGroupIdErrors, PatchGroupsByGroupIdResponses, PatchUsersMeData, PatchUsersMeErrors, PatchUsersMeResponses, PostAuthAppleCallbackData, PostAuthAppleCallbackErrors, PostAuthAppleCallbackResponses, PostBlockedData, PostBlockedErrors, PostBlockedResponses, PostBusyTimesData, PostBusyTimesErrors, PostBusyTimesResponses, PostCalendarsExportDisableData, PostCalendarsExportDisableErrors, PostCalendarsExportDisableResponses, PostCalendarsExportEnableData, PostCalendarsExportEnableErrors, PostCalendarsExportEnableResponses, PostCalendarsExportSyncData, PostCalendarsExportSyncErrors, PostCalendarsExportSyncResponses, PostCalendarsGoogleSelectData, PostCalendarsGoogleSelectErrors, PostCalendarsGoogleSelectResponses, PostCalendarsGoogleSyncData, PostCalendarsGoogleSyncErrors, PostCalendarsGoogleSyncResponses, PostCalendarsOutlookSelectData, PostCalendarsOutlookSelectErrors, PostCalendarsOutlookSelectResponses, PostCalendarsOutlookSyncData, PostCalendarsOutlookSyncErrors, PostCalendarsOutlookSyncResponses, PostCalendarsSyncData, PostCalendarsSyncErrors, PostCalendarsSyncResponses, PostEmojiGenerateData, PostEmojiGenerateErrors, PostEmojiGenerateResponses, PostEventsByEventIdRespondData, PostEventsByEventIdRespondErrors, PostEventsByEventIdRespondResponses, PostEventsData, PostEventsErrors, PostEventsResponses, PostFriendsByFriendIdAcceptData, PostFriendsByFriendIdAcceptErrors, PostFriendsByFriendIdAcceptResponses, PostFriendsByFriendIdBlockData, PostFriendsByFriendIdBlockErrors, PostFriendsByFriendIdBlockResponses, PostFriendsByFriendIdDeclineData, PostFriendsByFriendIdDeclineErrors, PostFriendsByFriendIdDeclineResponses, PostFriendsByFriendIdReportData, PostFriendsByFriendIdReportErrors, PostFriendsByFriendIdReportResponses, PostFriendsInviteCodeRegenerateData, PostFriendsInviteCodeRegenerateErrors, PostFriendsInviteCodeRegenerateResponses, PostFriendsMatchContactsData, PostFriendsMatchContactsErrors, PostFriendsMatchContactsResponses, PostFriendsRequestData, PostFriendsRequestErrors, PostFriendsRequestResponses, PostGroupsData, PostGroupsErrors, PostGroupsResponses, PostInvitesByTokenRedeemData, PostInvitesByTokenRedeemErrors, PostInvitesByTokenRedeemResponses, PostInvitesData, PostInvitesErrors, PostInvitesResponses, PostUsersMePushTokenData, PostUsersMePushTokenErrors, PostUsersMePushTokenResponses, PutUsersMeNotificationPreferencesData, PutUsersMeNotificationPreferencesErrors, PutUsersMeNotificationPreferencesResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -23,7 +23,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
  *
  * Handle Apple Sign In callback and create/update user
  */
-export const postAuthAppleCallback = <ThrowOnError extends boolean = false>(options: Options<PostAuthAppleCallbackData, ThrowOnError>): RequestResult<PostAuthAppleCallbackResponses, PostAuthAppleCallbackErrors, ThrowOnError> => (options.client ?? client).post<PostAuthAppleCallbackResponses, PostAuthAppleCallbackErrors, ThrowOnError>({
+export const postAuthAppleCallback = <ThrowOnError extends boolean = true>(options: Options<PostAuthAppleCallbackData, ThrowOnError>): RequestResult<PostAuthAppleCallbackResponses, PostAuthAppleCallbackErrors, ThrowOnError> => (options.client ?? client).post<PostAuthAppleCallbackResponses, PostAuthAppleCallbackErrors, ThrowOnError>({
     url: '/auth/apple/callback',
     ...options,
     headers: {
@@ -37,7 +37,7 @@ export const postAuthAppleCallback = <ThrowOnError extends boolean = false>(opti
  *
  * Get the currently authenticated user
  */
-export const getAuthMe = <ThrowOnError extends boolean = false>(options?: Options<GetAuthMeData, ThrowOnError>): RequestResult<GetAuthMeResponses, GetAuthMeErrors, ThrowOnError> => (options?.client ?? client).get<GetAuthMeResponses, GetAuthMeErrors, ThrowOnError>({
+export const getAuthMe = <ThrowOnError extends boolean = true>(options?: Options<GetAuthMeData, ThrowOnError>): RequestResult<GetAuthMeResponses, GetAuthMeErrors, ThrowOnError> => (options?.client ?? client).get<GetAuthMeResponses, GetAuthMeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/auth/me',
     ...options
@@ -48,7 +48,7 @@ export const getAuthMe = <ThrowOnError extends boolean = false>(options?: Option
  *
  * Get blocked time windows for the current user (times when NOT available)
  */
-export const getBlocked = <ThrowOnError extends boolean = false>(options?: Options<GetBlockedData, ThrowOnError>): RequestResult<GetBlockedResponses, GetBlockedErrors, ThrowOnError> => (options?.client ?? client).get<GetBlockedResponses, GetBlockedErrors, ThrowOnError>({
+export const getBlocked = <ThrowOnError extends boolean = true>(options?: Options<GetBlockedData, ThrowOnError>): RequestResult<GetBlockedResponses, GetBlockedErrors, ThrowOnError> => (options?.client ?? client).get<GetBlockedResponses, GetBlockedErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/blocked',
     ...options
@@ -59,7 +59,7 @@ export const getBlocked = <ThrowOnError extends boolean = false>(options?: Optio
  *
  * Create a new blocked time window (mark time as unavailable)
  */
-export const postBlocked = <ThrowOnError extends boolean = false>(options: Options<PostBlockedData, ThrowOnError>): RequestResult<PostBlockedResponses, PostBlockedErrors, ThrowOnError> => (options.client ?? client).post<PostBlockedResponses, PostBlockedErrors, ThrowOnError>({
+export const postBlocked = <ThrowOnError extends boolean = true>(options: Options<PostBlockedData, ThrowOnError>): RequestResult<PostBlockedResponses, PostBlockedErrors, ThrowOnError> => (options.client ?? client).post<PostBlockedResponses, PostBlockedErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/blocked',
     ...options,
@@ -74,7 +74,7 @@ export const postBlocked = <ThrowOnError extends boolean = false>(options: Optio
  *
  * Delete an existing blocked time window
  */
-export const deleteBlockedByWindowId = <ThrowOnError extends boolean = false>(options: Options<DeleteBlockedByWindowIdData, ThrowOnError>): RequestResult<DeleteBlockedByWindowIdResponses, DeleteBlockedByWindowIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteBlockedByWindowIdResponses, DeleteBlockedByWindowIdErrors, ThrowOnError>({
+export const deleteBlockedByWindowId = <ThrowOnError extends boolean = true>(options: Options<DeleteBlockedByWindowIdData, ThrowOnError>): RequestResult<DeleteBlockedByWindowIdResponses, DeleteBlockedByWindowIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteBlockedByWindowIdResponses, DeleteBlockedByWindowIdErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/blocked/{windowId}',
     ...options
@@ -85,7 +85,7 @@ export const deleteBlockedByWindowId = <ThrowOnError extends boolean = false>(op
  *
  * Update an existing blocked time window
  */
-export const patchBlockedByWindowId = <ThrowOnError extends boolean = false>(options: Options<PatchBlockedByWindowIdData, ThrowOnError>): RequestResult<PatchBlockedByWindowIdResponses, PatchBlockedByWindowIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchBlockedByWindowIdResponses, PatchBlockedByWindowIdErrors, ThrowOnError>({
+export const patchBlockedByWindowId = <ThrowOnError extends boolean = true>(options: Options<PatchBlockedByWindowIdData, ThrowOnError>): RequestResult<PatchBlockedByWindowIdResponses, PatchBlockedByWindowIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchBlockedByWindowIdResponses, PatchBlockedByWindowIdErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/blocked/{windowId}',
     ...options,
@@ -100,25 +100,10 @@ export const patchBlockedByWindowId = <ThrowOnError extends boolean = false>(opt
  *
  * Get all calendar connections for the current user
  */
-export const getCalendars = <ThrowOnError extends boolean = false>(options?: Options<GetCalendarsData, ThrowOnError>): RequestResult<GetCalendarsResponses, GetCalendarsErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsResponses, GetCalendarsErrors, ThrowOnError>({
+export const getCalendars = <ThrowOnError extends boolean = true>(options?: Options<GetCalendarsData, ThrowOnError>): RequestResult<GetCalendarsResponses, GetCalendarsErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsResponses, GetCalendarsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars',
     ...options
-});
-
-/**
- * Create calendar connection
- *
- * Create a new calendar connection
- */
-export const postCalendars = <ThrowOnError extends boolean = false>(options: Options<PostCalendarsData, ThrowOnError>): RequestResult<PostCalendarsResponses, PostCalendarsErrors, ThrowOnError> => (options.client ?? client).post<PostCalendarsResponses, PostCalendarsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/calendars',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
 });
 
 /**
@@ -126,46 +111,9 @@ export const postCalendars = <ThrowOnError extends boolean = false>(options: Opt
  *
  * Bulk sync calendars and their events from the device. Upserts calendar connections, syncs cached events, and removes deselected calendars.
  */
-export const postCalendarsSync = <ThrowOnError extends boolean = false>(options: Options<PostCalendarsSyncData, ThrowOnError>): RequestResult<PostCalendarsSyncResponses, PostCalendarsSyncErrors, ThrowOnError> => (options.client ?? client).post<PostCalendarsSyncResponses, PostCalendarsSyncErrors, ThrowOnError>({
+export const postCalendarsSync = <ThrowOnError extends boolean = true>(options: Options<PostCalendarsSyncData, ThrowOnError>): RequestResult<PostCalendarsSyncResponses, PostCalendarsSyncErrors, ThrowOnError> => (options.client ?? client).post<PostCalendarsSyncResponses, PostCalendarsSyncErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/sync',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Delete calendar connection
- *
- * Delete a calendar connection
- */
-export const deleteCalendarsByConnectionId = <ThrowOnError extends boolean = false>(options: Options<DeleteCalendarsByConnectionIdData, ThrowOnError>): RequestResult<DeleteCalendarsByConnectionIdResponses, DeleteCalendarsByConnectionIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteCalendarsByConnectionIdResponses, DeleteCalendarsByConnectionIdErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/calendars/{connectionId}',
-    ...options
-});
-
-/**
- * Get calendar connection
- *
- * Get a specific calendar connection by ID
- */
-export const getCalendarsByConnectionId = <ThrowOnError extends boolean = false>(options: Options<GetCalendarsByConnectionIdData, ThrowOnError>): RequestResult<GetCalendarsByConnectionIdResponses, GetCalendarsByConnectionIdErrors, ThrowOnError> => (options.client ?? client).get<GetCalendarsByConnectionIdResponses, GetCalendarsByConnectionIdErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/calendars/{connectionId}',
-    ...options
-});
-
-/**
- * Update calendar connection
- *
- * Update a calendar connection settings
- */
-export const patchCalendarsByConnectionId = <ThrowOnError extends boolean = false>(options: Options<PatchCalendarsByConnectionIdData, ThrowOnError>): RequestResult<PatchCalendarsByConnectionIdResponses, PatchCalendarsByConnectionIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchCalendarsByConnectionIdResponses, PatchCalendarsByConnectionIdErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/calendars/{connectionId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -178,7 +126,7 @@ export const patchCalendarsByConnectionId = <ThrowOnError extends boolean = fals
  *
  * Remove all Apple Calendar connections for the current user
  */
-export const deleteCalendarsApple = <ThrowOnError extends boolean = false>(options?: Options<DeleteCalendarsAppleData, ThrowOnError>): RequestResult<DeleteCalendarsAppleResponses, DeleteCalendarsAppleErrors, ThrowOnError> => (options?.client ?? client).delete<DeleteCalendarsAppleResponses, DeleteCalendarsAppleErrors, ThrowOnError>({
+export const deleteCalendarsApple = <ThrowOnError extends boolean = true>(options?: Options<DeleteCalendarsAppleData, ThrowOnError>): RequestResult<DeleteCalendarsAppleResponses, DeleteCalendarsAppleErrors, ThrowOnError> => (options?.client ?? client).delete<DeleteCalendarsAppleResponses, DeleteCalendarsAppleErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/apple',
     ...options
@@ -189,7 +137,7 @@ export const deleteCalendarsApple = <ThrowOnError extends boolean = false>(optio
  *
  * Remove all Google Calendar connections for the current user
  */
-export const deleteCalendarsGoogle = <ThrowOnError extends boolean = false>(options?: Options<DeleteCalendarsGoogleData, ThrowOnError>): RequestResult<DeleteCalendarsGoogleResponses, DeleteCalendarsGoogleErrors, ThrowOnError> => (options?.client ?? client).delete<DeleteCalendarsGoogleResponses, DeleteCalendarsGoogleErrors, ThrowOnError>({
+export const deleteCalendarsGoogle = <ThrowOnError extends boolean = true>(options?: Options<DeleteCalendarsGoogleData, ThrowOnError>): RequestResult<DeleteCalendarsGoogleResponses, DeleteCalendarsGoogleErrors, ThrowOnError> => (options?.client ?? client).delete<DeleteCalendarsGoogleResponses, DeleteCalendarsGoogleErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/google',
     ...options
@@ -200,7 +148,7 @@ export const deleteCalendarsGoogle = <ThrowOnError extends boolean = false>(opti
  *
  * Remove all Outlook Calendar connections for the current user
  */
-export const deleteCalendarsOutlook = <ThrowOnError extends boolean = false>(options?: Options<DeleteCalendarsOutlookData, ThrowOnError>): RequestResult<DeleteCalendarsOutlookResponses, DeleteCalendarsOutlookErrors, ThrowOnError> => (options?.client ?? client).delete<DeleteCalendarsOutlookResponses, DeleteCalendarsOutlookErrors, ThrowOnError>({
+export const deleteCalendarsOutlook = <ThrowOnError extends boolean = true>(options?: Options<DeleteCalendarsOutlookData, ThrowOnError>): RequestResult<DeleteCalendarsOutlookResponses, DeleteCalendarsOutlookErrors, ThrowOnError> => (options?.client ?? client).delete<DeleteCalendarsOutlookResponses, DeleteCalendarsOutlookErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/outlook',
     ...options
@@ -211,7 +159,7 @@ export const deleteCalendarsOutlook = <ThrowOnError extends boolean = false>(opt
  *
  * Get the Google OAuth consent URL for the current user to authorize calendar access
  */
-export const getCalendarsGoogleAuthUrl = <ThrowOnError extends boolean = false>(options?: Options<GetCalendarsGoogleAuthUrlData, ThrowOnError>): RequestResult<GetCalendarsGoogleAuthUrlResponses, GetCalendarsGoogleAuthUrlErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsGoogleAuthUrlResponses, GetCalendarsGoogleAuthUrlErrors, ThrowOnError>({
+export const getCalendarsGoogleAuthUrl = <ThrowOnError extends boolean = true>(options?: Options<GetCalendarsGoogleAuthUrlData, ThrowOnError>): RequestResult<GetCalendarsGoogleAuthUrlResponses, GetCalendarsGoogleAuthUrlErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsGoogleAuthUrlResponses, GetCalendarsGoogleAuthUrlErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/google/auth-url',
     ...options
@@ -222,7 +170,7 @@ export const getCalendarsGoogleAuthUrl = <ThrowOnError extends boolean = false>(
  *
  * List the user's Google calendars (fetched live from Google API). Requires an existing Google connection.
  */
-export const getCalendarsGoogleCalendars = <ThrowOnError extends boolean = false>(options?: Options<GetCalendarsGoogleCalendarsData, ThrowOnError>): RequestResult<GetCalendarsGoogleCalendarsResponses, GetCalendarsGoogleCalendarsErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsGoogleCalendarsResponses, GetCalendarsGoogleCalendarsErrors, ThrowOnError>({
+export const getCalendarsGoogleCalendars = <ThrowOnError extends boolean = true>(options?: Options<GetCalendarsGoogleCalendarsData, ThrowOnError>): RequestResult<GetCalendarsGoogleCalendarsResponses, GetCalendarsGoogleCalendarsErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsGoogleCalendarsResponses, GetCalendarsGoogleCalendarsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/google/calendars',
     ...options
@@ -233,7 +181,7 @@ export const getCalendarsGoogleCalendars = <ThrowOnError extends boolean = false
  *
  * Choose which Google calendars to import for availability tracking
  */
-export const postCalendarsGoogleSelect = <ThrowOnError extends boolean = false>(options: Options<PostCalendarsGoogleSelectData, ThrowOnError>): RequestResult<PostCalendarsGoogleSelectResponses, PostCalendarsGoogleSelectErrors, ThrowOnError> => (options.client ?? client).post<PostCalendarsGoogleSelectResponses, PostCalendarsGoogleSelectErrors, ThrowOnError>({
+export const postCalendarsGoogleSelect = <ThrowOnError extends boolean = true>(options: Options<PostCalendarsGoogleSelectData, ThrowOnError>): RequestResult<PostCalendarsGoogleSelectResponses, PostCalendarsGoogleSelectErrors, ThrowOnError> => (options.client ?? client).post<PostCalendarsGoogleSelectResponses, PostCalendarsGoogleSelectErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/google/select',
     ...options,
@@ -248,7 +196,7 @@ export const postCalendarsGoogleSelect = <ThrowOnError extends boolean = false>(
  *
  * Trigger a server-side re-sync of all connected Google calendars for the current user
  */
-export const postCalendarsGoogleSync = <ThrowOnError extends boolean = false>(options?: Options<PostCalendarsGoogleSyncData, ThrowOnError>): RequestResult<PostCalendarsGoogleSyncResponses, PostCalendarsGoogleSyncErrors, ThrowOnError> => (options?.client ?? client).post<PostCalendarsGoogleSyncResponses, PostCalendarsGoogleSyncErrors, ThrowOnError>({
+export const postCalendarsGoogleSync = <ThrowOnError extends boolean = true>(options?: Options<PostCalendarsGoogleSyncData, ThrowOnError>): RequestResult<PostCalendarsGoogleSyncResponses, PostCalendarsGoogleSyncErrors, ThrowOnError> => (options?.client ?? client).post<PostCalendarsGoogleSyncResponses, PostCalendarsGoogleSyncErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/google/sync',
     ...options
@@ -259,7 +207,7 @@ export const postCalendarsGoogleSync = <ThrowOnError extends boolean = false>(op
  *
  * Get the Outlook OAuth consent URL for the current user to authorize calendar access
  */
-export const getCalendarsOutlookAuthUrl = <ThrowOnError extends boolean = false>(options?: Options<GetCalendarsOutlookAuthUrlData, ThrowOnError>): RequestResult<GetCalendarsOutlookAuthUrlResponses, GetCalendarsOutlookAuthUrlErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsOutlookAuthUrlResponses, GetCalendarsOutlookAuthUrlErrors, ThrowOnError>({
+export const getCalendarsOutlookAuthUrl = <ThrowOnError extends boolean = true>(options?: Options<GetCalendarsOutlookAuthUrlData, ThrowOnError>): RequestResult<GetCalendarsOutlookAuthUrlResponses, GetCalendarsOutlookAuthUrlErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsOutlookAuthUrlResponses, GetCalendarsOutlookAuthUrlErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/outlook/auth-url',
     ...options
@@ -270,7 +218,7 @@ export const getCalendarsOutlookAuthUrl = <ThrowOnError extends boolean = false>
  *
  * List the user's Outlook calendars (fetched live from Microsoft Graph API). Requires an existing Outlook connection.
  */
-export const getCalendarsOutlookCalendars = <ThrowOnError extends boolean = false>(options?: Options<GetCalendarsOutlookCalendarsData, ThrowOnError>): RequestResult<GetCalendarsOutlookCalendarsResponses, GetCalendarsOutlookCalendarsErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsOutlookCalendarsResponses, GetCalendarsOutlookCalendarsErrors, ThrowOnError>({
+export const getCalendarsOutlookCalendars = <ThrowOnError extends boolean = true>(options?: Options<GetCalendarsOutlookCalendarsData, ThrowOnError>): RequestResult<GetCalendarsOutlookCalendarsResponses, GetCalendarsOutlookCalendarsErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsOutlookCalendarsResponses, GetCalendarsOutlookCalendarsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/outlook/calendars',
     ...options
@@ -281,7 +229,7 @@ export const getCalendarsOutlookCalendars = <ThrowOnError extends boolean = fals
  *
  * Choose which Outlook calendars to import for availability tracking
  */
-export const postCalendarsOutlookSelect = <ThrowOnError extends boolean = false>(options: Options<PostCalendarsOutlookSelectData, ThrowOnError>): RequestResult<PostCalendarsOutlookSelectResponses, PostCalendarsOutlookSelectErrors, ThrowOnError> => (options.client ?? client).post<PostCalendarsOutlookSelectResponses, PostCalendarsOutlookSelectErrors, ThrowOnError>({
+export const postCalendarsOutlookSelect = <ThrowOnError extends boolean = true>(options: Options<PostCalendarsOutlookSelectData, ThrowOnError>): RequestResult<PostCalendarsOutlookSelectResponses, PostCalendarsOutlookSelectErrors, ThrowOnError> => (options.client ?? client).post<PostCalendarsOutlookSelectResponses, PostCalendarsOutlookSelectErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/outlook/select',
     ...options,
@@ -296,7 +244,7 @@ export const postCalendarsOutlookSelect = <ThrowOnError extends boolean = false>
  *
  * Trigger a server-side re-sync of all connected Outlook calendars for the current user
  */
-export const postCalendarsOutlookSync = <ThrowOnError extends boolean = false>(options?: Options<PostCalendarsOutlookSyncData, ThrowOnError>): RequestResult<PostCalendarsOutlookSyncResponses, PostCalendarsOutlookSyncErrors, ThrowOnError> => (options?.client ?? client).post<PostCalendarsOutlookSyncResponses, PostCalendarsOutlookSyncErrors, ThrowOnError>({
+export const postCalendarsOutlookSync = <ThrowOnError extends boolean = true>(options?: Options<PostCalendarsOutlookSyncData, ThrowOnError>): RequestResult<PostCalendarsOutlookSyncResponses, PostCalendarsOutlookSyncErrors, ThrowOnError> => (options?.client ?? client).post<PostCalendarsOutlookSyncResponses, PostCalendarsOutlookSyncErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/outlook/sync',
     ...options
@@ -307,7 +255,7 @@ export const postCalendarsOutlookSync = <ThrowOnError extends boolean = false>(o
  *
  * Get the export sync status for each calendar provider (google, outlook, apple)
  */
-export const getCalendarsExportStatus = <ThrowOnError extends boolean = false>(options?: Options<GetCalendarsExportStatusData, ThrowOnError>): RequestResult<GetCalendarsExportStatusResponses, GetCalendarsExportStatusErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsExportStatusResponses, GetCalendarsExportStatusErrors, ThrowOnError>({
+export const getCalendarsExportStatus = <ThrowOnError extends boolean = true>(options?: Options<GetCalendarsExportStatusData, ThrowOnError>): RequestResult<GetCalendarsExportStatusResponses, GetCalendarsExportStatusErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsExportStatusResponses, GetCalendarsExportStatusErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/export/status',
     ...options
@@ -318,7 +266,7 @@ export const getCalendarsExportStatus = <ThrowOnError extends boolean = false>(o
  *
  * Enable syncing Gather events to the user's calendar. Creates a "Gather" secondary calendar if needed.
  */
-export const postCalendarsExportEnable = <ThrowOnError extends boolean = false>(options: Options<PostCalendarsExportEnableData, ThrowOnError>): RequestResult<PostCalendarsExportEnableResponses, PostCalendarsExportEnableErrors, ThrowOnError> => (options.client ?? client).post<PostCalendarsExportEnableResponses, PostCalendarsExportEnableErrors, ThrowOnError>({
+export const postCalendarsExportEnable = <ThrowOnError extends boolean = true>(options: Options<PostCalendarsExportEnableData, ThrowOnError>): RequestResult<PostCalendarsExportEnableResponses, PostCalendarsExportEnableErrors, ThrowOnError> => (options.client ?? client).post<PostCalendarsExportEnableResponses, PostCalendarsExportEnableErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/export/enable',
     ...options,
@@ -333,7 +281,7 @@ export const postCalendarsExportEnable = <ThrowOnError extends boolean = false>(
  *
  * Disable syncing Gather events to the user's calendar.
  */
-export const postCalendarsExportDisable = <ThrowOnError extends boolean = false>(options: Options<PostCalendarsExportDisableData, ThrowOnError>): RequestResult<PostCalendarsExportDisableResponses, PostCalendarsExportDisableErrors, ThrowOnError> => (options.client ?? client).post<PostCalendarsExportDisableResponses, PostCalendarsExportDisableErrors, ThrowOnError>({
+export const postCalendarsExportDisable = <ThrowOnError extends boolean = true>(options: Options<PostCalendarsExportDisableData, ThrowOnError>): RequestResult<PostCalendarsExportDisableResponses, PostCalendarsExportDisableErrors, ThrowOnError> => (options.client ?? client).post<PostCalendarsExportDisableResponses, PostCalendarsExportDisableErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/export/disable',
     ...options,
@@ -348,7 +296,7 @@ export const postCalendarsExportDisable = <ThrowOnError extends boolean = false>
  *
  * Re-sync all active Gather events to the user's export calendars.
  */
-export const postCalendarsExportSync = <ThrowOnError extends boolean = false>(options?: Options<PostCalendarsExportSyncData, ThrowOnError>): RequestResult<PostCalendarsExportSyncResponses, PostCalendarsExportSyncErrors, ThrowOnError> => (options?.client ?? client).post<PostCalendarsExportSyncResponses, PostCalendarsExportSyncErrors, ThrowOnError>({
+export const postCalendarsExportSync = <ThrowOnError extends boolean = true>(options?: Options<PostCalendarsExportSyncData, ThrowOnError>): RequestResult<PostCalendarsExportSyncResponses, PostCalendarsExportSyncErrors, ThrowOnError> => (options?.client ?? client).post<PostCalendarsExportSyncResponses, PostCalendarsExportSyncErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/export/sync',
     ...options
@@ -359,7 +307,7 @@ export const postCalendarsExportSync = <ThrowOnError extends boolean = false>(op
  *
  * Get the Google OAuth consent URL including the calendar.app.created write scope for enabling event export
  */
-export const getCalendarsGoogleExportAuthUrl = <ThrowOnError extends boolean = false>(options?: Options<GetCalendarsGoogleExportAuthUrlData, ThrowOnError>): RequestResult<GetCalendarsGoogleExportAuthUrlResponses, GetCalendarsGoogleExportAuthUrlErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsGoogleExportAuthUrlResponses, GetCalendarsGoogleExportAuthUrlErrors, ThrowOnError>({
+export const getCalendarsGoogleExportAuthUrl = <ThrowOnError extends boolean = true>(options?: Options<GetCalendarsGoogleExportAuthUrlData, ThrowOnError>): RequestResult<GetCalendarsGoogleExportAuthUrlResponses, GetCalendarsGoogleExportAuthUrlErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsGoogleExportAuthUrlResponses, GetCalendarsGoogleExportAuthUrlErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/google/export-auth-url',
     ...options
@@ -370,7 +318,7 @@ export const getCalendarsGoogleExportAuthUrl = <ThrowOnError extends boolean = f
  *
  * Get the Outlook OAuth consent URL with Calendars.ReadWrite scope for enabling event export
  */
-export const getCalendarsOutlookExportAuthUrl = <ThrowOnError extends boolean = false>(options?: Options<GetCalendarsOutlookExportAuthUrlData, ThrowOnError>): RequestResult<GetCalendarsOutlookExportAuthUrlResponses, GetCalendarsOutlookExportAuthUrlErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsOutlookExportAuthUrlResponses, GetCalendarsOutlookExportAuthUrlErrors, ThrowOnError>({
+export const getCalendarsOutlookExportAuthUrl = <ThrowOnError extends boolean = true>(options?: Options<GetCalendarsOutlookExportAuthUrlData, ThrowOnError>): RequestResult<GetCalendarsOutlookExportAuthUrlResponses, GetCalendarsOutlookExportAuthUrlErrors, ThrowOnError> => (options?.client ?? client).get<GetCalendarsOutlookExportAuthUrlResponses, GetCalendarsOutlookExportAuthUrlErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/calendars/outlook/export-auth-url',
     ...options
@@ -381,7 +329,7 @@ export const getCalendarsOutlookExportAuthUrl = <ThrowOnError extends boolean = 
  *
  * Generate a single emoji that represents the provided text using AI, with caching
  */
-export const postEmojiGenerate = <ThrowOnError extends boolean = false>(options?: Options<PostEmojiGenerateData, ThrowOnError>): RequestResult<PostEmojiGenerateResponses, PostEmojiGenerateErrors, ThrowOnError> => (options?.client ?? client).post<PostEmojiGenerateResponses, PostEmojiGenerateErrors, ThrowOnError>({
+export const postEmojiGenerate = <ThrowOnError extends boolean = true>(options?: Options<PostEmojiGenerateData, ThrowOnError>): RequestResult<PostEmojiGenerateResponses, PostEmojiGenerateErrors, ThrowOnError> => (options?.client ?? client).post<PostEmojiGenerateResponses, PostEmojiGenerateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/emoji/generate',
     ...options,
@@ -396,7 +344,7 @@ export const postEmojiGenerate = <ThrowOnError extends boolean = false>(options?
  *
  * Get events for the current user
  */
-export const getEvents = <ThrowOnError extends boolean = false>(options?: Options<GetEventsData, ThrowOnError>): RequestResult<GetEventsResponses, GetEventsErrors, ThrowOnError> => (options?.client ?? client).get<GetEventsResponses, GetEventsErrors, ThrowOnError>({
+export const getEvents = <ThrowOnError extends boolean = true>(options?: Options<GetEventsData, ThrowOnError>): RequestResult<GetEventsResponses, GetEventsErrors, ThrowOnError> => (options?.client ?? client).get<GetEventsResponses, GetEventsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/events',
     ...options
@@ -407,7 +355,7 @@ export const getEvents = <ThrowOnError extends boolean = false>(options?: Option
  *
  * Create a new event
  */
-export const postEvents = <ThrowOnError extends boolean = false>(options: Options<PostEventsData, ThrowOnError>): RequestResult<PostEventsResponses, PostEventsErrors, ThrowOnError> => (options.client ?? client).post<PostEventsResponses, PostEventsErrors, ThrowOnError>({
+export const postEvents = <ThrowOnError extends boolean = true>(options: Options<PostEventsData, ThrowOnError>): RequestResult<PostEventsResponses, PostEventsErrors, ThrowOnError> => (options.client ?? client).post<PostEventsResponses, PostEventsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/events',
     ...options,
@@ -422,7 +370,7 @@ export const postEvents = <ThrowOnError extends boolean = false>(options: Option
  *
  * Delete an existing event
  */
-export const deleteEventsByEventId = <ThrowOnError extends boolean = false>(options: Options<DeleteEventsByEventIdData, ThrowOnError>): RequestResult<DeleteEventsByEventIdResponses, DeleteEventsByEventIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteEventsByEventIdResponses, DeleteEventsByEventIdErrors, ThrowOnError>({
+export const deleteEventsByEventId = <ThrowOnError extends boolean = true>(options: Options<DeleteEventsByEventIdData, ThrowOnError>): RequestResult<DeleteEventsByEventIdResponses, DeleteEventsByEventIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteEventsByEventIdResponses, DeleteEventsByEventIdErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/events/{eventId}',
     ...options
@@ -433,7 +381,7 @@ export const deleteEventsByEventId = <ThrowOnError extends boolean = false>(opti
  *
  * Get a specific event by ID
  */
-export const getEventsByEventId = <ThrowOnError extends boolean = false>(options: Options<GetEventsByEventIdData, ThrowOnError>): RequestResult<GetEventsByEventIdResponses, GetEventsByEventIdErrors, ThrowOnError> => (options.client ?? client).get<GetEventsByEventIdResponses, GetEventsByEventIdErrors, ThrowOnError>({
+export const getEventsByEventId = <ThrowOnError extends boolean = true>(options: Options<GetEventsByEventIdData, ThrowOnError>): RequestResult<GetEventsByEventIdResponses, GetEventsByEventIdErrors, ThrowOnError> => (options.client ?? client).get<GetEventsByEventIdResponses, GetEventsByEventIdErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/events/{eventId}',
     ...options
@@ -444,7 +392,7 @@ export const getEventsByEventId = <ThrowOnError extends boolean = false>(options
  *
  * Update an existing event
  */
-export const patchEventsByEventId = <ThrowOnError extends boolean = false>(options: Options<PatchEventsByEventIdData, ThrowOnError>): RequestResult<PatchEventsByEventIdResponses, PatchEventsByEventIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchEventsByEventIdResponses, PatchEventsByEventIdErrors, ThrowOnError>({
+export const patchEventsByEventId = <ThrowOnError extends boolean = true>(options: Options<PatchEventsByEventIdData, ThrowOnError>): RequestResult<PatchEventsByEventIdResponses, PatchEventsByEventIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchEventsByEventIdResponses, PatchEventsByEventIdErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/events/{eventId}',
     ...options,
@@ -459,7 +407,7 @@ export const patchEventsByEventId = <ThrowOnError extends boolean = false>(optio
  *
  * Respond to an event invitation
  */
-export const postEventsByEventIdRespond = <ThrowOnError extends boolean = false>(options: Options<PostEventsByEventIdRespondData, ThrowOnError>): RequestResult<PostEventsByEventIdRespondResponses, PostEventsByEventIdRespondErrors, ThrowOnError> => (options.client ?? client).post<PostEventsByEventIdRespondResponses, PostEventsByEventIdRespondErrors, ThrowOnError>({
+export const postEventsByEventIdRespond = <ThrowOnError extends boolean = true>(options: Options<PostEventsByEventIdRespondData, ThrowOnError>): RequestResult<PostEventsByEventIdRespondResponses, PostEventsByEventIdRespondErrors, ThrowOnError> => (options.client ?? client).post<PostEventsByEventIdRespondResponses, PostEventsByEventIdRespondErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/events/{eventId}/respond',
     ...options,
@@ -474,7 +422,7 @@ export const postEventsByEventIdRespond = <ThrowOnError extends boolean = false>
  *
  * Get busy time intervals for specified users within a date range. Returns a map of userId to sorted, merged busy intervals from all sources (blocked windows, calendar events, and in-app events).
  */
-export const postBusyTimes = <ThrowOnError extends boolean = false>(options: Options<PostBusyTimesData, ThrowOnError>): RequestResult<PostBusyTimesResponses, PostBusyTimesErrors, ThrowOnError> => (options.client ?? client).post<PostBusyTimesResponses, PostBusyTimesErrors, ThrowOnError>({
+export const postBusyTimes = <ThrowOnError extends boolean = true>(options: Options<PostBusyTimesData, ThrowOnError>): RequestResult<PostBusyTimesResponses, PostBusyTimesErrors, ThrowOnError> => (options.client ?? client).post<PostBusyTimesResponses, PostBusyTimesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/busy-times',
     ...options,
@@ -489,7 +437,7 @@ export const postBusyTimes = <ThrowOnError extends boolean = false>(options: Opt
  *
  * Get all friends of the current user
  */
-export const getFriends = <ThrowOnError extends boolean = false>(options?: Options<GetFriendsData, ThrowOnError>): RequestResult<GetFriendsResponses, GetFriendsErrors, ThrowOnError> => (options?.client ?? client).get<GetFriendsResponses, GetFriendsErrors, ThrowOnError>({
+export const getFriends = <ThrowOnError extends boolean = true>(options?: Options<GetFriendsData, ThrowOnError>): RequestResult<GetFriendsResponses, GetFriendsErrors, ThrowOnError> => (options?.client ?? client).get<GetFriendsResponses, GetFriendsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/friends',
     ...options
@@ -500,7 +448,7 @@ export const getFriends = <ThrowOnError extends boolean = false>(options?: Optio
  *
  * Search for users by name
  */
-export const getFriendsSearch = <ThrowOnError extends boolean = false>(options: Options<GetFriendsSearchData, ThrowOnError>): RequestResult<GetFriendsSearchResponses, GetFriendsSearchErrors, ThrowOnError> => (options.client ?? client).get<GetFriendsSearchResponses, GetFriendsSearchErrors, ThrowOnError>({
+export const getFriendsSearch = <ThrowOnError extends boolean = true>(options: Options<GetFriendsSearchData, ThrowOnError>): RequestResult<GetFriendsSearchResponses, GetFriendsSearchErrors, ThrowOnError> => (options.client ?? client).get<GetFriendsSearchResponses, GetFriendsSearchErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/friends/search',
     ...options
@@ -511,7 +459,7 @@ export const getFriendsSearch = <ThrowOnError extends boolean = false>(options: 
  *
  * Find which of your phone contacts are already on Gather (excludes you and current friends)
  */
-export const postFriendsMatchContacts = <ThrowOnError extends boolean = false>(options: Options<PostFriendsMatchContactsData, ThrowOnError>): RequestResult<PostFriendsMatchContactsResponses, PostFriendsMatchContactsErrors, ThrowOnError> => (options.client ?? client).post<PostFriendsMatchContactsResponses, PostFriendsMatchContactsErrors, ThrowOnError>({
+export const postFriendsMatchContacts = <ThrowOnError extends boolean = true>(options: Options<PostFriendsMatchContactsData, ThrowOnError>): RequestResult<PostFriendsMatchContactsResponses, PostFriendsMatchContactsErrors, ThrowOnError> => (options.client ?? client).post<PostFriendsMatchContactsResponses, PostFriendsMatchContactsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/friends/match-contacts',
     ...options,
@@ -526,7 +474,7 @@ export const postFriendsMatchContacts = <ThrowOnError extends boolean = false>(o
  *
  * Get your unique invite code
  */
-export const getFriendsInviteCode = <ThrowOnError extends boolean = false>(options?: Options<GetFriendsInviteCodeData, ThrowOnError>): RequestResult<GetFriendsInviteCodeResponses, GetFriendsInviteCodeErrors, ThrowOnError> => (options?.client ?? client).get<GetFriendsInviteCodeResponses, GetFriendsInviteCodeErrors, ThrowOnError>({
+export const getFriendsInviteCode = <ThrowOnError extends boolean = true>(options?: Options<GetFriendsInviteCodeData, ThrowOnError>): RequestResult<GetFriendsInviteCodeResponses, GetFriendsInviteCodeErrors, ThrowOnError> => (options?.client ?? client).get<GetFriendsInviteCodeResponses, GetFriendsInviteCodeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/friends/invite-code',
     ...options
@@ -537,7 +485,7 @@ export const getFriendsInviteCode = <ThrowOnError extends boolean = false>(optio
  *
  * Generate a new invite code
  */
-export const postFriendsInviteCodeRegenerate = <ThrowOnError extends boolean = false>(options?: Options<PostFriendsInviteCodeRegenerateData, ThrowOnError>): RequestResult<PostFriendsInviteCodeRegenerateResponses, PostFriendsInviteCodeRegenerateErrors, ThrowOnError> => (options?.client ?? client).post<PostFriendsInviteCodeRegenerateResponses, PostFriendsInviteCodeRegenerateErrors, ThrowOnError>({
+export const postFriendsInviteCodeRegenerate = <ThrowOnError extends boolean = true>(options?: Options<PostFriendsInviteCodeRegenerateData, ThrowOnError>): RequestResult<PostFriendsInviteCodeRegenerateResponses, PostFriendsInviteCodeRegenerateErrors, ThrowOnError> => (options?.client ?? client).post<PostFriendsInviteCodeRegenerateResponses, PostFriendsInviteCodeRegenerateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/friends/invite-code/regenerate',
     ...options
@@ -548,7 +496,7 @@ export const postFriendsInviteCodeRegenerate = <ThrowOnError extends boolean = f
  *
  * Send a friend request to another user
  */
-export const postFriendsRequest = <ThrowOnError extends boolean = false>(options: Options<PostFriendsRequestData, ThrowOnError>): RequestResult<PostFriendsRequestResponses, PostFriendsRequestErrors, ThrowOnError> => (options.client ?? client).post<PostFriendsRequestResponses, PostFriendsRequestErrors, ThrowOnError>({
+export const postFriendsRequest = <ThrowOnError extends boolean = true>(options: Options<PostFriendsRequestData, ThrowOnError>): RequestResult<PostFriendsRequestResponses, PostFriendsRequestErrors, ThrowOnError> => (options.client ?? client).post<PostFriendsRequestResponses, PostFriendsRequestErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/friends/request',
     ...options,
@@ -563,7 +511,7 @@ export const postFriendsRequest = <ThrowOnError extends boolean = false>(options
  *
  * Accept a friend request
  */
-export const postFriendsByFriendIdAccept = <ThrowOnError extends boolean = false>(options: Options<PostFriendsByFriendIdAcceptData, ThrowOnError>): RequestResult<PostFriendsByFriendIdAcceptResponses, PostFriendsByFriendIdAcceptErrors, ThrowOnError> => (options.client ?? client).post<PostFriendsByFriendIdAcceptResponses, PostFriendsByFriendIdAcceptErrors, ThrowOnError>({
+export const postFriendsByFriendIdAccept = <ThrowOnError extends boolean = true>(options: Options<PostFriendsByFriendIdAcceptData, ThrowOnError>): RequestResult<PostFriendsByFriendIdAcceptResponses, PostFriendsByFriendIdAcceptErrors, ThrowOnError> => (options.client ?? client).post<PostFriendsByFriendIdAcceptResponses, PostFriendsByFriendIdAcceptErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/friends/{friendId}/accept',
     ...options
@@ -574,7 +522,7 @@ export const postFriendsByFriendIdAccept = <ThrowOnError extends boolean = false
  *
  * Decline a friend request
  */
-export const postFriendsByFriendIdDecline = <ThrowOnError extends boolean = false>(options: Options<PostFriendsByFriendIdDeclineData, ThrowOnError>): RequestResult<PostFriendsByFriendIdDeclineResponses, PostFriendsByFriendIdDeclineErrors, ThrowOnError> => (options.client ?? client).post<PostFriendsByFriendIdDeclineResponses, PostFriendsByFriendIdDeclineErrors, ThrowOnError>({
+export const postFriendsByFriendIdDecline = <ThrowOnError extends boolean = true>(options: Options<PostFriendsByFriendIdDeclineData, ThrowOnError>): RequestResult<PostFriendsByFriendIdDeclineResponses, PostFriendsByFriendIdDeclineErrors, ThrowOnError> => (options.client ?? client).post<PostFriendsByFriendIdDeclineResponses, PostFriendsByFriendIdDeclineErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/friends/{friendId}/decline',
     ...options
@@ -585,7 +533,7 @@ export const postFriendsByFriendIdDecline = <ThrowOnError extends boolean = fals
  *
  * Block a user
  */
-export const postFriendsByFriendIdBlock = <ThrowOnError extends boolean = false>(options: Options<PostFriendsByFriendIdBlockData, ThrowOnError>): RequestResult<PostFriendsByFriendIdBlockResponses, PostFriendsByFriendIdBlockErrors, ThrowOnError> => (options.client ?? client).post<PostFriendsByFriendIdBlockResponses, PostFriendsByFriendIdBlockErrors, ThrowOnError>({
+export const postFriendsByFriendIdBlock = <ThrowOnError extends boolean = true>(options: Options<PostFriendsByFriendIdBlockData, ThrowOnError>): RequestResult<PostFriendsByFriendIdBlockResponses, PostFriendsByFriendIdBlockErrors, ThrowOnError> => (options.client ?? client).post<PostFriendsByFriendIdBlockResponses, PostFriendsByFriendIdBlockErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/friends/{friendId}/block',
     ...options
@@ -596,7 +544,7 @@ export const postFriendsByFriendIdBlock = <ThrowOnError extends boolean = false>
  *
  * Report a user for inappropriate behavior
  */
-export const postFriendsByFriendIdReport = <ThrowOnError extends boolean = false>(options: Options<PostFriendsByFriendIdReportData, ThrowOnError>): RequestResult<PostFriendsByFriendIdReportResponses, PostFriendsByFriendIdReportErrors, ThrowOnError> => (options.client ?? client).post<PostFriendsByFriendIdReportResponses, PostFriendsByFriendIdReportErrors, ThrowOnError>({
+export const postFriendsByFriendIdReport = <ThrowOnError extends boolean = true>(options: Options<PostFriendsByFriendIdReportData, ThrowOnError>): RequestResult<PostFriendsByFriendIdReportResponses, PostFriendsByFriendIdReportErrors, ThrowOnError> => (options.client ?? client).post<PostFriendsByFriendIdReportResponses, PostFriendsByFriendIdReportErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/friends/{friendId}/report',
     ...options
@@ -607,7 +555,7 @@ export const postFriendsByFriendIdReport = <ThrowOnError extends boolean = false
  *
  * Remove a friend or cancel a friend request
  */
-export const deleteFriendsByFriendId = <ThrowOnError extends boolean = false>(options: Options<DeleteFriendsByFriendIdData, ThrowOnError>): RequestResult<DeleteFriendsByFriendIdResponses, DeleteFriendsByFriendIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteFriendsByFriendIdResponses, DeleteFriendsByFriendIdErrors, ThrowOnError>({
+export const deleteFriendsByFriendId = <ThrowOnError extends boolean = true>(options: Options<DeleteFriendsByFriendIdData, ThrowOnError>): RequestResult<DeleteFriendsByFriendIdResponses, DeleteFriendsByFriendIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteFriendsByFriendIdResponses, DeleteFriendsByFriendIdErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/friends/{friendId}',
     ...options
@@ -618,7 +566,7 @@ export const deleteFriendsByFriendId = <ThrowOnError extends boolean = false>(op
  *
  * Get all groups owned by the current user
  */
-export const getGroups = <ThrowOnError extends boolean = false>(options?: Options<GetGroupsData, ThrowOnError>): RequestResult<GetGroupsResponses, GetGroupsErrors, ThrowOnError> => (options?.client ?? client).get<GetGroupsResponses, GetGroupsErrors, ThrowOnError>({
+export const getGroups = <ThrowOnError extends boolean = true>(options?: Options<GetGroupsData, ThrowOnError>): RequestResult<GetGroupsResponses, GetGroupsErrors, ThrowOnError> => (options?.client ?? client).get<GetGroupsResponses, GetGroupsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/groups',
     ...options
@@ -629,7 +577,7 @@ export const getGroups = <ThrowOnError extends boolean = false>(options?: Option
  *
  * Create a new group
  */
-export const postGroups = <ThrowOnError extends boolean = false>(options: Options<PostGroupsData, ThrowOnError>): RequestResult<PostGroupsResponses, PostGroupsErrors, ThrowOnError> => (options.client ?? client).post<PostGroupsResponses, PostGroupsErrors, ThrowOnError>({
+export const postGroups = <ThrowOnError extends boolean = true>(options: Options<PostGroupsData, ThrowOnError>): RequestResult<PostGroupsResponses, PostGroupsErrors, ThrowOnError> => (options.client ?? client).post<PostGroupsResponses, PostGroupsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/groups',
     ...options,
@@ -644,7 +592,7 @@ export const postGroups = <ThrowOnError extends boolean = false>(options: Option
  *
  * Delete an existing group
  */
-export const deleteGroupsByGroupId = <ThrowOnError extends boolean = false>(options: Options<DeleteGroupsByGroupIdData, ThrowOnError>): RequestResult<DeleteGroupsByGroupIdResponses, DeleteGroupsByGroupIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteGroupsByGroupIdResponses, DeleteGroupsByGroupIdErrors, ThrowOnError>({
+export const deleteGroupsByGroupId = <ThrowOnError extends boolean = true>(options: Options<DeleteGroupsByGroupIdData, ThrowOnError>): RequestResult<DeleteGroupsByGroupIdResponses, DeleteGroupsByGroupIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteGroupsByGroupIdResponses, DeleteGroupsByGroupIdErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/groups/{groupId}',
     ...options
@@ -655,7 +603,7 @@ export const deleteGroupsByGroupId = <ThrowOnError extends boolean = false>(opti
  *
  * Update an existing group
  */
-export const patchGroupsByGroupId = <ThrowOnError extends boolean = false>(options: Options<PatchGroupsByGroupIdData, ThrowOnError>): RequestResult<PatchGroupsByGroupIdResponses, PatchGroupsByGroupIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchGroupsByGroupIdResponses, PatchGroupsByGroupIdErrors, ThrowOnError>({
+export const patchGroupsByGroupId = <ThrowOnError extends boolean = true>(options: Options<PatchGroupsByGroupIdData, ThrowOnError>): RequestResult<PatchGroupsByGroupIdResponses, PatchGroupsByGroupIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchGroupsByGroupIdResponses, PatchGroupsByGroupIdErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/groups/{groupId}',
     ...options,
@@ -670,7 +618,7 @@ export const patchGroupsByGroupId = <ThrowOnError extends boolean = false>(optio
  *
  * Delete the currently authenticated user account
  */
-export const deleteUsersMe = <ThrowOnError extends boolean = false>(options?: Options<DeleteUsersMeData, ThrowOnError>): RequestResult<DeleteUsersMeResponses, DeleteUsersMeErrors, ThrowOnError> => (options?.client ?? client).delete<DeleteUsersMeResponses, DeleteUsersMeErrors, ThrowOnError>({
+export const deleteUsersMe = <ThrowOnError extends boolean = true>(options?: Options<DeleteUsersMeData, ThrowOnError>): RequestResult<DeleteUsersMeResponses, DeleteUsersMeErrors, ThrowOnError> => (options?.client ?? client).delete<DeleteUsersMeResponses, DeleteUsersMeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/users/me',
     ...options
@@ -681,7 +629,7 @@ export const deleteUsersMe = <ThrowOnError extends boolean = false>(options?: Op
  *
  * Get the profile of the currently authenticated user
  */
-export const getUsersMe = <ThrowOnError extends boolean = false>(options?: Options<GetUsersMeData, ThrowOnError>): RequestResult<GetUsersMeResponses, GetUsersMeErrors, ThrowOnError> => (options?.client ?? client).get<GetUsersMeResponses, GetUsersMeErrors, ThrowOnError>({
+export const getUsersMe = <ThrowOnError extends boolean = true>(options?: Options<GetUsersMeData, ThrowOnError>): RequestResult<GetUsersMeResponses, GetUsersMeErrors, ThrowOnError> => (options?.client ?? client).get<GetUsersMeResponses, GetUsersMeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/users/me',
     ...options
@@ -692,7 +640,7 @@ export const getUsersMe = <ThrowOnError extends boolean = false>(options?: Optio
  *
  * Update the profile of the currently authenticated user
  */
-export const patchUsersMe = <ThrowOnError extends boolean = false>(options: Options<PatchUsersMeData, ThrowOnError>): RequestResult<PatchUsersMeResponses, PatchUsersMeErrors, ThrowOnError> => (options.client ?? client).patch<PatchUsersMeResponses, PatchUsersMeErrors, ThrowOnError>({
+export const patchUsersMe = <ThrowOnError extends boolean = true>(options: Options<PatchUsersMeData, ThrowOnError>): RequestResult<PatchUsersMeResponses, PatchUsersMeErrors, ThrowOnError> => (options.client ?? client).patch<PatchUsersMeResponses, PatchUsersMeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/users/me',
     ...options,
@@ -707,7 +655,7 @@ export const patchUsersMe = <ThrowOnError extends boolean = false>(options: Opti
  *
  * Get another user's public profile (name, avatar, and your relationship to them). Used e.g. when tapping an attendee in a shared event.
  */
-export const getUsersByUserIdProfile = <ThrowOnError extends boolean = false>(options: Options<GetUsersByUserIdProfileData, ThrowOnError>): RequestResult<GetUsersByUserIdProfileResponses, GetUsersByUserIdProfileErrors, ThrowOnError> => (options.client ?? client).get<GetUsersByUserIdProfileResponses, GetUsersByUserIdProfileErrors, ThrowOnError>({
+export const getUsersByUserIdProfile = <ThrowOnError extends boolean = true>(options: Options<GetUsersByUserIdProfileData, ThrowOnError>): RequestResult<GetUsersByUserIdProfileResponses, GetUsersByUserIdProfileErrors, ThrowOnError> => (options.client ?? client).get<GetUsersByUserIdProfileResponses, GetUsersByUserIdProfileErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/users/{userId}/profile',
     ...options
@@ -718,7 +666,7 @@ export const getUsersByUserIdProfile = <ThrowOnError extends boolean = false>(op
  *
  * Register a push notification token for the current user
  */
-export const postUsersMePushToken = <ThrowOnError extends boolean = false>(options: Options<PostUsersMePushTokenData, ThrowOnError>): RequestResult<PostUsersMePushTokenResponses, PostUsersMePushTokenErrors, ThrowOnError> => (options.client ?? client).post<PostUsersMePushTokenResponses, PostUsersMePushTokenErrors, ThrowOnError>({
+export const postUsersMePushToken = <ThrowOnError extends boolean = true>(options: Options<PostUsersMePushTokenData, ThrowOnError>): RequestResult<PostUsersMePushTokenResponses, PostUsersMePushTokenErrors, ThrowOnError> => (options.client ?? client).post<PostUsersMePushTokenResponses, PostUsersMePushTokenErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/users/me/push-token',
     ...options,
@@ -733,7 +681,7 @@ export const postUsersMePushToken = <ThrowOnError extends boolean = false>(optio
  *
  * Get the notification preferences for the current user
  */
-export const getUsersMeNotificationPreferences = <ThrowOnError extends boolean = false>(options?: Options<GetUsersMeNotificationPreferencesData, ThrowOnError>): RequestResult<GetUsersMeNotificationPreferencesResponses, GetUsersMeNotificationPreferencesErrors, ThrowOnError> => (options?.client ?? client).get<GetUsersMeNotificationPreferencesResponses, GetUsersMeNotificationPreferencesErrors, ThrowOnError>({
+export const getUsersMeNotificationPreferences = <ThrowOnError extends boolean = true>(options?: Options<GetUsersMeNotificationPreferencesData, ThrowOnError>): RequestResult<GetUsersMeNotificationPreferencesResponses, GetUsersMeNotificationPreferencesErrors, ThrowOnError> => (options?.client ?? client).get<GetUsersMeNotificationPreferencesResponses, GetUsersMeNotificationPreferencesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/users/me/notification-preferences',
     ...options
@@ -744,7 +692,7 @@ export const getUsersMeNotificationPreferences = <ThrowOnError extends boolean =
  *
  * Update the notification preferences for the current user
  */
-export const putUsersMeNotificationPreferences = <ThrowOnError extends boolean = false>(options: Options<PutUsersMeNotificationPreferencesData, ThrowOnError>): RequestResult<PutUsersMeNotificationPreferencesResponses, PutUsersMeNotificationPreferencesErrors, ThrowOnError> => (options.client ?? client).put<PutUsersMeNotificationPreferencesResponses, PutUsersMeNotificationPreferencesErrors, ThrowOnError>({
+export const putUsersMeNotificationPreferences = <ThrowOnError extends boolean = true>(options: Options<PutUsersMeNotificationPreferencesData, ThrowOnError>): RequestResult<PutUsersMeNotificationPreferencesResponses, PutUsersMeNotificationPreferencesErrors, ThrowOnError> => (options.client ?? client).put<PutUsersMeNotificationPreferencesResponses, PutUsersMeNotificationPreferencesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/users/me/notification-preferences',
     ...options,
@@ -757,9 +705,9 @@ export const putUsersMeNotificationPreferences = <ThrowOnError extends boolean =
 /**
  * Create a pending invite
  *
- * Create an invite for someone not yet on Gather. Returns a shareable link and prefilled message to send from your own device.
+ * Create an invite for someone not yet on Gather. Returns a shareable link to send from your own device.
  */
-export const postInvites = <ThrowOnError extends boolean = false>(options: Options<PostInvitesData, ThrowOnError>): RequestResult<PostInvitesResponses, PostInvitesErrors, ThrowOnError> => (options.client ?? client).post<PostInvitesResponses, PostInvitesErrors, ThrowOnError>({
+export const postInvites = <ThrowOnError extends boolean = true>(options: Options<PostInvitesData, ThrowOnError>): RequestResult<PostInvitesResponses, PostInvitesErrors, ThrowOnError> => (options.client ?? client).post<PostInvitesResponses, PostInvitesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/invites',
     ...options,
@@ -774,7 +722,7 @@ export const postInvites = <ThrowOnError extends boolean = false>(options: Optio
  *
  * Redeem a pending invite by its token (e.g. when the recipient taps the link after installing).
  */
-export const postInvitesByTokenRedeem = <ThrowOnError extends boolean = false>(options: Options<PostInvitesByTokenRedeemData, ThrowOnError>): RequestResult<PostInvitesByTokenRedeemResponses, PostInvitesByTokenRedeemErrors, ThrowOnError> => (options.client ?? client).post<PostInvitesByTokenRedeemResponses, PostInvitesByTokenRedeemErrors, ThrowOnError>({
+export const postInvitesByTokenRedeem = <ThrowOnError extends boolean = true>(options: Options<PostInvitesByTokenRedeemData, ThrowOnError>): RequestResult<PostInvitesByTokenRedeemResponses, PostInvitesByTokenRedeemErrors, ThrowOnError> => (options.client ?? client).post<PostInvitesByTokenRedeemResponses, PostInvitesByTokenRedeemErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/invites/{token}/redeem',
     ...options

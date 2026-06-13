@@ -3,7 +3,13 @@ import { defineConfig } from '@hey-api/openapi-ts';
 export default defineConfig({
   input: '../backend/openapi.json',
   output: './lib/api/generated',
-  plugins: ['@hey-api/typescript', '@hey-api/sdk', '@hey-api/client-fetch'],
+  plugins: [
+    '@hey-api/typescript',
+    '@hey-api/sdk',
+    // throwOnError: non-2xx responses throw instead of returning { error },
+    // so callers never need to check response envelopes for failure.
+    { name: '@hey-api/client-fetch', throwOnError: true },
+  ],
   parser: {
     patch: {
       schemas: {

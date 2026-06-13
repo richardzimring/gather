@@ -3,7 +3,9 @@ import { createApp, authMiddleware } from '../middleware/hono';
 import {
   BusyTimesQuerySchema,
   BusyTimeIntervalSchema,
-  ErrorResponseSchema,
+  jsonContent,
+  errorResponses,
+  jsonBody,
 } from '../types';
 import * as busyTimeService from '../services/busy-times';
 
@@ -20,7 +22,7 @@ const BusyTimesResponseSchema = z
   .object({
     success: z.literal(true),
     data: z.object({
-      busyTimes: z.record(z.string().uuid(), z.array(BusyTimeIntervalSchema)),
+      busyTimes: z.record(z.uuid(), z.array(BusyTimeIntervalSchema)),
     }),
   })
   .openapi('BusyTimesResponse');
@@ -38,48 +40,14 @@ const postBusyTimesRoute = createRoute({
     'Get busy time intervals for specified users within a date range. Returns a map of userId to sorted, merged busy intervals from all sources (blocked windows, calendar events, and in-app events).',
   security: [{ BearerAuth: [] }],
   request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: BusyTimesQuerySchema,
-        },
-      },
-      required: true,
-    },
+    body: jsonBody(BusyTimesQuerySchema),
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: BusyTimesResponseSchema,
-        },
-      },
-      description: 'Busy times retrieved successfully',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Validation error or invalid user IDs',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(
+      BusyTimesResponseSchema,
+      'Busy times retrieved successfully',
+    ),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -135,14 +103,6 @@ app.openapi(postBusyTimesRoute, async (c) => {
       );
     }
 
-    console.error('Error in POST /busy-times:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to query busy times',
-      },
-      500,
-    );
+    throw error;
   }
 });

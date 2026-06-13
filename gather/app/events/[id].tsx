@@ -62,6 +62,7 @@ import type {
 } from '../../lib/api/generated/types.gen';
 import type { AvatarStackPerson } from '../../components/ui/AttendeeAvatarStack';
 import { haptic } from '../../lib/haptics';
+import { formatRelativeDate, formatTimeOfDay } from '../../lib/utils';
 
 // ============================================
 // Helpers
@@ -98,39 +99,6 @@ function formatEventDate(
     date,
     time: `${startTimeStr} - ${endTimeStr}`,
   };
-}
-
-/**
- * Format time for display
- */
-function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
-/**
- * Format date for event card display
- */
-function formatDate(date: Date): string {
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  today.setHours(0, 0, 0, 0);
-  tomorrow.setHours(0, 0, 0, 0);
-  const compareDate = new Date(date);
-  compareDate.setHours(0, 0, 0, 0);
-
-  if (compareDate.getTime() === today.getTime()) return 'Today';
-  if (compareDate.getTime() === tomorrow.getTime()) return 'Tomorrow';
-
-  const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  return `${DAYS_SHORT[date.getDay()]}, ${date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  })}`;
 }
 
 /**
@@ -795,7 +763,7 @@ export default function EventDetailScreen() {
                     0,
                     0,
                   );
-                  return `${formatDate(editDate)}, ${formatTime(start)} – ${formatTime(end)}`;
+                  return `${formatRelativeDate(editDate)}, ${formatTimeOfDay(start)} – ${formatTimeOfDay(end)}`;
                 })()}
                 location={editLocationData?.name}
                 isHost={true}

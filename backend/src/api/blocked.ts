@@ -4,7 +4,9 @@ import {
   BlockedWindowSchema,
   CreateBlockedWindowSchema,
   UpdateBlockedWindowSchema,
-  ErrorResponseSchema,
+  jsonContent,
+  errorResponses,
+  jsonBody,
 } from '../types';
 import * as blockedService from '../services/blocked';
 
@@ -49,30 +51,11 @@ const getBlockedRoute = createRoute({
     'Get blocked time windows for the current user (times when NOT available)',
   security: [{ BearerAuth: [] }],
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: BlockedWindowsResponseSchema,
-        },
-      },
-      description: 'Blocked windows retrieved successfully',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(
+      BlockedWindowsResponseSchema,
+      'Blocked windows retrieved successfully',
+    ),
+    ...errorResponses(401, 500),
   },
 });
 
@@ -84,48 +67,14 @@ const createBlockedRoute = createRoute({
   description: 'Create a new blocked time window (mark time as unavailable)',
   security: [{ BearerAuth: [] }],
   request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: CreateBlockedWindowSchema,
-        },
-      },
-      required: true,
-    },
+    body: jsonBody(CreateBlockedWindowSchema),
   },
   responses: {
-    201: {
-      content: {
-        'application/json': {
-          schema: BlockedWindowResponseSchema,
-        },
-      },
-      description: 'Blocked window created successfully',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Validation error',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    201: jsonContent(
+      BlockedWindowResponseSchema,
+      'Blocked window created successfully',
+    ),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -139,52 +88,17 @@ const updateBlockedRoute = createRoute({
   request: {
     params: z.object({
       windowId: z
-        .string()
         .uuid()
         .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
-    body: {
-      content: {
-        'application/json': {
-          schema: UpdateBlockedWindowSchema,
-        },
-      },
-      required: true,
-    },
+    body: jsonBody(UpdateBlockedWindowSchema),
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: BlockedWindowResponseSchema,
-        },
-      },
-      description: 'Blocked window updated successfully',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Validation error or update failed',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(
+      BlockedWindowResponseSchema,
+      'Blocked window updated successfully',
+    ),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -198,39 +112,13 @@ const deleteBlockedRoute = createRoute({
   request: {
     params: z.object({
       windowId: z
-        .string()
         .uuid()
         .openapi({ example: '550e8400-e29b-41d4-a716-446655440000' }),
     }),
   },
   responses: {
-    204: {
-      description: 'Blocked window deleted successfully',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Delete failed',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    204: { description: 'Blocked window deleted successfully' },
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -241,26 +129,14 @@ const deleteBlockedRoute = createRoute({
 app.openapi(getBlockedRoute, async (c) => {
   const user = c.get('user');
 
-  try {
-    const windows = await blockedService.getBlockedWindows(user.userId);
-    return c.json(
-      {
-        success: true as const,
-        data: { windows },
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in GET /blocked:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to fetch blocked windows',
-      },
-      500,
-    );
-  }
+  const windows = await blockedService.getBlockedWindows(user.userId);
+  return c.json(
+    {
+      success: true as const,
+      data: { windows },
+    },
+    200,
+  );
 });
 
 app.openapi(createBlockedRoute, async (c) => {
@@ -279,27 +155,15 @@ app.openapi(createBlockedRoute, async (c) => {
     );
   }
 
-  try {
-    const window = await blockedService.createBlockedWindow(user.userId, data);
-    return c.json(
-      {
-        success: true as const,
-        data: { window },
-        message: 'Blocked window created successfully',
-      },
-      201,
-    );
-  } catch (error) {
-    console.error('Error in POST /blocked:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to create blocked window',
-      },
-      500,
-    );
-  }
+  const window = await blockedService.createBlockedWindow(user.userId, data);
+  return c.json(
+    {
+      success: true as const,
+      data: { window },
+      message: 'Blocked window created successfully',
+    },
+    201,
+  );
 });
 
 app.openapi(updateBlockedRoute, async (c) => {
@@ -321,74 +185,50 @@ app.openapi(updateBlockedRoute, async (c) => {
     }
   }
 
-  try {
-    const result = await blockedService.updateBlockedWindow(
-      user.userId,
-      windowId,
-      data,
-    );
-    if (!result.success || !result.window) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Update Failed',
-          message: result.message ?? 'Update failed',
-        },
-        400,
-      );
-    }
-
-    return c.json(
-      {
-        success: true as const,
-        data: { window: result.window },
-        message: 'Blocked window updated successfully',
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in PATCH /blocked/:windowId:', error);
+  const result = await blockedService.updateBlockedWindow(
+    user.userId,
+    windowId,
+    data,
+  );
+  if (!result.success || !result.window) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to update blocked window',
+        error: 'Update Failed',
+        message: result.message ?? 'Update failed',
       },
-      500,
+      400,
     );
   }
+
+  return c.json(
+    {
+      success: true as const,
+      data: { window: result.window },
+      message: 'Blocked window updated successfully',
+    },
+    200,
+  );
 });
 
 app.openapi(deleteBlockedRoute, async (c) => {
   const user = c.get('user');
   const { windowId } = c.req.valid('param');
 
-  try {
-    const result = await blockedService.deleteBlockedWindow(
-      user.userId,
-      windowId,
-    );
-    if (!result.success) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Delete Failed',
-          message: result.message ?? 'Delete failed',
-        },
-        400,
-      );
-    }
-
-    return c.body(null, 204);
-  } catch (error) {
-    console.error('Error in DELETE /blocked/:windowId:', error);
+  const result = await blockedService.deleteBlockedWindow(
+    user.userId,
+    windowId,
+  );
+  if (!result.success) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to delete blocked window',
+        error: 'Delete Failed',
+        message: result.message ?? 'Delete failed',
       },
-      500,
+      400,
     );
   }
+
+  return c.body(null, 204);
 });

@@ -1,6 +1,6 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import { createApp, authMiddleware } from '../middleware/hono';
-import { ErrorResponseSchema } from '../types';
+import { jsonContent, errorResponses } from '../types';
 import { generateEmoji } from '../services/emoji';
 
 export const app = createApp();
@@ -49,38 +49,11 @@ const generateEmojiRoute = createRoute({
     },
   },
   responses: {
-    200: {
-      description: 'Emoji generated successfully',
-      content: {
-        'application/json': {
-          schema: GenerateEmojiResponseSchema,
-        },
-      },
-    },
-    400: {
-      description: 'Invalid request',
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-    },
-    401: {
-      description: 'Unauthorized',
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-    },
-    500: {
-      description: 'Internal server error',
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-    },
+    200: jsonContent(
+      GenerateEmojiResponseSchema,
+      'Emoji generated successfully',
+    ),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -91,25 +64,13 @@ const generateEmojiRoute = createRoute({
 app.openapi(generateEmojiRoute, async (c) => {
   const { text } = c.req.valid('json');
 
-  try {
-    const emoji = await generateEmoji(text);
+  const emoji = await generateEmoji(text);
 
-    return c.json(
-      {
-        success: true as const,
-        data: { emoji },
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in POST /emoji/generate:', error);
-    return c.json(
-      {
-        success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to generate emoji',
-      },
-      500,
-    );
-  }
+  return c.json(
+    {
+      success: true as const,
+      data: { emoji },
+    },
+    200,
+  );
 });

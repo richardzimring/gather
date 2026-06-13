@@ -7,7 +7,9 @@ interface GradientBackgroundProps {
 
 export function GradientBackground({ style }: GradientBackgroundProps = {}) {
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+
+  // The gradient is a dark-mode accent only
+  if (colorScheme !== 'dark') return null;
 
   return (
     <Animated.View
@@ -18,15 +20,11 @@ export function GradientBackground({ style }: GradientBackgroundProps = {}) {
       pointerEvents="none"
     >
       <LinearGradient
-        colors={
-          isDark
-            ? ['rgba(130,80,220,0.22)', 'rgba(80,60,200,0.10)', 'rgba(0,0,0,0)']
-            : [
-                'rgba(240,236,230,0)',
-                'rgba(240,236,230,0)',
-                'rgba(240,236,230,0)',
-              ]
-        }
+        colors={[
+          'rgba(130,80,220,0.22)',
+          'rgba(80,60,200,0.10)',
+          'rgba(0,0,0,0)',
+        ]}
         style={{ flex: 1 }}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 0.3 }}

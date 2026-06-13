@@ -41,37 +41,7 @@ const animations = createAnimations({
 // FONTS
 // ============================================================================
 
-// Display font for logo and greetings (Roslindale-style)
-// Note: To use actual Roslindale font, add the font files and update the face mappings
-const displayFont = createInterFont({
-  size: {
-    1: 12,
-    2: 14,
-    3: 16,
-    4: 18,
-    5: 20,
-    6: 24,
-    7: 28,
-    8: 32,
-    9: 40,
-    10: 48,
-  },
-  weight: {
-    4: '400',
-    5: '500',
-    6: '600',
-    7: '700',
-  },
-  face: {
-    // Using serif-style font as fallback until Roslindale is loaded
-    // Replace with 'Roslindale-Regular', 'Roslindale-Medium', etc. when available
-    400: { normal: 'System' },
-    500: { normal: 'System' },
-    600: { normal: 'System' },
-    700: { normal: 'System' },
-  },
-});
-
+// System font everywhere; sizes tuned for headings.
 const headingFont = createInterFont({
   size: {
     1: 12,
@@ -381,7 +351,6 @@ export const config = createTamagui({
   themeClassNameOnRoot: true,
   shorthands,
   fonts: {
-    display: displayFont,
     heading: headingFont,
     body: bodyFont,
   },
@@ -425,27 +394,3 @@ declare module 'tamagui' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface TamaguiCustomConfig extends AppConfig {}
 }
-
-// ============================================================================
-// THEME CONSTANTS (for custom usage outside Tamagui)
-// shadcn Mira style - compact, smaller radii
-// ============================================================================
-export const THEME_CONSTANTS = {
-  // Border radius (Mira style - smaller, more compact)
-  radiusNone: 0,
-  radiusSmall: 4, // compact corners
-  radiusMedium: 6, // default for most components
-  radiusLarge: 8, // larger elements like cards
-  radiusFull: 9999, // pills/circles
-
-  // Component sizing (compact)
-  buttonHeightSm: 32,
-  buttonHeightMd: 36,
-  buttonHeightLg: 44,
-  inputHeight: 36,
-
-  // Animation durations
-  durationFast: 150,
-  durationMedium: 200,
-  durationSlow: 300,
-} as const;

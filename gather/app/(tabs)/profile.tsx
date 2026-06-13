@@ -47,6 +47,7 @@ import {
 import { useAppleExport } from '../../lib/hooks/useAppleExport';
 import type { CalendarConnection } from '../../lib/api/client';
 import { haptic } from '../../lib/haptics';
+import { FRIEND_INVITE_SHARE_MESSAGE } from '../../lib/inviteMessages';
 
 interface SettingsItemProps {
   icon: React.ReactNode;
@@ -155,6 +156,7 @@ export default function ProfileScreen() {
   const deleteAccount = useDeleteAccount();
 
   const friendCode = friendCodeData?.inviteCode ?? user?.inviteCode ?? '';
+  const inviteLink = friendCodeData?.inviteLink ?? '';
 
   const handleDeleteAccount = () => {
     haptic.warning();
@@ -225,10 +227,11 @@ export default function ProfileScreen() {
   };
 
   const handleShareFriendCode = async () => {
+    if (!inviteLink) return;
     try {
       await Share.share({
-        url: 'https://apps.apple.com/us/app/gather-plan-with-friends/id6759443297',
-        message: `Hey, add me on Gather! My friend code is: ${friendCode}`,
+        url: inviteLink,
+        message: FRIEND_INVITE_SHARE_MESSAGE,
       });
     } catch (err) {
       console.error('Failed to share:', err);
@@ -332,7 +335,7 @@ export default function ProfileScreen() {
                 flex={1}
                 icon={<Share2 size={14} color="$primaryForeground" />}
                 onPress={handleShareFriendCode}
-                disabled={!friendCode}
+                disabled={!inviteLink}
               >
                 Share
               </Button>

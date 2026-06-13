@@ -4,7 +4,9 @@ import {
   CreateInviteSchema,
   CreateInviteResultSchema,
   RedeemInviteResultSchema,
-  ErrorResponseSchema,
+  jsonContent,
+  errorResponses,
+  jsonBody,
 } from '../types';
 import * as pendingInvitesService from '../services/pending-invites';
 
@@ -43,51 +45,14 @@ const createInviteRoute = createRoute({
   tags: ['Invites'],
   summary: 'Create a pending invite',
   description:
-    'Create an invite for someone not yet on Gather. Returns a shareable link and prefilled message to send from your own device.',
+    'Create an invite for someone not yet on Gather. Returns a shareable link to send from your own device.',
   security: [{ BearerAuth: [] }],
   request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: CreateInviteSchema,
-        },
-      },
-      required: true,
-    },
+    body: jsonBody(CreateInviteSchema),
   },
   responses: {
-    201: {
-      content: {
-        'application/json': {
-          schema: CreateInviteResponseSchema,
-        },
-      },
-      description: 'Invite created',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Validation error',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    201: jsonContent(CreateInviteResponseSchema, 'Invite created'),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -105,38 +70,8 @@ const redeemInviteRoute = createRoute({
     }),
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: RedeemInviteResponseSchema,
-        },
-      },
-      description: 'Invite redeemed',
-    },
-    404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Invite not found',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(RedeemInviteResponseSchema, 'Invite redeemed'),
+    ...errorResponses(404, 401, 500),
   },
 });
 
@@ -148,91 +83,61 @@ app.openapi(createInviteRoute, async (c) => {
   const user = c.get('user');
   const { type, phone, eventId } = c.req.valid('json');
 
-  try {
-    const result = await pendingInvitesService.createPendingInvite({
-      inviterUserId: user.userId,
-      type,
-      phone,
-      eventId,
-    });
+  const result = await pendingInvitesService.createPendingInvite({
+    inviterUserId: user.userId,
+    type,
+    phone,
+    eventId,
+  });
 
-    if (
-      !result.success ||
-      !result.token ||
-      !result.inviteUrl ||
-      !result.prefilledMessage
-    ) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Invite Failed',
-          message: result.message ?? 'Failed to create invite',
-        },
-        400,
-      );
-    }
-
-    return c.json(
-      {
-        success: true as const,
-        data: {
-          token: result.token,
-          inviteUrl: result.inviteUrl,
-          prefilledMessage: result.prefilledMessage,
-        },
-      },
-      201,
-    );
-  } catch (error) {
-    console.error('Error in POST /invites:', error);
+  if (!result.success || !result.token || !result.inviteUrl) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to create invite',
+        error: 'Invite Failed',
+        message: result.message ?? 'Failed to create invite',
       },
-      500,
+      400,
     );
   }
+
+  return c.json(
+    {
+      success: true as const,
+      data: {
+        token: result.token,
+        inviteUrl: result.inviteUrl,
+      },
+    },
+    201,
+  );
 });
 
 app.openapi(redeemInviteRoute, async (c) => {
   const user = c.get('user');
   const { token } = c.req.valid('param');
 
-  try {
-    const result = await pendingInvitesService.redeemInviteToken(
-      user.userId,
-      token,
-    );
+  const result = await pendingInvitesService.redeemInviteToken(
+    user.userId,
+    token,
+  );
 
-    if (!result.success || !result.type) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Not Found',
-          message: result.message ?? 'Invite not found',
-        },
-        404,
-      );
-    }
-
-    return c.json(
-      {
-        success: true as const,
-        data: { type: result.type, eventId: result.eventId },
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in POST /invites/:token/redeem:', error);
+  if (!result.success || !result.type) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to redeem invite',
+        error: 'Not Found',
+        message: result.message ?? 'Invite not found',
       },
-      500,
+      404,
     );
   }
+
+  return c.json(
+    {
+      success: true as const,
+      data: { type: result.type, eventId: result.eventId },
+    },
+    200,
+  );
 });

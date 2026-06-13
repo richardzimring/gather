@@ -4,12 +4,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Platform,
   useColorScheme,
-  Animated,
   Dimensions,
   StyleSheet,
   View,
   Image,
-  useAnimatedValue,
 } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useRouter, Link } from 'expo-router';
@@ -235,27 +233,9 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isAppleAuthAvailable, setIsAppleAuthAvailable] = useState(false);
 
-  const contentOpacity = useAnimatedValue(0);
-  const contentTranslateY = useAnimatedValue(16);
-
   useEffect(() => {
     AppleAuthentication.isAvailableAsync().then(setIsAppleAuthAvailable);
-
-    Animated.parallel([
-      Animated.timing(contentOpacity, {
-        toValue: 1,
-        duration: 1400,
-        delay: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(contentTranslateY, {
-        toValue: 0,
-        duration: 1200,
-        delay: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [contentOpacity, contentTranslateY]);
+  }, []);
 
   const handleAppleSignIn = async () => {
     haptic.medium();
@@ -313,12 +293,10 @@ export default function LoginScreen() {
       />
 
       {/* Content */}
-      <Animated.View
+      <View
         style={[
           styles.content,
           {
-            opacity: contentOpacity,
-            transform: [{ translateY: contentTranslateY }],
             paddingTop: insets.top + 60,
             paddingBottom: insets.bottom + 40,
           },
@@ -463,7 +441,7 @@ export default function LoginScreen() {
             </Text>
           </YStack>
         </YStack>
-      </Animated.View>
+      </View>
     </View>
   );
 }

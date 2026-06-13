@@ -9,11 +9,8 @@ import { patchUsersMe, type UpdateUser } from '../api/client';
 export function useUpdateUser() {
   return useMutation({
     mutationFn: async (data: UpdateUser) => {
-      const response = await patchUsersMe({ body: data });
-      if (!response.data?.success) {
-        throw new Error(response.data?.message ?? 'Failed to update profile');
-      }
-      return response.data.data;
+      const { data: res } = await patchUsersMe({ body: data });
+      return res.data;
     },
   });
 }

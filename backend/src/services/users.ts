@@ -23,13 +23,13 @@ const generateInviteCode = (): string => {
 // Helpers
 // ============================================
 
-const getInitials = (firstName: string, lastName: string): string => {
+export const getInitials = (firstName: string, lastName: string): string => {
   const first = firstName.trim()[0] ?? '';
   const last = lastName.trim()[0] ?? '';
   return `${first}${last}`.toUpperCase();
 };
 
-const dbUserToUser = (dbUser: typeof users.$inferSelect): User => {
+export const dbUserToUser = (dbUser: typeof users.$inferSelect): User => {
   return {
     userId: dbUser.id,
     appleUserId: dbUser.appleUserId,
@@ -207,7 +207,6 @@ const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   eventInvites: true,
   eventUpdates: true,
   friendRequests: true,
-  messages: true,
 };
 
 export const getNotificationPreferences = async (

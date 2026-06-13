@@ -1,40 +1,49 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { OAuthRevokedError } from '../errors';
 import {
+  ApiError,
   getCalendars,
-  getCalendarsByConnectionId,
-  postCalendars,
-  patchCalendarsByConnectionId,
-  deleteCalendarsByConnectionId,
   deleteCalendarsApple,
   deleteCalendarsGoogle,
   deleteCalendarsOutlook,
-  getCalendarsGoogleAuthUrl,
   getCalendarsGoogleCalendars,
   postCalendarsGoogleSelect,
-  postCalendarsGoogleSync,
-  getCalendarsOutlookAuthUrl,
+  getCalendarsGoogleExportAuthUrl,
   getCalendarsOutlookCalendars,
   postCalendarsOutlookSelect,
-  postCalendarsOutlookSync,
+  getCalendarsOutlookExportAuthUrl,
   getCalendarsExportStatus,
   postCalendarsExportEnable,
   postCalendarsExportDisable,
-  postCalendarsExportSync,
-  getCalendarsGoogleExportAuthUrl,
-  getCalendarsOutlookExportAuthUrl,
 } from '../api/client';
 import {
   syncSelectedCalendars,
-  resyncConnectedCalendars,
+  syncAllConnectedCalendars,
 } from '../services/calendarSync';
 
 // Query keys
 export const calendarKeys = {
   all: ['calendars'] as const,
   connections: () => [...calendarKeys.all, 'connections'] as const,
-  connection: (id: string) => [...calendarKeys.all, 'connection', id] as const,
 };
+
+/** Calendar providers connected via server-side OAuth. */
+export type OAuthCalendarProvider = 'google' | 'outlook';
+
+// Google and Outlook expose identical flows through provider-specific
+// endpoints; this table lets one hook serve both.
+const providerApi = {
+  google: {
+    fetchCalendars: getCalendarsGoogleCalendars,
+    selectCalendars: postCalendarsGoogleSelect,
+    exportAuthUrl: getCalendarsGoogleExportAuthUrl,
+  },
+  outlook: {
+    fetchCalendars: getCalendarsOutlookCalendars,
+    selectCalendars: postCalendarsOutlookSelect,
+    exportAuthUrl: getCalendarsOutlookExportAuthUrl,
+  },
+} as const;
 
 /**
  * Hook to fetch all calendar connections for the current user
@@ -43,130 +52,8 @@ export function useCalendarConnections() {
   return useQuery({
     queryKey: calendarKeys.connections(),
     queryFn: async () => {
-      const response = await getCalendars();
-      if (!response.data?.success) {
-        throw new Error('Failed to fetch calendar connections');
-      }
-      return response.data.data?.connections ?? [];
-    },
-  });
-}
-
-/**
- * Hook to fetch a specific calendar connection
- */
-export function useCalendarConnection(connectionId: string) {
-  return useQuery({
-    queryKey: calendarKeys.connection(connectionId),
-    queryFn: async () => {
-      const response = await getCalendarsByConnectionId({
-        path: { connectionId },
-      });
-      if (!response.data?.success) {
-        throw new Error(
-          response.data?.message ?? 'Failed to fetch calendar connection',
-        );
-      }
-      return response.data.data?.connection;
-    },
-    enabled: !!connectionId,
-  });
-}
-
-/**
- * Hook to create a calendar connection
- */
-export function useCreateCalendarConnection() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: {
-      provider: 'apple' | 'google' | 'outlook';
-      externalCalendarId: string;
-      calendarName: string;
-      color?: string;
-      importEnabled?: boolean;
-      exportEnabled?: boolean;
-      accessToken?: string;
-      refreshToken?: string;
-      tokenExpiresAt?: string;
-    }) => {
-      const response = await postCalendars({
-        body: data,
-      });
-      if (!response.data?.success) {
-        throw new Error(
-          response.data?.message ?? 'Failed to create calendar connection',
-        );
-      }
-      return response.data.data?.connection;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: calendarKeys.connections() });
-    },
-  });
-}
-
-/**
- * Hook to update a calendar connection
- */
-export function useUpdateCalendarConnection() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      connectionId,
-      data,
-    }: {
-      connectionId: string;
-      data: {
-        importEnabled?: boolean;
-        exportEnabled?: boolean;
-        accessToken?: string;
-        refreshToken?: string;
-        tokenExpiresAt?: string;
-      };
-    }) => {
-      const response = await patchCalendarsByConnectionId({
-        path: { connectionId },
-        body: data,
-      });
-      if (!response.data?.success) {
-        throw new Error(
-          response.data?.message ?? 'Failed to update calendar connection',
-        );
-      }
-      return response.data.data?.connection;
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: calendarKeys.connections() });
-      queryClient.invalidateQueries({
-        queryKey: calendarKeys.connection(variables.connectionId),
-      });
-    },
-  });
-}
-
-/**
- * Hook to delete a calendar connection
- */
-export function useDeleteCalendarConnection() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (connectionId: string) => {
-      const response = await deleteCalendarsByConnectionId({
-        path: { connectionId },
-      });
-      if (!response.data?.success) {
-        throw new Error(
-          response.data?.message ?? 'Failed to delete calendar connection',
-        );
-      }
-      return true;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: calendarKeys.connections() });
+      const { data } = await getCalendars();
+      return data.data?.connections ?? [];
     },
   });
 }
@@ -179,9 +66,7 @@ export function useSyncCalendars() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (selectedCalendarIds: string[]) => {
-      await syncSelectedCalendars(selectedCalendarIds);
-    },
+    mutationFn: syncSelectedCalendars,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: calendarKeys.all });
     },
@@ -190,125 +75,15 @@ export function useSyncCalendars() {
 
 /**
  * Hook to manually trigger a re-sync of already-connected calendars.
- * Re-reads events from the device for all connected Apple calendars
- * and pushes updated busy slots to the backend.
+ * Re-reads events from the device for connected Apple calendars and triggers
+ * a server-side sync for Google/Outlook.
  */
 export function useTriggerCalendarSync() {
   const queryClient = useQueryClient();
   const { data: connections } = useCalendarConnections();
 
   return useMutation({
-    mutationFn: async () => {
-      // Sync Apple calendars from device
-      const appleCalendarIds = (connections ?? [])
-        .filter((c) => c.provider === 'apple' && c.importEnabled)
-        .map((c) => c.externalCalendarId);
-
-      if (appleCalendarIds.length > 0) {
-        await resyncConnectedCalendars(appleCalendarIds);
-      }
-
-      // Sync Google calendars server-side
-      const hasGoogleConnections = (connections ?? []).some(
-        (c) => c.provider === 'google' && c.importEnabled,
-      );
-
-      if (hasGoogleConnections) {
-        await postCalendarsGoogleSync();
-      }
-
-      // Sync Outlook calendars server-side
-      const hasOutlookConnections = (connections ?? []).some(
-        (c) => c.provider === 'outlook' && c.importEnabled,
-      );
-
-      if (hasOutlookConnections) {
-        await postCalendarsOutlookSync();
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: calendarKeys.all });
-    },
-  });
-}
-
-// ============================================
-// Google Calendar Hooks
-// ============================================
-
-/**
- * Hook to fetch the Google OAuth URL.
- * Returns the URL that should be opened in a browser for the user to authorize.
- */
-export function useGoogleAuthUrl() {
-  return useQuery({
-    queryKey: [...calendarKeys.all, 'google', 'auth-url'] as const,
-    queryFn: async () => {
-      const response = await getCalendarsGoogleAuthUrl();
-      if (!response.data?.success) {
-        throw new Error('Failed to get Google auth URL');
-      }
-      return response.data.data?.authUrl ?? '';
-    },
-    enabled: false, // Only fetch on demand
-  });
-}
-
-/**
- * Hook to fetch the user's Google calendars (live from Google API).
- * Only enabled after the user has connected their Google account.
- */
-export function useGoogleCalendars(enabled = true) {
-  return useQuery({
-    queryKey: [...calendarKeys.all, 'google', 'calendars'] as const,
-    queryFn: async () => {
-      const response = await getCalendarsGoogleCalendars();
-      if (response.response?.status === 403) throw new OAuthRevokedError();
-      if (!response.data?.success) {
-        throw new Error('Failed to fetch Google calendars');
-      }
-      return response.data.data?.calendars ?? [];
-    },
-    enabled,
-  });
-}
-
-/**
- * Hook to select which Google calendars to import.
- */
-export function useSelectGoogleCalendars() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (calendarIds: string[]) => {
-      const response = await postCalendarsGoogleSelect({
-        body: { calendarIds },
-      });
-      if (!response.data?.success) {
-        throw new Error('Failed to update Google calendar selection');
-      }
-      return response.data.data?.connections ?? [];
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: calendarKeys.all });
-    },
-  });
-}
-
-/**
- * Hook to trigger a server-side sync of Google calendars.
- */
-export function useTriggerGoogleSync() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      const response = await postCalendarsGoogleSync();
-      if (!response.data?.success) {
-        throw new Error('Failed to sync Google calendars');
-      }
-      return response.data.data?.connections ?? [];
-    },
+    mutationFn: () => syncAllConnectedCalendars(connections ?? []),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: calendarKeys.all });
     },
@@ -329,10 +104,7 @@ export function useDisconnectCalendar() {
           : provider === 'google'
             ? deleteCalendarsGoogle
             : deleteCalendarsOutlook;
-      const response = await deleteFn();
-      if (!response.data?.success) {
-        throw new Error(`Failed to disconnect ${provider} Calendar`);
-      }
+      await deleteFn();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: calendarKeys.all });
@@ -341,61 +113,47 @@ export function useDisconnectCalendar() {
 }
 
 // ============================================
-// Outlook Calendar Hooks
+// Provider (Google/Outlook) Calendar Hooks
 // ============================================
 
 /**
- * Hook to fetch the Outlook OAuth URL.
- * Returns the URL that should be opened in a browser for the user to authorize.
+ * Hook to fetch the user's calendars for an OAuth provider (live from the
+ * provider's API). Only enabled after the user has connected the provider.
+ * Throws OAuthRevokedError when access has been revoked upstream.
  */
-export function useOutlookAuthUrl() {
+export function useProviderCalendars(
+  provider: OAuthCalendarProvider,
+  enabled = true,
+) {
   return useQuery({
-    queryKey: [...calendarKeys.all, 'outlook', 'auth-url'] as const,
+    queryKey: [...calendarKeys.all, provider, 'calendars'] as const,
     queryFn: async () => {
-      const response = await getCalendarsOutlookAuthUrl();
-      if (!response.data?.success) {
-        throw new Error('Failed to get Outlook auth URL');
+      try {
+        const { data } = await providerApi[provider].fetchCalendars();
+        return data.data?.calendars ?? [];
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 403) {
+          throw new OAuthRevokedError();
+        }
+        throw error;
       }
-      return response.data.data?.authUrl ?? '';
-    },
-    enabled: false, // Only fetch on demand
-  });
-}
-
-/**
- * Hook to fetch the user's Outlook calendars (live from Microsoft Graph API).
- * Only enabled after the user has connected their Outlook account.
- */
-export function useOutlookCalendars(enabled = true) {
-  return useQuery({
-    queryKey: [...calendarKeys.all, 'outlook', 'calendars'] as const,
-    queryFn: async () => {
-      const response = await getCalendarsOutlookCalendars();
-      if (response.response?.status === 403) throw new OAuthRevokedError();
-      if (!response.data?.success) {
-        throw new Error('Failed to fetch Outlook calendars');
-      }
-      return response.data.data?.calendars ?? [];
     },
     enabled,
   });
 }
 
 /**
- * Hook to select which Outlook calendars to import.
+ * Hook to select which of an OAuth provider's calendars to import.
  */
-export function useSelectOutlookCalendars() {
+export function useSelectProviderCalendars(provider: OAuthCalendarProvider) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (calendarIds: string[]) => {
-      const response = await postCalendarsOutlookSelect({
+      const { data } = await providerApi[provider].selectCalendars({
         body: { calendarIds },
       });
-      if (!response.data?.success) {
-        throw new Error('Failed to update Outlook calendar selection');
-      }
-      return response.data.data?.connections ?? [];
+      return data.data?.connections ?? [];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: calendarKeys.all });
@@ -404,22 +162,17 @@ export function useSelectOutlookCalendars() {
 }
 
 /**
- * Hook to trigger a server-side sync of Outlook calendars.
+ * Hook to get an OAuth provider's consent URL with export (write) scope.
+ * Use when the user wants to enable calendar export. Fetched on demand only.
  */
-export function useTriggerOutlookSync() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      const response = await postCalendarsOutlookSync();
-      if (!response.data?.success) {
-        throw new Error('Failed to sync Outlook calendars');
-      }
-      return response.data.data?.connections ?? [];
+export function useProviderExportAuthUrl(provider: OAuthCalendarProvider) {
+  return useQuery({
+    queryKey: [...calendarKeys.all, provider, 'export-auth-url'] as const,
+    queryFn: async () => {
+      const { data } = await providerApi[provider].exportAuthUrl();
+      return data.data?.authUrl ?? '';
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: calendarKeys.all });
-    },
+    enabled: false,
   });
 }
 
@@ -439,11 +192,8 @@ export function useExportStatus() {
   return useQuery({
     queryKey: exportKeys.status(),
     queryFn: async () => {
-      const response = await getCalendarsExportStatus();
-      if (!response.data?.success) {
-        throw new Error('Failed to fetch export status');
-      }
-      return response.data.data?.statuses ?? [];
+      const { data } = await getCalendarsExportStatus();
+      return data.data?.statuses ?? [];
     },
   });
 }
@@ -451,20 +201,15 @@ export function useExportStatus() {
 /**
  * Hook to enable calendar export for a provider.
  * Creates the "Gather" secondary calendar and performs an initial sync.
- * Call `markExportScope` first to ensure the provider's tokens have write access.
+ * The provider's tokens must already include write scope.
  */
 export function useEnableExport() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (provider: 'google' | 'outlook' | 'apple') => {
-      const response = await postCalendarsExportEnable({ body: { provider } });
-      if (!response.data?.success) {
-        throw new Error(
-          response.data?.message ?? 'Failed to enable calendar export',
-        );
-      }
-      return response.data.data?.status;
+      const { data } = await postCalendarsExportEnable({ body: { provider } });
+      return data.data?.status;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: exportKeys.all });
@@ -486,72 +231,10 @@ export function useDisableExport() {
       provider: 'google' | 'outlook' | 'apple';
       deleteCalendar?: boolean;
     }) => {
-      const response = await postCalendarsExportDisable({
-        body: { provider, deleteCalendar },
-      });
-      if (!response.data?.success) {
-        throw new Error(
-          response.data?.message ?? 'Failed to disable calendar export',
-        );
-      }
+      await postCalendarsExportDisable({ body: { provider, deleteCalendar } });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: exportKeys.all });
     },
-  });
-}
-
-/**
- * Hook to trigger a full re-sync of exported events.
- */
-export function useTriggerExportSync() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      const response = await postCalendarsExportSync();
-      if (!response.data?.success) {
-        throw new Error('Failed to trigger export sync');
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: exportKeys.all });
-    },
-  });
-}
-
-/**
- * Hook to get the Google OAuth URL with export (write) scope.
- * Use this when the user wants to enable Google calendar export.
- */
-export function useGoogleExportAuthUrl() {
-  return useQuery({
-    queryKey: [...calendarKeys.all, 'google', 'export-auth-url'] as const,
-    queryFn: async () => {
-      const response = await getCalendarsGoogleExportAuthUrl();
-      if (!response.data?.success) {
-        throw new Error('Failed to get Google export auth URL');
-      }
-      return response.data.data?.authUrl ?? '';
-    },
-    enabled: false,
-  });
-}
-
-/**
- * Hook to get the Outlook OAuth URL with export (write) scope.
- * Use this when the user wants to enable Outlook calendar export.
- */
-export function useOutlookExportAuthUrl() {
-  return useQuery({
-    queryKey: [...calendarKeys.all, 'outlook', 'export-auth-url'] as const,
-    queryFn: async () => {
-      const response = await getCalendarsOutlookExportAuthUrl();
-      if (!response.data?.success) {
-        throw new Error('Failed to get Outlook export auth URL');
-      }
-      return response.data.data?.authUrl ?? '';
-    },
-    enabled: false,
   });
 }

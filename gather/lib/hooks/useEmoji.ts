@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import debounce from 'lodash.debounce';
+import { debounce } from '../utils';
 import { apple } from '@react-native-ai/apple';
 import { generateText } from 'ai';
 import { postEmojiGenerate } from '../api/client';
@@ -24,11 +24,12 @@ Rules:
     return emoji;
   } catch {
     // Apple Intelligence unavailable (e.g. device older than iPhone 15 Pro) — fall back to backend
-    const response = await postEmojiGenerate({ body: { text } });
-    if (response.data?.success) {
-      return response.data.data.emoji;
+    try {
+      const { data } = await postEmojiGenerate({ body: { text } });
+      return data.data.emoji;
+    } catch {
+      return '✨';
     }
-    return '✨';
   }
 }
 

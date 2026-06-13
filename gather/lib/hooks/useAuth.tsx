@@ -79,15 +79,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Try to refresh user data
         try {
-          const response = await getAuthMe();
-          if (response.data?.success) {
-            setup401Interceptor(handleUnauthorized);
-            setState({
-              user: response.data.data.user,
-              status: 'authenticated',
-            });
-            return;
-          }
+          const { data } = await getAuthMe();
+          setup401Interceptor(handleUnauthorized);
+          setState({ user: data.data.user, status: 'authenticated' });
+          return;
         } catch (error) {
           console.error('Failed to refresh user:', error);
         }
@@ -121,14 +116,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = useCallback(async () => {
     try {
-      const response = await getAuthMe();
-      if (response.data?.success) {
-        setState((prev) => ({
-          ...prev,
-          user: response.data.data.user,
-          status: 'authenticated',
-        }));
-      }
+      const { data } = await getAuthMe();
+      setState((prev) => ({
+        ...prev,
+        user: data.data.user,
+        status: 'authenticated',
+      }));
     } catch (error) {
       console.error('Failed to refresh user:', error);
       // Token might be invalid, clear it in parallel
@@ -181,26 +174,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
-      if (response.data?.success) {
-        const { user, token, isNewUser } = response.data.data;
+      const { user, token, isNewUser } = response.data.data;
 
-        // Store the token and Apple user ID
-        await Promise.all([
-          SecureStore.setItemAsync(AUTH_TOKEN_KEY, token),
-          SecureStore.setItemAsync(APPLE_USER_ID_KEY, credential.user),
-        ]);
-        setAuthToken(token);
-        setup401Interceptor(handleUnauthorized);
+      // Store the token and Apple user ID
+      await Promise.all([
+        SecureStore.setItemAsync(AUTH_TOKEN_KEY, token),
+        SecureStore.setItemAsync(APPLE_USER_ID_KEY, credential.user),
+      ]);
+      setAuthToken(token);
+      setup401Interceptor(handleUnauthorized);
 
-        setState({
-          user,
-          status: 'authenticated',
-        });
+      setState({
+        user,
+        status: 'authenticated',
+      });
 
-        return { isNewUser: isNewUser ?? false };
-      } else {
-        throw new Error('Failed to authenticate with backend');
-      }
+      return { isNewUser: isNewUser ?? false };
     } catch (error) {
       console.error('Sign in with Apple failed:', error);
       setState((prev) => ({ ...prev, status: 'unauthenticated' }));

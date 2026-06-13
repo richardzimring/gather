@@ -6,36 +6,53 @@ export * from './generated/types.gen';
 export * from './generated/sdk.gen';
 export { client };
 
-// Configure the client with base URL from environment variables
-client.setConfig({
-  baseUrl: API_BASE_URL,
-});
-
 /**
- * Set the authorization token for API requests
+ * Thrown for non-2xx API responses (the generated client is configured with
+ * throwOnError). Carries the backend's error envelope so UI code can show
+ * server-provided messages.
  */
-export function setAuthToken(token: string | null) {
-  if (token) {
-    client.setConfig({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-  } else {
-    client.setConfig({
-      headers: {
-        Authorization: undefined,
-      },
-    });
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly error?: string,
+  ) {
+    super(message);
+    this.name = 'ApiError';
   }
 }
 
+let authToken: string | null = null;
+
 /**
- * Get the current base URL
+ * Set the authorization token attached to authenticated API requests.
  */
-export function getBaseUrl() {
-  return API_BASE_URL;
+export function setAuthToken(token: string | null) {
+  authToken = token;
 }
+
+client.setConfig({
+  baseUrl: API_BASE_URL,
+  // Generated SDK calls declare their bearer security; the client calls this
+  // to resolve the token per request.
+  auth: () => authToken ?? undefined,
+});
+
+// Normalize thrown non-2xx payloads (the backend's error envelope) into real
+// Error instances so `err instanceof Error` and `err.message` work everywhere.
+client.interceptors.error.use((error, response) => {
+  if (error instanceof Error) return error;
+  const status = response?.status ?? 0;
+  if (error && typeof error === 'object') {
+    const envelope = error as { error?: string; message?: string };
+    return new ApiError(
+      envelope.message ?? envelope.error ?? `Request failed (${status})`,
+      status,
+      envelope.error,
+    );
+  }
+  return new ApiError(String(error), status);
+});
 
 let interceptorId: number | null = null;
 

@@ -1,11 +1,6 @@
 import { eq, and, inArray } from 'drizzle-orm';
 import { db, calendarConnections, calendarEventsCache } from '../db';
-import type {
-  CalendarConnection,
-  CreateCalendarConnection,
-  UpdateCalendarConnection,
-  SyncCalendars,
-} from '../types';
+import type { CalendarConnection, SyncCalendars } from '../types';
 import { getCalendarProvider, OAuthRevokedError } from './calendar-providers';
 
 // ============================================
@@ -44,112 +39,6 @@ export const getCalendarConnections = async (
     .orderBy(calendarConnections.createdAt);
 
   return connections.map(dbConnectionToCalendarConnection);
-};
-
-export const getCalendarConnection = async (
-  connectionId: string,
-  userId: string,
-): Promise<CalendarConnection | null> => {
-  const [connection] = await db
-    .select()
-    .from(calendarConnections)
-    .where(
-      and(
-        eq(calendarConnections.id, connectionId),
-        eq(calendarConnections.userId, userId),
-      ),
-    )
-    .limit(1);
-
-  return connection ? dbConnectionToCalendarConnection(connection) : null;
-};
-
-export const createCalendarConnection = async (
-  userId: string,
-  input: CreateCalendarConnection,
-): Promise<CalendarConnection> => {
-  const [newConnection] = await db
-    .insert(calendarConnections)
-    .values({
-      userId,
-      provider: input.provider,
-      externalCalendarId: input.externalCalendarId,
-      calendarName: input.calendarName,
-      color: input.color,
-      importEnabled: input.importEnabled ?? true,
-      exportEnabled: input.exportEnabled ?? false,
-      accessToken: input.accessToken,
-      refreshToken: input.refreshToken,
-      tokenExpiresAt: input.tokenExpiresAt
-        ? new Date(input.tokenExpiresAt)
-        : null,
-    })
-    .returning();
-
-  if (!newConnection) {
-    throw new Error('Failed to create calendar connection');
-  }
-
-  return dbConnectionToCalendarConnection(newConnection);
-};
-
-export const updateCalendarConnection = async (
-  connectionId: string,
-  userId: string,
-  updates: UpdateCalendarConnection,
-): Promise<{
-  success: boolean;
-  connection?: CalendarConnection;
-  message?: string;
-}> => {
-  const existing = await getCalendarConnection(connectionId, userId);
-
-  if (!existing) {
-    return { success: false, message: 'Calendar connection not found' };
-  }
-
-  const updateData: Partial<typeof calendarConnections.$inferInsert> = {};
-
-  if (updates.importEnabled !== undefined) {
-    updateData.importEnabled = updates.importEnabled;
-  }
-  if (updates.exportEnabled !== undefined) {
-    updateData.exportEnabled = updates.exportEnabled;
-  }
-  if (updates.accessToken !== undefined) {
-    updateData.accessToken = updates.accessToken;
-  }
-  if (updates.refreshToken !== undefined) {
-    updateData.refreshToken = updates.refreshToken;
-  }
-  if (updates.tokenExpiresAt !== undefined) {
-    updateData.tokenExpiresAt = new Date(updates.tokenExpiresAt);
-  }
-
-  await db
-    .update(calendarConnections)
-    .set(updateData)
-    .where(eq(calendarConnections.id, connectionId));
-
-  const updatedConnection = await getCalendarConnection(connectionId, userId);
-  return { success: true, connection: updatedConnection ?? undefined };
-};
-
-export const deleteCalendarConnection = async (
-  connectionId: string,
-  userId: string,
-): Promise<{ success: boolean; message?: string }> => {
-  const existing = await getCalendarConnection(connectionId, userId);
-
-  if (!existing) {
-    return { success: false, message: 'Calendar connection not found' };
-  }
-
-  await db
-    .delete(calendarConnections)
-    .where(eq(calendarConnections.id, connectionId));
-
-  return { success: true };
 };
 
 /**

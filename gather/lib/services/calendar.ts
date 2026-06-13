@@ -12,16 +12,6 @@ const GATHER_CALENDAR_TITLE = 'Gather';
 const GATHER_CALENDAR_ID_KEY = '@gather/apple_export_calendar_id';
 const EXPORTED_EVENTS_KEY = '@gather/apple_exported_events';
 
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  startDate: Date;
-  endDate: Date;
-  location?: string;
-  notes?: string;
-  calendarId: string;
-}
-
 /**
  * Request calendar permissions from the user.
  * Returns true if granted, false otherwise.
@@ -39,76 +29,6 @@ export async function hasCalendarPermissions(): Promise<boolean> {
   return status === 'granted';
 }
 
-/**
- * Get the default calendar for adding events.
- * On iOS, this gets the default calendar for new events.
- */
-export async function getDefaultCalendar(): Promise<string | null> {
-  const calendars = await Calendar.getCalendarsAsync(
-    Calendar.EntityTypes.EVENT,
-  );
-
-  if (Platform.OS === 'ios') {
-    // Try to find the default calendar
-    const defaultCalendar = calendars.find(
-      (cal) => cal.allowsModifications && cal.source.type === 'local',
-    );
-    if (defaultCalendar) return defaultCalendar.id;
-
-    // Fall back to any modifiable calendar
-    const modifiableCalendar = calendars.find((cal) => cal.allowsModifications);
-    return modifiableCalendar?.id ?? null;
-  }
-
-  // For other platforms
-  const modifiableCalendar = calendars.find((cal) => cal.allowsModifications);
-  return modifiableCalendar?.id ?? null;
-}
-
-/**
- * Get all calendars available on the device.
- */
-export async function getCalendars() {
-  const calendars = await Calendar.getCalendarsAsync(
-    Calendar.EntityTypes.EVENT,
-  );
-  return calendars.map((cal) => ({
-    id: cal.id,
-    title: cal.title,
-    color: cal.color,
-    allowsModifications: cal.allowsModifications,
-    source: cal.source.name,
-  }));
-}
-
-/**
- * Get all events from all calendars within a date range.
- * Useful for determining "busy" times.
- */
-export async function getAllEvents(
-  startDate: Date,
-  endDate: Date,
-): Promise<CalendarEvent[]> {
-  const calendars = await Calendar.getCalendarsAsync(
-    Calendar.EntityTypes.EVENT,
-  );
-  const calendarIds = calendars.map((cal) => cal.id);
-
-  if (calendarIds.length === 0) return [];
-
-  const events = await Calendar.getEventsAsync(calendarIds, startDate, endDate);
-
-  return events.map((event) => ({
-    id: event.id,
-    title: event.title,
-    startDate: new Date(event.startDate),
-    endDate: new Date(event.endDate),
-    location: event.location ?? undefined,
-    notes: event.notes ?? undefined,
-    calendarId: event.calendarId,
-  }));
-}
-
 // ============================================
 // Gather Calendar (dedicated secondary calendar for export)
 // ============================================
@@ -116,7 +36,7 @@ export async function getAllEvents(
 /**
  * Load the persisted map of gatherEventId → appleCalendarEventId.
  */
-export async function loadExportedEvents(): Promise<Record<string, string>> {
+async function loadExportedEvents(): Promise<Record<string, string>> {
   try {
     const raw = await AsyncStorage.getItem(EXPORTED_EVENTS_KEY);
     return raw ? (JSON.parse(raw) as Record<string, string>) : {};
@@ -231,89 +151,6 @@ function buildExportNotes(gatherEvent: Event, userId?: string): string {
 }
 
 /**
- * Export a Gather event to the dedicated "Gather" Apple calendar.
- * Tracks the mapping so we can update/delete later.
- * Returns the device calendar event ID.
- */
-export async function exportEventToGatherCalendar(
-  gatherEvent: Event,
-  userId?: string,
-): Promise<string | null> {
-  try {
-    const calendarId = await getOrCreateGatherCalendar();
-    if (!calendarId) return null;
-
-    const map = await loadExportedEvents();
-
-    // Build event details
-    const locationParts = [
-      gatherEvent.location,
-      gatherEvent.locationAddress,
-    ].filter(Boolean);
-    const details: Partial<Calendar.Event> = {
-      title: gatherEvent.title,
-      startDate: new Date(gatherEvent.startTime),
-      endDate: new Date(gatherEvent.endTime),
-      location: locationParts.length > 0 ? locationParts.join(', ') : null,
-      notes: buildExportNotes(gatherEvent, userId),
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      alarms: [{ relativeOffset: -60 }],
-    };
-
-    const existingDeviceId = map[gatherEvent.eventId];
-    if (existingDeviceId) {
-      // Update existing event; if it's gone on device, fall through to recreate
-      try {
-        await Calendar.updateEventAsync(existingDeviceId, details);
-        await saveExportedEvents(map);
-        return existingDeviceId;
-      } catch {
-        // Event was deleted on device — fall through to recreate
-      }
-    }
-
-    // Create new event
-    const eventId = await Calendar.createEventAsync(calendarId, details);
-    map[gatherEvent.eventId] = eventId;
-    await saveExportedEvents(map);
-    return eventId;
-  } catch (error) {
-    console.error(
-      '[calendar] Failed to export event to Gather calendar:',
-      error,
-    );
-    return null;
-  }
-}
-
-/**
- * Remove an exported Gather event from the device calendar.
- */
-export async function removeEventFromGatherCalendar(
-  gatherEventId: string,
-): Promise<void> {
-  try {
-    const map = await loadExportedEvents();
-    const deviceEventId = map[gatherEventId];
-    if (!deviceEventId) return;
-
-    try {
-      await Calendar.deleteEventAsync(deviceEventId);
-    } catch {
-      // Event already gone on device — that's fine
-    }
-
-    delete map[gatherEventId];
-    await saveExportedEvents(map);
-  } catch (error) {
-    console.error(
-      '[calendar] Failed to remove event from Gather calendar:',
-      error,
-    );
-  }
-}
-
-/**
  * Atomically sync a set of Gather events to the dedicated Apple "Gather" calendar.
  *
  * Loads the exported-events map once, removes events that are no longer eligible,
@@ -388,52 +225,5 @@ export async function batchSyncGatherCalendar(
     await saveExportedEvents(map);
   } catch (error) {
     console.error('[calendar] batchSyncGatherCalendar failed:', error);
-  }
-}
-
-/**
- * Check whether a given Gather event has already been exported to the device calendar.
- */
-export async function isEventExportedToCalendar(
-  gatherEventId: string,
-): Promise<boolean> {
-  const map = await loadExportedEvents();
-  return gatherEventId in map;
-}
-
-/**
- * Create an event in the user's calendar from a Gather event.
- * Returns the calendar event ID if successful.
- */
-export async function exportEventToCalendar(
-  gatherEvent: Event,
-  calendarId?: string,
-  userId?: string,
-): Promise<string | null> {
-  try {
-    const targetCalendarId = calendarId ?? (await getDefaultCalendar());
-    if (!targetCalendarId) {
-      console.error('No calendar available for creating events');
-      return null;
-    }
-
-    const locationParts = [
-      gatherEvent.location,
-      gatherEvent.locationAddress,
-    ].filter(Boolean);
-    const eventId = await Calendar.createEventAsync(targetCalendarId, {
-      title: gatherEvent.title,
-      startDate: new Date(gatherEvent.startTime),
-      endDate: new Date(gatherEvent.endTime),
-      location: locationParts.length > 0 ? locationParts.join(', ') : undefined,
-      notes: buildExportNotes(gatherEvent, userId),
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      alarms: [{ relativeOffset: -60 }],
-    });
-
-    return eventId;
-  } catch (error) {
-    console.error('Failed to export event to calendar:', error);
-    return null;
   }
 }

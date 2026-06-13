@@ -12,32 +12,19 @@ export * from './useEvents';
 export {
   calendarKeys as calendarConnectionKeys,
   useCalendarConnections,
-  useCalendarConnection,
-  useCreateCalendarConnection,
-  useUpdateCalendarConnection,
-  useDeleteCalendarConnection,
   useSyncCalendars,
   useTriggerCalendarSync,
-  // Provider Calendar hooks
   useDisconnectCalendar,
-  // Google Calendar hooks
-  useGoogleAuthUrl,
-  useGoogleCalendars,
-  useSelectGoogleCalendars,
-  useTriggerGoogleSync,
-  // Outlook Calendar hooks
-  useOutlookAuthUrl,
-  useOutlookCalendars,
-  useSelectOutlookCalendars,
-  useTriggerOutlookSync,
+  // Provider (Google/Outlook) hooks
+  type OAuthCalendarProvider,
+  useProviderCalendars,
+  useSelectProviderCalendars,
+  useProviderExportAuthUrl,
   // Calendar Export hooks
   exportKeys,
   useExportStatus,
   useEnableExport,
   useDisableExport,
-  useTriggerExportSync,
-  useGoogleExportAuthUrl,
-  useOutlookExportAuthUrl,
 } from './useCalendars';
 
 // Notifications
@@ -69,12 +56,3 @@ export { usePendingInvite } from './usePendingInvite';
 // Utilities
 export * from './useRefresh';
 export { useScrollGradient } from './useScrollGradient';
-
-// Device calendar services
-export {
-  calendarKeys,
-  useCalendarPermissions,
-  useCalendars,
-  useCalendarEvents,
-  useExportToCalendar,
-} from './useCalendar';

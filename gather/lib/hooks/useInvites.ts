@@ -9,19 +9,15 @@ import { eventsKeys } from './useEvents';
 import { friendsKeys } from './useFriends';
 
 /**
- * Hook to create a pending invite for someone not yet on Gather. Returns the
- * shareable link and a prefilled message to send from the user's own device.
+ * Hook to create a pending invite for someone not yet on Gather. Returns invite link.
  */
 export function useCreateInvite() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (body: CreateInvite) => {
-      const response = await postInvites({ body });
-      if (!response.data?.success) {
-        throw new Error(response.data?.message ?? 'Failed to create invite');
-      }
-      return response.data.data;
+      const { data } = await postInvites({ body });
+      return data.data;
     },
     onSuccess: (_data, variables) => {
       if (variables.type === 'event' && variables.eventId) {
@@ -42,11 +38,8 @@ export function useRedeemInvite() {
 
   return useMutation({
     mutationFn: async (token: string) => {
-      const response = await postInvitesByTokenRedeem({ path: { token } });
-      if (!response.data?.success) {
-        throw new Error(response.data?.message ?? 'Failed to redeem invite');
-      }
-      return response.data.data;
+      const { data } = await postInvitesByTokenRedeem({ path: { token } });
+      return data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: eventsKeys.all });

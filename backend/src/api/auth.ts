@@ -4,7 +4,7 @@ import {
   verifyAppleToken,
   authMiddleware,
 } from '../middleware/hono';
-import { UserSchema, ErrorResponseSchema } from '../types';
+import { UserSchema, jsonContent, errorResponses, jsonBody } from '../types';
 import * as userService from '../services/users';
 import { notifyOwnerOfNewSignup } from '../services/owner-notify';
 
@@ -38,7 +38,7 @@ const AppleCallbackSchema = z
             nickname: z.string().optional(),
           })
           .optional(),
-        email: z.string().email().optional(),
+        email: z.email().optional(),
       })
       .optional(),
   })
@@ -76,48 +76,11 @@ const appleCallbackRoute = createRoute({
   summary: 'Apple Sign In callback',
   description: 'Handle Apple Sign In callback and create/update user',
   request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: AppleCallbackSchema,
-        },
-      },
-      required: true,
-    },
+    body: jsonBody(AppleCallbackSchema),
   },
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: AuthResponseSchema,
-        },
-      },
-      description: 'Authentication successful',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Invalid request',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Invalid identity token',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(AuthResponseSchema, 'Authentication successful'),
+    ...errorResponses(400, 401, 500),
   },
 });
 
@@ -129,38 +92,8 @@ const getMeRoute = createRoute({
   description: 'Get the currently authenticated user',
   security: [{ BearerAuth: [] }],
   responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: AuthMeResponseSchema,
-        },
-      },
-      description: 'User retrieved successfully',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized',
-    },
-    404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'User not found',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
+    200: jsonContent(AuthMeResponseSchema, 'User retrieved successfully'),
+    ...errorResponses(401, 404, 500),
   },
 });
 
@@ -171,82 +104,70 @@ const getMeRoute = createRoute({
 app.openapi(appleCallbackRoute, async (c) => {
   const { identityToken, user: firstTimeUser } = c.req.valid('json');
 
-  try {
-    // Verify the Apple identity token
-    const payload = await verifyAppleToken(identityToken);
+  // Verify the Apple identity token
+  const payload = await verifyAppleToken(identityToken);
 
-    if (!payload) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Unauthorized',
-          message: 'Invalid or expired identity token',
-        },
-        401,
-      );
-    }
-
-    const appleUserId = payload.sub;
-    const userEmail = payload.email;
-
-    if (!userEmail) {
-      return c.json(
-        {
-          success: false as const,
-          error: 'Bad Request',
-          message:
-            'Email is required but was not provided by Apple or in the request',
-        },
-        400,
-      );
-    }
-
-    // Check if user already exists
-    let user = await userService.getUserByAppleUserId(appleUserId);
-    let isNewUser = false;
-
-    if (!user) {
-      const firstName =
-        firstTimeUser?.name?.firstName ?? userEmail.split('@')[0] ?? 'User';
-      const lastName = firstTimeUser?.name?.lastName ?? '';
-
-      user = await userService.createUser({
-        appleUserId,
-        email: userEmail,
-        firstName,
-        lastName,
-      });
-      isNewUser = true;
-      void notifyOwnerOfNewSignup(user);
-    }
-
-    // Return the identity token as the session token
-    // The middleware will verify this token on subsequent requests
-    return c.json(
-      {
-        success: true as const,
-        data: {
-          user,
-          token: identityToken,
-          isNewUser,
-        },
-        message: isNewUser
-          ? 'User created successfully'
-          : 'User retrieved successfully',
-      },
-      200,
-    );
-  } catch (error) {
-    console.error('Error in Apple callback:', error);
+  if (!payload) {
     return c.json(
       {
         success: false as const,
-        error: 'Internal Server Error',
-        message: 'Failed to process authentication',
+        error: 'Unauthorized',
+        message: 'Invalid or expired identity token',
       },
-      500,
+      401,
     );
   }
+
+  const appleUserId = payload.sub;
+  const userEmail = payload.email;
+
+  if (!userEmail) {
+    return c.json(
+      {
+        success: false as const,
+        error: 'Bad Request',
+        message:
+          'Email is required but was not provided by Apple or in the request',
+      },
+      400,
+    );
+  }
+
+  // Check if user already exists
+  let user = await userService.getUserByAppleUserId(appleUserId);
+  let isNewUser = false;
+
+  if (!user) {
+    const firstName =
+      firstTimeUser?.name?.firstName ?? userEmail.split('@')[0] ?? 'User';
+    const lastName = firstTimeUser?.name?.lastName ?? '';
+
+    user = await userService.createUser({
+      appleUserId,
+      email: userEmail,
+      firstName,
+      lastName,
+    });
+    isNewUser = true;
+    void notifyOwnerOfNewSignup(user);
+  }
+
+  // Return the identity token as the session token
+  // The middleware will verify this token on subsequent requests
+  return c.json(
+    {
+      success: true as const,
+      data: {
+        user,
+        token: identityToken,
+        isNewUser,
+      },
+      message: isNewUser
+        ? 'User created successfully'
+        : 'User retrieved successfully',
+    },
+    200,
+  );
 });
 
 app.openapi(getMeRoute, async (c) => {
